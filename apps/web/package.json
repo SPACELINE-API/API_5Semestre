@@ -17,7 +17,8 @@
     "@tanstack/react-router": "^1.170.33",
     "@tanstack/react-router-devtools": "^1.167.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

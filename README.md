@@ -208,19 +208,19 @@ pnpm dev:server
 Backend:
 
 ```txt
-http://localhost:8000
+http://localhost:3333
 ```
 
 Health check:
 
 ```txt
-http://localhost:8000/health
+http://localhost:3333/health
 ```
 
 Documentação automática da API:
 
 ```txt
-http://localhost:8000/docs
+http://localhost:3333/docs
 ```
 
 </details>
