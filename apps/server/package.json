@@ -8,6 +8,8 @@
     "lint": "ruff check .",
     "lint:fix": "ruff check . --fix",
     "format": "ruff format .",
-    "format:check": "ruff format --check"
+    "format:check": "ruff format --check",
+    "test": "python -m pytest"
+    
   }
 }
