@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "pnpm --filter @api-5semestre/server install:python",
+    "postinstall": "pnpm --filter @api/server install:python",
     "dev": "pnpm -r --parallel dev",
-    "dev:web": "pnpm --filter @api-5semestre/web dev",
-    "dev:server": "pnpm --filter @api-5semestre/server dev",
+    "dev:web": "pnpm --filter @api/web dev",
+    "dev:server": "pnpm --filter @api/server dev",
     "prepare": "husky"
   },
   "devDependencies": {

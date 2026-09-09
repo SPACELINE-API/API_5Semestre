@@ -34,8 +34,11 @@ dist/
 build/
 .vite/
 coverage/
+*.tsbuildinfo
 
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+!.vscode/
+!.vscode/*.code-snippets

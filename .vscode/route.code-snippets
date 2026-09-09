@@ -1,0 +1,24 @@
+{
+  "TanStack file route": {
+    "scope": "typescriptreact",
+    "prefix": ["route", "tsr-route"],
+    "description": "Create a TanStack Router file route with AppLayout.",
+    "body": [
+      "import { createFileRoute } from \"@tanstack/react-router\";",
+      "import { AppLayout } from \"../../app/layouts/AppLayout\";",
+      "",
+      "export const Route = createFileRoute(\"/${1:auth/login}\")({",
+      "  component: RouteComponent,",
+      "});",
+      "",
+      "function RouteComponent() {",
+      "  return (",
+      "    <AppLayout>",
+      "      ${2}",
+      "    </AppLayout>",
+      "  );",
+      "}",
+      "$0"
+    ]
+  }
+}
