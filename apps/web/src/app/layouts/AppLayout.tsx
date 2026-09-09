@@ -1,11 +1,6 @@
-import { Outlet } from "@tanstack/react-router";
-import { ReactNode } from "react";
+import { Outlet } from '@tanstack/react-router';
 
-interface AppLayoutProps{
-  children: ReactNode
-}
-
-export function AppLayout({children}: AppLayoutProps) {
+export function AppLayout() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <aside className="fixed inset-y-0 left-0 w-64 border-r bg-white">
@@ -14,10 +9,7 @@ export function AppLayout({children}: AppLayoutProps) {
         </div>
 
         <nav className="space-y-1 p-4">
-          <a
-            href="/"
-            className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100"
-          >
+          <a href="/" className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100">
             Dashboard
           </a>
 
@@ -36,7 +28,7 @@ export function AppLayout({children}: AppLayoutProps) {
         </header>
 
         <main className="p-6">
-          <Outlet />{children}
+          <Outlet />
         </main>
       </div>
     </div>

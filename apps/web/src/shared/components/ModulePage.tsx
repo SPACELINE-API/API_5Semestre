@@ -1,4 +1,4 @@
-import type { SprintModule } from "../types/module";
+import type { SprintModule } from '../types/module';
 
 type ModulePageProps = {
   module: SprintModule;

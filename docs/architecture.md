@@ -1,6 +1,7 @@
 # Arquitetura do Sistema
 
 ## Visão Geral
+
 Este documento descreve a arquitetura do projeto Spaceline, um sistema voltado para a gestão operacional de serviços de tradução, abrangendo desde o cadastro de clientes e recursos (tradutores), até o fluxo de orçamentos, ordens de serviço, alocação de tarefas, suporte via agente inteligente e faturamento.
 
 O projeto adota uma arquitetura de monolito Modular gerenciado via `pnpm`, dividindo as responsabilidades em duas aplicações principais: Backend (`apps/server`) e Frontend (`apps/web`).
@@ -8,7 +9,9 @@ O projeto adota uma arquitetura de monolito Modular gerenciado via `pnpm`, divid
 ---
 
 ## Estrutura do monolito
+
 A raiz do projeto contém as configurações globais de integração e padronização:
+
 - `pnpm-workspace.yaml`: Gerenciamento dos múltiplos pacotes (workspaces).
 - `.husky/` e `commitlint.config.js`: Padronização e validação de commits.
 - `docker-compose.yml`: Orquestração da infraestrutura local de desenvolvimento.
@@ -20,6 +23,7 @@ A raiz do projeto contém as configurações globais de integração e padroniza
 O backend é desenvolvido em **Python** e adota uma arquitetura modular orientada a domínios de negócio. Cada módulo encapsula suas próprias regras, modelos e rotas, promovendo baixo acoplamento e alta coesão estrutural e de dados.
 
 ### Estrutura de Diretórios
+
 Os domínios estão localizados em `apps/server/app/modules/`. O fluxo de requisição segue uma arquitetura em camadas padrão:
 
 1. **Routes (`routes.py`)**: Camada de exposição da API. Responsável por receber as requisições HTTP e roteá-las.
@@ -30,6 +34,7 @@ Os domínios estão localizados em `apps/server/app/modules/`. O fluxo de requis
 6. **Tests (`tests/`)**: Testes isolados por domínio.
 
 ### Principais Módulos de Domínio
+
 - **auth**: Responsável exclusivamente pela autenticação, controle e expiração de sessões (incluindo logout automático por inatividade) e validação de tokens de segurança.
 - **users**: Focado no gerenciamento das contas de usuários do sistema, associação de perfis de acesso (atendimento, projetos, financeiro, recursos externos) e definição de suas respectivas permissões.
 - **clients**: Concentra as regras de negócio e persistência das empresas clientes, mantendo o controle de status (ativo/inativo) e dados básicos para relacionamento comercial.
@@ -48,6 +53,7 @@ Os domínios estão localizados em `apps/server/app/modules/`. O fluxo de requis
 O frontend é uma aplicação Single Page Application (SPA) desenvolvida com **React**, **TypeScript** e **Vite**.
 
 ### Stack Tecnológica
+
 - **Linguagem/Framework**: React + TypeScript.
 - **Build Tool**: Vite.
 - **Roteamento**: TanStack Router (`routeTree.gen.ts`, `router.tsx`), oferecendo rotas tipadas de forma segura.
@@ -56,6 +62,7 @@ O frontend é uma aplicação Single Page Application (SPA) desenvolvida com **R
 - **Testes**: Playwright configurado (`playwright.config.ts`) para testes End-to-End (E2E).
 
 ### Estrutura de Diretórios
+
 A estrutura do frontend reflete a organização modular do backend, localizada em `apps/web/src/modules/`. Cada módulo de feature contém:
 
 - **components/**: Componentes visuais específicos da feature.

@@ -1,4 +1,4 @@
-const fallbackApiUrl = "http://localhost:8000";
+const fallbackApiUrl = 'http://localhost:8000';
 
 export const apiUrl = import.meta.env.VITE_API_URL || fallbackApiUrl;
 
