@@ -3,11 +3,11 @@
 ## Visão Geral
 Este documento descreve a arquitetura do projeto Spaceline, um sistema voltado para a gestão operacional de serviços de tradução, abrangendo desde o cadastro de clientes e recursos (tradutores), até o fluxo de orçamentos, ordens de serviço, alocação de tarefas, suporte via agente inteligente e faturamento.
 
-O projeto adota uma arquitetura de Monorepo Modular gerenciado via `pnpm`, dividindo as responsabilidades em duas aplicações principais: Backend (`apps/server`) e Frontend (`apps/web`).
+O projeto adota uma arquitetura de monolito Modular gerenciado via `pnpm`, dividindo as responsabilidades em duas aplicações principais: Backend (`apps/server`) e Frontend (`apps/web`).
 
 ---
 
-## Estrutura do Monorepo
+## Estrutura do monolito
 A raiz do projeto contém as configurações globais de integração e padronização:
 - `pnpm-workspace.yaml`: Gerenciamento dos múltiplos pacotes (workspaces).
 - `.husky/` e `commitlint.config.js`: Padronização e validação de commits.
