@@ -4,7 +4,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 export function AppLayout() {
   return (
     <div className="app-shell">
-      hello world
+      <Outlet />
     </div>
   );
 }
