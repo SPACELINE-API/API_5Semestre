@@ -8,7 +8,9 @@
     "generate-routes": "tsr generate",
     "build": "vite build",
     "check:types": "tsc --noEmit",
-    "test": "playwright test"
+    "test": "playwright test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.102.8",
