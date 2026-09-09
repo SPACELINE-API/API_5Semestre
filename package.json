@@ -7,6 +7,8 @@
     "dev": "pnpm -r --parallel dev",
     "dev:web": "pnpm --filter @api/web dev",
     "dev:server": "pnpm --filter @api/server dev",
+    "supabase:keys": "node scripts/generate-supabase-keys.js",
+    "test:supabase:keys": "node --test scripts/generate-supabase-keys.test.js",
     "prepare": "husky",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

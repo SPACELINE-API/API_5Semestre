@@ -151,6 +151,14 @@ apps/web/.env.example
 apps/server/.env.example
 ```
 
+Depois de criar o `.env` da raiz, gere as chaves locais do Supabase:
+
+```bash
+pnpm supabase:keys
+```
+
+Esse comando lê o `JWT_SECRET` do seu `.env` e preenche `ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY`. Rode apenas uma vez por ambiente local; se o `JWT_SECRET` mudar, rode novamente para recriar as chaves.
+
 ### Instalação
 
 Na raiz do projeto, execute:

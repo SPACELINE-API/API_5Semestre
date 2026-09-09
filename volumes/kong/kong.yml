@@ -1,0 +1,51 @@
+_format_version: '2.1'
+_transform: true
+
+# DB-less declarative routing for the local Supabase stack.
+# Kong is the single entrypoint (http://localhost:8000) that fronts
+# Auth (GoTrue), REST (PostgREST) and Storage.
+
+services:
+  - name: auth-v1
+    url: http://spaceline-auth:9999/
+    routes:
+      - name: auth-v1-route
+        strip_path: true
+        paths:
+          - /auth/v1/
+
+  - name: rest-v1
+    url: http://spaceline-rest:3000/
+    routes:
+      - name: rest-v1-route
+        strip_path: true
+        paths:
+          - /rest/v1/
+
+  - name: storage-v1
+    url: http://spaceline-storage:5000/
+    routes:
+      - name: storage-v1-route
+        strip_path: true
+        paths:
+          - /storage/v1/
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - '*'
+      headers:
+        - authorization
+        - apikey
+        - content-type
+        - x-client-info
+        - x-supabase-api-version
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      credentials: true
