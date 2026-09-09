@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   web:
-    name: Web quality
+    name: Web
     runs-on: ubuntu-latest
 
     steps:
@@ -44,7 +44,7 @@ jobs:
         run: pnpm --filter @api/web check:types
 
   server:
-    name: Server quality
+    name: Server
     runs-on: ubuntu-latest
 
     steps:
