@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+coverage
+.vite
+.tanstack
+playwright-report
+test-results
+
+pnpm-lock.yaml
+
+apps/server/.venv
+apps/server/__pycache__
+apps/server/**/*.py
