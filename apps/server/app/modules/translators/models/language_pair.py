@@ -1,7 +1,9 @@
 import enum
 import uuid
 from typing import TYPE_CHECKING
-from sqlalchemy import Enum as SQLEnum, ForeignKey, String, UniqueConstraint
+
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,7 +14,7 @@ if TYPE_CHECKING:
 
 
 # ENUMERACAO DOS NIVEIS DE PROFICIENCIA POSSIVEIS
-class ProficiencyLevel(str, enum.Enum):
+class ProficiencyLevel(enum.StrEnum):
     BASIC = "basic"
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
@@ -37,7 +39,9 @@ class LanguagePair(Base):
 
     # RESTRICAO QUE IMPEDE CADASTRAR O MESMO PAR REPETIDO NO CATALOGO GERAL
     __table_args__ = (
-        UniqueConstraint("source_language", "target_language", name="uq_language_pair_source_target"),
+        UniqueConstraint(
+            "source_language", "target_language", name="uq_language_pair_source_target"
+        ),
     )
 
 
