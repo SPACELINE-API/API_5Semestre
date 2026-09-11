@@ -10,6 +10,5 @@
     "format": "ruff format .",
     "format:check": "ruff format --check",
     "test": "python -m pytest"
-    
   }
 }
