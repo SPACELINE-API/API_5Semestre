@@ -89,11 +89,11 @@ jobs:
       - name: Check Postgres health
         run: |
           for i in {1..10}; do
-            docker exec postgresql pg_isready -U postgres -d api_5semestre && exit 0
+            docker exec spaceline-db pg_isready -U postgres -d postgres && exit 0
             sleep 3
           done
 
-          docker logs postgresql
+          docker logs spaceline-db
           exit 1
 
       - name: Stop Docker services
