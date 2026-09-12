@@ -7,6 +7,8 @@
     "dev": "pnpm -r --parallel dev",
     "dev:web": "pnpm --filter @api/web dev",
     "dev:server": "pnpm --filter @api/server dev",
+    "supabase:keys": "node scripts/generate-supabase-keys.js",
+    "test:supabase:keys": "node --test scripts/generate-supabase-keys.test.js",
     "prepare": "husky",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -15,7 +17,8 @@
     "lint:server": "ruff check apps/server",
     "lint:fix": "pnpm lint:web:fix && pnpm lint:server:fix",
     "lint:web:fix": "pnpm --filter web lint:fix",
-    "lint:server:fix": "ruff check apps/server --fix"
+    "lint:server:fix": "ruff check apps/server --fix",
+    "test": "pnpm -r test"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",
