@@ -1,0 +1,26 @@
+🐛 Descrição do Bug
+
+Descreva brevemente qual era o problema identificado, em quais condições ele ocorria e qual impacto causava:
+
+🔗 Task do Jira
+
+Link para a task/bug correspondente no Jira:
+
+🔧 Como Testar Correção
+
+Descreva os passos necessários para verificar a correção:
+
+✅ Comportamento Esperado
+
+Descreva o que deveria acontecer após a correção.
+
+🧪 Checklist de Qualidade e Validação
+
+Marque as opções abaixo após realizá-las localmente em sua máquina. Todas são obrigatórias para aceitação do PR:
+
+ Executei pnpm test e todos os testes passaram com sucesso.
+ Executei pnpm check-types e garanti que não há erros de tipagem no compilador TypeScript.
+ Executei pnpm check (Biome) e o código está devidamente formatado e sem alertas de qualidade/linter.
+ Reproduzi o bug antes da correção e confirmei que o problema foi resolvido.
+ Validei as alterações manualmente no navegador/Postman.
+ Garanti que a correção não quebrou fluxos ou funcionalidades existentes.

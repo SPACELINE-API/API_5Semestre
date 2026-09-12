@@ -1,6 +1,6 @@
-const fallbackApiUrl = 'http://localhost:8000';
+import { env } from '../env';
 
-export const apiUrl = import.meta.env.VITE_API_URL || fallbackApiUrl;
+export const apiUrl = env.apiUrl;
 
 export async function apiGet<TResponse>(path: string): Promise<TResponse> {
   const response = await fetch(`${apiUrl}${path}`);

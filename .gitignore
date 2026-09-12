@@ -42,3 +42,5 @@ Thumbs.db
 .vscode/
 !.vscode/
 !.vscode/*.code-snippets
+
+test-results/
