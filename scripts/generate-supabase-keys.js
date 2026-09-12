@@ -25,7 +25,9 @@ function resolveEnvPath(args) {
   return path.resolve(envFile);
 }
 
-const envPath = resolveEnvPath(process.argv.slice(2));
+const args = process.argv.slice(2);
+const envPath = resolveEnvPath(args);
+const shouldForce = args.includes('--force');
 
 console.log('Spaceline - Supabase key generator');
 console.log();
@@ -40,11 +42,24 @@ if (!fs.existsSync(envPath)) {
 
 const envContent = fs.readFileSync(envPath, 'utf8');
 
+function parseEnvValue(value) {
+  const trimmedValue = value.trim();
+
+  if (
+    (trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) ||
+    (trimmedValue.startsWith("'") && trimmedValue.endsWith("'"))
+  ) {
+    return trimmedValue.slice(1, -1);
+  }
+
+  return trimmedValue.replace(/\s+#.*$/, '');
+}
+
 function getEnvValue(key) {
   const regex = new RegExp(`^${key}=(.*)$`, 'm');
   const match = envContent.match(regex);
 
-  return match ? match[1].trim() : '';
+  return match ? parseEnvValue(match[1]) : '';
 }
 
 const jwtSecret = getEnvValue('JWT_SECRET');
@@ -74,6 +89,7 @@ function createToken(role) {
 
   const payload = {
     role,
+    aud: 'authenticated',
     iss: 'supabase',
     iat: now,
     exp: now + 315360000,
@@ -88,6 +104,16 @@ function createToken(role) {
     .digest('base64url');
 
   return `${encodedHeader}.${encodedPayload}.${signature}`;
+}
+
+const existingAnonKey = getEnvValue('ANON_KEY');
+const existingServiceRoleKey = getEnvValue('SUPABASE_SERVICE_ROLE_KEY');
+
+if (!shouldForce && (existingAnonKey || existingServiceRoleKey)) {
+  console.error('Error: Supabase keys already exist in .env.');
+  console.error('This script is intended to be executed only once per local environment.');
+  console.error('If JWT_SECRET changed and you intentionally need new keys, run with --force.');
+  process.exit(1);
 }
 
 function setEnvValue(content, key, value) {
