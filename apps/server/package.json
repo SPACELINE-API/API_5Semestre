@@ -10,7 +10,8 @@
     "format": "ruff format .",
     "format:check": "ruff format --check",
     "db:migration:create": "python scripts/create_migration.py",
-    "db:migration:apply": "python -c \"from alembic.config import main; main()\" upgrade head",
+    "db:migration:apply": "python scripts/apply_migrations.py",
+    "db:schema:push": "pnpm db:migration:create && pnpm db:migration:apply",
     "test": "python -m pytest"
   }
 }
