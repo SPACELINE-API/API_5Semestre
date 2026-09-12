@@ -9,6 +9,8 @@
     "lint:fix": "ruff check . --fix",
     "format": "ruff format .",
     "format:check": "ruff format --check",
+    "db:migration:create": "python scripts/create_migration.py",
+    "db:migration:apply": "python -c \"from alembic.config import main; main()\" upgrade head",
     "test": "python -m pytest"
   }
 }
