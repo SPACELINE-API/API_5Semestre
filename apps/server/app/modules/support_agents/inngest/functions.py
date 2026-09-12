@@ -1,7 +1,7 @@
 import inngest
 from .client import inngest_client
 
-@inngest_client.create_funcion(
+@inngest_client.create_function(
     fn_id="support-agent-process-ticket",
     trigger=inngest.TriggerEvent(event="support/ticket.process"),
 )

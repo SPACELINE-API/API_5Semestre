@@ -264,9 +264,9 @@ services:
     restart: unless-stopped
     ports:
       - '${INNGEST_PORT:-8288}:8288'
-    command: 'inngest dev -u http://host.docker.internal:8000/api/inngest'
+    command: 'inngest dev -u http://host.docker.internal:3333/api/inngest'
     extra_hosts:
-      - 'host.docker.internal:host-gateway'
+      - "host.docker.internal:${DOCKER_HOST_IP:-host-gateway}"
     networks:
       - spaceline
 

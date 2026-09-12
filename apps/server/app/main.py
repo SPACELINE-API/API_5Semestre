@@ -1,12 +1,14 @@
 import os
 from fastapi import FastAPI
 import inngest.fast_api
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from app.routes import api_router
 from app.modules.support_agents.inngest.client import inngest_client
 from app.modules.support_agents.inngest.functions import support_agent_inngest_functions
 
-os.environ.setdefault("INNGEST_DEV", "1")
 from app.shared.database import check_database_connection
 
 app = FastAPI(title="API 5 Semestre")
