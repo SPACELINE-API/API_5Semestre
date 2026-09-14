@@ -8,9 +8,7 @@ class FakeDatabaseSession:
         self.committed = False
         self.closed = False
 
-    def execute(
-        self, statement: object, params: dict[str, object] | None = None
-    ) -> None:
+    def execute(self, statement: object, params: dict[str, object] | None = None) -> None:
         self.executed_statements.append((statement, params or {}))
 
     def commit(self) -> None:
@@ -88,7 +86,9 @@ def test_seed_users_clears_application_tables_before_inserting_seed_data() -> No
 
     statements = [str(statement) for statement, _ in db.executed_statements]
     delete_indexes = [index for index, statement in enumerate(statements) if "DELETE" in statement]
-    insert_indexes = [index for index, statement in enumerate(statements) if "INSERT INTO users" in statement]
+    insert_indexes = [
+        index for index, statement in enumerate(statements) if "INSERT INTO users" in statement
+    ]
 
     assert delete_indexes
     assert insert_indexes

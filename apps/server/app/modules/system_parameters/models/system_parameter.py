@@ -11,35 +11,16 @@ from app.shared.database import Base
 class SystemParameter(Base):
     __tablename__ = "system_parameters"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    key: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-        index=True
-    )
+    key: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
 
-    value: Mapped[str] = mapped_column(
-        Text,
-        nullable=False
-    )
+    value: Mapped[str] = mapped_column(Text, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now()
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now(),
-        onupdate=func.now()
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
-
-
-

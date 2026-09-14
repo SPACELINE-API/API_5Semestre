@@ -25,6 +25,7 @@ SEED_USERS = [
     SeedUser(email="cliente@spaceline.com.br", password="123456", role="cliente"),
 ]
 
+
 def seed_users(
     *,
     db: Session | None = None,
@@ -54,6 +55,8 @@ def seed_users(
     finally:
         if should_close_session:
             database_session.close()
+
+
 def _upsert_local_user(db: Session, seed_user: SeedUser, user_id: str) -> None:
     db.execute(
         text(

@@ -27,7 +27,7 @@ def test_alembic_environment_imports_application_metadata() -> None:
 def test_module_models_discovers_every_python_file_inside_models_directories() -> None:
     modules_models = Path("app/modules/models.py").read_text(encoding="utf-8")
 
-    assert "rglob(\"*.py\")" in modules_models
+    assert 'rglob("*.py")' in modules_models
     assert "models_path" in modules_models
 
 

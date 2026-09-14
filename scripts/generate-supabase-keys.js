@@ -65,7 +65,8 @@ function getEnvValue(content, key) {
   return match ? parseEnvValue(match[1]) : '';
 }
 
-const jwtSecret = getEnvValue(envContent, 'JWT_SECRET') || getEnvValue(rootEnvContent, 'JWT_SECRET');
+const jwtSecret =
+  getEnvValue(envContent, 'JWT_SECRET') || getEnvValue(rootEnvContent, 'JWT_SECRET');
 
 if (!jwtSecret) {
   console.error('Error: JWT_SECRET is not defined in apps/server/.env or root .env.');
