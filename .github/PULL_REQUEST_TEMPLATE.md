@@ -11,7 +11,7 @@ Link para a task correspondente no Jira:
 Marque as opções abaixo após realizá-las localmente em sua máquina. Todas são obrigatórias para aceitação do PR:
 
 - [ ] Executei `pnpm test` e todos os testes passaram com sucesso.
-- [ ] Executei `pnpm check-types` e garanti que não há erros de tipagem no compilador TypeScript.
+- [ ] Executei `pnpm check:types` e garanti que não há erros de tipagem no compilador TypeScript.
 - [ ] Executei `pnpm check` (Biome) e o código está devidamente formatado e sem alertas de qualidade/linter.
 - [ ] Validei as alterações manualmente no navegador/Postman para garantir o funcionamento correto.
 - [ ] Garanti que estas modificações não quebram fluxos ou páginas existentes de outros desenvolvedores.
