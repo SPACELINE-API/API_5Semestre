@@ -8,3 +8,7 @@ class SupabaseAuthInvalidCredentialsError(Exception):
 
 class SupabaseAuthUnexpectedError(Exception):
     pass
+
+
+class AuthUserAccessDeniedError(Exception):
+    pass

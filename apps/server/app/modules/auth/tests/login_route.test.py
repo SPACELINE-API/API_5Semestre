@@ -30,6 +30,8 @@ class FakeUser:
         self.email = "user@example.com"
         self.is_active = is_active
         self.last_login_at = None
+        self.failed_login_attempts = 0
+        self.locked_until = None
 
 
 class FakeSupabaseAuthClient:

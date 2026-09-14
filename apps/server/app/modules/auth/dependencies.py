@@ -1,5 +1,5 @@
 from app.modules.auth.services.supabase_auth_client import SupabaseAuthClient
-from app.shared.supabase import get_supabase_config
+from app.shared.supabase.client import get_supabase_config
 
 
 def get_supabase_auth_client() -> SupabaseAuthClient:

@@ -7,7 +7,7 @@ from app.modules.auth.exceptions import (
     SupabaseAuthUnexpectedError,
 )
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser, SupabaseAuthSession
-from app.shared.supabase import create_supabase_headers, create_supabase_http_client
+from app.shared.supabase.client import create_supabase_headers, create_supabase_http_client
 
 
 class SupabaseAuthClient:
