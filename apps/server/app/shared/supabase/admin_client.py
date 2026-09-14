@@ -1,0 +1,64 @@
+from typing import Any
+
+import httpx
+
+
+class SupabaseAdminUnexpectedError(Exception):
+    pass
+
+
+class SupabaseAdminClient:
+    def __init__(
+        self,
+        supabase_url: str,
+        service_role_key: str,
+        http_client: httpx.Client | None = None,
+    ) -> None:
+        if not service_role_key:
+            raise SupabaseAdminUnexpectedError("SUPABASE_SERVICE_ROLE_KEY is not configured")
+
+        self.supabase_url = supabase_url.rstrip("/")
+        self.service_role_key = service_role_key
+        self.http_client = http_client or httpx.Client(timeout=10)
+
+    def create_or_get_user(self, email: str, password: str) -> dict[str, Any]:
+        existing_user = self._find_user_by_email(email)
+
+        if existing_user is not None:
+            return existing_user
+
+        response = self.http_client.post(
+            f"{self.supabase_url}/auth/v1/admin/users",
+            headers=self._headers(),
+            json={
+                "email": email,
+                "password": password,
+                "email_confirm": True,
+            },
+        )
+
+        if response.status_code >= 300:
+            raise SupabaseAdminUnexpectedError(response.text)
+
+        return response.json()
+
+    def _find_user_by_email(self, email: str) -> dict[str, Any] | None:
+        response = self.http_client.get(
+            f"{self.supabase_url}/auth/v1/admin/users",
+            headers=self._headers(),
+            params={"page": 1, "per_page": 1000},
+        )
+
+        if response.status_code >= 300:
+            raise SupabaseAdminUnexpectedError(response.text)
+
+        users = response.json().get("users", [])
+
+        return next((user for user in users if user.get("email") == email), None)
+
+    def _headers(self) -> dict[str, str]:
+        return {
+            "apikey": self.service_role_key,
+            "Authorization": f"Bearer {self.service_role_key}",
+            "Content-Type": "application/json",
+        }

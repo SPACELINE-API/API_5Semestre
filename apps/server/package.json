@@ -12,6 +12,7 @@
     "db:migration:create": "python scripts/create_migration.py",
     "db:migration:apply": "python scripts/apply_migrations.py",
     "db:schema:push": "pnpm db:migration:create && pnpm db:migration:apply",
+    "db:seed": "python scripts/seed.py",
     "test": "python -m pytest"
   }
 }

@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
-const defaultEnvPath = path.join(rootDir, '.env');
+const rootEnvPath = path.join(rootDir, '.env');
+const defaultEnvPath = path.join(rootDir, 'apps', 'server', '.env');
 
 function resolveEnvPath(args) {
   const envFileIndex = args.indexOf('--env-file');
@@ -36,11 +37,13 @@ if (!fs.existsSync(envPath)) {
   console.error('Error: .env file not found.');
   console.error(`Expected path: ${envPath}`);
   console.error();
-  console.error('Create the .env file from .env.example before continuing.');
+  console.error('Create the server .env file from apps/server/.env.example before continuing.');
   process.exit(1);
 }
 
 const envContent = fs.readFileSync(envPath, 'utf8');
+const rootEnvContent =
+  envPath !== rootEnvPath && fs.existsSync(rootEnvPath) ? fs.readFileSync(rootEnvPath, 'utf8') : '';
 
 function parseEnvValue(value) {
   const trimmedValue = value.trim();
@@ -55,17 +58,17 @@ function parseEnvValue(value) {
   return trimmedValue.replace(/\s+#.*$/, '');
 }
 
-function getEnvValue(key) {
+function getEnvValue(content, key) {
   const regex = new RegExp(`^${key}=(.*)$`, 'm');
-  const match = envContent.match(regex);
+  const match = content.match(regex);
 
   return match ? parseEnvValue(match[1]) : '';
 }
 
-const jwtSecret = getEnvValue('JWT_SECRET');
+const jwtSecret = getEnvValue(envContent, 'JWT_SECRET') || getEnvValue(rootEnvContent, 'JWT_SECRET');
 
 if (!jwtSecret) {
-  console.error('Error: JWT_SECRET is not defined in .env.');
+  console.error('Error: JWT_SECRET is not defined in apps/server/.env or root .env.');
   console.error('Define JWT_SECRET before generating the Supabase keys.');
   process.exit(1);
 }
@@ -106,8 +109,8 @@ function createToken(role) {
   return `${encodedHeader}.${encodedPayload}.${signature}`;
 }
 
-const existingAnonKey = getEnvValue('ANON_KEY');
-const existingServiceRoleKey = getEnvValue('SUPABASE_SERVICE_ROLE_KEY');
+const existingAnonKey = getEnvValue(envContent, 'ANON_KEY');
+const existingServiceRoleKey = getEnvValue(envContent, 'SUPABASE_SERVICE_ROLE_KEY');
 
 if (!shouldForce && (existingAnonKey || existingServiceRoleKey)) {
   console.error('Error: Supabase keys already exist in .env.');

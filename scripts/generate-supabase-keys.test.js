@@ -1,4 +1,12 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -51,6 +59,84 @@ test('updates empty .env keys once with Supabase-compatible JWT payloads', () =>
     assert.equal(anonPayload.aud, 'authenticated');
     assert.equal(servicePayload.role, 'service_role');
     assert.equal(servicePayload.aud, 'authenticated');
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('updates apps/server/.env by default', () => {
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'spaceline-keys-default-'));
+  const serverDir = path.join(tempDir, 'apps', 'server');
+  const scriptsDir = path.join(tempDir, 'scripts');
+  const serverEnvPath = path.join(serverDir, '.env');
+  const rootEnvPath = path.join(tempDir, '.env');
+
+  try {
+    mkdirSync(serverDir, { recursive: true });
+    mkdirSync(scriptsDir, { recursive: true });
+    copyFileSync(scriptPath, path.join(scriptsDir, 'generate-supabase-keys.js'));
+    writeFileSync(rootEnvPath, 'JWT_SECRET=root-secret-with-at-least-32-characters\n', 'utf8');
+    writeFileSync(
+      serverEnvPath,
+      [
+        'JWT_SECRET=server-secret-with-at-least-32-characters',
+        'ANON_KEY=',
+        'SUPABASE_SERVICE_ROLE_KEY=',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+
+    execFileSync(process.execPath, [path.join(scriptsDir, 'generate-supabase-keys.js')], {
+      cwd: tempDir,
+      encoding: 'utf8',
+    });
+
+    const serverEnvContent = readFileSync(serverEnvPath, 'utf8');
+    const rootEnvContent = readFileSync(rootEnvPath, 'utf8');
+    const anonKey = serverEnvContent.match(/^ANON_KEY=(.+)$/m)?.[1];
+
+    assert.ok(existsSync(serverEnvPath));
+    assert.ok(anonKey);
+    assert.equal(decodeJwtPayload(anonKey).role, 'anon');
+    assert.equal(rootEnvContent, 'JWT_SECRET=root-secret-with-at-least-32-characters\n');
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('uses root JWT_SECRET when server .env does not define it', () => {
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'spaceline-keys-root-secret-'));
+  const serverDir = path.join(tempDir, 'apps', 'server');
+  const scriptsDir = path.join(tempDir, 'scripts');
+  const serverEnvPath = path.join(serverDir, '.env');
+  const rootEnvPath = path.join(tempDir, '.env');
+
+  try {
+    mkdirSync(serverDir, { recursive: true });
+    mkdirSync(scriptsDir, { recursive: true });
+    copyFileSync(scriptPath, path.join(scriptsDir, 'generate-supabase-keys.js'));
+    writeFileSync(rootEnvPath, 'JWT_SECRET=root-secret-with-at-least-32-characters\n', 'utf8');
+    writeFileSync(
+      serverEnvPath,
+      ['SUPABASE_URL=http://localhost:8000', 'ANON_KEY=', 'SUPABASE_SERVICE_ROLE_KEY=', ''].join(
+        '\n',
+      ),
+      'utf8',
+    );
+
+    execFileSync(process.execPath, [path.join(scriptsDir, 'generate-supabase-keys.js')], {
+      cwd: tempDir,
+      encoding: 'utf8',
+    });
+
+    const serverEnvContent = readFileSync(serverEnvPath, 'utf8');
+    const rootEnvContent = readFileSync(rootEnvPath, 'utf8');
+    const serviceRoleKey = serverEnvContent.match(/^SUPABASE_SERVICE_ROLE_KEY=(.+)$/m)?.[1];
+
+    assert.ok(serviceRoleKey);
+    assert.equal(decodeJwtPayload(serviceRoleKey).role, 'service_role');
+    assert.equal(rootEnvContent, 'JWT_SECRET=root-secret-with-at-least-32-characters\n');
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }
