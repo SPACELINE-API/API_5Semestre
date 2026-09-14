@@ -29,4 +29,4 @@ inngest==0.5.19
 jcs==0.2.1
 SQLAlchemy==2.0.43
 psycopg[binary]==3.2.10
-mypy 2.3.1
+mypy==2.3.1
