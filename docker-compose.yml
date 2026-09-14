@@ -258,6 +258,18 @@ services:
     networks:
       - spaceline
 
+  spaceline-inngest:
+    container_name: spaceline-inngest
+    image: inngest/inngest:latest
+    restart: unless-stopped
+    ports:
+      - '${INNGEST_PORT:-8288}:8288'
+    command: 'inngest dev -u http://host.docker.internal:3333/api/inngest'
+    extra_hosts:
+      - 'host.docker.internal:${DOCKER_HOST_IP:-host-gateway}'
+    networks:
+      - spaceline
+
 volumes:
   spaceline-db-data:
   spaceline-storage-data:
