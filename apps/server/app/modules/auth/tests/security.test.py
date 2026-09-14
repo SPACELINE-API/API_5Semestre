@@ -1,4 +1,4 @@
-from app.modules.auth.security import hash_password, verify_password
+from apps.server.app.modules.auth.security.security import hash_password, verify_password
 
 
 def test_hash_password_does_not_store_plain_password() -> None:

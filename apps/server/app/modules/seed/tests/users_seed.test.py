@@ -1,4 +1,4 @@
-from app.modules.auth.security import verify_password
+from apps.server.app.modules.auth.security.security import verify_password
 from app.modules.seed.seed_users import SEED_USERS, seed_users
 
 

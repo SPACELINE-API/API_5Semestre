@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.modules.auth.policy import LOGIN_LOCKOUT_TIMEOUT_MINUTES, LOGIN_MAX_ATTEMPTS
-from app.modules.auth.security import hash_password
+from apps.server.app.modules.auth.policies.policy import LOGIN_LOCKOUT_TIMEOUT_MINUTES, LOGIN_MAX_ATTEMPTS
+from apps.server.app.modules.auth.security.security import hash_password
 from app.modules.auth.services.supabase_admin_client import SupabaseAdminClient
 from app.modules.seed.database_cleaner import clear_application_tables
 from app.shared.database import get_session_factory

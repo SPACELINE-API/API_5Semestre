@@ -3,12 +3,12 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.modules.auth.exceptions import (
+from apps.server.app.modules.auth.exceptions.exceptions import (
     AuthUserAccessDeniedError,
     SupabaseAuthInvalidCredentialsError,
 )
 from app.modules.auth.models.user import User
-from app.modules.auth.policy import (
+from apps.server.app.modules.auth.policies.policy import (
     LOGIN_LOCKOUT_TIMEOUT_MINUTES,
     LOGIN_MAX_ATTEMPTS,
     now_in_sao_paulo,

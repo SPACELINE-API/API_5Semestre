@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.modules.auth.dependencies import get_supabase_auth_client
-from app.modules.auth.exceptions import (
+from apps.server.app.modules.auth.dependencies.dependencies import get_supabase_auth_client
+from apps.server.app.modules.auth.exceptions.exceptions import (
     AuthUserAccessDeniedError,
     SupabaseAuthInvalidCredentialsError,
     SupabaseAuthUnexpectedError,

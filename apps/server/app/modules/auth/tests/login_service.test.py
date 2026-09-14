@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from app.modules.auth.exceptions import (
+from apps.server.app.modules.auth.exceptions.exceptions import (
     AuthUserAccessDeniedError,
     SupabaseAuthInvalidCredentialsError,
 )
