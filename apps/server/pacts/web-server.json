@@ -21,9 +21,7 @@
           "encoded": false
         },
         "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
+          "Content-Type": ["application/json"]
         },
         "method": "POST",
         "path": "/api/auth/login"
@@ -43,9 +41,7 @@
           "encoded": false
         },
         "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
+          "Content-Type": ["application/json"]
         },
         "status": 200
       },
@@ -69,9 +65,7 @@
           "encoded": false
         },
         "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
+          "Content-Type": ["application/json"]
         },
         "method": "POST",
         "path": "/api/auth/login"
@@ -85,9 +79,7 @@
           "encoded": false
         },
         "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
+          "Content-Type": ["application/json"]
         },
         "status": 500
       },
@@ -111,9 +103,7 @@
           "encoded": false
         },
         "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
+          "Content-Type": ["application/json"]
         },
         "method": "POST",
         "path": "/api/auth/login"
@@ -127,9 +117,7 @@
           "encoded": false
         },
         "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
+          "Content-Type": ["application/json"]
         },
         "status": 403
       },
@@ -153,9 +141,7 @@
           "encoded": false
         },
         "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
+          "Content-Type": ["application/json"]
         },
         "method": "POST",
         "path": "/api/auth/login"
@@ -169,9 +155,7 @@
           "encoded": false
         },
         "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
+          "Content-Type": ["application/json"]
         },
         "status": 401
       },
@@ -195,9 +179,7 @@
           "encoded": false
         },
         "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
+          "Content-Type": ["application/json"]
         },
         "method": "POST",
         "path": "/api/auth/login"
@@ -217,9 +199,7 @@
           "encoded": false
         },
         "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
+          "Content-Type": ["application/json"]
         },
         "status": 200
       },
