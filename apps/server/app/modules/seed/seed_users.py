@@ -4,9 +4,9 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.modules.auth.security import hash_password
+from app.modules.auth.services.supabase_admin_client import SupabaseAdminClient
 from app.shared.database import get_session_factory
 from app.shared.EnvProvider import env_provider
-from app.shared.supabase import SupabaseAdminClient
 
 
 @dataclass(frozen=True)

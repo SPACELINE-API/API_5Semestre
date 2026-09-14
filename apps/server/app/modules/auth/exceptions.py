@@ -1,3 +1,7 @@
+class SupabaseAdminUnexpectedError(Exception):
+    pass
+
+
 class SupabaseAuthInvalidCredentialsError(Exception):
     pass
 

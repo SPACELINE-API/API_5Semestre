@@ -4,15 +4,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.modules.auth.models.user import User
-from app.modules.auth.schemas.login import LoginRequest, LoginResponse, UserResponse
-from app.shared.database import get_db
-from app.shared.supabase import (
-    SupabaseAuthClient,
+from app.modules.auth.dependencies import get_supabase_auth_client
+from app.modules.auth.exceptions import (
     SupabaseAuthInvalidCredentialsError,
     SupabaseAuthUnexpectedError,
-    get_supabase_auth_client,
 )
+from app.modules.auth.models.user import User
+from app.modules.auth.schemas.login import LoginRequest, LoginResponse, UserResponse
+from app.modules.auth.services.supabase_auth_client import SupabaseAuthClient
+from app.shared.database import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 db_dependency = Depends(get_db)

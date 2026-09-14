@@ -2,9 +2,8 @@ from typing import Any
 
 import httpx
 
-
-class SupabaseAdminUnexpectedError(Exception):
-    pass
+from app.modules.auth.exceptions import SupabaseAdminUnexpectedError
+from app.shared.supabase import create_supabase_headers, create_supabase_http_client
 
 
 class SupabaseAdminClient:
@@ -19,7 +18,7 @@ class SupabaseAdminClient:
 
         self.supabase_url = supabase_url.rstrip("/")
         self.service_role_key = service_role_key
-        self.http_client = http_client or httpx.Client(timeout=10)
+        self.http_client = http_client or create_supabase_http_client()
 
     def create_or_get_user(self, email: str, password: str) -> dict[str, Any]:
         existing_user = self._find_user_by_email(email)
@@ -29,7 +28,7 @@ class SupabaseAdminClient:
 
         response = self.http_client.post(
             f"{self.supabase_url}/auth/v1/admin/users",
-            headers=self._headers(),
+            headers=create_supabase_headers(self.service_role_key),
             json={
                 "email": email,
                 "password": password,
@@ -45,7 +44,7 @@ class SupabaseAdminClient:
     def _find_user_by_email(self, email: str) -> dict[str, Any] | None:
         response = self.http_client.get(
             f"{self.supabase_url}/auth/v1/admin/users",
-            headers=self._headers(),
+            headers=create_supabase_headers(self.service_role_key),
             params={"page": 1, "per_page": 1000},
         )
 
@@ -55,10 +54,3 @@ class SupabaseAdminClient:
         users = response.json().get("users", [])
 
         return next((user for user in users if user.get("email") == email), None)
-
-    def _headers(self) -> dict[str, str]:
-        return {
-            "apikey": self.service_role_key,
-            "Authorization": f"Bearer {self.service_role_key}",
-            "Content-Type": "application/json",
-        }

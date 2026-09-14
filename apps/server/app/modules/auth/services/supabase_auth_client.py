@@ -2,11 +2,12 @@ from typing import Any
 
 import httpx
 
-from app.shared.supabase.exceptions import (
+from app.modules.auth.exceptions import (
     SupabaseAuthInvalidCredentialsError,
     SupabaseAuthUnexpectedError,
 )
-from app.shared.supabase.schemas import SupabaseAuthenticatedUser, SupabaseAuthSession
+from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser, SupabaseAuthSession
+from app.shared.supabase import create_supabase_headers, create_supabase_http_client
 
 
 class SupabaseAuthClient:
@@ -18,17 +19,13 @@ class SupabaseAuthClient:
     ) -> None:
         self.supabase_url = supabase_url.rstrip("/")
         self.anon_key = anon_key
-        self.http_client = http_client or httpx.Client(timeout=10)
+        self.http_client = http_client or create_supabase_http_client()
 
     def login_with_password(self, email: str, password: str) -> SupabaseAuthSession:
         try:
             response = self.http_client.post(
                 f"{self.supabase_url}/auth/v1/token?grant_type=password",
-                headers={
-                    "apikey": self.anon_key,
-                    "Authorization": f"Bearer {self.anon_key}",
-                    "Content-Type": "application/json",
-                },
+                headers=create_supabase_headers(self.anon_key),
                 json={"email": email, "password": password},
             )
         except httpx.HTTPError as error:

@@ -3,13 +3,13 @@ import uuid
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.shared.database import get_db
-from app.shared.supabase import (
+from app.modules.auth.dependencies import get_supabase_auth_client
+from app.modules.auth.exceptions import SupabaseAuthInvalidCredentialsError
+from app.modules.auth.schemas.supabase import (
     SupabaseAuthenticatedUser,
-    SupabaseAuthInvalidCredentialsError,
     SupabaseAuthSession,
-    get_supabase_auth_client,
 )
+from app.shared.database import get_db
 
 
 class FakeDatabaseSession:
