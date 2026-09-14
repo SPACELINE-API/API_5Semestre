@@ -24,8 +24,7 @@ pact-python==3.4.0
 pact-python-ffi==0.5.4.1
 pluggy==1.6.0
 propcache==0.5.2
-psycopg==3.3.2
-psycopg-binary==3.3.2
+psycopg[binary]==3.2.10
 pycparser==3.0
 pydantic==2.13.5
 pydantic-settings==2.15.0
@@ -35,7 +34,7 @@ pytest==9.1.1
 python-dotenv==1.2.3
 PyYAML==6.0.3
 ruff==0.16.6
-SQLAlchemy==2.0.45
+SQLAlchemy==2.0.43
 starlette==0.47.3
 typing-inspection==0.4.4
 typing_extensions==4.16.0
@@ -44,3 +43,5 @@ uvicorn==0.35.0
 watchfiles==1.2.0
 websockets==17.1
 yarl==1.24.5
+inngest==0.5.19
+jcs==0.2.1
