@@ -98,7 +98,7 @@ jobs:
         run: python -m pip install -r requirements.txt pytest-cov
 
       - name: Start Docker services
-        run: docker compose up -d
+        run: docker compose up -d spaceline-db
 
       - name: Check Postgres health
         run: |
@@ -188,8 +188,31 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm --filter @api/web exec playwright install --with-deps
 
+      - name: Cache Docker images
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-images-cache
+          key: docker-images-${{ hashFiles('docker-compose.yml') }}
+
+      - name: Load cached Docker images
+        run: |
+          if [ -d /tmp/docker-images-cache ]; then
+            for f in /tmp/docker-images-cache/*.tar; do
+              docker load -i "$f" || true
+            done
+          fi
+
       - name: Start Docker services
         run: docker compose up -d
+
+      - name: Save Docker images to cache
+        if: always()
+        run: |
+          mkdir -p /tmp/docker-images-cache
+          docker compose config --images | while read -r img; do
+            safe_name=$(echo "$img" | tr '/:' '__')
+            docker save "$img" -o "/tmp/docker-images-cache/${safe_name}.tar"
+          done
 
       - name: Run e2e tests
         run: pnpm --filter @api/web test
