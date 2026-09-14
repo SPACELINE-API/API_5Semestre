@@ -28,3 +28,7 @@ select = [
 ignore = [
   "E501"
 ]
+
+[tool.mypy]
+mypy_path = "."
+explicit_package_bases = true
