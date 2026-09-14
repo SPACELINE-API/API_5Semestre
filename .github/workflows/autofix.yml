@@ -22,7 +22,7 @@ jobs:
       - run: |
           pnpm install --frozen-lockfile --ignore-scripts
           pnpm exec prettier . --write
-          pnpm --filter @api/web lint -- --fix
+          pnpm --filter @api/web lint --fix
       - uses: autofix-ci/action@v1
         with:
           commit-message: "Apply Prettier format and ESLint fixes"
