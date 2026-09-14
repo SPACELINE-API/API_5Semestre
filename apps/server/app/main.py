@@ -2,10 +2,10 @@ import inngest.fast_api
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from app.shared.inngest.client import inngest_client
-from app.shared.inngest.functions import support_agent_inngest_functions
 from app.routes import api_router
 from app.shared.database import check_database_connection
+from app.shared.inngest.client import inngest_client
+from app.shared.inngest.functions import support_agent_inngest_functions
 
 load_dotenv()
 
