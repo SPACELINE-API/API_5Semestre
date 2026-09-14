@@ -2,7 +2,7 @@ from typing import Any
 
 import httpx
 
-from apps.server.app.modules.auth.exceptions.exceptions import SupabaseAdminUnexpectedError
+from app.modules.auth.exceptions.exceptions import SupabaseAdminUnexpectedError
 from app.shared.supabase.client import create_supabase_headers, create_supabase_http_client
 
 

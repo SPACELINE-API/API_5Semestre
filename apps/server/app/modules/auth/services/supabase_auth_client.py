@@ -2,7 +2,7 @@ from typing import Any
 
 import httpx
 
-from apps.server.app.modules.auth.exceptions.exceptions import (
+from app.modules.auth.exceptions.exceptions import (
     SupabaseAuthInvalidCredentialsError,
     SupabaseAuthUnexpectedError,
 )

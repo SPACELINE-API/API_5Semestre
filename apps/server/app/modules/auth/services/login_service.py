@@ -3,12 +3,12 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from apps.server.app.modules.auth.exceptions.exceptions import (
+from app.modules.auth.exceptions.exceptions import (
     AuthUserAccessDeniedError,
     SupabaseAuthInvalidCredentialsError,
 )
 from app.modules.auth.models.user import User
-from apps.server.app.modules.auth.policies.policy import (
+from app.modules.auth.policies.policy import (
     LOGIN_LOCKOUT_TIMEOUT_MINUTES,
     LOGIN_MAX_ATTEMPTS,
     now_in_sao_paulo,
@@ -24,6 +24,9 @@ class LoginService:
 
     def login(self, email: str, password: str) -> LoginResponse:
         user = self.db.scalar(select(User).where(User.email == email))
+
+        if user is not None and not user.is_active:
+            raise AuthUserAccessDeniedError
 
         if user is not None and user.locked_until is not None:
             if user.locked_until > datetime.now(UTC):

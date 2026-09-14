@@ -1,12 +1,14 @@
 import uuid
+from datetime import timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
 
-from apps.server.app.modules.auth.exceptions.exceptions import (
+from app.modules.auth.exceptions.exceptions import (
     AuthUserAccessDeniedError,
     SupabaseAuthInvalidCredentialsError,
 )
+from app.modules.auth.policies.policy import now_in_sao_paulo
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser, SupabaseAuthSession
 from app.modules.auth.services.login_service import LoginService
 
@@ -24,16 +26,21 @@ class FakeDatabaseSession:
 
 
 class FakeUser:
-    id = uuid.UUID("8bdf1a90-b7f2-45d9-a523-09dbf8f39e46")
-    email = "user@example.com"
-    is_active = True
-    last_login_at = None
-    failed_login_attempts = 0
-    locked_until = None
+    def __init__(self, *, is_active: bool = True) -> None:
+        self.id = uuid.UUID("8bdf1a90-b7f2-45d9-a523-09dbf8f39e46")
+        self.email = "user@example.com"
+        self.is_active = is_active
+        self.last_login_at = None
+        self.failed_login_attempts = 0
+        self.locked_until = None
 
 
 class FakeSupabaseAuthClient:
+    def __init__(self) -> None:
+        self.calls = 0
+
     def login_with_password(self, _email: str, _password: str) -> SupabaseAuthSession:
+        self.calls += 1
         return SupabaseAuthSession(
             access_token="access-token",
             token_type="bearer",
@@ -43,7 +50,11 @@ class FakeSupabaseAuthClient:
 
 
 class InvalidCredentialsSupabaseAuthClient:
+    def __init__(self) -> None:
+        self.calls = 0
+
     def login_with_password(self, _email: str, _password: str) -> SupabaseAuthSession:
+        self.calls += 1
         raise SupabaseAuthInvalidCredentialsError
 
 
@@ -60,11 +71,27 @@ def test_login_service_authenticates_and_updates_last_login() -> None:
 def test_login_service_rejects_inactive_user() -> None:
     user = FakeUser()
     user.is_active = False
+    supabase_client = FakeSupabaseAuthClient()
 
     with pytest.raises(AuthUserAccessDeniedError):
-        LoginService(FakeDatabaseSession(user), FakeSupabaseAuthClient()).login(
+        LoginService(FakeDatabaseSession(user), supabase_client).login(
             "user@example.com", "secret123"
         )
+
+    assert supabase_client.calls == 0
+
+
+def test_login_service_allows_login_after_lockout_expires() -> None:
+    user = FakeUser()
+    user.failed_login_attempts = 3
+    user.locked_until = now_in_sao_paulo() - timedelta(minutes=1)
+    supabase_client = FakeSupabaseAuthClient()
+
+    LoginService(FakeDatabaseSession(user), supabase_client).login("user@example.com", "secret123")
+
+    assert supabase_client.calls == 1
+    assert user.failed_login_attempts == 0
+    assert user.locked_until is None
 
 
 def test_login_service_blocks_user_after_three_invalid_attempts() -> None:

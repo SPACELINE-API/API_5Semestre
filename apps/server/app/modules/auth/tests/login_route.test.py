@@ -3,8 +3,8 @@ import uuid
 from fastapi.testclient import TestClient
 
 from app.main import app
-from apps.server.app.modules.auth.dependencies.dependencies import get_supabase_auth_client
-from apps.server.app.modules.auth.exceptions.exceptions import SupabaseAuthInvalidCredentialsError
+from app.modules.auth.dependencies.dependencies import get_supabase_auth_client
+from app.modules.auth.exceptions.exceptions import SupabaseAuthInvalidCredentialsError
 from app.modules.auth.schemas.supabase import (
     SupabaseAuthenticatedUser,
     SupabaseAuthSession,
