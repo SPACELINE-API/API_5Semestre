@@ -1,15 +1,14 @@
 name: CI
 
 on:
-  pull_request:
-    branches:
-      - develop
-      - main
+  workflow_run:
+    workflows: ["Notify Discord on PR Opened"]
+    types: [completed]
 
 permissions: {}
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event.workflow_run.id || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Validate commit messages
         uses: wagoid/commitlint-github-action@v6
@@ -85,6 +85,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -141,6 +143,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -169,6 +173,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -201,6 +207,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -262,6 +270,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Download coverage report
         uses: actions/download-artifact@v4
@@ -276,7 +286,7 @@ jobs:
 
   ci-success:
     name: CI success
-    needs: [guard, backend, frontend, e2e, code-coverage]
+    needs: [guard, backend, frontend, mobile, e2e, code-coverage]
     if: always()
     runs-on: ubuntu-latest
     steps:
