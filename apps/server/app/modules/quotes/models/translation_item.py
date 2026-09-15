@@ -28,7 +28,7 @@ class QuoteTranslationItem(Base):
     )
     source_language: Mapped[str] = mapped_column(String(10), nullable=False)
     target_language: Mapped[str] = mapped_column(String(10), nullable=False)
-    
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

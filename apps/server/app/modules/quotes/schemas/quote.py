@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime
+
 from pydantic import BaseModel, Field
+
 
 class QuoteCreate(BaseModel):
     status: str = Field(default="draft")

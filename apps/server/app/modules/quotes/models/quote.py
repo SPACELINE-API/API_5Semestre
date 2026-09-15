@@ -21,7 +21,7 @@ class Quote(Base):
         default=uuid.uuid4,
     )
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="draft")
-    
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

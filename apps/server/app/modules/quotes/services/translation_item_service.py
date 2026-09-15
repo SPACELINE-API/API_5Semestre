@@ -1,11 +1,11 @@
 import uuid
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
 from app.modules.quotes.schemas.translation_item import QuoteTranslationItemCreate
-from app.modules.translators.models.language_pair import LanguagePair
 
 
 class TranslationItemService:

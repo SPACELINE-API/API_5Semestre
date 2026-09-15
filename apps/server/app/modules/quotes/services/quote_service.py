@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
+
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.schemas.quote import QuoteCreate
+
 
 class QuoteService:
     def __init__(self, db: Session):
