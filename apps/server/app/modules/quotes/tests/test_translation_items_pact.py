@@ -87,7 +87,7 @@ def test_list_translation_items_success_contract() -> None:
         .with_request("GET", "/api/quotes/123e4567-e89b-12d3-a456-426614174000/translation-items")
         .will_respond_with(200)
         .with_headers({"Content-Type": "application/json"})
-        .with_body([])
+        .with_body([])  # type: ignore[arg-type]
     )
 
     pact.write_file(PACT_DIR)
