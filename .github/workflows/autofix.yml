@@ -1,0 +1,58 @@
+name: autofix.ci
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec prettier . --write
+          pnpm --filter @api/web lint --fix
+      - uses: autofix-ci/action@v1
+        with:
+          commit-message: "chore: apply prettier format and eslint fixes"
+
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: apps/server/requirements.txt
+      - run: |
+          python -m pip install -r apps/server/requirements.txt
+          ruff check apps/server --fix
+          ruff format apps/server
+      - uses: autofix-ci/action@v1
+        with:
+          commit-message: "chore: apply ruff format and fixes"
+
+  toml-sort:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          pip install toml-sort
+          toml-sort -i apps/server/pyproject.toml
+      - uses: autofix-ci/action@v1
+        with:
+          commit-message: "chore: sort pyproject.toml"

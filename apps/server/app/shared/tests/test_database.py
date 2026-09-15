@@ -39,3 +39,11 @@ def test_get_database_url_keeps_explicit_driver_url(monkeypatch: pytest.MonkeyPa
     set_database_url(monkeypatch, "postgresql+psycopg://user:pass@localhost:5432/postgres")
 
     assert database.get_database_url() == "postgresql+psycopg://user:pass@localhost:5432/postgres"
+
+
+def test_get_database_url_uses_psycopg_driver_for_asyncpg_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    set_database_url(monkeypatch, "postgresql+asyncpg://user:pass@localhost:5432/postgres")
+
+    assert database.get_database_url() == "postgresql+psycopg://user:pass@localhost:5432/postgres"
