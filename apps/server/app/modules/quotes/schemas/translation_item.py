@@ -3,9 +3,17 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
+from typing import Literal
+
+SupportedLanguage = Literal[
+    "en-US", "it-IT", "es-ES", "ca-ES", "gl-ES", "eu-ES", 
+    "fr-FR", "de-DE", "ja-JP", "zh-CN", "en-CA", "fr-CA", 
+    "es-PE", "qu-PE", "ay-PE"
+]
+
 class QuoteTranslationItemCreate(BaseModel):
-    source_language: str = Field(..., min_length=2, max_length=10)
-    target_language: str = Field(..., min_length=2, max_length=10)
+    source_language: SupportedLanguage
+    target_language: SupportedLanguage
 
 
 class QuoteTranslationItemResponse(BaseModel):

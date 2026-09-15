@@ -14,7 +14,7 @@ def test_create_translation_item_success_contract() -> None:
         .with_headers({"Content-Type": "application/json"})
         .with_body(
             {
-                "source_language": "pt-BR",
+                "source_language": "es-ES",
                 "target_language": "en-US",
             }
         )
@@ -24,7 +24,7 @@ def test_create_translation_item_success_contract() -> None:
             {
                 "id": "123e4567-e89b-12d3-a456-426614174001",
                 "quote_id": "123e4567-e89b-12d3-a456-426614174000",
-                "source_language": "pt-BR",
+                "source_language": "es-ES",
                 "target_language": "en-US",
                 "created_at": "2026-09-13T10:00:00Z",
                 "updated_at": "2026-09-13T10:00:00Z"
@@ -45,7 +45,7 @@ def test_create_translation_item_quote_not_found_contract() -> None:
         .with_headers({"Content-Type": "application/json"})
         .with_body(
             {
-                "source_language": "pt-BR",
+                "source_language": "es-ES",
                 "target_language": "en-US",
             }
         )
