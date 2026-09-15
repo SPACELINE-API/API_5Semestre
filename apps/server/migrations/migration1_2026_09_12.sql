@@ -1,7 +1,5 @@
--- EXTENSAO PARA GERACAO DE IDENTIFICADORES UUID NO BANCO
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- TABELA PRINCIPAL DE TRADUTORES DO BANCO DE TALENTOS
 CREATE TABLE IF NOT EXISTS translators (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(150) NOT NULL,
@@ -12,14 +10,12 @@ CREATE TABLE IF NOT EXISTS translators (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- TABELA DE QUALIFICACOES TECNICAS (ESPECIALIDADES)
 CREATE TABLE IF NOT EXISTS technical_qualifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(255)
 );
 
--- TABELA ASSOCIATIVA ENTRE TRADUTOR E QUALIFICACAO TECNICA
 CREATE TABLE IF NOT EXISTS translator_qualifications (
     translator_id UUID NOT NULL REFERENCES translators(id) ON DELETE CASCADE,
     qualification_id UUID NOT NULL REFERENCES technical_qualifications(id) ON DELETE CASCADE,
@@ -27,7 +23,6 @@ CREATE TABLE IF NOT EXISTS translator_qualifications (
     PRIMARY KEY (translator_id, qualification_id)
 );
 
--- CATALOGO DE PARES DE IDIOMA (ORIGEM E DESTINO)
 CREATE TABLE IF NOT EXISTS language_pairs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     source_language VARCHAR(10) NOT NULL,
@@ -35,7 +30,6 @@ CREATE TABLE IF NOT EXISTS language_pairs (
     CONSTRAINT uq_language_pair_source_target UNIQUE (source_language, target_language)
 );
 
--- TABELA ASSOCIATIVA COM NIVEL DE PROFICIENCIA E CONSTRAINT CONTRA DUPLICIDADE
 CREATE TABLE IF NOT EXISTS translator_language_pairs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     translator_id UUID NOT NULL REFERENCES translators(id) ON DELETE CASCADE,
@@ -44,8 +38,7 @@ CREATE TABLE IF NOT EXISTS translator_language_pairs (
     CONSTRAINT uq_translator_language_pair UNIQUE (translator_id, language_pair_id)
 );
 
--- INDICES PARA OTIMIZACAO DE CONSULTAS FREQUENTES
 CREATE INDEX IF NOT EXISTS ix_translators_email ON translators (email);
 CREATE INDEX IF NOT EXISTS ix_technical_qualifications_name ON technical_qualifications (name);
-CREATE INDEX IF NOT EXISTS ix_translator_language_pairs_translator ON translator_language_pairs (translator_id);
-CREATE INDEX IF NOT EXISTS ix_translator_language_pairs_pair ON translator_language_pairs (language_pair_id);
+CREATE INDEX IF NOT EXISTS ix_translator_language_pairs_translator_id ON translator_language_pairs (translator_id);
+CREATE INDEX IF NOT EXISTS ix_translator_language_pairs_language_pair_id ON translator_language_pairs (language_pair_id);

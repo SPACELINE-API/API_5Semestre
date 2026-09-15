@@ -2,7 +2,7 @@ name: Notify Discord on PR Opened
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, reopened]
 
 jobs:
   notify:
@@ -17,9 +17,20 @@ jobs:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           REPO: ${{ github.repository }}
         run: |
-          curl -H "Content-Type: application/json" \
+          if [[ -z "$DISCORD_WEBHOOK_URL" ]]; then
+            echo "DISCORD_WEBHOOK_URL is not configured"
+            exit 1
+          fi
+
+          payload=$(jq -n \
+            --arg repo "$REPO" \
+            --arg title "$PR_TITLE" \
+            --arg author "$PR_AUTHOR" \
+            --arg url "$PR_URL" \
+            '{content: ("Novo pull request aberto em **" + $repo + "**\n\n**" + $title + "**\nAutor: " + $author + "\n" + $url)}')
+
+          curl --fail-with-body \
+            -H "Content-Type: application/json" \
             -X POST \
-            -d "{
-              \"content\": \"Novo pull request aberto em **${REPO}**\n\n**${PR_TITLE}**\nAutor: ${PR_AUTHOR}\n${PR_URL}\"
-            }" \
+            -d "$payload" \
             "$DISCORD_WEBHOOK_URL"
