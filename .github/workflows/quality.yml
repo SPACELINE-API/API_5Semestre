@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - develop
+      - main
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
@@ -11,7 +12,7 @@ concurrency:
 
 jobs:
   web:
-    name: Web quality
+    name: Web
     runs-on: ubuntu-latest
 
     steps:
@@ -43,7 +44,7 @@ jobs:
         run: pnpm --filter @api/web check:types
 
   server:
-    name: Server quality
+    name: Server
     runs-on: ubuntu-latest
 
     steps:
