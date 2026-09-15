@@ -14,7 +14,9 @@
 
 <a id="desafio"></a>
 
-Desenvolvimento de uma aplicação web para apoiar a gestão de solicitações de serviços linguísticos, contemplando cadastro de clientes, contatos, recursos, tradutores, cotações, ordens de serviço e alocações.
+Desenvolvimento de uma aplicação web para apoiar a gestão de solicitações de
+serviços linguísticos, contemplando cadastro de clientes, contatos, recursos,
+tradutores, cotações, ordens de serviço e alocações.
 
 ---
 
@@ -157,7 +159,9 @@ Depois de criar o `.env` da raiz, gere as chaves locais do Supabase:
 pnpm supabase:keys
 ```
 
-Esse comando lê o `JWT_SECRET` do seu `.env` e preenche `ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY`. Rode apenas uma vez por ambiente local; se o `JWT_SECRET` mudar, rode novamente para recriar as chaves.
+Esse comando lê o `JWT_SECRET` do seu `.env` e preenche `ANON_KEY` e
+`SUPABASE_SERVICE_ROLE_KEY`. Rode apenas uma vez por ambiente local; se o
+`JWT_SECRET` mudar, rode novamente para recriar as chaves.
 
 ### Instalação
 
@@ -167,7 +171,8 @@ Na raiz do projeto, execute:
 pnpm install
 ```
 
-Esse comando instala as dependências do workspace e também executa a instalação das dependências Python do backend.
+Esse comando instala as dependências do workspace e também executa a instalação
+das dependências Python do backend.
 
 ### Banco de Dados
 
