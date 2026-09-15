@@ -1,15 +1,14 @@
 name: CI
 
 on:
-  pull_request:
-    branches:
-      - develop
-      - main
+  workflow_run:
+    workflows: ["Notify Discord on PR Opened"]
+    types: [completed]
 
 permissions: {}
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event.workflow_run.id || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Validate commit messages
         uses: wagoid/commitlint-github-action@v6
@@ -54,10 +54,7 @@ jobs:
         run: python -m pip install -r requirements.txt
 
       - name: Check formatting
-        run: pnpm format:check
-
-      - name: Lint web
-        run: pnpm --filter @api/web lint
+        run: pnpm --filter mobile format:check
 
       - name: Lint server
         working-directory: apps/server
@@ -66,9 +63,6 @@ jobs:
       - name: Check server formatting
         working-directory: apps/server
         run: ruff format --check .
-
-      - name: Typecheck web
-        run: pnpm --filter @api/web check:types
 
       - name: Typecheck server
         working-directory: apps/server
@@ -85,6 +79,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -132,15 +128,17 @@ jobs:
           path: apps/server/coverage.xml
           if-no-files-found: ignore
 
-  # Builda o frontend
-  frontend:
-    name: Frontend quality
+  # Valida o app mobile com TypeScript, formatação e configuração do Expo
+  mobile:
+    name: Mobile quality
     needs: guard
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -157,69 +155,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Build web
-        run: pnpm --filter @api/web build
+      - name: Typecheck mobile
+        run: pnpm exec tsc --noEmit -p apps/mobile/tsconfig.json
 
-  # Sobe os serviços e roda os testes end-to-end do frontend
-  e2e:
-    name: E2E tests
-    needs: [backend, frontend]
-    runs-on: ubuntu-latest
+      - name: Lint mobile
+        run: pnpm --filter mobile lint
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.9.0
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
-
-      - name: Install Playwright browsers
-        run: pnpm --filter @api/web exec playwright install --with-deps
-
-      - name: Cache Docker images
-        uses: actions/cache@v4
-        with:
-          path: /tmp/docker-images-cache
-          key: docker-images-${{ hashFiles('docker-compose.yml') }}
-
-      - name: Load cached Docker images
-        run: |
-          if [ -d /tmp/docker-images-cache ]; then
-            for f in /tmp/docker-images-cache/*.tar; do
-              docker load -i "$f" || true
-            done
-          fi
-
-      - name: Start Docker services
-        run: docker compose up -d
-
-      - name: Save Docker images to cache
-        if: always()
-        run: |
-          mkdir -p /tmp/docker-images-cache
-          docker compose config --images | while read -r img; do
-            safe_name=$(echo "$img" | tr '/:' '__')
-            docker save "$img" -o "/tmp/docker-images-cache/${safe_name}.tar"
-          done
-
-      - name: Run e2e tests
-        run: pnpm --filter @api/web test
-
-      - name: Stop Docker services
-        if: always()
-        run: docker compose down -v
+      - name: Validate Expo configuration
+        working-directory: apps/mobile
+        run: pnpm exec expo config --json > /dev/null
 
   # Publica o relatório de cobertura de código gerado no job backend
   code-coverage:
@@ -230,6 +174,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Download coverage report
         uses: actions/download-artifact@v4
@@ -244,7 +190,7 @@ jobs:
 
   ci-success:
     name: CI success
-    needs: [guard, backend, frontend, e2e, code-coverage]
+    needs: [guard, backend, mobile, code-coverage]
     if: always()
     runs-on: ubuntu-latest
     steps:
