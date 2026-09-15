@@ -10,20 +10,20 @@ const rootEnvPath = path.join(rootDir, '.env');
 const defaultEnvPath = path.join(rootDir, 'apps', 'server', '.env');
 
 function resolveEnvPath(args) {
-  const envFileIndex = args.indexOf('--env-file');
+	const envFileIndex = args.indexOf('--env-file');
 
-  if (envFileIndex === -1) {
-    return defaultEnvPath;
-  }
+	if (envFileIndex === -1) {
+		return defaultEnvPath;
+	}
 
-  const envFile = args[envFileIndex + 1];
+	const envFile = args[envFileIndex + 1];
 
-  if (!envFile) {
-    console.error('Error: --env-file requires a file path.');
-    process.exit(1);
-  }
+	if (!envFile) {
+		console.error('Error: --env-file requires a file path.');
+		process.exit(1);
+	}
 
-  return path.resolve(envFile);
+	return path.resolve(envFile);
 }
 
 const args = process.argv.slice(2);
@@ -46,23 +46,23 @@ const rootEnvContent =
   envPath !== rootEnvPath && fs.existsSync(rootEnvPath) ? fs.readFileSync(rootEnvPath, 'utf8') : '';
 
 function parseEnvValue(value) {
-  const trimmedValue = value.trim();
+	const trimmedValue = value.trim();
 
-  if (
-    (trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) ||
-    (trimmedValue.startsWith("'") && trimmedValue.endsWith("'"))
-  ) {
-    return trimmedValue.slice(1, -1);
-  }
+	if (
+		(trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) ||
+		(trimmedValue.startsWith("'") && trimmedValue.endsWith("'"))
+	) {
+		return trimmedValue.slice(1, -1);
+	}
 
-  return trimmedValue.replace(/\s+#.*$/, '');
+	return trimmedValue.replace(/\s+#.*$/, '');
 }
 
 function getEnvValue(content, key) {
   const regex = new RegExp(`^${key}=(.*)$`, 'm');
   const match = content.match(regex);
 
-  return match ? parseEnvValue(match[1]) : '';
+	return match ? parseEnvValue(match[1]) : '';
 }
 
 const jwtSecret =
@@ -75,61 +75,65 @@ if (!jwtSecret) {
 }
 
 if (jwtSecret.length < 32) {
-  console.error('Error: JWT_SECRET must contain at least 32 characters.');
-  process.exit(1);
+	console.error('Error: JWT_SECRET must contain at least 32 characters.');
+	process.exit(1);
 }
 
 function base64url(value) {
-  return Buffer.from(JSON.stringify(value)).toString('base64url');
+	return Buffer.from(JSON.stringify(value)).toString('base64url');
 }
 
 function createToken(role) {
-  const now = Math.floor(Date.now() / 1000);
+	const now = Math.floor(Date.now() / 1000);
 
-  const header = {
-    alg: 'HS256',
-    typ: 'JWT',
-  };
+	const header = {
+		alg: 'HS256',
+		typ: 'JWT',
+	};
 
-  const payload = {
-    role,
-    aud: 'authenticated',
-    iss: 'supabase',
-    iat: now,
-    exp: now + 315360000,
-  };
+	const payload = {
+		role,
+		aud: 'authenticated',
+		iss: 'supabase',
+		iat: now,
+		exp: now + 315360000,
+	};
 
-  const encodedHeader = base64url(header);
-  const encodedPayload = base64url(payload);
+	const encodedHeader = base64url(header);
+	const encodedPayload = base64url(payload);
 
-  const signature = crypto
-    .createHmac('sha256', jwtSecret)
-    .update(`${encodedHeader}.${encodedPayload}`)
-    .digest('base64url');
+	const signature = crypto
+		.createHmac('sha256', jwtSecret)
+		.update(`${encodedHeader}.${encodedPayload}`)
+		.digest('base64url');
 
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
+	return `${encodedHeader}.${encodedPayload}.${signature}`;
 }
 
 const existingAnonKey = getEnvValue(envContent, 'ANON_KEY');
 const existingServiceRoleKey = getEnvValue(envContent, 'SUPABASE_SERVICE_ROLE_KEY');
 
 if (!shouldForce && (existingAnonKey || existingServiceRoleKey)) {
-  console.error('Error: Supabase keys already exist in .env.');
-  console.error('This script is intended to be executed only once per local environment.');
-  console.error('If JWT_SECRET changed and you intentionally need new keys, run with --force.');
-  process.exit(1);
+	console.error('Error: Supabase keys already exist in .env.');
+	console.error(
+		'This script is intended to be executed only once per local environment.',
+	);
+	console.error(
+		'If JWT_SECRET changed and you intentionally need new keys, run with --force.',
+	);
+	process.exit(1);
 }
 
 function setEnvValue(content, key, value) {
-  const regex = new RegExp(`^${key}=.*$`, 'm');
+	const regex = new RegExp(`^${key}=.*$`, 'm');
 
-  if (regex.test(content)) {
-    return content.replace(regex, `${key}=${value}`);
-  }
+	if (regex.test(content)) {
+		return content.replace(regex, `${key}=${value}`);
+	}
 
-  const separator = content.endsWith('\n') ? '' : '\n';
+	const separator = content.endsWith('\n') ? '' : '\n';
 
-  return `${content}${separator}${key}=${value}\n`;
+	return `${content}${separator}${key}=${value}\n`;
 }
 
 const anonKey = createToken('anon');
@@ -138,7 +142,11 @@ const serviceRoleKey = createToken('service_role');
 let updatedEnv = envContent;
 
 updatedEnv = setEnvValue(updatedEnv, 'ANON_KEY', anonKey);
-updatedEnv = setEnvValue(updatedEnv, 'SUPABASE_SERVICE_ROLE_KEY', serviceRoleKey);
+updatedEnv = setEnvValue(
+	updatedEnv,
+	'SUPABASE_SERVICE_ROLE_KEY',
+	serviceRoleKey,
+);
 
 fs.writeFileSync(envPath, updatedEnv, 'utf8');
 

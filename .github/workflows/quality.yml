@@ -6,13 +6,136 @@ on:
       - develop
       - main
 
+permissions: {}
+
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  web:
-    name: Web
+  # Valida commit messages, formatação, lint e tipos antes de rodar o resto do pipeline
+  guard:
+    name: Guard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        uses: wagoid/commitlint-github-action@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: apps/server/requirements.txt
+
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Install Python dependencies
+        working-directory: apps/server
+        run: python -m pip install -r requirements.txt
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Lint web
+        run: pnpm --filter @api/web lint
+
+      - name: Lint server
+        working-directory: apps/server
+        run: ruff check .
+
+      - name: Check server formatting
+        working-directory: apps/server
+        run: ruff format --check .
+
+      - name: Typecheck web
+        run: pnpm --filter @api/web check:types
+
+      - name: Typecheck server
+        working-directory: apps/server
+        run: |
+          python -m pip install mypy
+          mypy .
+
+  # Testa o backend, valida a integração com o Postgres e gera a cobertura
+  backend:
+    name: Backend quality
+    needs: guard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: apps/server/requirements.txt
+
+      - name: Install dependencies
+        working-directory: apps/server
+        run: python -m pip install -r requirements.txt pytest-cov
+
+      - name: Start Docker services
+        run: docker compose up -d spaceline-db
+
+      - name: Check Postgres health
+        run: |
+          for i in {1..10}; do
+            docker exec spaceline-db pg_isready -U postgres -d postgres && exit 0
+            sleep 3
+          done
+
+          docker logs spaceline-db
+          exit 1
+
+      - name: Run server tests
+        working-directory: apps/server
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/postgres
+        run: |
+          if find . -type f \( -name 'test_*.py' -o -name '*_test.py' \) | grep -q .; then
+            pytest --cov --cov-report=xml
+          else
+            echo "No server tests found; skipping pytest."
+          fi
+
+      - name: Stop Docker services
+        if: always()
+        run: docker compose down -v
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: apps/server/coverage.xml
+          if-no-files-found: ignore
+
+  # Builda o frontend
+  frontend:
+    name: Frontend quality
+    needs: guard
     runs-on: ubuntu-latest
 
     steps:
@@ -34,69 +157,99 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Check formatting
-        run: pnpm format:check
+      - name: Build web
+        run: pnpm --filter @api/web build
 
-      - name: Lint web
-        run: pnpm --filter @api/web lint
-
-      - name: Typecheck web
-        run: pnpm --filter @api/web check:types
-
-  server:
-    name: Server
+  # Sobe os serviços e roda os testes end-to-end do frontend
+  e2e:
+    name: E2E tests
+    needs: [backend, frontend]
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          python-version: '3.11'
-          cache: pip
-          cache-dependency-path: apps/server/requirements.txt
+          version: 11.9.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        working-directory: apps/server
-        run: python -m pip install -r requirements.txt
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Check server formatting
-        working-directory: apps/server
-        run: ruff format --check .
+      - name: Install Playwright browsers
+        run: pnpm --filter @api/web exec playwright install --with-deps
 
-      - name: Lint server
-        working-directory: apps/server
-        run: ruff check .
+      - name: Cache Docker images
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-images-cache
+          key: docker-images-${{ hashFiles('docker-compose.yml') }}
 
-      - name: Run server tests
-        working-directory: apps/server
-        env:
-          DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/postgres
+      - name: Load cached Docker images
         run: |
-          if find . -type f \( -name 'test_*.py' -o -name '*_test.py' \) | grep -q .; then
-            pytest
-          else
-            echo "No server tests found; skipping pytest."
+          if [ -d /tmp/docker-images-cache ]; then
+            for f in /tmp/docker-images-cache/*.tar; do
+              docker load -i "$f" || true
+            done
           fi
 
       - name: Start Docker services
         run: docker compose up -d
 
-      - name: Check Docker services
-        run: docker compose ps
-
-      - name: Check Postgres health
+      - name: Save Docker images to cache
+        if: always()
         run: |
-          for i in {1..10}; do
-            docker exec spaceline-db pg_isready -U postgres -d postgres && exit 0
-            sleep 3
+          mkdir -p /tmp/docker-images-cache
+          docker compose config --images | while read -r img; do
+            safe_name=$(echo "$img" | tr '/:' '__')
+            docker save "$img" -o "/tmp/docker-images-cache/${safe_name}.tar"
           done
 
-          docker logs spaceline-db
-          exit 1
+      - name: Run e2e tests
+        run: pnpm --filter @api/web test
 
       - name: Stop Docker services
         if: always()
         run: docker compose down -v
+
+  # Publica o relatório de cobertura de código gerado no job backend
+  code-coverage:
+    name: Code coverage
+    needs: backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: apps/server
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          working-directory: apps/server
+
+  ci-success:
+    name: CI success
+    needs: [guard, backend, frontend, e2e, code-coverage]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "Algum job falhou ou foi cancelado"
+            exit 1
+          fi
