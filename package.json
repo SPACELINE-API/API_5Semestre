@@ -5,7 +5,7 @@
 	"scripts": {
 		"postinstall": "pnpm --filter @api/server install:python",
 		"dev": "pnpm -r --parallel dev",
-		"dev:web": "pnpm --filter @api/web dev",
+		"dev:mobile": "pnpm --filter mobile start",
 		"dev:server": "pnpm --filter @api/server dev",
 		"supabase:keys": "node scripts/generate-supabase-keys.js",
 		"test:supabase:keys": "node --test scripts/generate-supabase-keys.test.js",
@@ -34,5 +34,9 @@
 		"prettier-plugin-tailwindcss": "^0.8.1",
 		"typescript-eslint": "^8.70.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"@tanstack/react-router": "^1.170.36",
+		"lucide-react": "^1.46.0"
+	}
 }

@@ -2,6 +2,10 @@
 mypy_path = "."
 explicit_package_bases = true
 
+[[tool.mypy.overrides]]
+module = "pact.*"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 
