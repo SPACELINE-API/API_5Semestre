@@ -1,5 +1,6 @@
 from collections.abc import Generator
 from functools import lru_cache
+from typing import Any
 
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import Engine
@@ -32,7 +33,7 @@ def get_engine() -> Engine:
     engine = create_engine(get_database_url(), pool_pre_ping=True)
 
     @event.listens_for(engine, "connect")
-    def set_sao_paulo_timezone(dbapi_connection: object, _connection_record: object) -> None:
+    def set_sao_paulo_timezone(dbapi_connection: Any, _connection_record: Any) -> None:
         with dbapi_connection.cursor() as cursor:
             cursor.execute("SET TIME ZONE 'America/Sao_Paulo'")
 

@@ -1,9 +1,12 @@
 [tool.mypy]
 mypy_path = "."
 explicit_package_bases = true
+exclude = "(^|/)tests/"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+python_files = ["*.test.py"]
+addopts = "--import-mode=importlib"
 
 [tool.ruff]
 target-version = "py311"
@@ -20,10 +23,6 @@ quote-style = "double"
 indent-style = "space"
 line-ending = "lf"
 
-[tool.pytest.ini_options]
-pythonpath = ["."]
-python_files = ["*.test.py"]
-addopts = "--import-mode=importlib"
 [tool.ruff.lint]
 select = [
   "E",
