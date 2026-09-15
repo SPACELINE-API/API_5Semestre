@@ -160,6 +160,38 @@ jobs:
       - name: Build web
         run: pnpm --filter @api/web build
 
+  # Valida o app mobile com TypeScript, formatação e configuração do Expo
+  mobile:
+    name: Mobile quality
+    needs: guard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Typecheck mobile
+        run: pnpm exec tsc --noEmit -p apps/mobile/tsconfig.json
+
+      - name: Validate Expo configuration
+        working-directory: apps/mobile
+        run: pnpm exec expo config --json > /dev/null
+
   # Sobe os serviços e roda os testes end-to-end do frontend
   e2e:
     name: E2E tests
