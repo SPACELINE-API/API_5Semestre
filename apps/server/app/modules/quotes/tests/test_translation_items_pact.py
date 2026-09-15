@@ -4,6 +4,7 @@ from pact import Pact
 
 PACT_DIR = Path(__file__).parents[4] / "pacts"
 
+
 def test_create_translation_item_success_contract() -> None:
     pact = Pact("web", "server").with_specification("V4")
 
@@ -27,7 +28,7 @@ def test_create_translation_item_success_contract() -> None:
                 "source_language": "es-ES",
                 "target_language": "en-US",
                 "created_at": "2026-09-13T10:00:00Z",
-                "updated_at": "2026-09-13T10:00:00Z"
+                "updated_at": "2026-09-13T10:00:00Z",
             }
         )
     )

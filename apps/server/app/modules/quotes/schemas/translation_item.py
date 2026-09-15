@@ -5,10 +5,23 @@ from typing import Literal
 from pydantic import BaseModel
 
 SupportedLanguage = Literal[
-    "en-US", "it-IT", "es-ES", "ca-ES", "gl-ES", "eu-ES",
-    "fr-FR", "de-DE", "ja-JP", "zh-CN", "en-CA", "fr-CA",
-    "es-PE", "qu-PE", "ay-PE"
+    "en-US",
+    "it-IT",
+    "es-ES",
+    "ca-ES",
+    "gl-ES",
+    "eu-ES",
+    "fr-FR",
+    "de-DE",
+    "ja-JP",
+    "zh-CN",
+    "en-CA",
+    "fr-CA",
+    "es-PE",
+    "qu-PE",
+    "ay-PE",
 ]
+
 
 class QuoteTranslationItemCreate(BaseModel):
     source_language: SupportedLanguage
