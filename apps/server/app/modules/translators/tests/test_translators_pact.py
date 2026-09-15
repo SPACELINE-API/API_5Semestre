@@ -178,7 +178,7 @@ def test_list_translators_success_contract() -> None:
         .will_respond_with(200)
         .with_headers({"Content-Type": "application/json"})
         .with_body(
-            [
+            [  # type: ignore[arg-type]
                 {
                     "id": MOCK_TRANSLATOR_ID,
                     "name": "Maria Silva",
