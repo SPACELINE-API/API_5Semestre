@@ -100,8 +100,7 @@ export function SideBar() {
               {isOpen && <Text className="font-inter font-medium text-gray-800 text-sm">Sair do sistema</Text>}
             </TouchableOpacity>
           </View>
-        </View> 
-             
+        </View>        
       </View>
     </View>
   );
