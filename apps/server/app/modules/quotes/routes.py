@@ -12,6 +12,9 @@ from app.modules.quotes.services.quote_service import QuoteService
 from app.modules.quotes.services.translation_item_service import TranslationItemService
 from app.shared.database import get_db
 
+from app.modules.quotes.schemas.request import RequestCreate, RequestResponse
+from app.modules.quotes.services.request_service import RequestService
+
 router = APIRouter(prefix="/quotes", tags=["quotes"])
 
 
@@ -43,3 +46,19 @@ def list_translation_items(
 ):
     service = TranslationItemService(db)
     return service.list_items(quote_id)
+
+@router.post("/requests", response_model=RequestResponse, status_code=201)
+def create_request(
+    request_data: RequestCreate,
+    db: Session = Depends(get_db), 
+):
+    service = RequestService(db)
+    return service.create(request_data)
+
+
+@router.get("/requests", response_model=list[RequestResponse])
+def list_requests(
+    db: Session = Depends(get_db),  
+):
+    service = RequestService(db)
+    return service.list_all()

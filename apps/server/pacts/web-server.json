@@ -1,153 +1,280 @@
 {
-	"consumer": {
-		"name": "web"
-	},
-	"interactions": [
-		{
-			"description": "a request to create a translation item with missing body",
-			"pending": false,
-			"providerStates": [
-				{
-					"name": "the request is completely empty"
-				}
-			],
-			"request": {
-				"body": {
-					"content": {},
-					"contentType": "application/json",
-					"encoded": false
-				},
-				"headers": {
-					"Content-Type": ["application/json"]
-				},
-				"method": "POST",
-				"path": "/api/quotes/123e4567-e89b-12d3-a456-426614174000/translation-items"
-			},
-			"response": {
-				"headers": {
-					"Content-Type": ["application/json"]
-				},
-				"status": 422
-			},
-			"type": "Synchronous/HTTP"
-		},
-		{
-			"description": "a request to create a valid translation item",
-			"pending": false,
-			"providerStates": [
-				{
-					"name": "a quote exists"
-				}
-			],
-			"request": {
-				"body": {
-					"content": {
-						"source_language": "es-ES",
-						"target_language": "en-US"
-					},
-					"contentType": "application/json",
-					"encoded": false
-				},
-				"headers": {
-					"Content-Type": ["application/json"]
-				},
-				"method": "POST",
-				"path": "/api/quotes/123e4567-e89b-12d3-a456-426614174000/translation-items"
-			},
-			"response": {
-				"body": {
-					"content": {
-						"created_at": "2026-09-13T10:00:00Z",
-						"id": "123e4567-e89b-12d3-a456-426614174001",
-						"quote_id": "123e4567-e89b-12d3-a456-426614174000",
-						"source_language": "es-ES",
-						"target_language": "en-US",
-						"updated_at": "2026-09-13T10:00:00Z"
-					},
-					"contentType": "application/json",
-					"encoded": false
-				},
-				"headers": {
-					"Content-Type": ["application/json"]
-				},
-				"status": 201
-			},
-			"type": "Synchronous/HTTP"
-		},
-		{
-			"description": "a request to create an item for a non-existent quote",
-			"pending": false,
-			"providerStates": [
-				{
-					"name": "the quote does not exist"
-				}
-			],
-			"request": {
-				"body": {
-					"content": {
-						"source_language": "es-ES",
-						"target_language": "en-US"
-					},
-					"contentType": "application/json",
-					"encoded": false
-				},
-				"headers": {
-					"Content-Type": ["application/json"]
-				},
-				"method": "POST",
-				"path": "/api/quotes/999e4567-e89b-12d3-a456-426614174999/translation-items"
-			},
-			"response": {
-				"body": {
-					"content": {
-						"detail": "Quote not found"
-					},
-					"contentType": "application/json",
-					"encoded": false
-				},
-				"headers": {
-					"Content-Type": ["application/json"]
-				},
-				"status": 404
-			},
-			"type": "Synchronous/HTTP"
-		},
-		{
-			"description": "a request to list translation items for a quote",
-			"pending": false,
-			"providerStates": [
-				{
-					"name": "a quote exists with no items"
-				}
-			],
-			"request": {
-				"method": "GET",
-				"path": "/api/quotes/123e4567-e89b-12d3-a456-426614174000/translation-items"
-			},
-			"response": {
-				"body": {
-					"content": [],
-					"contentType": "application/json",
-					"encoded": false
-				},
-				"headers": {
-					"Content-Type": ["application/json"]
-				},
-				"status": 200
-			},
-			"type": "Synchronous/HTTP"
-		}
-	],
-	"metadata": {
-		"pactRust": {
-			"ffi": "0.5.4",
-			"models": "1.3.11"
-		},
-		"pactSpecification": {
-			"version": "4.0"
-		}
-	},
-	"provider": {
-		"name": "server"
-	}
+  "consumer": {
+    "name": "web"
+  },
+  "interactions": [
+    {
+      "description": "a request to create a request with missing body",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the request is completely empty"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {},
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/quotes/requests"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create a translation item with missing body",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the request is completely empty"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {},
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/quotes/123e4567-e89b-12d3-a456-426614174000/translation-items"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create a valid request",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the request payload is valid"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "customer_name": "João Silva",
+            "customer_need": "Contrato Social",
+            "email": "joao@teste.com",
+            "enterprise": "Empresa X",
+            "original_language": "Português",
+            "translation_language": "Francês"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/quotes/requests"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "customer_name": "João Silva",
+            "customer_need": "Contrato Social",
+            "email": "joao@teste.com",
+            "enterprise": "Empresa X",
+            "id": "123e4567-e89b-12d3-a456-426614174000",
+            "original_language": "Português",
+            "request_date": "2026-09-15",
+            "status": "pending",
+            "translation_language": "Francês"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 201
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create a valid translation item",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a quote exists"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "source_language": "es-ES",
+            "target_language": "en-US"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/quotes/123e4567-e89b-12d3-a456-426614174000/translation-items"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "created_at": "2026-09-13T10:00:00Z",
+            "id": "123e4567-e89b-12d3-a456-426614174001",
+            "quote_id": "123e4567-e89b-12d3-a456-426614174000",
+            "source_language": "es-ES",
+            "target_language": "en-US",
+            "updated_at": "2026-09-13T10:00:00Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 201
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create an item for a non-existent quote",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the quote does not exist"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "source_language": "es-ES",
+            "target_language": "en-US"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/quotes/999e4567-e89b-12d3-a456-426614174999/translation-items"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "detail": "Quote not found"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 404
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list requests",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no requests exist"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/quotes/requests"
+      },
+      "response": {
+        "body": {
+          "content": [],
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list translation items for a quote",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a quote exists with no items"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/quotes/123e4567-e89b-12d3-a456-426614174000/translation-items"
+      },
+      "response": {
+        "body": {
+          "content": [],
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.5.4",
+      "models": "1.3.11"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "server"
+  }
 }
