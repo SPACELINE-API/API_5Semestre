@@ -168,9 +168,7 @@ def test_password_recovery_uses_site_url_and_returns_generic_message() -> None:
     app.dependency_overrides.clear()
 
     assert response.status_code == 200
-    assert response.json() == {
-        "message": "E-mail enviado para o destinatário."
-    }
+    assert response.json() == {"message": "E-mail enviado para o destinatário."}
     assert supabase_client.recovery_request == (
         "user@example.com",
         "http://localhost:5173/login",
