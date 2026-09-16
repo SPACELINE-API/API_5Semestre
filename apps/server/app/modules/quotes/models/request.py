@@ -14,14 +14,11 @@ class StatusEnum(enum.StrEnum):
     PENDING = "pending"
     APPROVED = "approved"
 
+
 class Request(Base):
     __tablename__ = "request"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     customer_name: Mapped[str] = mapped_column(String(255))
 
     enterprise: Mapped[str] = mapped_column(String(155))
@@ -34,11 +31,6 @@ class Request(Base):
 
     customer_need: Mapped[str] = mapped_column(String(100))
 
-    status: Mapped[StatusEnum] = mapped_column(
-        SQLEnum(StatusEnum),
-        default=StatusEnum.PENDING
-    )
+    status: Mapped[StatusEnum] = mapped_column(SQLEnum(StatusEnum), default=StatusEnum.PENDING)
 
-    request_date: Mapped[date] = mapped_column(
-        server_default=func.current_date()
-    )
+    request_date: Mapped[date] = mapped_column(server_default=func.current_date())

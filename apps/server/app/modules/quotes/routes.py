@@ -46,10 +46,11 @@ def list_translation_items(
     service = TranslationItemService(db)
     return service.list_items(quote_id)
 
+
 @router.post("/requests", response_model=RequestResponse, status_code=201)
 def create_request(
     request_data: RequestCreate,
-    db: Session = Depends(get_db), # noqa: B008
+    db: Session = Depends(get_db),  # noqa: B008
 ):
     service = RequestService(db)
     return service.create(request_data)
@@ -57,7 +58,7 @@ def create_request(
 
 @router.get("/requests", response_model=list[RequestResponse])
 def list_requests(
-    db: Session = Depends(get_db), # noqa: B008
+    db: Session = Depends(get_db),  # noqa: B008
 ):
     service = RequestService(db)
     return service.list_all()
