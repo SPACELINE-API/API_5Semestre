@@ -10,7 +10,10 @@ export type LoginResponse = {
 const STORAGE_KEY = 'spaceline.auth';
 
 export async function login(email: string, password: string) {
-	return apiPost<LoginResponse, { email: string; password: string }>('/api/auth/login', { email, password });
+	return apiPost<LoginResponse, { email: string; password: string }>(
+		'/api/auth/login',
+		{ email, password },
+	);
 }
 
 export function saveSession(session: LoginResponse, remember: boolean) {
@@ -19,7 +22,8 @@ export function saveSession(session: LoginResponse, remember: boolean) {
 }
 
 export function getSession(): LoginResponse | null {
-	const value = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
+	const value =
+		localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
 	return value ? (JSON.parse(value) as LoginResponse) : null;
 }
 
