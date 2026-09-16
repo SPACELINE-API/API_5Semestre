@@ -45,7 +45,9 @@ def merge_pact_files(generated_path: Path, pact_path: Path) -> None:
     existing.setdefault("provider", generated.get("provider"))
     existing["metadata"] = generated.get("metadata", existing.get("metadata", {}))
     pact_path.parent.mkdir(parents=True, exist_ok=True)
-    pact_path.write_text(json.dumps(existing, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    pact_path.write_text(
+        json.dumps(existing, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
 
 def write_pact(pact: Any, pact_dir: Path) -> None:
