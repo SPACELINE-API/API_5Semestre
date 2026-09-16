@@ -1,123 +1,107 @@
 {
-  "consumer": {
-    "name": "web"
-  },
-  "interactions": [
-    {
-      "description": "uma solicitação de login válida",
-      "pending": false,
-      "providerStates": [
-        {
-          "name": "as credenciais do usuário são válidas"
-        }
-      ],
-      "request": {
-        "body": {
-          "content": {
-            "email": "usuario@exemplo.com",
-            "password": "senha-segura"
-          },
-          "contentType": "application/json",
-          "encoded": false
-        },
-        "headers": {
-          "Content-Type": [
-            "application/json"
-          ],
-          "content-type": [
-            "application/json"
-          ]
-        },
-        "method": "POST",
-        "path": "/api/auth/login"
-      },
-      "response": {
-        "body": {
-          "content": {
-            "access_token": "token-de-sessao",
-            "expires_in": 3600,
-            "token_type": "bearer",
-            "user": {
-              "email": "usuario@exemplo.com",
-              "id": "user-id"
-            }
-          },
-          "contentType": "application/json",
-          "encoded": false
-        },
-        "headers": {
-          "Content-Type": [
-            "application/json"
-          ],
-          "content-type": [
-            "application/json"
-          ]
-        },
-        "status": 200
-      },
-      "type": "Synchronous/HTTP"
-    },
-    {
-      "description": "uma solicitação de recuperação de senha",
-      "pending": false,
-      "providerStates": [
-        {
-          "name": "o serviço de recuperação de senha está disponível"
-        }
-      ],
-      "request": {
-        "body": {
-          "content": {
-            "email": "recuperacao@exemplo.com"
-          },
-          "contentType": "application/json",
-          "encoded": false
-        },
-        "headers": {
-          "Content-Type": [
-            "application/json"
-          ],
-          "content-type": [
-            "application/json"
-          ]
-        },
-        "method": "POST",
-        "path": "/api/auth/password-recovery"
-      },
-      "response": {
-        "body": {
-          "content": {
-            "message": "E-mail enviado para o destinatário."
-          },
-          "contentType": "application/json",
-          "encoded": false
-        },
-        "headers": {
-          "Content-Type": [
-            "application/json"
-          ],
-          "content-type": [
-            "application/json"
-          ]
-        },
-        "status": 200
-      },
-      "type": "Synchronous/HTTP"
-    }
-  ],
-  "metadata": {
-    "pact-js": {
-      "version": "17.1.4"
-    },
-    "pactRust": {
-      "ffi": "0.5.7",
-      "models": "1.3.15"
-    },
-    "pactSpecification": {
-      "version": "4.0"
-    }
-  },
-  "provider": {
-    "name": "server"
-  }
+	"consumer": {
+		"name": "web"
+	},
+	"interactions": [
+		{
+			"description": "uma solicitação de login válida",
+			"pending": false,
+			"providerStates": [
+				{
+					"name": "as credenciais do usuário são válidas"
+				}
+			],
+			"request": {
+				"body": {
+					"content": {
+						"email": "usuario@exemplo.com",
+						"password": "senha-segura"
+					},
+					"contentType": "application/json",
+					"encoded": false
+				},
+				"headers": {
+					"Content-Type": ["application/json"],
+					"content-type": ["application/json"]
+				},
+				"method": "POST",
+				"path": "/api/auth/login"
+			},
+			"response": {
+				"body": {
+					"content": {
+						"access_token": "token-de-sessao",
+						"expires_in": 3600,
+						"token_type": "bearer",
+						"user": {
+							"email": "usuario@exemplo.com",
+							"id": "user-id"
+						}
+					},
+					"contentType": "application/json",
+					"encoded": false
+				},
+				"headers": {
+					"Content-Type": ["application/json"],
+					"content-type": ["application/json"]
+				},
+				"status": 200
+			},
+			"type": "Synchronous/HTTP"
+		},
+		{
+			"description": "uma solicitação de recuperação de senha",
+			"pending": false,
+			"providerStates": [
+				{
+					"name": "o serviço de recuperação de senha está disponível"
+				}
+			],
+			"request": {
+				"body": {
+					"content": {
+						"email": "recuperacao@exemplo.com"
+					},
+					"contentType": "application/json",
+					"encoded": false
+				},
+				"headers": {
+					"Content-Type": ["application/json"],
+					"content-type": ["application/json"]
+				},
+				"method": "POST",
+				"path": "/api/auth/password-recovery"
+			},
+			"response": {
+				"body": {
+					"content": {
+						"message": "E-mail enviado para o destinatário."
+					},
+					"contentType": "application/json",
+					"encoded": false
+				},
+				"headers": {
+					"Content-Type": ["application/json"],
+					"content-type": ["application/json"]
+				},
+				"status": 200
+			},
+			"type": "Synchronous/HTTP"
+		}
+	],
+	"metadata": {
+		"pact-js": {
+			"version": "17.1.4"
+		},
+		"pactRust": {
+			"ffi": "0.5.7",
+			"models": "1.3.15"
+		},
+		"pactSpecification": {
+			"version": "4.0"
+		}
+	},
+	"provider": {
+		"name": "server"
+	}
 }

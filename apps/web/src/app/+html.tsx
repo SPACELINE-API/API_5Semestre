@@ -1,4 +1,7 @@
-import { ScrollViewStyleReset, useServerDocumentContext } from 'expo-router/html';
+import {
+	ScrollViewStyleReset,
+	useServerDocumentContext,
+} from 'expo-router/html';
 import type { ReactNode } from 'react';
 
 export default function Root({ children }: { children: ReactNode }) {

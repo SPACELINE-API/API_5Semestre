@@ -19,7 +19,6 @@ def test_password_recovery_sends_redirect_to_as_query_parameter() -> None:
     client.request_password_recovery("user@example.com", "http://localhost:5173/login")
 
     assert str(requests[0].url) == (
-        "http://localhost:8000/auth/v1/recover?redirect_to="
-        "http%3A%2F%2Flocalhost%3A5173%2Flogin"
+        "http://localhost:8000/auth/v1/recover?redirect_to=http%3A%2F%2Flocalhost%3A5173%2Flogin"
     )
     assert requests[0].read() == b'{"email":"user@example.com"}'
