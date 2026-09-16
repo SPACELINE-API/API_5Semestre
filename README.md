@@ -14,7 +14,7 @@
 
 <a id="desafio"></a>
 
-Desenvolvimento de uma aplicação web para apoiar a gestão de solicitações de
+Desenvolvimento de uma aplicação mobile multiplataforma para apoiar a gestão de solicitações de
 serviços linguísticos, contemplando cadastro de clientes, contatos, recursos,
 tradutores, cotações, ordens de serviço e alocações.
 
@@ -149,7 +149,7 @@ Crie os arquivos `.env` com base nos exemplos:
 
 ```txt
 .env.example
-apps/web/.env.example
+apps/mobile/.env.example
 apps/server/.env.example
 ```
 
@@ -186,22 +186,22 @@ O serviço do PostgreSQL é configurado pelo arquivo `docker-compose.yml`.
 
 ### Executar Aplicação
 
-Para executar frontend e backend juntos:
+Para executar o frontend mobile (Expo, com suporte a Android, iOS e web) e o backend juntos:
 
 ```bash
 pnpm dev
 ```
 
-Para executar apenas o frontend:
+Para executar apenas o aplicativo unificado:
 
 ```bash
-pnpm dev:web
+pnpm dev:mobile
 ```
 
 Frontend:
 
 ```txt
-http://localhost:5173
+O Expo exibirá o endereço do Metro bundler e permitirá abrir no Android, iOS ou web.
 ```
 
 Para executar apenas o backend:

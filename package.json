@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"postinstall": "pnpm --filter @api/server install:python",
-		"dev": "pnpm --parallel --filter @api/server --filter web --filter mobile dev",
+		"dev": "pnpm --parallel --filter @api/server --filter mobile dev",
 		"dev:mobile": "pnpm --filter mobile start",
 		"dev:server": "pnpm --filter @api/server dev",
 		"supabase:keys": "node scripts/generate-supabase-keys.js",
