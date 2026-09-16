@@ -20,13 +20,19 @@ function encodeCookieValue(value: unknown) {
 }
 
 function decodeCookieValue<T>(value: string): T | null {
-	try { return JSON.parse(decodeURIComponent(value)) as T; } catch { return null; }
+	try {
+		return JSON.parse(decodeURIComponent(value)) as T;
+	} catch {
+		return null;
+	}
 }
 
 function getCookie(name: string) {
 	if (!isBrowser()) return null;
 	const prefix = `${name}=`;
-	const cookie = document.cookie.split('; ').find((item) => item.startsWith(prefix));
+	const cookie = document.cookie
+		.split('; ')
+		.find((item) => item.startsWith(prefix));
 	return cookie ? cookie.slice(prefix.length) : null;
 }
 
@@ -42,12 +48,19 @@ function deleteCookie(name: string) {
 }
 
 export function login(email: string, password: string) {
-	return apiPost<LoginResponse, { email: string; password: string }>('/api/auth/login', { email, password });
+	return apiPost<LoginResponse, { email: string; password: string }>(
+		'/api/auth/login',
+		{ email, password },
+	);
 }
 
 export function saveSession(session: LoginResponse, remember = false) {
 	nativeSession = session;
-	setCookie(SESSION_COOKIE, encodeCookieValue(session), remember ? session.expires_in : undefined);
+	setCookie(
+		SESSION_COOKIE,
+		encodeCookieValue(session),
+		remember ? session.expires_in : undefined,
+	);
 }
 
 export function getSession(): LoginResponse | null {
@@ -70,11 +83,23 @@ export function acceptCookies() {
 }
 
 export function requestPasswordRecovery(email: string) {
-	return apiPost<{ message: string }, { email: string }>('/api/auth/password-recovery', { email });
+	return apiPost<{ message: string }, { email: string }>(
+		'/api/auth/password-recovery',
+		{ email },
+	);
 }
 
-export function resetPassword(access_token: string, password: string, password_confirmation: string) {
-	return apiPost<{ message: string }, { access_token: string; password: string; password_confirmation: string }>(
-		'/api/auth/password-reset', { access_token, password, password_confirmation },
-	);
+export function resetPassword(
+	access_token: string,
+	password: string,
+	password_confirmation: string,
+) {
+	return apiPost<
+		{ message: string },
+		{ access_token: string; password: string; password_confirmation: string }
+	>('/api/auth/password-reset', {
+		access_token,
+		password,
+		password_confirmation,
+	});
 }

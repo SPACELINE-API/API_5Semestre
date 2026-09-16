@@ -1,17 +1,29 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('autenticação mobile unificada', () => {
-	test('solicita recuperação de senha e exibe confirmação', async ({ page }) => {
+	test('solicita recuperação de senha e exibe confirmação', async ({
+		page,
+	}) => {
 		let requestBody: { email?: string } = {};
 		await page.route('**/api/auth/password-recovery', async (route) => {
 			requestBody = route.request().postDataJSON() as { email?: string };
-			await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ message: 'E-mail enviado para o destinatário.' }) });
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					message: 'E-mail enviado para o destinatário.',
+				}),
+			});
 		});
 		await page.goto('/login');
 		await page.getByText('Esqueci minha senha').click();
-		await page.getByPlaceholder('Digite seu e-mail').fill('recuperacao@exemplo.com');
+		await page
+			.getByPlaceholder('Digite seu e-mail')
+			.fill('recuperacao@exemplo.com');
 		await page.getByRole('button', { name: 'ENVIAR LINK' }).click();
-		await expect(page.getByText('E-mail enviado para o destinatário.')).toBeVisible();
+		await expect(
+			page.getByText('E-mail enviado para o destinatário.'),
+		).toBeVisible();
 		expect(requestBody.email).toBe('recuperacao@exemplo.com');
 	});
 
@@ -19,7 +31,11 @@ test.describe('autenticação mobile unificada', () => {
 		let requestBody: Record<string, string> = {};
 		await page.route('**/api/auth/password-reset', async (route) => {
 			requestBody = route.request().postDataJSON() as Record<string, string>;
-			await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ message: 'Senha atualizada com sucesso.' }) });
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ message: 'Senha atualizada com sucesso.' }),
+			});
 		});
 		await page.goto('/login#access_token=mobile-token&type=recovery');
 		await page.getByPlaceholder('Digite sua nova senha').fill('nova-senha');

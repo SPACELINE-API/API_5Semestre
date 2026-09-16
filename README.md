@@ -14,9 +14,9 @@
 
 <a id="desafio"></a>
 
-Desenvolvimento de uma aplicação mobile multiplataforma para apoiar a gestão de solicitações de
-serviços linguísticos, contemplando cadastro de clientes, contatos, recursos,
-tradutores, cotações, ordens de serviço e alocações.
+Desenvolvimento de uma aplicação mobile multiplataforma para apoiar a gestão de
+solicitações de serviços linguísticos, contemplando cadastro de clientes,
+contatos, recursos, tradutores, cotações, ordens de serviço e alocações.
 
 ---
 
@@ -186,7 +186,8 @@ O serviço do PostgreSQL é configurado pelo arquivo `docker-compose.yml`.
 
 ### Executar Aplicação
 
-Para executar o frontend mobile (Expo, com suporte a Android, iOS e web) e o backend juntos:
+Para executar o frontend mobile (Expo, com suporte a Android, iOS e web) e o
+backend juntos:
 
 ```bash
 pnpm dev

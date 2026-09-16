@@ -9,7 +9,9 @@ async function request<TResponse>(path: string, init?: RequestInit) {
 	});
 	if (!response.ok) {
 		const payload = await response.json().catch(() => null);
-		throw new Error(payload?.detail ?? `Request failed with status ${response.status}`);
+		throw new Error(
+			payload?.detail ?? `Request failed with status ${response.status}`,
+		);
 	}
 	return response.json() as Promise<TResponse>;
 }
@@ -19,5 +21,8 @@ export async function apiGet<TResponse>(path: string): Promise<TResponse> {
 }
 
 export function apiPost<TResponse, TBody>(path: string, body: TBody) {
-	return request<TResponse>(path, { method: 'POST', body: JSON.stringify(body) });
+	return request<TResponse>(path, {
+		method: 'POST',
+		body: JSON.stringify(body),
+	});
 }
