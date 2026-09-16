@@ -1,5 +1,5 @@
-import { Text, View } from 'react-native';
+import { DashboardPage } from '../modules/dashboard/pages/DashboardPage';
 
 export default function DashboardRoute() {
-	return <View className="flex-1 bg-white p-8"><Text className="text-3xl font-bold text-slate-900">Dashboard</Text><Text className="mt-2 text-slate-500">Bem-vindo ao Portal do Cliente.</Text></View>;
+	return <DashboardPage />;
 }

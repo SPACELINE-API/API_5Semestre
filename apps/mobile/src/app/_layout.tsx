@@ -29,6 +29,7 @@ export default function AppLayout() {
 		'Poppins-Medium': Poppins_500Medium,
 		'Poppins-Bold': Poppins_700Bold,
 	});
+	const pathname = usePathname();
 
 	useEffect(() => {
 		if (fontsLoaded || error) {
@@ -39,7 +40,6 @@ export default function AppLayout() {
 	if (!fontsLoaded && !error) {
 		return null;
 	}
-	const pathname = usePathname();
 	const isLogin = pathname === '/login';
 	if (!isLogin && !getSession()) return <Redirect href={'/login' as never} />;
 	if (isLogin) return <Slot />;

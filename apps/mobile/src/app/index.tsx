@@ -1,9 +1,5 @@
-import { View, Text } from 'react-native';
+import { HomePage } from '../modules/home/pages/HomePage';
 
-export default function Index() {
-	return (
-		<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-			<Text>Home</Text>
-		</View>
-	);
+export default function IndexRoute() {
+	return <HomePage />;
 }
