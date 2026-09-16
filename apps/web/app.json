@@ -3,6 +3,7 @@
 		"name": "web",
 		"slug": "web",
 		"version": "1.0.0",
+		"userInterfaceStyle": "automatic",
 		"web": { "output": "static" },
 		"plugins": ["expo-router"],
 		"experiments": { "typedRoutes": true, "router": { "root": "src" } }
