@@ -7,7 +7,7 @@ from app.modules.contacts.routes import router as contacts_router
 from app.modules.quotes.routes import router as quotes_router
 from app.modules.resources.routes import router as resources_router
 from app.modules.service_orders.routes import router as service_orders_router
-from app.modules.support.routes import router as support_router
+from app.modules.system_parameters.routes import router as support_router
 from app.modules.translators.routes import router as translators_router
 from app.modules.users.routes import router as users_router
 

@@ -36,7 +36,7 @@ jobs:
           cache: pip
           cache-dependency-path: apps/server/requirements.txt
       - run: |
-          python -m pip install -r apps/server/requirements.txt
+          python -m pip install --pre --no-deps -r apps/server/requirements.txt
           ruff check apps/server --fix
           ruff format apps/server
       - uses: autofix-ci/action@v1
