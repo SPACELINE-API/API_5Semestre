@@ -2,6 +2,8 @@ from pathlib import Path
 
 from pact import Pact
 
+from app.shared.pact_writer import write_pact
+
 PACT_DIR = Path(__file__).parents[4] / "pacts"
 
 
@@ -34,7 +36,7 @@ def test_login_success_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 def test_login_invalid_credentials_contract() -> None:
@@ -60,7 +62,7 @@ def test_login_invalid_credentials_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 def test_login_inactive_user_contract() -> None:
@@ -86,7 +88,7 @@ def test_login_inactive_user_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 def test_login_internal_server_error_contract() -> None:
@@ -112,4 +114,4 @@ def test_login_internal_server_error_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
