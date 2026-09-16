@@ -25,7 +25,11 @@ function getRecoveryAccessToken() {
 
 function clearRecoveryHash() {
 	if (typeof window !== 'undefined') {
-		window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+		window.history.replaceState(
+			{},
+			document.title,
+			`${window.location.pathname}${window.location.search}`,
+		);
 	}
 }
 
@@ -34,9 +38,12 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 	const passwordInputRef = useRef<TextInput>(null);
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
-	const [recoveryAccessToken, setRecoveryAccessToken] = useState<string | null>(null);
+	const [recoveryAccessToken, setRecoveryAccessToken] = useState<string | null>(
+		null,
+	);
 	const [recoveryPassword, setRecoveryPassword] = useState('');
-	const [recoveryPasswordConfirmation, setRecoveryPasswordConfirmation] = useState('');
+	const [recoveryPasswordConfirmation, setRecoveryPasswordConfirmation] =
+		useState('');
 	const [isRequestingRecovery, setIsRequestingRecovery] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const [remember, setRemember] = useState(false);
@@ -65,7 +72,9 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 			saveSession(session, remember);
 			router.replace('/dashboard' as never);
 		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : 'Não foi possível entrar.');
+			setError(
+				cause instanceof Error ? cause.message : 'Não foi possível entrar.',
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -103,7 +112,11 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 			const response = await requestPasswordRecovery(email.trim());
 			setMessage(response.message);
 		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : 'Não foi possível enviar o link.');
+			setError(
+				cause instanceof Error
+					? cause.message
+					: 'Não foi possível enviar o link.',
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -139,7 +152,11 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 			setRecoveryPasswordConfirmation('');
 			setMessage(response.message);
 		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : 'Não foi possível atualizar a senha.');
+			setError(
+				cause instanceof Error
+					? cause.message
+					: 'Não foi possível atualizar a senha.',
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -169,7 +186,11 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 						</Text>
 						<TextInput
 							className="h-14 rounded-xl border-2 border-white/70 bg-white/90 px-5 text-base text-slate-900"
-							placeholder={isRequestingRecovery ? 'Digite seu e-mail' : 'seuemail@exemplo.com'}
+							placeholder={
+								isRequestingRecovery
+									? 'Digite seu e-mail'
+									: 'seuemail@exemplo.com'
+							}
 							placeholderTextColor="#94a3b8"
 							keyboardType="email-address"
 							autoCapitalize="none"
@@ -184,7 +205,9 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 						/>
 						{!isRequestingRecovery ? (
 							<>
-								<Text className="mb-2 mt-6 text-base font-bold text-white">Senha</Text>
+								<Text className="mb-2 mt-6 text-base font-bold text-white">
+									Senha
+								</Text>
 								<View className="relative">
 									<TextInput
 										ref={passwordInputRef}
@@ -200,7 +223,9 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 									<Pressable
 										className="absolute inset-y-0 right-0 w-14 items-center justify-center"
 										accessibilityRole="button"
-										accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+										accessibilityLabel={
+											showPassword ? 'Ocultar senha' : 'Mostrar senha'
+										}
 										onPress={() => setShowPassword((visible) => !visible)}
 									>
 										{showPassword ? (
@@ -222,35 +247,43 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 					/>
 				)}
 				{!isRequestingRecovery && !isPasswordRecovery ? (
-				<View className="mb-7 mt-5 flex-row items-center justify-between">
-					<Pressable
-						className="flex-row items-center gap-3"
-						accessibilityRole="checkbox"
-						accessibilityLabel="Lembrar-me"
-						accessibilityState={{ checked: remember }}
-						onPress={() => setRemember(!remember)}
-					>
-						<View
-							className={`h-6 w-6 rounded-md border-2 ${remember ? 'border-sky-500 bg-sky-400' : 'border-sky-300 bg-white'}`}
+					<View className="mb-7 mt-5 flex-row items-center justify-between">
+						<Pressable
+							className="flex-row items-center gap-3"
+							accessibilityRole="checkbox"
+							accessibilityLabel="Lembrar-me"
+							accessibilityState={{ checked: remember }}
+							onPress={() => setRemember(!remember)}
 						>
-							{remember ? <Check color="#ffffff" size={16} strokeWidth={3} /> : null}
-						</View>
-						<Text className="text-sm text-slate-600">Lembrar-me</Text>
-					</Pressable>
-					<Pressable onPress={beginPasswordRecovery}>
-						<Text className="text-sm font-bold text-blue-600">
-							Esqueci minha senha
-						</Text>
-					</Pressable>
-				</View>
+							<View
+								className={`h-6 w-6 rounded-md border-2 ${remember ? 'border-sky-500 bg-sky-400' : 'border-sky-300 bg-white'}`}
+							>
+								{remember ? (
+									<Check color="#ffffff" size={16} strokeWidth={3} />
+								) : null}
+							</View>
+							<Text className="text-sm text-slate-600">Lembrar-me</Text>
+						</Pressable>
+						<Pressable onPress={beginPasswordRecovery}>
+							<Text className="text-sm font-bold text-blue-600">
+								Esqueci minha senha
+							</Text>
+						</Pressable>
+					</View>
 				) : null}
 				{isRequestingRecovery ? (
 					<Pressable className="mt-5 self-center" onPress={returnToLogin}>
-						<Text className="text-sm font-bold text-blue-600">Voltar para o login</Text>
+						<Text className="text-sm font-bold text-blue-600">
+							Voltar para o login
+						</Text>
 					</Pressable>
 				) : null}
-				{error ? <Text className="mb-4 text-sm text-red-600">{error}</Text> : null}
-				{message ? <Text className="mb-4 text-sm text-blue-700">{message}</Text> : null}
+				{error ? (
+					<Text className="mb-4 text-sm text-red-600">{error}</Text>
+				) : null}
+				{message ? (
+					<Text className="mb-4 text-sm text-blue-700">{message}</Text>
+				) : null}
 				<Pressable
 					className="h-14 items-center justify-center rounded-full bg-blue-600 shadow-md shadow-blue-600/30"
 					disabled={loading}

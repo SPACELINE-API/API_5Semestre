@@ -16,7 +16,8 @@ export function PasswordRecoveryFields({
 	onPasswordConfirmationChange,
 }: PasswordRecoveryFieldsProps) {
 	const [showPassword, setShowPassword] = useState(false);
-	const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
+	const [showPasswordConfirmation, setShowPasswordConfirmation] =
+		useState(false);
 
 	return (
 		<View className="gap-4">
@@ -34,7 +35,9 @@ export function PasswordRecoveryFields({
 					<Pressable
 						className="absolute inset-y-0 right-0 w-14 items-center justify-center"
 						accessibilityRole="button"
-						accessibilityLabel={showPassword ? 'Ocultar nova senha' : 'Mostrar nova senha'}
+						accessibilityLabel={
+							showPassword ? 'Ocultar nova senha' : 'Mostrar nova senha'
+						}
 						onPress={() => setShowPassword((visible) => !visible)}
 					>
 						{showPassword ? (

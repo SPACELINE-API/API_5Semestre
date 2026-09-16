@@ -35,7 +35,10 @@ export function LoginPage() {
 				<View className="flex-1 items-center justify-center">
 					<LoginForm cookiesAccepted={cookiesAccepted} />
 					<Text className="mt-7 text-center text-sm text-slate-600">
-						Ainda não tem acesso? <Text className="font-bold text-slate-600">Solicite seu cadastro</Text>
+						Ainda não tem acesso?{' '}
+						<Text className="font-bold text-slate-600">
+							Solicite seu cadastro
+						</Text>
 					</Text>
 				</View>
 			</View>

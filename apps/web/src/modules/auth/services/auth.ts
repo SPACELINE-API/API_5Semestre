@@ -87,18 +87,18 @@ export async function resetPassword(
 	password: string,
 	passwordConfirmation: string,
 ) {
-	return apiPost<PasswordRecoveryResponse, {
-		access_token: string;
-		password: string;
-		password_confirmation: string;
-	}>(
-		'/api/auth/password-reset',
+	return apiPost<
+		PasswordRecoveryResponse,
 		{
-			access_token: accessToken,
-			password,
-			password_confirmation: passwordConfirmation,
-		},
-	);
+			access_token: string;
+			password: string;
+			password_confirmation: string;
+		}
+	>('/api/auth/password-reset', {
+		access_token: accessToken,
+		password,
+		password_confirmation: passwordConfirmation,
+	});
 }
 
 export function getSession(): LoginResponse | null {
