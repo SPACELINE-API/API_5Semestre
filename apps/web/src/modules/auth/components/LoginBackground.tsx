@@ -2,12 +2,15 @@ import { View } from 'react-native';
 
 export function LoginBackground() {
 	return (
-		<View className="absolute inset-0 overflow-hidden bg-sky-400">
-			<View className="absolute -left-24 bottom-8 h-96 w-96 rounded-full bg-blue-500/45" />
-			<View className="absolute left-[45%] top-[-5%] h-48 w-48 rounded-full bg-blue-500/45" />
-			<View className="absolute right-[-4%] top-0 h-[72%] w-[48%] opacity-60" style={{ backgroundImage: 'radial-gradient(#d7efff 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }} />
-			<View className="absolute bottom-[-3%] left-0 h-[42%] w-[30%] opacity-65" style={{ backgroundImage: 'radial-gradient(#d7efff 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }} />
-			<View className="absolute bottom-0 right-[8%] h-[34%] w-[38%] opacity-50" style={{ backgroundImage: 'radial-gradient(#d7efff 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }} />
+		<View className="absolute inset-0 overflow-hidden bg-[#dceeff]">
+			<View className="absolute -left-[14%] top-[10%] h-[42%] w-[78%] rounded-[50%] bg-[#f8fbff] opacity-95" />
+			<View className="absolute -right-[18%] top-[6%] h-[43%] w-[78%] rounded-[50%] bg-[#f8fbff] opacity-90" />
+			<View className="absolute -left-[16%] top-[49%] h-[40%] w-[78%] rounded-[50%] bg-[#f8fbff] opacity-90" />
+			<View className="absolute -right-[16%] top-[45%] h-[40%] w-[76%] rounded-[50%] bg-[#f8fbff] opacity-95" />
+			<View className="absolute -bottom-[18%] -left-[12%] h-[38%] w-[110%] rounded-[50%] bg-[#2f7fd1]" />
+			<View className="absolute -bottom-[5%] -left-[8%] h-[22%] w-[100%] rounded-[50%] bg-[#438fdc] opacity-80" />
+			<View className="absolute -left-20 top-[35%] h-52 w-52 rounded-full bg-[#b8dafa] opacity-70" />
+			<View className="absolute right-[-5%] top-[48%] h-64 w-64 rounded-full bg-[#c2e1fa] opacity-60" />
 		</View>
 	);
 }

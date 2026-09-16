@@ -25,7 +25,11 @@ function getRecoveryAccessToken() {
 
 function clearRecoveryHash() {
 	if (typeof window !== 'undefined') {
-		window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+		window.history.replaceState(
+			{},
+			document.title,
+			`${window.location.pathname}${window.location.search}`,
+		);
 	}
 }
 
@@ -34,9 +38,12 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 	const passwordInputRef = useRef<TextInput>(null);
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
-	const [recoveryAccessToken, setRecoveryAccessToken] = useState<string | null>(null);
+	const [recoveryAccessToken, setRecoveryAccessToken] = useState<string | null>(
+		null,
+	);
 	const [recoveryPassword, setRecoveryPassword] = useState('');
-	const [recoveryPasswordConfirmation, setRecoveryPasswordConfirmation] = useState('');
+	const [recoveryPasswordConfirmation, setRecoveryPasswordConfirmation] =
+		useState('');
 	const [isRequestingRecovery, setIsRequestingRecovery] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const [remember, setRemember] = useState(false);
@@ -65,7 +72,9 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 			saveSession(session, remember);
 			router.replace('/dashboard' as never);
 		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : 'Não foi possível entrar.');
+			setError(
+				cause instanceof Error ? cause.message : 'Não foi possível entrar.',
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -103,7 +112,11 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 			const response = await requestPasswordRecovery(email.trim());
 			setMessage(response.message);
 		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : 'Não foi possível enviar o link.');
+			setError(
+				cause instanceof Error
+					? cause.message
+					: 'Não foi possível enviar o link.',
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -139,7 +152,11 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 			setRecoveryPasswordConfirmation('');
 			setMessage(response.message);
 		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : 'Não foi possível atualizar a senha.');
+			setError(
+				cause instanceof Error
+					? cause.message
+					: 'Não foi possível atualizar a senha.',
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -160,16 +177,41 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 				: 'ENTRAR';
 
 	return (
-		<View className="w-full max-w-2xl gap-4">
-			<View className="rounded-3xl border border-white/60 bg-white/20 px-6 py-8 shadow-lg shadow-slate-900/10 sm:px-12 sm:py-10">
+		<View className="w-full max-w-[450px] gap-4">
+			<View className="rounded-[28px] border border-white/80 bg-white/90 px-6 py-7 shadow-2xl shadow-[#173a68]/15 sm:px-9 sm:py-8">
+				{isPasswordRecovery ? (
+					<View className="mb-6">
+						<Text className="text-[26px] font-extrabold tracking-[-0.8px] text-[#101b35]">
+							Crie uma nova senha
+						</Text>
+						<Text className="mt-1 text-sm text-[#506481]">
+							Defina uma nova senha para continuar.
+						</Text>
+					</View>
+				) : (
+					<View className="mb-6 flex-row items-start justify-between">
+						<View>
+							<Text className="text-[26px] font-extrabold tracking-[-0.8px] text-[#101b35]">
+								Acesse sua conta
+							</Text>
+							<Text className="mt-1 text-sm text-[#506481]">
+								Bem-vindo de volta.
+							</Text>
+						</View>
+					</View>
+				)}
 				{!isPasswordRecovery ? (
 					<>
-						<Text className="mb-2 text-base font-bold text-white">
+						<Text className="mb-2 text-sm font-bold text-[#101b35]">
 							{isRequestingRecovery ? 'E-mail para recuperação' : 'E-mail'}
 						</Text>
 						<TextInput
-							className="h-14 rounded-xl border-2 border-white/70 bg-white/90 px-5 text-base text-slate-900"
-							placeholder={isRequestingRecovery ? 'Digite seu e-mail' : 'seuemail@exemplo.com'}
+							className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
+							placeholder={
+								isRequestingRecovery
+									? 'Digite seu e-mail'
+									: 'seuemail@exemplo.com'
+							}
 							placeholderTextColor="#94a3b8"
 							keyboardType="email-address"
 							autoCapitalize="none"
@@ -184,11 +226,13 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 						/>
 						{!isRequestingRecovery ? (
 							<>
-								<Text className="mb-2 mt-6 text-base font-bold text-white">Senha</Text>
+								<Text className="mb-2 mt-5 text-sm font-bold text-[#101b35]">
+									Senha
+								</Text>
 								<View className="relative">
 									<TextInput
 										ref={passwordInputRef}
-										className="h-14 rounded-xl border-2 border-white/70 bg-white/90 px-5 pr-14 text-base text-slate-900"
+										className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 pr-14 text-sm text-[#12233c]"
 										placeholder="••••••••"
 										placeholderTextColor="#94a3b8"
 										secureTextEntry={!showPassword}
@@ -200,7 +244,9 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 									<Pressable
 										className="absolute inset-y-0 right-0 w-14 items-center justify-center"
 										accessibilityRole="button"
-										accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+										accessibilityLabel={
+											showPassword ? 'Ocultar senha' : 'Mostrar senha'
+										}
 										onPress={() => setShowPassword((visible) => !visible)}
 									>
 										{showPassword ? (
@@ -222,42 +268,55 @@ export function LoginForm({ cookiesAccepted }: LoginFormProps) {
 					/>
 				)}
 				{!isRequestingRecovery && !isPasswordRecovery ? (
-				<View className="mb-7 mt-5 flex-row items-center justify-between">
-					<Pressable
-						className="flex-row items-center gap-3"
-						accessibilityRole="checkbox"
-						accessibilityLabel="Lembrar-me"
-						accessibilityState={{ checked: remember }}
-						onPress={() => setRemember(!remember)}
-					>
-						<View
-							className={`h-6 w-6 rounded-md border-2 ${remember ? 'border-sky-500 bg-sky-400' : 'border-sky-300 bg-white'}`}
+					<View className="mb-6 mt-5 flex-row items-center justify-between">
+						<Pressable
+							className="flex-row items-center gap-3"
+							accessibilityRole="checkbox"
+							accessibilityLabel="Lembrar-me"
+							accessibilityState={{ checked: remember }}
+							onPress={() => setRemember(!remember)}
 						>
-							{remember ? <Check color="#ffffff" size={16} strokeWidth={3} /> : null}
-						</View>
-						<Text className="text-sm text-slate-600">Lembrar-me</Text>
-					</Pressable>
-					<Pressable onPress={beginPasswordRecovery}>
-						<Text className="text-sm font-bold text-blue-600">
-							Esqueci minha senha
-						</Text>
-					</Pressable>
-				</View>
+							<View
+								className={`h-6 w-6 rounded-md border-2 ${remember ? 'border-sky-500 bg-sky-400' : 'border-sky-300 bg-white'}`}
+							>
+								{remember ? (
+									<Check color="#ffffff" size={16} strokeWidth={3} />
+								) : null}
+							</View>
+							<Text className="text-sm text-[#52647e]">Lembrar-me</Text>
+						</Pressable>
+						<Pressable onPress={beginPasswordRecovery}>
+							<Text className="text-xs font-bold text-[#176ed0]">
+								Esqueci minha senha
+							</Text>
+						</Pressable>
+					</View>
 				) : null}
-				{isRequestingRecovery ? (
-					<Pressable className="mt-5 self-center" onPress={returnToLogin}>
-						<Text className="text-sm font-bold text-blue-600">Voltar para o login</Text>
-					</Pressable>
+				{error ? (
+					<Text className="mb-4 mt-4 text-sm text-red-600">{error}</Text>
 				) : null}
-				{error ? <Text className="mb-4 text-sm text-red-600">{error}</Text> : null}
-				{message ? <Text className="mb-4 text-sm text-blue-700">{message}</Text> : null}
 				<Pressable
-					className="h-14 items-center justify-center rounded-full bg-blue-600 shadow-md shadow-blue-600/30"
+					className={`h-12 items-center justify-center rounded-full bg-[#2d83cd] shadow-md shadow-blue-600/30 ${isPasswordRecovery ? 'mt-3' : ''}`}
 					disabled={loading}
 					onPress={submitHandler}
 				>
 					<Text className="font-bold text-white">{submitLabel}</Text>
 				</Pressable>
+				{isRequestingRecovery ? (
+					<Pressable
+						className="mt-3 h-11 items-center justify-center rounded-full border border-[#2d83cd] bg-transparent"
+						onPress={returnToLogin}
+					>
+						<Text className="text-sm font-bold text-[#176ed0]">
+							Voltar para o login
+						</Text>
+					</Pressable>
+				) : null}
+				{message ? (
+					<Text className="mt-5 text-center text-sm font-semibold text-emerald-600">
+						{message}
+					</Text>
+				) : null}
 			</View>
 		</View>
 	);

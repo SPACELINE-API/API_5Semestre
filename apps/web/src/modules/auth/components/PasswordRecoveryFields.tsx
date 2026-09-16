@@ -16,15 +16,18 @@ export function PasswordRecoveryFields({
 	onPasswordConfirmationChange,
 }: PasswordRecoveryFieldsProps) {
 	const [showPassword, setShowPassword] = useState(false);
-	const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
+	const [showPasswordConfirmation, setShowPasswordConfirmation] =
+		useState(false);
 
 	return (
-		<View className="gap-4">
+		<View className="gap-5">
 			<View>
-				<Text className="mb-2 text-base font-bold text-white">Nova senha</Text>
+				<Text className="mb-2 text-sm font-bold text-[#101b35]">
+					Nova senha
+				</Text>
 				<View className="relative">
 					<TextInput
-						className="h-14 rounded-xl border-2 border-white/70 bg-white/90 px-5 pr-14 text-base text-slate-900"
+						className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 pr-14 text-sm text-[#12233c]"
 						placeholder="Digite sua nova senha"
 						placeholderTextColor="#94a3b8"
 						secureTextEntry={!showPassword}
@@ -34,7 +37,9 @@ export function PasswordRecoveryFields({
 					<Pressable
 						className="absolute inset-y-0 right-0 w-14 items-center justify-center"
 						accessibilityRole="button"
-						accessibilityLabel={showPassword ? 'Ocultar nova senha' : 'Mostrar nova senha'}
+						accessibilityLabel={
+							showPassword ? 'Ocultar nova senha' : 'Mostrar nova senha'
+						}
 						onPress={() => setShowPassword((visible) => !visible)}
 					>
 						{showPassword ? (
@@ -46,12 +51,12 @@ export function PasswordRecoveryFields({
 				</View>
 			</View>
 			<View>
-				<Text className="mb-2 text-base font-bold text-white">
+				<Text className="mb-2 text-sm font-bold text-[#101b35]">
 					Confirme a nova senha
 				</Text>
 				<View className="relative">
 					<TextInput
-						className="h-14 rounded-xl border-2 border-white/70 bg-white/90 px-5 pr-14 text-base text-slate-900"
+						className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 pr-14 text-sm text-[#12233c]"
 						placeholder="Digite a senha novamente"
 						placeholderTextColor="#94a3b8"
 						secureTextEntry={!showPasswordConfirmation}
