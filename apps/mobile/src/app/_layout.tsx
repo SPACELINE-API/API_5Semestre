@@ -40,11 +40,11 @@ export default function AppLayout() {
 	}
 
 	return (
-		<SafeAreaView className="flex-1 bg-gray-50 flex-row">
+		<View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}>
 			<SideBar />
-			<View className="flex-1 overflow-hidden">
+			<View style={{ flex: 1, overflow: 'hidden' }} className="ml-16 md:ml-0">
 				<Slot />
 			</View>
-		</SafeAreaView>
+		</View>
 	);
 }

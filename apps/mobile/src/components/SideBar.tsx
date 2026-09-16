@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { usePathname, useRouter } from 'expo-router';
 import {
 	RequisicoesIcon,
 	OrcamentoIcon,
@@ -15,14 +16,25 @@ import {
 
 export function SideBar() {
 	const [isOpen, setIsOpen] = useState(true);
+	const pathname = usePathname();
+	const router = useRouter();
+
+	const isOrcamentoActive = pathname.startsWith('/quotes');
 
 	return (
-		<View
-			className={`h-full bg-white border-r border-gray-100 flex-col py-6 ${isOpen ? 'w-64 px-4' : 'w-20 px-2'}`}
-		>
+		<>
+			{isOpen && (
+				<TouchableOpacity 
+					className="absolute inset-0 bg-black/50 z-40 md:hidden"
+					onPress={() => setIsOpen(false)}
+				/>
+			)}
 			<View
-				className={`items-center mb-8 px-3 ${isOpen ? 'flex-row justify-between' : 'flex-col gap-3 px-0'}`}
+				className={`h-full bg-white border-r border-gray-100 flex-col py-6 absolute md:relative z-50 transition-all ${isOpen ? 'w-64 px-4' : 'w-16 md:w-20 px-1 md:px-2 overflow-hidden'}`}
 			>
+				<View
+					className={`items-center mb-8 px-3 ${isOpen ? 'flex-row justify-between' : 'flex-col gap-3 px-0'}`}
+				>
 				<View className="flex-row items-center gap-3">
 					<View className="w-10 h-10 rounded-full bg-blue-300 items-center justify-center shrink-0">
 						<Text className="font-inter font-bold text-blue-900 text-sm">
@@ -70,11 +82,12 @@ export function SideBar() {
 							)}
 						</TouchableOpacity>
 						<TouchableOpacity
-							className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''}`}
+							onPress={() => router.push('/quotes/new-quote' as any)}
+							className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''} ${isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
 						>
-							<OrcamentoIcon size={20} color="#1f2937" strokeWidth={1.5} />
+							<OrcamentoIcon size={20} color={isOrcamentoActive ? "#2563eb" : "#1f2937"} strokeWidth={1.5} />
 							{isOpen && (
-								<Text className="font-inter font-medium text-gray-800 text-sm">
+								<Text className={`font-inter font-medium text-sm ${isOrcamentoActive ? 'text-blue-700' : 'text-gray-800'}`}>
 									Orçamento
 								</Text>
 							)}
@@ -161,5 +174,6 @@ export function SideBar() {
 				</View>
 			</View>
 		</View>
+		</>
 	);
 }
