@@ -68,7 +68,7 @@ def test_list_requests_success_contract() -> None:
         .with_request("GET", "/api/quotes/requests")
         .will_respond_with(200)
         .with_headers({"Content-Type": "application/json"})
-        .with_body([])
+        .with_body([]) # type: ignore[arg-type]
     )
 
     pact.write_file(PACT_DIR)
