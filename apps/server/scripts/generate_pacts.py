@@ -9,6 +9,8 @@ PACT_PATH = ROOT / "pacts" / "web-server.json"
 PACT_TESTS = [
     "app/modules/auth/tests/pact_login.test.py",
     "app/modules/quotes/tests/test_translation_items_pact.py",
+    "app/modules/quotes/tests/test_quotes_pact.py",
+    "app/modules/translators/tests/test_translators_pact.py",
 ]
 
 

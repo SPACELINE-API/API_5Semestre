@@ -19,6 +19,9 @@ def test_create_translation_item_success_contract() -> None:
             {
                 "source_language": "es-ES",
                 "target_language": "en-US",
+                "document_type": "Documento Padrão",
+                "file_url": "https://example.com/file.pdf",
+                "estimated_value": 480.00
             }
         )
         .will_respond_with(201)
@@ -29,6 +32,9 @@ def test_create_translation_item_success_contract() -> None:
                 "quote_id": "123e4567-e89b-12d3-a456-426614174000",
                 "source_language": "es-ES",
                 "target_language": "en-US",
+                "document_type": "Documento Padrão",
+                "file_url": "https://example.com/file.pdf",
+                "estimated_value": 480.00,
                 "created_at": "2026-09-13T10:00:00Z",
                 "updated_at": "2026-09-13T10:00:00Z",
             }

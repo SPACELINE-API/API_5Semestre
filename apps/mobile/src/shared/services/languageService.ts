@@ -16,12 +16,15 @@ export async function fetchLanguages(): Promise<Language[]> {
 		const data = await response.json();
 		return data;
 	} catch (error) {
-		console.error("Error fetching languages:", error);
+		console.error('Error fetching languages:', error);
 		return [];
 	}
 }
 
-export async function createLanguage(id: string, name: string): Promise<Language | null> {
+export async function createLanguage(
+	id: string,
+	name: string,
+): Promise<Language | null> {
 	try {
 		const response = await fetch(`${API_BASE_URL}/api/support/languages`, {
 			method: 'POST',
@@ -35,7 +38,7 @@ export async function createLanguage(id: string, name: string): Promise<Language
 		const data = await response.json();
 		return data;
 	} catch (error) {
-		console.error("Error creating language:", error);
+		console.error('Error creating language:', error);
 		return null;
 	}
 }
