@@ -15,7 +15,7 @@ import {
 	fetchLanguages,
 	createLanguage,
 	Language,
-} from '../../../shared/services/languageService';
+} from '../services/languageService';
 
 interface LanguageSelectProps {
 	value?: string;
@@ -104,7 +104,12 @@ export function LanguageSelect({
 
 					<View
 						className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
-						style={{ zIndex: 9999, elevation: 9999, maxHeight: 192 }}
+						style={{
+							zIndex: 9999,
+							elevation: 9999,
+							maxHeight: 192,
+							backgroundColor: 'white',
+						}}
 					>
 						<ScrollView nestedScrollEnabled>
 							{languages.map((item) => (

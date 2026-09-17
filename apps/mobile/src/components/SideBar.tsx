@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { usePathname, useRouter } from 'expo-router';
+import { usePathname, Link } from 'expo-router';
 import {
 	RequisicoesIcon,
 	OrcamentoIcon,
@@ -17,9 +17,8 @@ import {
 export function SideBar() {
 	const [isOpen, setIsOpen] = useState(true);
 	const pathname = usePathname();
-	const router = useRouter();
 
-	const isOrcamentoActive = pathname.startsWith('/quotes');
+	const isOrcamentoActive = pathname.startsWith('/orcamento');
 
 	return (
 		<>
@@ -81,23 +80,24 @@ export function SideBar() {
 									</Text>
 								)}
 							</TouchableOpacity>
-							<TouchableOpacity
-								onPress={() => router.push('/quotes/new-quote' as never)}
-								className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''} ${isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
-							>
-								<OrcamentoIcon
-									size={20}
-									color={isOrcamentoActive ? '#2563eb' : '#1f2937'}
-									strokeWidth={1.5}
-								/>
-								{isOpen && (
-									<Text
-										className={`font-inter font-medium text-sm ${isOrcamentoActive ? 'text-blue-700' : 'text-gray-800'}`}
-									>
-										Orçamento
-									</Text>
-								)}
-							</TouchableOpacity>
+							<Link href={'/orcamento/novo-orcamento' as never} asChild>
+								<TouchableOpacity
+									className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''} ${isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+								>
+									<OrcamentoIcon
+										size={20}
+										color={isOrcamentoActive ? '#2563eb' : '#1f2937'}
+										strokeWidth={1.5}
+									/>
+									{isOpen && (
+										<Text
+											className={`font-inter font-medium text-sm ${isOrcamentoActive ? 'text-blue-700' : 'text-gray-800'}`}
+										>
+											Orçamento
+										</Text>
+									)}
+								</TouchableOpacity>
+							</Link>
 							<TouchableOpacity
 								className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''}`}
 							>

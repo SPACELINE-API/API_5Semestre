@@ -1,4 +1,4 @@
-import { env } from '../env';
+import { env } from '../../../shared/env';
 
 export type Language = {
 	id: string;

@@ -1,4 +1,4 @@
-import { env } from '../env';
+import { env } from '../../../shared/env';
 
 const API_BASE_URL = env.apiUrl;
 

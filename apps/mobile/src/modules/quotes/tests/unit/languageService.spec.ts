@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fetchLanguages } from '../../../../shared/services/languageService';
+import { fetchLanguages } from '../../services/languageService';
 
 test.describe('Language Service Unit Tests', () => {
 	test('should verify fetchLanguages definition', async () => {
