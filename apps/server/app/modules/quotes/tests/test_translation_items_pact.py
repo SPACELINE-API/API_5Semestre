@@ -21,7 +21,7 @@ def test_create_translation_item_success_contract() -> None:
                 "target_language": "en-US",
                 "document_type": "Documento Padrão",
                 "file_url": "https://example.com/file.pdf",
-                "estimated_value": 480.00
+                "estimated_value": 480.00,
             }
         )
         .will_respond_with(201)

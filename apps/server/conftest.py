@@ -12,15 +12,18 @@ os.environ.setdefault(
     "postgresql+psycopg://postgres:postgres@localhost:5432/postgres",
 )
 
+
 @pytest.fixture
 def client():
     with TestClient(app) as test_client:
         yield test_client
 
+
 @pytest.fixture
 def mock_db_session():
     session = MagicMock()
     return session
+
 
 @pytest.fixture
 def override_get_db(mock_db_session):

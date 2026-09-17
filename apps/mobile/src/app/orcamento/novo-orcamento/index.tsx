@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import {
+	View,
+	Text,
+	TextInput,
+	ScrollView,
+	TouchableOpacity,
+} from 'react-native';
 import { LanguageSelect } from '../../../modules/quotes/components/LanguageSelect';
 
 type QuoteItem = {
@@ -11,19 +17,26 @@ type QuoteItem = {
 
 export default function NovoOrcamento() {
 	const [items, setItems] = useState<QuoteItem[]>([
-		{ id: Date.now().toString(), source: '', target: '', docType: '' }
+		{ id: Date.now().toString(), source: '', target: '', docType: '' },
 	]);
 
 	const handleAddItem = () => {
-		setItems([...items, { id: Date.now().toString(), source: '', target: '', docType: '' }]);
+		setItems([
+			...items,
+			{ id: Date.now().toString(), source: '', target: '', docType: '' },
+		]);
 	};
 
 	const updateItem = (id: string, field: keyof QuoteItem, value: string) => {
-		setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
+		setItems(
+			items.map((item) =>
+				item.id === id ? { ...item, [field]: value } : item,
+			),
+		);
 	};
 
 	return (
-		<ScrollView 
+		<ScrollView
 			className="flex-1 bg-gray-50"
 			contentContainerClassName="p-8 flex-grow"
 		>
@@ -74,37 +87,45 @@ export default function NovoOrcamento() {
 					<Text className="text-sm font-inter-bold text-gray-900">
 						Itens do orçamento
 					</Text>
-					<TouchableOpacity 
+					<TouchableOpacity
 						onPress={handleAddItem}
 						className="border border-blue-200 bg-white px-4 py-2 rounded-full w-full md:w-auto items-center"
 					>
-						<Text className="text-blue-600 text-xs font-inter-medium">+ Adicionar item</Text>
+						<Text className="text-blue-600 text-xs font-inter-medium">
+							+ Adicionar item
+						</Text>
 					</TouchableOpacity>
 				</View>
 
 				<View className="flex-col gap-4">
 					{items.map((item, index) => (
-						<View 
-							key={item.id} 
+						<View
+							key={item.id}
 							style={{ zIndex: 100 - index }}
 							className="border border-gray-200 rounded-lg p-4 flex-col md:flex-row gap-4"
 						>
 							<View className="flex-1" style={{ zIndex: 30 }}>
-								<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">Idioma origem</Text>
-								<LanguageSelect 
-									value={item.source} 
-									onChange={(val) => updateItem(item.id, 'source', val)} 
+								<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">
+									Idioma origem
+								</Text>
+								<LanguageSelect
+									value={item.source}
+									onChange={(val) => updateItem(item.id, 'source', val)}
 								/>
 							</View>
 							<View className="flex-1" style={{ zIndex: 20 }}>
-								<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">Idioma destino</Text>
-								<LanguageSelect 
-									value={item.target} 
-									onChange={(val) => updateItem(item.id, 'target', val)} 
+								<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">
+									Idioma destino
+								</Text>
+								<LanguageSelect
+									value={item.target}
+									onChange={(val) => updateItem(item.id, 'target', val)}
 								/>
 							</View>
 							<View className="flex-1" style={{ zIndex: 10 }}>
-								<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">Tipo de documento</Text>
+								<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">
+									Tipo de documento
+								</Text>
 								<TextInput
 									className="border border-gray-200 rounded-md p-3 text-sm text-gray-800 font-inter bg-white relative z-0"
 									placeholder="Ex: Contrato Social"
@@ -113,15 +134,22 @@ export default function NovoOrcamento() {
 								/>
 							</View>
 							<View className="flex-1">
-								<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">Arquivo</Text>
+								<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">
+									Arquivo
+								</Text>
 								<TouchableOpacity className="border border-dashed border-gray-300 rounded-md p-3 items-center justify-center bg-white flex-row gap-2 h-[46px]">
-									<Text className="text-gray-400 font-inter text-xs" numberOfLines={1}>
+									<Text
+										className="text-gray-400 font-inter text-xs"
+										numberOfLines={1}
+									>
 										↑ contrato_social.pdf
 									</Text>
 								</TouchableOpacity>
 							</View>
 							<View className="w-full md:w-32">
-								<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">Valor</Text>
+								<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">
+									Valor
+								</Text>
 								<View className="bg-gray-100 rounded-md p-3 h-[46px] justify-center">
 									<Text className="text-sm font-inter-bold text-gray-800">
 										R$ 480,00
@@ -132,13 +160,18 @@ export default function NovoOrcamento() {
 					))}
 				</View>
 				<Text className="text-xs font-inter text-gray-400 mt-6">
-					Valores calculados automaticamente pela tabela de preços por par de idiomas.
+					Valores calculados automaticamente pela tabela de preços por par de
+					idiomas.
 				</Text>
 			</View>
 			<View className="bg-white rounded-lg border border-gray-200 p-4 md:p-6 mb-8 flex-col md:flex-row justify-between items-center gap-6 md:gap-0">
 				<View className="w-full md:w-auto">
-					<Text className="text-xs font-inter text-gray-500 mb-1">Total do orçamento</Text>
-					<Text className="text-2xl font-poppins-bold text-gray-900">R$ 1.240,00</Text>
+					<Text className="text-xs font-inter text-gray-500 mb-1">
+						Total do orçamento
+					</Text>
+					<Text className="text-2xl font-poppins-bold text-gray-900">
+						R$ 1.240,00
+					</Text>
 				</View>
 				<View className="flex-col md:flex-row gap-3 w-full md:w-auto">
 					<TouchableOpacity className="bg-white border border-blue-200 hover:bg-blue-50 w-full md:w-auto px-6 py-2.5 rounded-lg items-center transition-colors">

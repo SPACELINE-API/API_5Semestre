@@ -16,6 +16,7 @@ class Env(BaseModel):
     supabase_url: str = Field(default="http://localhost:8000", alias="SUPABASE_URL")
     supabase_anon_key: str = Field(default="", alias="ANON_KEY")
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")
+    site_url: str = Field(default="http://localhost:5173", alias="SITE_URL")
 
 
 env_schema = Env
@@ -29,6 +30,7 @@ def load_env() -> Env:
         "SUPABASE_URL",
         "ANON_KEY",
         "SUPABASE_SERVICE_ROLE_KEY",
+        "SITE_URL",
     ]:
         if values.get(key) == "":
             values.pop(key)
@@ -63,6 +65,9 @@ class EnvProvider:
 
     def get_supabase_service_role_key(self) -> str:
         return self.env.supabase_service_role_key
+
+    def get_site_url(self) -> str:
+        return self.env.site_url
 
 
 @lru_cache

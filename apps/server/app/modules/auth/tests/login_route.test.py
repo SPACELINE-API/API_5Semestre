@@ -45,9 +45,17 @@ class FakeSupabaseAuthClient:
                 email="user@example.com",
             ),
         )
+        self.recovery_request: tuple[str, str] | None = None
+        self.password_update: tuple[str, str] | None = None
 
     def login_with_password(self, _email: str, _password: str) -> SupabaseAuthSession:
         return self.session
+
+    def request_password_recovery(self, email: str, redirect_to: str) -> None:
+        self.recovery_request = (email, redirect_to)
+
+    def update_password(self, access_token: str, password: str) -> None:
+        self.password_update = (access_token, password)
 
 
 class InvalidCredentialsSupabaseAuthClient:
@@ -143,3 +151,70 @@ def test_login_rejects_inactive_user() -> None:
 
     assert response.status_code == 403
     assert response.json() == {"detail": "Usuário sem permissão de acesso"}
+
+
+def test_password_recovery_uses_site_url_and_returns_generic_message() -> None:
+    supabase_client = FakeSupabaseAuthClient()
+    client = client_with_dependencies(
+        db_session=FakeDatabaseSession(None),
+        supabase_auth_client=supabase_client,
+    )
+
+    response = client.post(
+        "/api/auth/password-recovery",
+        json={"email": "user@example.com"},
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json() == {"message": "E-mail enviado para o destinatário."}
+    assert supabase_client.recovery_request == (
+        "user@example.com",
+        "http://localhost:5173/login",
+    )
+
+
+def test_password_reset_updates_password_with_recovery_token() -> None:
+    supabase_client = FakeSupabaseAuthClient()
+    client = client_with_dependencies(
+        db_session=FakeDatabaseSession(None),
+        supabase_auth_client=supabase_client,
+    )
+
+    response = client.post(
+        "/api/auth/password-reset",
+        json={
+            "access_token": "recovery-token",
+            "password": "new-secret",
+            "password_confirmation": "new-secret",
+        },
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json() == {"message": "Senha atualizada com sucesso"}
+    assert supabase_client.password_update == ("recovery-token", "new-secret")
+
+
+def test_password_reset_rejects_mismatched_passwords() -> None:
+    supabase_client = FakeSupabaseAuthClient()
+    client = client_with_dependencies(
+        db_session=FakeDatabaseSession(None),
+        supabase_auth_client=supabase_client,
+    )
+
+    response = client.post(
+        "/api/auth/password-reset",
+        json={
+            "access_token": "recovery-token",
+            "password": "new-secret",
+            "password_confirmation": "different-secret",
+        },
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 422
+    assert supabase_client.password_update is None
