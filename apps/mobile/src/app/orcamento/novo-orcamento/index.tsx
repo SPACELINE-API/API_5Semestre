@@ -131,7 +131,6 @@ export default function NovoOrcamento() {
 						</View>
 					))}
 				</View>
-
 				<Text className="text-xs font-inter text-gray-400 mt-6">
 					Valores calculados automaticamente pela tabela de preços por par de idiomas.
 				</Text>
