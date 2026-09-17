@@ -9,7 +9,7 @@ serviço, alocação de tarefas, suporte via agente inteligente e faturamento.
 
 O projeto adota uma arquitetura de monolito Modular gerenciado via `pnpm`,
 dividindo as responsabilidades em duas aplicações principais: Backend
-(`apps/server`) e Frontend (`apps/web`).
+(`apps/server`) e Frontend multiplataforma (`apps/mobile`).
 
 ---
 
@@ -84,7 +84,7 @@ requisição segue uma arquitetura em camadas padrão:
 
 ---
 
-## Frontend (`apps/web`)
+## Frontend (`apps/mobile`)
 
 O frontend é uma aplicação Single Page Application (SPA) desenvolvida com
 **React**, **TypeScript** e **Vite**.
@@ -103,7 +103,7 @@ O frontend é uma aplicação Single Page Application (SPA) desenvolvida com
 ### Estrutura de Diretórios
 
 A estrutura do frontend reflete a organização modular do backend, localizada em
-`apps/web/src/modules/`. Cada módulo de feature contém:
+`apps/mobile/src/modules/`. Cada módulo de feature contém:
 
 - **components/**: Componentes visuais específicos da feature.
 - **hooks/**: Lógicas customizadas e consumo de estado via TanStack Query.

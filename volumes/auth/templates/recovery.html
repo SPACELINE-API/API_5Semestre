@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+	<body
+		style="
+			margin: 0;
+			background: #eef6ff;
+			color: #0f172a;
+			font-family: Arial, sans-serif;
+		"
+	>
+		<div style="margin: 0 auto; max-width: 560px; padding: 40px 24px">
+			<div style="border-radius: 20px; background: #ffffff; padding: 32px">
+				<h1 style="margin: 0 0 16px; color: #0f172a">Redefinição de senha</h1>
+				<p style="line-height: 1.6">
+					Recebemos uma solicitação para alterar a senha da sua conta.
+				</p>
+				<p style="line-height: 1.6">
+					Clique no botão abaixo para criar uma nova senha:
+				</p>
+				<p>
+					<a
+						href="{{ .ConfirmationURL }}"
+						style="
+							display: inline-block;
+							border-radius: 999px;
+							background: #2563eb;
+							color: #ffffff;
+							padding: 14px 24px;
+							text-decoration: none;
+						"
+						>Alterar senha</a
+					>
+				</p>
+				<p style="color: #64748b; line-height: 1.6">
+					Se você não solicitou essa alteração, ignore este e-mail.
+				</p>
+			</div>
+		</div>
+	</body>
+</html>
