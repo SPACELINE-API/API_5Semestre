@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
-import { Slot } from 'expo-router';
-import { View, SafeAreaView } from 'react-native';
+import { View } from 'react-native';
 import { Redirect, Slot, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';

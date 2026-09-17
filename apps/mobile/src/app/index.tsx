@@ -1,4 +1,4 @@
-import { HomePage } from '../modules/home/pages/HomePage';
+import { View, Text } from 'react-native';
 
 export default function Index() {
 	return (
