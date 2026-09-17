@@ -13,19 +13,14 @@ def test_create_quote_endpoint(client, override_get_db):
 
         instance.create_quote.return_value = MockQuote()
 
-        response = client.post(
-            "/api/quotes",
-            json={"status": "draft"}
-        )
+        response = client.post("/api/quotes", json={"status": "draft"})
 
         assert response.status_code == 201
         data = response.json()
         assert data["id"] == "123e4567-e89b-12d3-a456-426614174000"
         assert data["status"] == "draft"
 
+
 def test_create_quote_endpoint_invalid_schema(client):
-    response = client.post(
-        "/api/quotes",
-        json="invalid_payload"
-    )
+    response = client.post("/api/quotes", json="invalid_payload")
     assert response.status_code == 422

@@ -7,10 +7,12 @@ from app.shared.database import get_db
 
 router = APIRouter(prefix="/support", tags=["support"])
 
+
 @router.get("/languages", response_model=list[LanguageResponse])
 def get_languages(db: Session = Depends(get_db)):
     languages = db.query(Language).order_by(Language.name).all()
     return languages
+
 
 @router.post("/languages", response_model=LanguageResponse, status_code=status.HTTP_201_CREATED)
 def create_language(payload: LanguageCreate, db: Session = Depends(get_db)):
