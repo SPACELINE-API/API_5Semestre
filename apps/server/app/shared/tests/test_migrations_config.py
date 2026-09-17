@@ -15,6 +15,12 @@ def test_server_package_exposes_database_migration_commands() -> None:
     assert package_json["scripts"]["db:schema:reset"] == "python scripts/reset_public_schema.py"
 
 
+def test_schema_push_only_applies_existing_migrations() -> None:
+    package_json = json.loads(Path("package.json").read_text(encoding="utf-8"))
+
+    assert package_json["scripts"]["db:schema:push"] == "pnpm db:migration:apply"
+
+
 def test_alembic_environment_imports_application_metadata() -> None:
     env_py = Path("migrations/env.py").read_text(encoding="utf-8")
 

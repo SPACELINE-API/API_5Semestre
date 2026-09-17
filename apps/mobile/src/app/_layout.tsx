@@ -32,6 +32,10 @@ export default function AppLayout() {
 	const pathname = usePathname();
 
 	useEffect(() => {
+		if (typeof document !== 'undefined') {
+			document.documentElement.lang = 'pt-BR';
+		}
+
 		if (fontsLoaded || error) {
 			SplashScreen.hideAsync();
 		}

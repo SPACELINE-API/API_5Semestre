@@ -256,9 +256,9 @@ export function LoginPage() {
 									accessibilityState={{ checked: remember }}
 									onPress={() => setRemember(!remember)}
 								>
-									<View
-										className={`h-6 w-6 rounded-md border-2 ${remember ? 'border-sky-500 bg-sky-400' : 'border-sky-300 bg-white'}`}
-									>
+					<View
+						className={`h-6 w-6 items-center justify-center rounded-md border-2 ${remember ? 'border-sky-500 bg-sky-400' : 'border-sky-300 bg-white'}`}
+					>
 										{remember ? (
 											<Check color="#ffffff" size={16} strokeWidth={3} />
 										) : null}
