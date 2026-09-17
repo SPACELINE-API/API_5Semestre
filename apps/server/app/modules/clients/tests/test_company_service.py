@@ -100,9 +100,7 @@ def test_create_company_duplicate_email_raises_conflict(db_session: Session) -> 
 def test_list_companies_returns_created_companies(db_session: Session) -> None:
     service = CompanyService(db_session)
     service.create_company(make_company_data())
-    service.create_company(
-        make_company_data(cnpj="98.765.432/0001-11", email="other@company.com")
-    )
+    service.create_company(make_company_data(cnpj="98.765.432/0001-11", email="other@company.com"))
 
     companies = service.list_companies()
 
