@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { View } from 'react-native';
 import { Slot } from 'expo-router';
+import { View, SafeAreaView } from 'react-native';
+import { Redirect, Slot, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { SideBar } from '../components/SideBar';
@@ -16,6 +17,7 @@ import {
 } from '@expo-google-fonts/poppins';
 
 import '../shared/styles/global.css';
+import { getSession } from '../modules/auth/services/auth';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,8 +30,13 @@ export default function AppLayout() {
 		'Poppins-Medium': Poppins_500Medium,
 		'Poppins-Bold': Poppins_700Bold,
 	});
+	const pathname = usePathname();
 
 	useEffect(() => {
+		if (typeof document !== 'undefined') {
+			document.documentElement.lang = 'pt-BR';
+		}
+
 		if (fontsLoaded || error) {
 			SplashScreen.hideAsync();
 		}
@@ -38,6 +45,9 @@ export default function AppLayout() {
 	if (!fontsLoaded && !error) {
 		return null;
 	}
+	const isLogin = pathname === '/login';
+	if (!isLogin && !getSession()) return <Redirect href={'/login' as never} />;
+	if (isLogin) return <Slot />;
 
 	return (
 		<View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}>
