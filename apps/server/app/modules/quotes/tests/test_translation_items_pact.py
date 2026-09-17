@@ -2,6 +2,8 @@ from pathlib import Path
 
 from pact import Pact
 
+from app.shared.pact_writer import write_pact
+
 PACT_DIR = Path(__file__).parents[4] / "pacts"
 
 
@@ -33,7 +35,7 @@ def test_create_translation_item_success_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 def test_create_translation_item_quote_not_found_contract() -> None:
@@ -59,7 +61,7 @@ def test_create_translation_item_quote_not_found_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 def test_create_translation_item_missing_fields_contract() -> None:
@@ -75,7 +77,7 @@ def test_create_translation_item_missing_fields_contract() -> None:
         .with_headers({"Content-Type": "application/json"})
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 def test_list_translation_items_success_contract() -> None:
@@ -90,4 +92,4 @@ def test_list_translation_items_success_contract() -> None:
         .with_body([])  # type: ignore[arg-type]
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
