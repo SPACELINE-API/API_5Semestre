@@ -4,7 +4,10 @@ from typing import Protocol
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.modules.support_agents.inngest.schema.agent_schema import SuportePerguntaRequest, SuportePerguntaResponse
+from app.modules.support_agents.inngest.schema.agent_schema import (
+    SuportePerguntaRequest,
+    SuportePerguntaResponse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,11 +40,10 @@ async def criar_pergunta(
 ) -> SuportePerguntaResponse:
     try:
         resposta_texto = await agente(payload.texto)
-    except Exception:
+    except Exception as exc:
         logger.exception("Falha ao obter resposta do agente de suporte")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="O agente de suporte está indisponível no momento. Tente novamente em instantes.",
-        )
-
+        ) from exc
     return SuportePerguntaResponse(resposta=resposta_texto)

@@ -10,7 +10,6 @@ from app.routes import api_router
 from app.shared.database import check_database_connection
 from app.shared.inngest.client import inngest_client
 from app.shared.inngest.functions import support_agent_inngest_functions
-from app.modules.support_agents.inngest.router.support_router import router as support_agent_router
 
 load_dotenv()
 

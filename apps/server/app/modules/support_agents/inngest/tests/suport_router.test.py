@@ -2,9 +2,9 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
+from app.main import app
 from app.modules.support_agents.inngest.router.support_router import get_agente_suporte
 from app.modules.support_agents.inngest.schema.agent_schema import QUESTION_MAX_LENGTH
-from app.main import app
 
 client = TestClient(app)
 

@@ -7,7 +7,7 @@ from app.shared.pact_writer import write_pact
 PACT_DIR = Path(__file__).parents[4] / "pacts"
 
 
-def test_criar_pergunta_success_contract() -> None:
+def test_create_support_question_success_contract() -> None:
     pact = Pact("web", "server").with_specification("V4")
 
     (
@@ -32,7 +32,7 @@ def test_criar_pergunta_success_contract() -> None:
     write_pact(pact, PACT_DIR)
 
 
-def test_criar_pergunta_invalid_input_contract() -> None:
+def test_create_support_question_invalid_input_contract() -> None:
     pact = Pact("web", "server").with_specification("V4")
 
     (
@@ -52,7 +52,7 @@ def test_criar_pergunta_invalid_input_contract() -> None:
     write_pact(pact, PACT_DIR)
 
 
-def test_criar_pergunta_agent_unavailable_contract() -> None:
+def test_create_support_question_agent_unavailable_contract() -> None:
     pact = Pact("web", "server").with_specification("V4")
 
     (
