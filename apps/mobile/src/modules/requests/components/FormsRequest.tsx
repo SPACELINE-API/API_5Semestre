@@ -68,7 +68,9 @@ export default function FormsRequest() {
 			</View>
 
 			<View className="gap-3">
-				<Text className="text-sm font-bold text-blue-500 mt-4">DADOS PESSOAIS</Text>
+				<Text className="text-sm font-bold text-blue-500 mt-4">
+					DADOS PESSOAIS
+				</Text>
 
 				<View className="flex flex-row flex-wrap gap-4">
 					<View className="min-w-[200px] flex-1 gap-1">
