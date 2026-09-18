@@ -1,4 +1,3 @@
-
 import logging
 from typing import Protocol
 
@@ -15,9 +14,7 @@ router = APIRouter(prefix="/suporte", tags=["suporte"])
 
 
 class AgenteSuporteClient(Protocol):
-
-    async def __call__(self, texto: str) -> str:
-        ...
+    async def __call__(self, texto: str) -> str: ...
 
 
 async def enviar_para_agente_stub(texto: str) -> str:
