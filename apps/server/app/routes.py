@@ -10,6 +10,7 @@ from app.modules.service_orders.routes import router as service_orders_router
 from app.modules.system_parameters.routes import router as support_router
 from app.modules.translators.routes import router as translators_router
 from app.modules.users.routes import router as users_router
+from app.modules.support_agents.inngest.router.support_router import router as support_agent_router
 
 api_router = APIRouter(prefix="/api")
 
