@@ -1,9 +1,11 @@
 from pathlib import Path
+
 from pact import Pact
 
 from app.shared.pact_writer import write_pact
 
 PACT_DIR = Path(__file__).parents[4] / "pacts"
+
 
 def test_create_contact_success_contract() -> None:
     pact = Pact("web", "server").with_specification("V4")
@@ -36,7 +38,7 @@ def test_create_contact_success_contract() -> None:
                     "company_id": "00000000-0000-0000-0000-000000000001",
                     "created_at": "2023-01-01T00:00:00Z",
                     "updated_at": "2023-01-01T00:00:00Z",
-                }
+                },
             }
         )
     )

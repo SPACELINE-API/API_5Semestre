@@ -1,5 +1,6 @@
-import pytest
 import uuid
+
+import pytest
 from fastapi import HTTPException
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
@@ -55,7 +56,7 @@ def test_company(db_session: Session) -> Company:
         number="1",
         neighborhood="Downtown",
         city="City",
-        state="ST"
+        state="ST",
     )
     db_session.add(company)
     db_session.commit()
@@ -69,7 +70,7 @@ def make_contact_data(company_id: uuid.UUID, **overrides) -> ContactCreate:
         "email": "johndoe@example.com",
         "phone": "(11) 98765-4321",
         "department": "IT",
-        "company_id": company_id
+        "company_id": company_id,
     }
     data.update(overrides)
     return ContactCreate(**data)
@@ -78,9 +79,9 @@ def make_contact_data(company_id: uuid.UUID, **overrides) -> ContactCreate:
 def test_create_contact_success(db_session: Session, test_company: Company) -> None:
     service = ContactService(db_session)
     data = make_contact_data(test_company.id)
-    
+
     result = service.create_contact(data)
-    
+
     assert result["message"] == "Contato cadastrado com sucesso."
     assert isinstance(result["contact"], Contact)
     assert result["contact"].id is not None
@@ -91,10 +92,10 @@ def test_create_contact_success(db_session: Session, test_company: Company) -> N
 def test_create_contact_company_not_found(db_session: Session) -> None:
     service = ContactService(db_session)
     data = make_contact_data(uuid.uuid4())
-    
+
     with pytest.raises(HTTPException) as exc_info:
         service.create_contact(data)
-        
+
     assert exc_info.value.status_code == 404
     assert exc_info.value.detail == "Empresa associada não encontrada."
 
@@ -103,19 +104,19 @@ def test_list_contacts_success(db_session: Session, test_company: Company) -> No
     service = ContactService(db_session)
     service.create_contact(make_contact_data(test_company.id, email="first@example.com"))
     service.create_contact(make_contact_data(test_company.id, email="second@example.com"))
-    
+
     contacts = service.list_contacts()
-    
+
     assert len(contacts) == 2
 
 
 def test_update_contact_success(db_session: Session, test_company: Company) -> None:
     service = ContactService(db_session)
     created = service.create_contact(make_contact_data(test_company.id))["contact"]
-    
+
     update_data = ContactUpdate(name="Jane Doe", department="Finance")
     updated = service.update_contact(created.id, update_data)
-    
+
     assert updated.id == created.id
     assert updated.name == "Jane Doe"
     assert updated.department == "Finance"
@@ -125,7 +126,7 @@ def test_update_contact_success(db_session: Session, test_company: Company) -> N
 def test_delete_contact_success(db_session: Session, test_company: Company) -> None:
     service = ContactService(db_session)
     created = service.create_contact(make_contact_data(test_company.id))["contact"]
-    
+
     service.delete_contact(created.id)
     contacts = service.list_contacts()
     assert len(contacts) == 0
