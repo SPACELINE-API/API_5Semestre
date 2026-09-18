@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, Slot, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
@@ -50,15 +49,11 @@ export default function AppLayout() {
 	if (isPublic) return <Slot />;
 
 	return (
-		<SafeAreaProvider>
-			<SafeAreaView
-				style={{ flex: 1, flexDirection: 'row', backgroundColor: '#F4F4F4' }}
-			>
-				<SideBar />
-				<View className="flex-1 overflow-hidden">
-					<Slot />
-				</View>
-			</SafeAreaView>
-		</SafeAreaProvider>
+		<View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}>
+			<SideBar />
+			<View style={{ flex: 1, overflow: 'hidden' }} className="ml-16 md:ml-0">
+				<Slot />
+			</View>
+		</View>
 	);
 }
