@@ -1,31 +1,16 @@
 import uuid
 from datetime import datetime
-from typing import Literal
+from decimal import Decimal
 
 from pydantic import BaseModel
 
-SupportedLanguage = Literal[
-    "en-US",
-    "it-IT",
-    "es-ES",
-    "ca-ES",
-    "gl-ES",
-    "eu-ES",
-    "fr-FR",
-    "de-DE",
-    "ja-JP",
-    "zh-CN",
-    "en-CA",
-    "fr-CA",
-    "es-PE",
-    "qu-PE",
-    "ay-PE",
-]
-
 
 class QuoteTranslationItemCreate(BaseModel):
-    source_language: SupportedLanguage
-    target_language: SupportedLanguage
+    source_language: str
+    target_language: str
+    document_type: str | None = None
+    file_url: str | None = None
+    estimated_value: Decimal | None = None
 
 
 class QuoteTranslationItemResponse(BaseModel):
@@ -33,6 +18,9 @@ class QuoteTranslationItemResponse(BaseModel):
     quote_id: uuid.UUID
     source_language: str
     target_language: str
+    document_type: str | None = None
+    file_url: str | None = None
+    estimated_value: Decimal | None = None
     created_at: datetime
     updated_at: datetime
 
