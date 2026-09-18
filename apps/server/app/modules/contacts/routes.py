@@ -28,7 +28,7 @@ def create_contact(
 @router.get("", response_model=list[ContactResponse])
 def list_contacts(
     db: Session = Depends(get_db),
-) -> list[ContactResponse]:
+) -> Any:
     service = ContactService(db)
     return service.list_contacts()
 
