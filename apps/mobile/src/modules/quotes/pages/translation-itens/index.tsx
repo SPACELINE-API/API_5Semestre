@@ -247,23 +247,23 @@ export default function NewQuotePage() {
 						</Text>
 					</View>
 					<View className="flex-col md:flex-row gap-3 w-full md:w-auto">
-					<TouchableOpacity 
-						onPress={() => handleSubmitQuote('draft')}
-						className="bg-white border border-blue-200 hover:bg-blue-50 w-full md:w-auto px-6 py-2.5 rounded-lg items-center transition-colors"
-					>
-						<Text className="text-blue-600 font-inter-medium text-sm">
-							Salvar rascunho
-						</Text>
-					</TouchableOpacity>
-					<TouchableOpacity 
-						onPress={() => handleSubmitQuote('approved')}
-						className="bg-blue-400 hover:bg-blue-500 w-full md:w-auto px-6 py-2.5 rounded-lg items-center transition-colors"
-					>
-						<Text className="text-white font-inter-medium text-sm">
-							Aprovar orçamento
-						</Text>
-					</TouchableOpacity>
-				</View>
+						<TouchableOpacity
+							onPress={() => handleSubmitQuote('draft')}
+							className="bg-white border border-blue-200 hover:bg-blue-50 w-full md:w-auto px-6 py-2.5 rounded-lg items-center transition-colors"
+						>
+							<Text className="text-blue-600 font-inter-medium text-sm">
+								Salvar rascunho
+							</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							onPress={() => handleSubmitQuote('approved')}
+							className="bg-blue-400 hover:bg-blue-500 w-full md:w-auto px-6 py-2.5 rounded-lg items-center transition-colors"
+						>
+							<Text className="text-white font-inter-medium text-sm">
+								Aprovar orçamento
+							</Text>
+						</TouchableOpacity>
+					</View>
 				</View>
 			</ScrollView>
 		</View>
