@@ -21,7 +21,7 @@ class Contact(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str] = mapped_column(String(30), nullable=False)
     department: Mapped[str] = mapped_column(String(100), nullable=False)
-    
+
     company_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("company.id"),
