@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+import uuid
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 from typing import Any
 
-from app.modules.contacts.schemas.contact import ContactCreate, CreateContactResponse
+from app.modules.contacts.schemas.contact import ContactCreate, ContactUpdate, CreateContactResponse, ContactResponse
 from app.modules.contacts.services.contact_service import ContactService
 from app.shared.database import get_db
 
@@ -16,3 +17,31 @@ def create_contact(
 ) -> Any:
     service = ContactService(db)
     return service.create_contact(contact_data)
+
+
+@router.get("", response_model=list[ContactResponse])
+def list_contacts(
+    db: Session = Depends(get_db), 
+) -> list[ContactResponse]:
+    service = ContactService(db)
+    return service.list_contacts()
+
+
+@router.patch("/{contact_id}", response_model=ContactResponse)
+def update_contact(
+    contact_id: uuid.UUID,
+    contact_data: ContactUpdate,
+    db: Session = Depends(get_db), 
+) -> Any:
+    service = ContactService(db)
+    return service.update_contact(contact_id, contact_data)
+
+
+@router.delete("/{contact_id}", status_code=204)
+def delete_contact(
+    contact_id: uuid.UUID,
+    db: Session = Depends(get_db), 
+) -> Response:
+    service = ContactService(db)
+    service.delete_contact(contact_id)
+    return Response(status_code=204)
