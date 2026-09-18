@@ -13,10 +13,7 @@
 		"plugins": ["expo-router", "expo-splash-screen"],
 		"experiments": {
 			"typedRoutes": true,
-			"reactCompiler": true,
-			"router": {
-				"root": "src"
-			}
+			"reactCompiler": true
 		}
 	}
 }
