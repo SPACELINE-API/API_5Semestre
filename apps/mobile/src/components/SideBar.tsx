@@ -12,6 +12,7 @@ import {
 	AbrirIcon,
 	FecharIcon,
 } from '../shared/components/icon/icon';
+import { Link } from 'expo-router';
 
 export function SideBar() {
 	const [isOpen, setIsOpen] = useState(true);
@@ -59,6 +60,7 @@ export function SideBar() {
 						</Text>
 					)}
 					<View className="flex-col gap-1">
+						<Link href={'/visualizar-requisicoes' as never} asChild>
 						<TouchableOpacity
 							className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''}`}
 						>
@@ -69,6 +71,7 @@ export function SideBar() {
 								</Text>
 							)}
 						</TouchableOpacity>
+						</Link>
 						<TouchableOpacity
 							className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''}`}
 						>

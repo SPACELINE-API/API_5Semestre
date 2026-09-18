@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { View, SafeAreaView } from 'react-native';
+import { View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, Slot, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
@@ -44,16 +45,20 @@ export default function AppLayout() {
 	if (!fontsLoaded && !error) {
 		return null;
 	}
-	const isLogin = pathname === '/login';
-	if (!isLogin && !getSession()) return <Redirect href={'/login' as never} />;
-	if (isLogin) return <Slot />;
+	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
+	if (!isPublic && !getSession()) return <Redirect href={'/login' as never} />;
+	if (isPublic) return <Slot />;
 
 	return (
-		<SafeAreaView className="flex-1 bg-gray-50 flex-row">
-			<SideBar />
-			<View className="flex-1 overflow-hidden">
-				<Slot />
-			</View>
-		</SafeAreaView>
+		<SafeAreaProvider>
+			<SafeAreaView
+				style={{ flex: 1, flexDirection: 'row', backgroundColor: '#F4F4F4' }}
+			>
+				<SideBar />
+				<View className="flex-1 overflow-hidden">
+					<Slot />
+				</View>
+			</SafeAreaView>
+		</SafeAreaProvider>
 	);
 }
