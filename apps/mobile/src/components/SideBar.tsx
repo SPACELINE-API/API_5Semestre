@@ -70,16 +70,22 @@ export function SideBar() {
 							</Text>
 						)}
 						<View className="flex-col gap-1">
-							<TouchableOpacity
-								className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''}`}
-							>
-								<RequisicoesIcon size={20} color="#1f2937" strokeWidth={1.5} />
-								{isOpen && (
-									<Text className="font-inter font-medium text-gray-800 text-sm">
-										Requisições
-									</Text>
-								)}
-							</TouchableOpacity>
+							<Link href={'/visualizar-requisicoes' as never} asChild>
+								<TouchableOpacity
+									className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''}`}
+								>
+									<RequisicoesIcon
+										size={20}
+										color="#1f2937"
+										strokeWidth={1.5}
+									/>
+									{isOpen && (
+										<Text className="font-inter font-medium text-gray-800 text-sm">
+											Requisições
+										</Text>
+									)}
+								</TouchableOpacity>
+							</Link>
 							<Link href={'/orcamento/novo-orcamento' as never} asChild>
 								<TouchableOpacity
 									className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''} ${isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'}`}

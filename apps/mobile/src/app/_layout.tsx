@@ -44,9 +44,9 @@ export default function AppLayout() {
 	if (!fontsLoaded && !error) {
 		return null;
 	}
-	const isLogin = pathname === '/login';
-	if (!isLogin && !getSession()) return <Redirect href={'/login' as never} />;
-	if (isLogin) return <Slot />;
+	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
+	if (!isPublic && !getSession()) return <Redirect href={'/login' as never} />;
+	if (isPublic) return <Slot />;
 
 	return (
 		<View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}>
