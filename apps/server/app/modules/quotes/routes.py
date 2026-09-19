@@ -4,11 +4,13 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 
 from app.modules.quotes.schemas.quote import QuoteCreate, QuoteResponse
+from app.modules.quotes.schemas.request import RequestCreate, RequestResponse
 from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemCreate,
     QuoteTranslationItemResponse,
 )
 from app.modules.quotes.services.quote_service import QuoteService
+from app.modules.quotes.services.request_service import RequestService
 from app.modules.quotes.services.storage import upload_quote_document
 from app.modules.quotes.services.translation_item_service import TranslationItemService
 from app.shared.database import get_db
@@ -56,3 +58,20 @@ def list_translation_items(
 ):
     service = TranslationItemService(db)
     return service.list_items(quote_id)
+
+
+@router.post("/requests", response_model=RequestResponse, status_code=201)
+def create_request(
+    request_data: RequestCreate,
+    db: Session = Depends(get_db),  # noqa: B008
+):
+    service = RequestService(db)
+    return service.create(request_data)
+
+
+@router.get("/requests", response_model=list[RequestResponse])
+def list_requests(
+    db: Session = Depends(get_db),  # noqa: B008
+):
+    service = RequestService(db)
+    return service.list_all()
