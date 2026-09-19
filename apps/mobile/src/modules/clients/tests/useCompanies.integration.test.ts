@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { Company, CompanyCreateInput } from '../types/company';
-import { useCompanies } from './useCompanies';
+import { useCompanies } from '../hooks/useCompanies';
 
 const COMPANY_A: Company = {
 	id: '1',
@@ -60,6 +60,7 @@ describe('useCompanies (integration: hook + companyService + apiClient)', () => 
 		expect(result.current.error).toBeNull();
 		expect(fetchMock).toHaveBeenCalledWith(
 			expect.stringContaining('/api/clients'),
+			expect.any(Object)
 		);
 	});
 

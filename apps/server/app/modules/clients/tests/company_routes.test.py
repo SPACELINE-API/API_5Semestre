@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.main import app
 from app.modules.clients.models.company import Company
+from app.modules.contacts.models.contact import Contact
 from app.modules.clients.schemas.company import calculate_cnpj_check_digit
 from app.shared.database import Base, get_database_url, get_db
 
@@ -38,6 +39,7 @@ def db_session():
         if transaction.nested and not transaction._parent.nested:
             session.begin_nested()
 
+    session.query(Contact).delete()
     session.query(Company).delete()
 
     yield session

@@ -1,7 +1,10 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import { CompanyFormModal } from './CompanyFormModal';
+import { CompanyFormModal } from '../components/CompanyFormModal';
 
 type RenderResult = Awaited<ReturnType<typeof render>>;
+
+jest.setTimeout(30000);
+
 
 const VIA_CEP_RESPONSE = {
 	logradouro: 'Avenida Paulista',

@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, backref
 
 from app.shared.database import Base
 
@@ -40,4 +40,7 @@ class Contact(Base):
         nullable=False,
     )
 
-    company = relationship("Company", backref="contacts")
+    company = relationship(
+        "Company",
+        backref=backref("contacts", cascade="all, delete-orphan"),
+    )

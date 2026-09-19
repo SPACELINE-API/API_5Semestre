@@ -7,6 +7,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.modules.clients.models.company import Company
+from app.modules.contacts.models.contact import Contact
 from app.modules.clients.schemas.company import (
     CompanyCreate,
     CompanyUpdate,
@@ -41,6 +42,7 @@ def db_session():
         if transaction.nested and not transaction._parent.nested:
             session.begin_nested()
 
+    session.query(Contact).delete()
     session.query(Company).delete()
 
     yield session

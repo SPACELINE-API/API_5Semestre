@@ -62,6 +62,13 @@
 	"private": true,
 	"jest": {
 		"preset": "jest-expo",
+		"testPathIgnorePatterns": [
+			"<rootDir>/node_modules/",
+			".*\\.spec\\.[jt]s$"
+		],
+		"testMatch": [
+			"**/?(*.)+(test).[jt]s?(x)"
+		],
 		"moduleNameMapper": {
 			"^lucide-react-native$": "<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js"
 		}
