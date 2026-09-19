@@ -21,3 +21,11 @@ class RequestRepository:
         self.db.commit()
         self.db.refresh(request)
         return request
+
+    def get_last_by_email(self, email: str) -> Request | None:
+        return (
+            self.db.query(Request)
+            .filter(Request.email == email)
+            .order_by(Request.request_date.desc())
+            .first()
+        )
