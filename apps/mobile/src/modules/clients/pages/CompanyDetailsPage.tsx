@@ -25,6 +25,10 @@ import { companyInitials, formatCnpj, formatDate } from '../utils/format';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { ContactFormModal } from '../../contacts/components/ContactFormModal';
+import { createContact, updateContact, deleteContact } from '../../contacts/services/contactService';
+import { useContactsByCompany } from '../../contacts/hooks/useContactsByCompany';
+import type { Contact } from '../../contacts/types/contact';
 
 type CompanyDetailsPageProps = {
 	id: string;
@@ -32,36 +36,12 @@ type CompanyDetailsPageProps = {
 
 type TabKey = 'info' | 'clients' | 'projects';
 
-type Client = {
-	id: string;
-	name: string;
-	role: string;
-};
-
 type Project = {
 	id: string;
 	name: string;
 	status: 'Em andamento' | 'Concluído';
 	updatedAt: string;
 };
-
-const mockClients: Client[] = [
-	{
-		id: '1',
-		name: 'Ana Carolina Silva',
-		role: 'Responsável comercial',
-	},
-	{
-		id: '2',
-		name: 'Lucas Martins',
-		role: 'Gerente de projetos',
-	},
-	{
-		id: '3',
-		name: 'Mariana Oliveira',
-		role: 'Coordenadora',
-	},
-];
 
 const mockProjects: Project[] = [
 	{
@@ -147,7 +127,17 @@ function TableHeaderCell({
 	);
 }
 
-function ClientRow({ client, isFirst }: { client: Client; isFirst: boolean }) {
+function ClientRow({
+	contact,
+	isFirst,
+	onEdit,
+	onDelete,
+}: {
+	contact: Contact;
+	isFirst: boolean;
+	onEdit: (contact: Contact) => void;
+	onDelete: (contact: Contact) => void;
+}) {
 	return (
 		<View
 			className={`flex-row items-center py-3.5 ${
@@ -157,18 +147,43 @@ function ClientRow({ client, isFirst }: { client: Client; isFirst: boolean }) {
 			<View style={{ flex: 2 }} className="flex-row items-center gap-2.5">
 				<View className="h-8 w-8 items-center justify-center rounded-full bg-gray-100">
 					<Text className="font-inter font-semibold text-gray-500 text-[11px]">
-						{client.name[0]?.toUpperCase() ?? '?'}
+						{contact.name[0]?.toUpperCase() ?? '?'}
 					</Text>
 				</View>
 
 				<Text className="font-inter font-medium text-gray-800 text-sm">
-					{client.name}
+					{contact.name}
 				</Text>
 			</View>
 
-			<Text style={{ flex: 2 }} className="font-inter text-gray-500 text-sm">
-				{client.role}
+			<Text style={{ flex: 1 }} className="font-inter text-gray-500 text-sm">
+				{contact.department}
 			</Text>
+			
+			<Text style={{ flex: 1 }} className="font-inter text-gray-500 text-sm" numberOfLines={1}>
+				{contact.email}
+			</Text>
+
+			<Text style={{ flex: 1 }} className="font-inter text-gray-500 text-sm">
+				{contact.phone}
+			</Text>
+			
+			<View className="flex-row items-center justify-end gap-3 w-[60px]">
+				<TouchableOpacity
+					onPress={() => onEdit(contact)}
+					activeOpacity={0.7}
+					hitSlop={8}
+				>
+					<Pencil size={14} color="#6B7280" />
+				</TouchableOpacity>
+				<TouchableOpacity
+					onPress={() => onDelete(contact)}
+					activeOpacity={0.7}
+					hitSlop={8}
+				>
+					<Trash2 size={14} color="#DC2626" />
+				</TouchableOpacity>
+			</View>
 		</View>
 	);
 }
@@ -221,7 +236,13 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 
+	const [isContactModalVisible, setIsContactModalVisible] = useState(false);
+	const [editingContact, setEditingContact] = useState<Contact | null>(null);
+	const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
+	const [isDeletingContact, setIsDeletingContact] = useState(false);
+
 	const { company, isLoading, error, setCompany } = useCompany(id);
+	const { contacts, refreshContacts } = useContactsByCompany(company?.id);
 	const { toast, showToast } = useToast();
 
 	async function handleDelete() {
@@ -241,6 +262,28 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 			);
 			setIsDeleting(false);
 			setIsDeleteConfirmVisible(false);
+		}
+	}
+
+	async function handleDeleteContact() {
+		if (!contactToDelete) return;
+
+		setIsDeletingContact(true);
+
+		try {
+			await deleteContact(contactToDelete.id);
+			showToast('Contato excluído com sucesso!', 'success');
+			refreshContacts();
+		} catch (deleteError) {
+			showToast(
+				deleteError instanceof Error
+					? deleteError.message
+					: 'Não foi possível excluir o contato.',
+				'error',
+			);
+		} finally {
+			setIsDeletingContact(false);
+			setContactToDelete(null);
 		}
 	}
 
@@ -324,7 +367,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 									<View className="flex-row items-center">
 										<View className="px-5">
 											<Text className="font-inter font-bold text-gray-900 text-lg">
-												{mockClients.length}
+												{contacts.length}
 											</Text>
 
 											<Text className="font-inter text-gray-400 text-xs">
@@ -482,6 +525,10 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 								<View>
 									<View className="flex-row items-center justify-end pb-3">
 										<TouchableOpacity
+											onPress={() => {
+												setEditingContact(null);
+												setIsContactModalVisible(true);
+											}}
 											activeOpacity={0.7}
 											className="flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2"
 										>
@@ -495,14 +542,25 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 									<View className="flex-row items-center border-b border-gray-100 pb-3">
 										<TableHeaderCell label="Nome" flex={2} />
 
-										<TableHeaderCell label="Cargo" flex={2} />
+										<TableHeaderCell label="Departamento" flex={1} />
+										
+										<TableHeaderCell label="Email" flex={1} />
+
+										<TableHeaderCell label="Telefone" flex={1} />
+										
+										<View className="w-[60px]" />
 									</View>
 
-									{mockClients.map((client, index) => (
+									{contacts.map((contact, index) => (
 										<ClientRow
-											key={client.id}
-											client={client}
+											key={contact.id}
+											contact={contact}
 											isFirst={index === 0}
+											onEdit={(c) => {
+												setEditingContact(c);
+												setIsContactModalVisible(true);
+											}}
+											onDelete={(c) => setContactToDelete(c)}
 										/>
 									))}
 								</View>
@@ -568,7 +626,53 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 				onCancel={() => setIsDeleteConfirmVisible(false)}
 			/>
 
-			<Toast toast={isEditVisible || isDeleteConfirmVisible ? null : toast} />
+			{company && (
+				<ContactFormModal
+					visible={isContactModalVisible}
+					companyId={company.id}
+					contact={editingContact}
+					onClose={() => {
+						setIsContactModalVisible(false);
+						setEditingContact(null);
+					}}
+					onSubmit={async (data) => {
+						try {
+							if (editingContact) {
+								await updateContact(editingContact.id, data);
+								showToast('Contato atualizado com sucesso!', 'success');
+							} else {
+								await createContact(data);
+								showToast('Contato adicionado com sucesso!', 'success');
+							}
+							setIsContactModalVisible(false);
+							setEditingContact(null);
+							refreshContacts();
+						} catch (submitError) {
+							showToast(
+								submitError instanceof Error
+									? submitError.message
+									: 'Não foi possível salvar o contato.',
+								'error',
+							);
+							throw submitError;
+						}
+					}}
+					toast={toast}
+				/>
+			)}
+
+			<ConfirmDialog
+				visible={!!contactToDelete}
+				title="Excluir funcionário"
+				message={`Tem certeza que deseja excluir "${contactToDelete?.name}"?`}
+				confirmLabel="Excluir"
+				destructive
+				isLoading={isDeletingContact}
+				onConfirm={handleDeleteContact}
+				onCancel={() => setContactToDelete(null)}
+			/>
+
+			<Toast toast={isEditVisible || isDeleteConfirmVisible || isContactModalVisible || !!contactToDelete ? null : toast} />
 		</View>
 	);
 }
