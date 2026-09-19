@@ -43,7 +43,7 @@ export default function FormsRequest() {
 		});
 		setSubmitting(false);
 
-		if (result) {
+		if (result.success) {
 			setSuccess('Solicitação enviada com sucesso!');
 			setCustomerName('');
 			setEmail('');
@@ -51,6 +51,8 @@ export default function FormsRequest() {
 			setCustomerNeed('');
 			setOriginalLanguage('');
 			setTranslationLanguage('');
+		} else if (result.status === 400) {
+			setError('Você precisa aguardar no mínimo uma semana para enviar outra solicitação.');
 		} else {
 			setError('Não foi possível enviar a solicitação. Tente novamente.');
 		}

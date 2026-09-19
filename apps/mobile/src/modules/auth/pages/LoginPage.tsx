@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { Check } from 'lucide-react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, Link } from 'expo-router';
 import {
 	acceptCookies,
 	hasAcceptedCookies,
@@ -161,7 +161,7 @@ export function LoginPage() {
 			>
 				{!token ? (
 					<View className="flex-1 justify-center py-8 md:py-2">
-						<View className="max-w-xl">
+						<View className="max-w-xl mb-9">
 							<View className="mb-7 self-start rounded-full border border-[#2f86d1]/35 bg-white/70 px-4 py-1.5">
 								<Text className="text-[11px] font-bold tracking-[2px] text-[#2478c2]">
 									• PORTAL DO CLIENTE
@@ -173,9 +173,13 @@ export function LoginPage() {
 								controle.
 							</Text>
 							<Text className="mt-6 max-w-md text-base leading-6 text-[#506481] sm:text-lg">
-								Gerencie pedidos, acompanhe orçamentos e fale com a equipe sem
-								perder o histórico.
+								Acesse sua conta para gerenciar pedidos e acompanhar orçamentos ou solicite um serviço sem precisar se cadastrar.
 							</Text>
+							<Link href="/solicitar-servico">
+								<Pressable className="w-60 h-12 mt-5 items-center justify-center rounded-full bg-[#2d83cd] shadow-md shadow-blue-600/30 transition-transform duration-300 ease-in-out hover:-translate-y-1">
+									<Text className="font-bold text-white">Solicitar serviço</Text>
+								</Pressable>
+							</Link>
 						</View>
 					</View>
 				) : null}

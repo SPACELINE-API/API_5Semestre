@@ -23,6 +23,10 @@ export type CreateRequestPayload = {
 	customer_need: string;
 };
 
+export type CreateRequestResult =
+	| { success: true; data: RequestItem }
+	| { success: false; status: number; detail?: string };
+
 const API_BASE_URL = env.apiUrl;
 
 export async function fetchRequests(): Promise<RequestItem[]> {
@@ -41,7 +45,7 @@ export async function fetchRequests(): Promise<RequestItem[]> {
 
 export async function createRequest(
 	payload: CreateRequestPayload,
-): Promise<RequestItem | null> {
+): Promise<CreateRequestResult> {
 	try {
 		const response = await fetch(`${API_BASE_URL}/api/quotes/requests`, {
 			method: 'POST',
@@ -49,13 +53,19 @@ export async function createRequest(
 			body: JSON.stringify(payload),
 		});
 
+		const data = await response.json().catch(() => null);
+
 		if (!response.ok) {
-			throw new Error('Failed to create request');
+			return {
+				success: false,
+				status: response.status,
+				detail: data?.detail,
+			};
 		}
-		const data = await response.json();
-		return data;
+
+		return { success: true, data };
 	} catch (error) {
 		console.error('Error creating request:', error);
-		return null;
+		return { success: false, status: 0 };
 	}
 }

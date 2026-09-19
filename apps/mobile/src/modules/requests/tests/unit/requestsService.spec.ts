@@ -29,7 +29,10 @@ test.describe('Requests Service Unit Tests', () => {
 				translation_language: 'Francês',
 				customer_need: 'Contrato Social',
 			});
-			expect(result?.customer_name).toBe('João Silva');
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.customer_name).toBe('João Silva');
+			}
 		} finally {
 			globalThis.fetch = originalFetch;
 		}
