@@ -2,52 +2,36 @@ import { env } from '../env';
 
 export const apiUrl = env.apiUrl;
 
-export async function apiGet<TResponse>(path: string): Promise<TResponse> {
-	const response = await fetch(`${apiUrl}${path}`);
-
-	if (!response.ok) {
-		throw new Error(`Request failed with status ${response.status}`);
-	}
-
-	return response.json() as Promise<TResponse>;
-}
-
-async function apiSend<TResponse, TBody>(
-	method: 'POST' | 'PATCH',
-	path: string,
-	body: TBody,
-): Promise<TResponse> {
+async function request<TResponse>(path: string, init?: RequestInit) {
 	const response = await fetch(`${apiUrl}${path}`, {
-		method,
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(body),
+		...init,
+		headers: { 'Content-Type': 'application/json', ...init?.headers },
 	});
-
 	if (!response.ok) {
-		const payload = (await response.json().catch(() => null)) as {
-			detail?: string;
-		} | null;
-
+		const payload = await response.json().catch(() => null);
 		throw new Error(
 			payload?.detail ?? `Request failed with status ${response.status}`,
 		);
 	}
-
 	return response.json() as Promise<TResponse>;
 }
 
-export function apiPost<TResponse, TBody>(
-	path: string,
-	body: TBody,
-): Promise<TResponse> {
-	return apiSend<TResponse, TBody>('POST', path, body);
+export async function apiGet<TResponse>(path: string): Promise<TResponse> {
+	return request<TResponse>(path);
 }
 
-export function apiPatch<TResponse, TBody>(
-	path: string,
-	body: TBody,
-): Promise<TResponse> {
-	return apiSend<TResponse, TBody>('PATCH', path, body);
+export function apiPost<TResponse, TBody>(path: string, body: TBody) {
+	return request<TResponse>(path, {
+		method: 'POST',
+		body: JSON.stringify(body),
+	});
+}
+
+export function apiPatch<TResponse, TBody>(path: string, body: TBody) {
+	return request<TResponse>(path, {
+		method: 'PATCH',
+		body: JSON.stringify(body),
+	});
 }
 
 export async function apiDelete(path: string): Promise<void> {

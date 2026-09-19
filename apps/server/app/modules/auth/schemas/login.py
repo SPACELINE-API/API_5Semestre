@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, EmailStr, model_validator
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 
 class LoginRequest(BaseModel):
@@ -26,3 +26,20 @@ class LoginResponse(BaseModel):
     token_type: str
     expires_in: int
     user: UserResponse
+
+
+class PasswordRecoveryRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetRequest(BaseModel):
+    access_token: str = Field(min_length=1)
+    password: str = Field(min_length=6)
+    password_confirmation: str = Field(min_length=6)
+
+    @model_validator(mode="after")
+    def passwords_must_match(self) -> "PasswordResetRequest":
+        if self.password != self.password_confirmation:
+            raise ValueError("As senhas não coincidem")
+
+        return self

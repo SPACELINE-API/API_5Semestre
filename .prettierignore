@@ -13,3 +13,9 @@ apps/server/.venv
 apps/server/__pycache__
 apps/server/**/*.py
 .github/
+apps/mobile/expo-env.d.ts
+apps/mobile/nativewind-env.d.ts
+apps/mobile/.expo/
+
+.vscode/
+apps/mobile/.vscode/
