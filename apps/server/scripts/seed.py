@@ -13,7 +13,4 @@ if __name__ == "__main__":
     users = seed_users()
     companies = seed_companies()
     languages = seed_languages()
-    print(
-        f"Seeded {len(users)} users, {len(companies)} companies "
-        f"and {len(languages)} languages."
-    )
+    print(f"Seeded {len(users)} users, {len(companies)} companies and {len(languages)} languages.")
