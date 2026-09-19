@@ -3,6 +3,7 @@ import logging
 import inngest.fast_api
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes import api_router
 from app.shared.database import check_database_connection
@@ -22,6 +23,13 @@ logging.getLogger("uvicorn.access").addFilter(_HideInngestAccessLogs())
 
 
 app = FastAPI(title="API 5 Semestre")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 inngest.fast_api.serve(
     app,

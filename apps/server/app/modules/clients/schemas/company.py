@@ -1,7 +1,35 @@
+import re
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+_CNPJ_FIRST_DV_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+_CNPJ_SECOND_DV_WEIGHTS = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+
+
+def normalize_cnpj(value: str) -> str:
+    return re.sub(r"[^0-9A-Za-z]", "", value).upper()
+
+
+def calculate_cnpj_check_digit(base: str, weights: list[int]) -> str:
+    total = sum((ord(char) - 48) * weight for char, weight in zip(base, weights, strict=True))
+    remainder = total % 11
+
+    return "0" if remainder < 2 else str(11 - remainder)
+
+
+def is_valid_cnpj(value: str) -> bool:
+    normalized = normalize_cnpj(value)
+
+    if not re.fullmatch(r"[0-9A-Z]{12}[0-9]{2}", normalized):
+        return False
+
+    base = normalized[:12]
+    first_dv = calculate_cnpj_check_digit(base, _CNPJ_FIRST_DV_WEIGHTS)
+    second_dv = calculate_cnpj_check_digit(base + first_dv, _CNPJ_SECOND_DV_WEIGHTS)
+
+    return normalized[12:] == first_dv + second_dv
 
 
 class CompanyCreate(BaseModel):
@@ -21,6 +49,14 @@ class CompanyCreate(BaseModel):
     city: str = Field(min_length=1, max_length=100)
     state: str = Field(min_length=2, max_length=2)
 
+    @field_validator("cnpj")
+    @classmethod
+    def validate_cnpj(cls, value: str) -> str:
+        if not is_valid_cnpj(value):
+            raise ValueError("CNPJ invalido")
+
+        return value
+
 
 class CompanyUpdate(BaseModel):
     legal_name: str | None = Field(default=None, min_length=1, max_length=150)
@@ -39,6 +75,14 @@ class CompanyUpdate(BaseModel):
     neighborhood: str | None = Field(default=None, min_length=1, max_length=100)
     city: str | None = Field(default=None, min_length=1, max_length=100)
     state: str | None = Field(default=None, min_length=2, max_length=2)
+
+    @field_validator("cnpj")
+    @classmethod
+    def validate_cnpj(cls, value: str | None) -> str | None:
+        if value is not None and not is_valid_cnpj(value):
+            raise ValueError("CNPJ invalido")
+
+        return value
 
 
 class CompanyResponse(BaseModel):

@@ -9,6 +9,13 @@ import {
 	LogOut,
 	PanelLeftClose,
 	PanelLeftOpen,
+	ChevronDownIcon,
+	PlugIcon,
+	KeyRoundIcon,
+	Building2Icon,
+	ShieldCheckIcon,
+	ChevronRightIcon,
+	ChevronUpIcon,
 } from 'lucide-react-native';
 
 export {
@@ -22,4 +29,11 @@ export {
 	LogOut as SairIcon,
 	PanelLeftClose as FecharIcon,
 	PanelLeftOpen as AbrirIcon,
+	ChevronDownIcon as ChevronDown,
+	ChevronRightIcon as ChevronRight,
+	ShieldCheckIcon as AdminIcon,
+	Building2Icon as EmpresaIcon,
+	KeyRoundIcon as PermissoesIcon,
+	PlugIcon as IntegracoesIcon,
+	ChevronUpIcon as ChevronUp,
 };
