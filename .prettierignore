@@ -17,6 +17,4 @@ apps/mobile/expo-env.d.ts
 apps/mobile/nativewind-env.d.ts
 apps/mobile/.expo/
 apps/server/pacts/
-
 .vscode/
-apps/mobile/.vscode/
