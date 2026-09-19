@@ -55,7 +55,7 @@ class CompanyCreate(BaseModel):
         if not is_valid_cnpj(value):
             raise ValueError("CNPJ invalido")
 
-        return value
+        return normalize_cnpj(value)
 
 
 class CompanyUpdate(BaseModel):
@@ -79,10 +79,13 @@ class CompanyUpdate(BaseModel):
     @field_validator("cnpj")
     @classmethod
     def validate_cnpj(cls, value: str | None) -> str | None:
-        if value is not None and not is_valid_cnpj(value):
+        if value is None:
+            return value
+
+        if not is_valid_cnpj(value):
             raise ValueError("CNPJ invalido")
 
-        return value
+        return normalize_cnpj(value)
 
 
 class CompanyResponse(BaseModel):

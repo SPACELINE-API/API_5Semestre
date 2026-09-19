@@ -8,7 +8,13 @@ import {
 	ActivityIndicator,
 } from 'react-native';
 
-import { ArrowLeft, AlertCircle, Pencil, Trash2 } from 'lucide-react-native';
+import {
+	ArrowLeft,
+	AlertCircle,
+	Pencil,
+	Trash2,
+	UserPlus,
+} from 'lucide-react-native';
 
 import { useRouter } from 'expo-router';
 import { useCompany } from '../hooks/useCompany';
@@ -322,7 +328,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 											</Text>
 
 											<Text className="font-inter text-gray-400 text-xs">
-												Clientes
+												Funcionários
 											</Text>
 										</View>
 
@@ -474,6 +480,18 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 
 							{activeTab === 'clients' && (
 								<View>
+									<View className="flex-row items-center justify-end pb-3">
+										<TouchableOpacity
+											activeOpacity={0.7}
+											className="flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2"
+										>
+											<UserPlus size={14} color="#353535" />
+											<Text className="font-inter font-semibold text-gray-800 text-xs">
+												Adicionar funcionário
+											</Text>
+										</TouchableOpacity>
+									</View>
+
 									<View className="flex-row items-center border-b border-gray-100 pb-3">
 										<TableHeaderCell label="Nome" flex={2} />
 
