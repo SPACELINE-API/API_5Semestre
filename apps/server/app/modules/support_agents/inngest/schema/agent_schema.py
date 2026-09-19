@@ -5,7 +5,6 @@ QUESTION_MAX_LENGTH = 500
 
 
 class SuportePerguntaRequest(BaseModel):
-
     texto: str = Field(
         ...,
         min_length=1,
@@ -23,6 +22,4 @@ class SuportePerguntaRequest(BaseModel):
 
 
 class SuportePerguntaResponse(BaseModel):
-
-
     resposta: str = Field(..., description="Resposta textual produzida pelo agente.")

@@ -1,6 +1,4 @@
-
 import logging
-from typing import Protocol
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -8,25 +6,14 @@ from app.modules.support_agents.inngest.schema.agent_schema import (
     SuportePerguntaRequest,
     SuportePerguntaResponse,
 )
+from app.modules.support_agents.inngest.services.support_agent_services import (
+    AgenteSuporteClient,
+    get_agente_suporte,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/suporte", tags=["suporte"])
-
-
-class AgenteSuporteClient(Protocol):
-
-    async def __call__(self, texto: str) -> str:
-        ...
-
-
-async def enviar_para_agente_stub(texto: str) -> str:
-    logger.info("Enviando mensagem ao colaborador")
-    return f"resposta: {texto}"
-
-
-def get_agente_suporte() -> AgenteSuporteClient:
-    return enviar_para_agente_stub
 
 
 @router.post(
