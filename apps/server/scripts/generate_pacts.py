@@ -11,6 +11,7 @@ PACT_TESTS = [
     "app/modules/quotes/tests/test_translation_items_pact.py",
     "app/modules/quotes/tests/test_quotes_pact.py",
     "app/modules/translators/tests/test_translators_pact.py",
+    "app/modules/contacts/tests/test_contact_pact.py",
 ]
 
 
