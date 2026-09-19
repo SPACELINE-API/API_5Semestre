@@ -9,6 +9,8 @@ def test_create_request_success():
     mock_db_session.refresh.side_effect = lambda obj: None
 
     service = RequestService(mock_db_session)
+    service.repo.get_last_by_email = MagicMock(return_value=None)
+
     data = RequestCreate(
         customer_name="João Silva",
         enterprise="Padilhas Company",
