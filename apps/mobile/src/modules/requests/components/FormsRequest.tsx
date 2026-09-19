@@ -52,7 +52,9 @@ export default function FormsRequest() {
 			setOriginalLanguage('');
 			setTranslationLanguage('');
 		} else if (result.status === 400) {
-			setError('Você precisa aguardar no mínimo uma semana para enviar outra solicitação.');
+			setError(
+				'Você precisa aguardar no mínimo uma semana para enviar outra solicitação.',
+			);
 		} else {
 			setError('Não foi possível enviar a solicitação. Tente novamente.');
 		}

@@ -173,11 +173,14 @@ export function LoginPage() {
 								controle.
 							</Text>
 							<Text className="mt-6 max-w-md text-base leading-6 text-[#506481] sm:text-lg">
-								Acesse sua conta para gerenciar pedidos e acompanhar orçamentos ou solicite um serviço sem precisar se cadastrar.
+								Acesse sua conta para gerenciar pedidos e acompanhar orçamentos
+								ou solicite um serviço sem precisar se cadastrar.
 							</Text>
 							<Link href="/solicitar-servico">
 								<Pressable className="w-60 h-12 mt-5 items-center justify-center rounded-full bg-[#2d83cd] shadow-md shadow-blue-600/30 transition-transform duration-300 ease-in-out hover:-translate-y-1">
-									<Text className="font-bold text-white">Solicitar serviço</Text>
+									<Text className="font-bold text-white">
+										Solicitar serviço
+									</Text>
 								</Pressable>
 							</Link>
 						</View>
