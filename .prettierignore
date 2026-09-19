@@ -13,3 +13,4 @@ apps/server/.venv
 apps/server/__pycache__
 apps/server/**/*.py
 .github/
+.expo

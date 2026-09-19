@@ -160,6 +160,147 @@
 				"status": 500
 			},
 			"type": "Synchronous/HTTP"
+		},
+		{
+			"description": "a request to create a contact with valid data",
+			"pending": false,
+			"providerStates": [
+				{
+					"name": "an active company exists"
+				}
+			],
+			"request": {
+				"body": {
+					"content": {
+						"company_id": "00000000-0000-0000-0000-000000000001",
+						"department": "Financeiro",
+						"email": "johndoe@example.com",
+						"name": "John Doe",
+						"phone": "(11) 98765-4321"
+					},
+					"contentType": "application/json",
+					"encoded": false
+				},
+				"headers": {
+					"Content-Type": ["application/json"]
+				},
+				"method": "POST",
+				"path": "/api/contacts"
+			},
+			"response": {
+				"body": {
+					"content": {
+						"contact": {
+							"company_id": "00000000-0000-0000-0000-000000000001",
+							"created_at": "2023-01-01T00:00:00Z",
+							"department": "Financeiro",
+							"email": "johndoe@example.com",
+							"id": "00000000-0000-0000-0000-000000000002",
+							"name": "John Doe",
+							"phone": "(11) 98765-4321",
+							"updated_at": "2023-01-01T00:00:00Z"
+						},
+						"message": "Contato cadastrado com sucesso."
+					},
+					"contentType": "application/json",
+					"encoded": false
+				},
+				"headers": {
+					"Content-Type": ["application/json"]
+				},
+				"status": 201
+			},
+			"type": "Synchronous/HTTP"
+		},
+		{
+			"description": "a request to create a contact with invalid email",
+			"pending": false,
+			"providerStates": [
+				{
+					"name": "an active company exists"
+				}
+			],
+			"request": {
+				"body": {
+					"content": {
+						"company_id": "00000000-0000-0000-0000-000000000001",
+						"department": "Financeiro",
+						"email": "invalid-email",
+						"name": "John Doe",
+						"phone": "(11) 98765-4321"
+					},
+					"contentType": "application/json",
+					"encoded": false
+				},
+				"headers": {
+					"Content-Type": ["application/json"]
+				},
+				"method": "POST",
+				"path": "/api/contacts"
+			},
+			"response": {
+				"status": 422
+			},
+			"type": "Synchronous/HTTP"
+		},
+		{
+			"description": "a request to create a contact with invalid phone",
+			"pending": false,
+			"providerStates": [
+				{
+					"name": "an active company exists"
+				}
+			],
+			"request": {
+				"body": {
+					"content": {
+						"company_id": "00000000-0000-0000-0000-000000000001",
+						"department": "Financeiro",
+						"email": "johndoe@example.com",
+						"name": "John Doe",
+						"phone": "11987654321"
+					},
+					"contentType": "application/json",
+					"encoded": false
+				},
+				"headers": {
+					"Content-Type": ["application/json"]
+				},
+				"method": "POST",
+				"path": "/api/contacts"
+			},
+			"response": {
+				"status": 422
+			},
+			"type": "Synchronous/HTTP"
+		},
+		{
+			"description": "a request to create a contact with missing fields",
+			"pending": false,
+			"providerStates": [
+				{
+					"name": "an active company exists"
+				}
+			],
+			"request": {
+				"body": {
+					"content": {
+						"email": "johndoe@example.com",
+						"name": "John Doe"
+					},
+					"contentType": "application/json",
+					"encoded": false
+				},
+				"headers": {
+					"Content-Type": ["application/json"]
+				},
+				"method": "POST",
+				"path": "/api/contacts"
+			},
+			"response": {
+				"status": 422
+			},
+			"type": "Synchronous/HTTP"
 		}
 	],
 	"metadata": {
