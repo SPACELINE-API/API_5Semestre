@@ -1,7 +1,6 @@
 packages:
   - 'apps/*'
 allowBuilds:
-  '@scarf/scarf': set this to true or false
   esbuild: true
 minimumReleaseAgeExclude:
   - '@expo/cli@57.0.25'

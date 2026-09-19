@@ -19,6 +19,7 @@ export function SideBar() {
 	const pathname = usePathname();
 
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
+	const IsSupportAgentActive = pathname.startsWith('/support-agent');
 
 	return (
 		<>
@@ -94,6 +95,24 @@ export function SideBar() {
 											className={`font-inter font-medium text-sm ${isOrcamentoActive ? 'text-blue-700' : 'text-gray-800'}`}
 										>
 											Orçamento
+										</Text>
+									)}
+								</TouchableOpacity>
+							</Link>
+							<Link href={'/support-agent' as never} asChild>
+								<TouchableOpacity
+									className={`flex-row items-center gap-3 px-3 py-2 rounded-lg ${!isOpen ? 'justify-center px-0' : ''} ${IsSupportAgentActive ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+								>
+									<SuporteIcon
+										size={20}
+										color={IsSupportAgentActive ? '#2563eb' : '#1f2937'}
+										strokeWidth={1.5}
+									/>
+									{isOpen && (
+										<Text
+											className={`font-inter font-medium text-sm ${IsSupportAgentActive ? 'text-blue-700' : 'text-gray-800'}`}
+										>
+											Suporte
 										</Text>
 									)}
 								</TouchableOpacity>
