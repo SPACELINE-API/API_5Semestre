@@ -225,7 +225,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 
 		try {
 			await deleteCompany(company.id);
-			router.replace('/clientes');
+			router.replace('/clientes?deleted=1');
 		} catch (deleteError) {
 			showToast(
 				deleteError instanceof Error

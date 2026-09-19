@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
 	View,
@@ -19,7 +19,7 @@ import {
 	Trash2,
 } from 'lucide-react-native';
 
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useCompanies } from '../hooks/useCompanies';
 
@@ -39,6 +39,7 @@ import { exportCompaniesAsJson } from '../utils/export';
 
 export function ClientsPage() {
 	const router = useRouter();
+	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
 
 	const { companies, isLoading, error, create, removeMany } = useCompanies();
 
@@ -55,6 +56,13 @@ export function ClientsPage() {
 	const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
 	const { toast, showToast } = useToast();
+
+	useEffect(() => {
+		if (deleted === '1') {
+			showToast('Empresa excluída com sucesso!', 'success');
+			router.setParams({ deleted: undefined });
+		}
+	}, [deleted]);
 
 	const filteredCompanies = useMemo(() => {
 		const normalizedSearch = search.toLowerCase().trim();
