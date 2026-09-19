@@ -20,9 +20,7 @@ class CompanyService:
             self.db.commit()
         except IntegrityError:
             self.db.rollback()
-            raise HTTPException(
-                status_code=409, detail="CNPJ ou email já existe"
-            ) from None
+            raise HTTPException(status_code=409, detail="CNPJ ou email já existe") from None
 
         self.db.refresh(company)
         return company
@@ -62,9 +60,7 @@ class CompanyService:
             self.db.commit()
         except IntegrityError:
             self.db.rollback()
-            raise HTTPException(
-                status_code=409, detail="CNPJ ou email já existe"
-            ) from None
+            raise HTTPException(status_code=409, detail="CNPJ ou email já existe") from None
 
         self.db.refresh(company)
         return company
