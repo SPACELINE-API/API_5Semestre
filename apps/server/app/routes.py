@@ -7,6 +7,7 @@ from app.modules.contacts.routes import router as contacts_router
 from app.modules.quotes.routes import router as quotes_router
 from app.modules.resources.routes import router as resources_router
 from app.modules.service_orders.routes import router as service_orders_router
+from app.modules.support_agents.inngest.router.support_router import router as support_agent_router
 from app.modules.system_parameters.routes import router as support_router
 from app.modules.translators.routes import router as translators_router
 from app.modules.users.routes import router as users_router
@@ -23,3 +24,4 @@ api_router.include_router(service_orders_router)
 api_router.include_router(allocations_router)
 api_router.include_router(quotes_router)
 api_router.include_router(support_router)
+api_router.include_router(support_agent_router)
