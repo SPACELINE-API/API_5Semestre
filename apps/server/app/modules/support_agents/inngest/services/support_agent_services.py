@@ -27,7 +27,9 @@ def get_agente_suporte() -> AgenteSuporteClient:
     return enviar_para_agente_stub
 
 
-async def enfileirar_teste_agente(payload: SuportePerguntaRequest) -> SuporteAgenteEnfileiradoResponse:
+async def enfileirar_teste_agente(
+    payload: SuportePerguntaRequest,
+) -> SuporteAgenteEnfileiradoResponse:
     event_name = "support/agent.test"
     try:
         ids = await inngest_client.send(
