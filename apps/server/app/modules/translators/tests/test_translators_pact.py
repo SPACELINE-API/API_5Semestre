@@ -3,7 +3,7 @@ from pathlib import Path
 from pact import Pact
 
 # DIRETORIO RAIZ ONDE OS CONTRATOS PACT FICAM SALVOS
-PACT_DIR = Path(__file__).parents[4] / "pacts"
+PACT_DIR = Path(__file__).parents[4]
 
 # IDENTIFICADORES FICTICIOS PARA OS CONTRATOS
 MOCK_TRANSLATOR_ID = "123e4567-e89b-12d3-a456-426614174000"

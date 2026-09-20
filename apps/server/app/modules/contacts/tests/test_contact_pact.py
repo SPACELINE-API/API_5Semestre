@@ -4,7 +4,7 @@ from pact import Pact
 
 from app.shared.pact_writer import write_pact
 
-PACT_DIR = Path(__file__).parents[4] / "pacts"
+PACT_DIR = Path(__file__).parents[4]
 
 
 def test_create_contact_success_contract() -> None:
