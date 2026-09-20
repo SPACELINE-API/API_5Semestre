@@ -50,7 +50,7 @@ jobs:
 
       - name: Install Python dependencies
         working-directory: apps/server
-        run: python -m pip install --pre --no-deps -r requirements.txt
+        run: python -m pip install --pre -r requirements.txt
 
       - name: Check formatting
         run: pnpm --filter mobile format:check
@@ -91,7 +91,7 @@ jobs:
       - name: Install dependencies
         working-directory: apps/server
         run: |
-          python -m pip install --pre --no-deps -r requirements.txt
+          python -m pip install --pre -r requirements.txt
           python -m pip install pytest-cov
 
       - name: Start Docker services
