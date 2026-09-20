@@ -112,7 +112,7 @@ export function SideBar() {
 										<Text
 											className={`font-inter font-medium text-sm ${IsSupportAgentActive ? 'text-blue-700' : 'text-gray-800'}`}
 										>
-											Suporte
+											Agente
 										</Text>
 									)}
 								</TouchableOpacity>

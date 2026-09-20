@@ -1,6 +1,13 @@
-import { AlertCircle, Headphones } from 'lucide-react-native';
-import { Clock, DollarSign, FileText, Settings } from 'lucide-react-native';
-import { ScrollView, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import {
+	AlertCircle,
+	Clock,
+	DollarSign,
+	FileText,
+	Headphones,
+	Settings,
+} from 'lucide-react-native';
+import { ScrollView, Text, TextInput, View } from 'react-native';
 import { ChatInputBar } from '../components/ChatInputBar';
 import { ChatMessageBubble } from '../components/ChatMessageBubble';
 import { QuickReplyButton } from '../components/QuickReplyButton';
@@ -16,7 +23,17 @@ const QUICK_REPLIES = [
 	{ icon: Settings, label: 'Problemas técnicos' },
 ];
 
+const SCROLL_CLASSNAME =
+	'flex-1 [scroll-behavior:smooth] [scrollbar-width:thin] [scrollbar-color:#bcdcf5_transparent] ' +
+	'[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent ' +
+	'[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#bcdcf5] ' +
+	'hover:[&::-webkit-scrollbar-thumb]:bg-[#2d83cd]';
+
 export function SupportPage() {
+	const inputRef = useRef<TextInput>(null);
+	const scrollRef = useRef<ScrollView>(null);
+	const previousStatusRef = useRef<'idle' | 'loading' | 'error'>('idle');
+
 	const {
 		messages,
 		draft,
@@ -30,28 +47,73 @@ export function SupportPage() {
 		maxLength,
 	} = useSupportChat();
 
-	return (
-		<View className="flex-1 bg-[#eef6fd]">
-			<ScrollView
-				className="flex-1"
-				contentContainerClassName="px-4 pb-4 pt-5 md:px-8 md:pb-8 md:pt-8"
-			>
-				<View className="mb-4 flex-row items-center gap-3 md:mb-6 md:gap-4">
-					<View className="h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#d9ecfb] md:h-14 md:w-14">
-						<Headphones color="#2478c2" size={22} />
-					</View>
-					<View className="flex-1">
-						<Text className="text-2xl font-extrabold tracking-[-0.5px] text-[#101b35] md:text-3xl">
-							Suporte
-						</Text>
-						<Text className="mt-0.5 text-xs text-[#65758f] md:mt-1 md:text-sm">
-							Tire suas dúvidas e resolva suas questões com nosso assistente
-							virtual.
-						</Text>
-					</View>
-				</View>
+	useEffect(() => {
+		inputRef.current?.focus();
+	}, []);
 
-				<View className="rounded-3xl bg-white p-4 shadow-xl shadow-[#173a68]/10 md:p-6">
+	useEffect(() => {
+		function handleGlobalKeyDown(event: KeyboardEvent) {
+			if (document.activeElement === inputRef.current) return;
+
+			const activeTag = document.activeElement?.tagName;
+			const isTypingElsewhere =
+				activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+			if (isTypingElsewhere) return;
+
+			const isModifierPressed = event.ctrlKey || event.metaKey || event.altKey;
+			const isPrintableChar = event.key.length === 1;
+			if (!isPrintableChar || isModifierPressed) return;
+
+			inputRef.current?.focus();
+			setDraft((current) => current + event.key);
+		}
+
+		document.addEventListener('keydown', handleGlobalKeyDown);
+		return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+	}, [setDraft]);
+
+	useEffect(() => {
+		const wasLoading = previousStatusRef.current === 'loading';
+		const finishedLoading = wasLoading && status !== 'loading';
+		if (finishedLoading) {
+			inputRef.current?.focus();
+		}
+		previousStatusRef.current = status;
+	}, [status]);
+
+	function handleSend() {
+		sendQuestion();
+	}
+
+	function handleQuickReply(label: string) {
+		sendQuestion(label);
+	}
+
+	return (
+		<View className="flex-1 bg-[#eef6fd] px-4 py-4 md:px-8 md:py-8">
+			<View className="mb-4 flex-row items-center gap-3 md:mb-6 md:gap-4">
+				<View className="h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#d9ecfb] md:h-14 md:w-14">
+					<Headphones color="#2478c2" size={22} />
+				</View>
+				<View className="flex-1">
+					<Text className="text-2xl font-extrabold tracking-[-0.5px] text-[#101b35] md:text-3xl">
+						Suporte
+					</Text>
+					<Text className="mt-0.5 text-xs text-[#65758f] md:mt-1 md:text-sm">
+						Tire suas dúvidas e resolva suas questões com nosso assistente
+						virtual.
+					</Text>
+				</View>
+			</View>
+
+			<View className="flex-1 rounded-3xl bg-white p-4 shadow-xl shadow-[#173a68]/10 md:p-6">
+				<ScrollView
+					ref={scrollRef}
+					className={SCROLL_CLASSNAME}
+					onContentSizeChange={() =>
+						scrollRef.current?.scrollToEnd({ animated: true })
+					}
+				>
 					<ChatMessageBubble
 						role="agent"
 						message={WELCOME_MESSAGE}
@@ -101,33 +163,34 @@ export function SupportPage() {
 									key={reply.label}
 									icon={reply.icon}
 									label={reply.label}
-									onPress={() => sendQuestion(reply.label)}
+									onPress={() => handleQuickReply(reply.label)}
 								/>
 							))}
 						</View>
 					) : null}
+				</ScrollView>
 
-					<View className="mt-5 md:mt-6">
-						<ChatInputBar
-							value={draft}
-							onChangeText={setDraft}
-							onSend={() => sendQuestion()}
-							disabled={status === 'loading'}
-							canSend={canSend}
-							maxLength={maxLength}
-						/>
-						{isOverLimit ? (
-							<Text className="mt-1.5 text-xs text-red-600">
-								Sua pergunta ultrapassa o limite de {maxLength} caracteres.
-							</Text>
-						) : (
-							<Text className="mt-1.5 text-xs text-[#94a3b8]">
-								{draft.length}/{maxLength}
-							</Text>
-						)}
-					</View>
+				<View className="mt-4">
+					<ChatInputBar
+						ref={inputRef}
+						value={draft}
+						onChangeText={setDraft}
+						onSend={handleSend}
+						disabled={status === 'loading'}
+						canSend={canSend}
+						maxLength={maxLength}
+					/>
+					{isOverLimit ? (
+						<Text className="mt-1.5 text-xs text-red-600">
+							Sua pergunta ultrapassa o limite de {maxLength} caracteres.
+						</Text>
+					) : (
+						<Text className="mt-1.5 text-xs text-[#94a3b8]">
+							{draft.length}/{maxLength}
+						</Text>
+					)}
 				</View>
-			</ScrollView>
+			</View>
 		</View>
 	);
 }
