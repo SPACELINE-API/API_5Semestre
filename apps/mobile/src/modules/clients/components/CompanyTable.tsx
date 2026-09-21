@@ -17,15 +17,20 @@ type CompanyTableProps = {
 function Checkbox({
 	checked,
 	onPress,
+	accessibilityLabel,
 }: {
 	checked: boolean;
 	onPress: () => void;
+	accessibilityLabel: string;
 }) {
 	return (
 		<TouchableOpacity
 			onPress={onPress}
 			activeOpacity={0.7}
 			hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+			accessibilityRole="checkbox"
+			accessibilityState={{ checked }}
+			accessibilityLabel={accessibilityLabel}
 			className={`h-[18px] w-[18px] items-center justify-center rounded border ${
 				checked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'
 			}`}
@@ -50,7 +55,11 @@ export function CompanyTable({
 		<View className="bg-white">
 			<View className="hidden h-11 flex-row items-center border-b border-gray-200 px-5 md:flex">
 				<View className="w-10">
-					<Checkbox checked={allSelected} onPress={onToggleSelectAll} />
+					<Checkbox
+						checked={allSelected}
+						onPress={onToggleSelectAll}
+						accessibilityLabel="Selecionar todos"
+					/>
 				</View>
 
 				<Text className="w-[26%] font-inter font-medium text-[11px] uppercase tracking-wide text-gray-400">
@@ -86,6 +95,7 @@ export function CompanyTable({
 							<Checkbox
 								checked={selectedIds.has(company.id)}
 								onPress={() => onToggleSelect(company.id)}
+								accessibilityLabel={`Selecionar ${company.trade_name}`}
 							/>
 						</View>
 
