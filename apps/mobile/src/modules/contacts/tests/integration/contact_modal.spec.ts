@@ -1,12 +1,14 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Contact Modal Integration', () => {
-	test('should open contact modal and show fields correctly', async ({ page }) => {
+	test('should open contact modal and show fields correctly', async ({
+		page,
+	}) => {
 		await page.goto('/clientes/1');
-		
+
 		const clientsTab = page.getByText('Clientes', { exact: true });
 		await clientsTab.click();
-		
+
 		const addBtn = page.getByText('Adicionar funcionário');
 		await addBtn.click();
 

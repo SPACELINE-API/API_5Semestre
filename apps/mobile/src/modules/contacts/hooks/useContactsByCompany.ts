@@ -29,5 +29,11 @@ export function useContactsByCompany(companyId: string | undefined) {
 		refreshContacts();
 	}, [refreshContacts]);
 
-	return { contacts, isLoadingContacts, contactsError, refreshContacts, setContacts };
+	return {
+		contacts,
+		isLoadingContacts,
+		contactsError,
+		refreshContacts,
+		setContacts,
+	};
 }

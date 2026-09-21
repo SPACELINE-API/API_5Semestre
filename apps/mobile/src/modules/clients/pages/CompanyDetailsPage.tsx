@@ -26,7 +26,11 @@ import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { ContactFormModal } from '../../contacts/components/ContactFormModal';
-import { createContact, updateContact, deleteContact } from '../../contacts/services/contactService';
+import {
+	createContact,
+	updateContact,
+	deleteContact,
+} from '../../contacts/services/contactService';
 import { useContactsByCompany } from '../../contacts/hooks/useContactsByCompany';
 import type { Contact } from '../../contacts/types/contact';
 
@@ -159,15 +163,19 @@ function ClientRow({
 			<Text style={{ flex: 1 }} className="font-inter text-gray-500 text-sm">
 				{contact.department}
 			</Text>
-			
-			<Text style={{ flex: 1 }} className="font-inter text-gray-500 text-sm" numberOfLines={1}>
+
+			<Text
+				style={{ flex: 1 }}
+				className="font-inter text-gray-500 text-sm"
+				numberOfLines={1}
+			>
 				{contact.email}
 			</Text>
 
 			<Text style={{ flex: 1 }} className="font-inter text-gray-500 text-sm">
 				{contact.phone}
 			</Text>
-			
+
 			<View className="flex-row items-center justify-end gap-3 w-[60px]">
 				<TouchableOpacity
 					onPress={() => onEdit(contact)}
@@ -543,11 +551,11 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 										<TableHeaderCell label="Nome" flex={2} />
 
 										<TableHeaderCell label="Departamento" flex={1} />
-										
+
 										<TableHeaderCell label="Email" flex={1} />
 
 										<TableHeaderCell label="Telefone" flex={1} />
-										
+
 										<View className="w-[60px]" />
 									</View>
 
@@ -672,7 +680,16 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 				onCancel={() => setContactToDelete(null)}
 			/>
 
-			<Toast toast={isEditVisible || isDeleteConfirmVisible || isContactModalVisible || !!contactToDelete ? null : toast} />
+			<Toast
+				toast={
+					isEditVisible ||
+					isDeleteConfirmVisible ||
+					isContactModalVisible ||
+					!!contactToDelete
+						? null
+						: toast
+				}
+			/>
 		</View>
 	);
 }
