@@ -18,7 +18,17 @@ from app.modules.service_orders.models.service_order_item import (
     STATUS_EM_ANDAMENTO,
     STATUS_PENDENTE,
 )
-from app.modules.service_orders.schemas.service_order import GenerateServiceOrderRequest
+import io
+
+from app.modules.service_orders.schemas.service_order import (
+    CreateServiceOrderItemRequest,
+    GenerateServiceOrderRequest,
+    UpdateServiceOrderItemRequest,
+    UpdateServiceOrderRequest,
+)
+from app.modules.service_orders.services import (
+    service_order_service as service_order_service_module,
+)
 from app.modules.service_orders.services.service_order_service import (
     ServiceOrderService,
     compute_aggregate_status,
@@ -104,6 +114,22 @@ def make_quote_with_items(db_session: Session, item_count: int = 2) -> Quote:
     return quote
 
 
+@pytest.fixture
+def fake_upload(monkeypatch):
+    uploads: list[dict] = []
+
+    def fake_upload_service_order_file(filename, file_data, content_type) -> str:
+        uploads.append({"filename": filename, "content_type": content_type})
+        return f"https://fake-storage.test/{filename}"
+
+    monkeypatch.setattr(
+        service_order_service_module,
+        "upload_service_order_file",
+        fake_upload_service_order_file,
+    )
+    return uploads
+
+
 def test_generate_from_quote_creates_one_item_per_translation_item(db_session: Session) -> None:
     company = make_company(db_session)
     quote = make_quote_with_items(db_session, item_count=3)
@@ -174,3 +200,148 @@ def test_compute_aggregate_status_reflects_most_advanced_pending_stage() -> None
 def test_compute_aggregate_status_em_andamento_mixed_with_pendente() -> None:
     items = [_FakeItem(STATUS_PENDENTE), _FakeItem(STATUS_EM_ANDAMENTO)]
     assert compute_aggregate_status(items) == STATUS_EM_ANDAMENTO
+
+
+def test_update_service_order_applies_only_provided_fields(db_session: Session) -> None:
+    company = make_company(db_session)
+    quote = make_quote_with_items(db_session, item_count=1)
+    service = ServiceOrderService(db_session)
+    created = service.generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id,
+            company_id=company.id,
+            project_name="Projeto original",
+        )
+    )
+
+    updated = service.update_service_order(
+        created.id,
+        UpdateServiceOrderRequest(project_name="Projeto renomeado"),
+    )
+
+    assert updated.project_name == "Projeto renomeado"
+    assert updated.domain_area is None
+
+
+def test_update_service_order_not_found_raises_404(db_session: Session) -> None:
+    service = ServiceOrderService(db_session)
+
+    with pytest.raises(Exception) as exc_info:
+        service.update_service_order(uuid.uuid4(), UpdateServiceOrderRequest(project_name="X"))
+
+    assert getattr(exc_info.value, "status_code", None) == 404
+
+
+def test_add_item_creates_item_without_quote_translation_item(
+    db_session: Session, fake_upload
+) -> None:
+    company = make_company(db_session)
+    quote = make_quote_with_items(db_session, item_count=1)
+    service = ServiceOrderService(db_session)
+    order = service.generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id,
+            company_id=company.id,
+            project_name="Projeto com item extra",
+        )
+    )
+
+    item = service.add_item(
+        order.id,
+        CreateServiceOrderItemRequest(
+            source_language="pt-BR",
+            target_language="en-US",
+            document_type="Manual",
+            word_count=1200,
+            price=Decimal("300.00"),
+        ),
+        filename="manual.pdf",
+        file_data=io.BytesIO(b"conteudo"),
+        content_type="application/pdf",
+    )
+
+    assert item.service_order_id == order.id
+    assert item.quote_translation_item_id is None
+    assert item.word_count == 1200
+    assert item.file_url == "https://fake-storage.test/manual.pdf"
+    assert len(fake_upload) == 1
+
+
+def test_add_item_not_found_raises_404(db_session: Session) -> None:
+    service = ServiceOrderService(db_session)
+
+    with pytest.raises(Exception) as exc_info:
+        service.add_item(
+            uuid.uuid4(),
+            CreateServiceOrderItemRequest(source_language="pt-BR", target_language="en-US"),
+        )
+
+    assert getattr(exc_info.value, "status_code", None) == 404
+
+
+def test_update_item_changes_fields_and_replaces_file(db_session: Session, fake_upload) -> None:
+    company = make_company(db_session)
+    quote = make_quote_with_items(db_session, item_count=1)
+    service = ServiceOrderService(db_session)
+    order = service.generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id,
+            company_id=company.id,
+            project_name="Projeto para editar item",
+        )
+    )
+    item_id = order.items[0].id
+
+    updated = service.update_item(
+        item_id,
+        UpdateServiceOrderItemRequest(
+            source_language="es-ES",
+            target_language="pt-BR",
+            word_count=500,
+        ),
+        filename="novo.pdf",
+        file_data=io.BytesIO(b"conteudo"),
+        content_type="application/pdf",
+    )
+
+    assert updated.source_language == "es-ES"
+    assert updated.target_language == "pt-BR"
+    assert updated.word_count == 500
+    assert updated.file_url == "https://fake-storage.test/novo.pdf"
+
+
+def test_update_item_not_found_raises_404(db_session: Session) -> None:
+    service = ServiceOrderService(db_session)
+
+    with pytest.raises(Exception) as exc_info:
+        service.update_item(
+            uuid.uuid4(),
+            UpdateServiceOrderItemRequest(source_language="pt-BR", target_language="en-US"),
+        )
+
+    assert getattr(exc_info.value, "status_code", None) == 404
+
+
+def test_add_file_appends_to_service_order(db_session: Session, fake_upload) -> None:
+    company = make_company(db_session)
+    quote = make_quote_with_items(db_session, item_count=1)
+    service = ServiceOrderService(db_session)
+    order = service.generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id,
+            company_id=company.id,
+            project_name="Projeto com arquivo",
+        )
+    )
+
+    file_response = service.add_file(
+        order.id,
+        filename="entrada.pdf",
+        file_data=io.BytesIO(b"conteudo"),
+        content_type="application/pdf",
+        direction="entrada",
+    )
+
+    assert file_response.service_order_id == order.id
+    assert file_response.direction == "entrada"
+    assert file_response.file_url == "https://fake-storage.test/entrada.pdf"

@@ -64,12 +64,30 @@ class InviteService:
                 html_body=(
                     f"<p>Olá {translator.name}, você foi convidado para um novo serviço de "
                     f"tradução ({item.source_language} → {item.target_language}).</p>"
-                    f'<p><a href="{env_provider.get_site_url()}/service-orders/invites/{invite.id}">'
+                    f'<p><a href="{env_provider.get_site_url()}/convites/{invite.id}">'
                     "Ver documento e responder</a></p>"
                 ),
             )
 
         return invites
+
+    def list_invites_for_item(self, item_id: uuid.UUID) -> list[ServiceOrderItemInvite]:
+        self._get_item_or_404(item_id)
+        return (
+            self.db.query(ServiceOrderItemInvite)
+            .filter(ServiceOrderItemInvite.service_order_item_id == item_id)
+            .all()
+        )
+
+    def list_invites_for_translator_email(
+        self, translator_email: str
+    ) -> list[ServiceOrderItemInvite]:
+        return (
+            self.db.query(ServiceOrderItemInvite)
+            .join(Translator, ServiceOrderItemInvite.translator_id == Translator.id)
+            .filter(Translator.email.ilike(translator_email))
+            .all()
+        )
 
     def accept_invite(
         self, invite_id: uuid.UUID, current_user_email: str

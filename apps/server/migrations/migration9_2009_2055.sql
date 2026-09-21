@@ -24,6 +24,7 @@ CREATE TABLE service_order_items (
     source_language VARCHAR(10) NOT NULL,
     target_language VARCHAR(10) NOT NULL,
     document_type VARCHAR(100),
+    file_url VARCHAR(500),
     price NUMERIC(10, 2),
     deadline TIMESTAMP WITH TIME ZONE,
     status VARCHAR(20) NOT NULL,

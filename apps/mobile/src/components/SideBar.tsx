@@ -89,6 +89,8 @@ export function SideBar() {
 	const [activeItem, setActiveItem] = useState<string>('Requisições');
 	const [adminExpanded, setAdminExpanded] = useState<boolean>(false);
 	const isClientsActive = pathname.startsWith('/clientes');
+	const isOrdersActive = pathname.startsWith('/ordens-de-servico');
+	const isKnownRoute = isClientsActive || isOrdersActive;
 
 	return (
 		<View
@@ -137,22 +139,25 @@ export function SideBar() {
 								icon={RequisicoesIcon}
 								label="Requisições"
 								isOpen={isOpen}
-								active={activeItem === 'Requisições'}
+								active={!isKnownRoute && activeItem === 'Requisições'}
 								onPress={() => setActiveItem('Requisições')}
 							/>
 							<NavItem
 								icon={OrcamentoIcon}
 								label="Orçamento"
 								isOpen={isOpen}
-								active={activeItem === 'Orçamento'}
+								active={!isKnownRoute && activeItem === 'Orçamento'}
 								onPress={() => setActiveItem('Orçamento')}
 							/>
 							<NavItem
 								icon={OrdemServicoIcon}
 								label="Ordem de serviço"
 								isOpen={isOpen}
-								active={activeItem === 'Ordem de serviço'}
-								onPress={() => setActiveItem('Ordem de serviço')}
+								active={isOrdersActive}
+								onPress={() => {
+									setActiveItem('Ordem de serviço');
+									router.push('/ordens-de-servico');
+								}}
 							/>
 						</View>
 					</View>
@@ -174,7 +179,7 @@ export function SideBar() {
 								icon={TradutoresIcon}
 								label="Tradutores"
 								isOpen={isOpen}
-								active={activeItem === 'Tradutores'}
+								active={!isKnownRoute && activeItem === 'Tradutores'}
 								onPress={() => setActiveItem('Tradutores')}
 							/>
 						</View>
@@ -187,7 +192,7 @@ export function SideBar() {
 								icon={SuporteIcon}
 								label="Suporte"
 								isOpen={isOpen}
-								active={activeItem === 'Suporte'}
+								active={!isKnownRoute && activeItem === 'Suporte'}
 								onPress={() => setActiveItem('Suporte')}
 							/>
 						</View>
@@ -257,7 +262,7 @@ export function SideBar() {
 					icon={ConfiguracoesIcon}
 					label="Configurações"
 					isOpen={isOpen}
-					active={activeItem === 'Configurações'}
+					active={!isKnownRoute && activeItem === 'Configurações'}
 					onPress={() => setActiveItem('Configurações')}
 				/>
 

@@ -1,7 +1,11 @@
+from importlib import import_module
+
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from app.shared.database import Base
+
+import_module("app.modules.models")
 
 
 def clear_application_tables(db: Session) -> None:
