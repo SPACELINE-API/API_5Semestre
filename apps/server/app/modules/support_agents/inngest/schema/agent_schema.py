@@ -23,3 +23,9 @@ class SuportePerguntaRequest(BaseModel):
 
 class SuportePerguntaResponse(BaseModel):
     resposta: str = Field(..., description="Resposta textual produzida pelo agente.")
+
+
+class SuporteAgenteEnfileiradoResponse(BaseModel):
+    status: str
+    evento: str
+    ids: list[str]
