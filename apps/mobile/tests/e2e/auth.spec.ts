@@ -1,15 +1,6 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('autenticação mobile unificada', () => {
-	test('exibe o login sem exigir consentimento de cookies', async ({
-		page,
-	}) => {
-		await page.goto('/login');
-
-		await expect(page.getByRole('button', { name: 'ENTRAR' })).toBeVisible();
-		await expect(page.getByText('Permitir cookies no site')).not.toBeVisible();
-	});
-
 	test('solicita recuperação de senha e exibe confirmação', async ({
 		page,
 	}) => {

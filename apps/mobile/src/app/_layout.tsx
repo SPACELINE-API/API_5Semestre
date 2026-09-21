@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { Redirect, Slot, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
@@ -47,23 +46,14 @@ export default function AppLayout() {
 	}
 	const isLogin = pathname === '/login';
 	if (!isLogin && !getSession()) return <Redirect href={'/login' as never} />;
-	if (isLogin)
-		return (
-			<KeyboardProvider>
-				<Slot />
-			</KeyboardProvider>
-		);
+	if (isLogin) return <Slot />;
 
 	return (
-		<KeyboardProvider>
-			<View
-				style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}
-			>
-				<SideBar />
-				<View style={{ flex: 1, overflow: 'hidden' }} className="ml-16 md:ml-0">
-					<Slot />
-				</View>
+		<View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}>
+			<SideBar />
+			<View style={{ flex: 1, overflow: 'hidden' }} className="ml-16 md:ml-0">
+				<Slot />
 			</View>
-		</KeyboardProvider>
+		</View>
 	);
 }

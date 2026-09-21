@@ -9,6 +9,7 @@ export type LoginResponse = {
 
 let nativeSession: LoginResponse | null = null;
 const SESSION_COOKIE = 'spaceline_session';
+const COOKIE_CONSENT = 'spaceline_cookie_consent';
 
 function isBrowser() {
 	return typeof document !== 'undefined';
@@ -71,6 +72,14 @@ export function getSession(): LoginResponse | null {
 export function clearSession() {
 	nativeSession = null;
 	deleteCookie(SESSION_COOKIE);
+}
+
+export function hasAcceptedCookies() {
+	return !isBrowser() || getCookie(COOKIE_CONSENT) === 'accepted';
+}
+
+export function acceptCookies() {
+	setCookie(COOKIE_CONSENT, 'accepted', 60 * 60 * 24 * 365);
 }
 
 export function requestPasswordRecovery(email: string) {
