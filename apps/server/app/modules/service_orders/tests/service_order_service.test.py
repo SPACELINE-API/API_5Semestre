@@ -1,3 +1,4 @@
+import io
 import random
 import uuid
 from decimal import Decimal
@@ -18,8 +19,6 @@ from app.modules.service_orders.models.service_order_item import (
     STATUS_EM_ANDAMENTO,
     STATUS_PENDENTE,
 )
-import io
-
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
