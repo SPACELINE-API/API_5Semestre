@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter, usePathname } from 'expo-router';
+import { useRouter, usePathname, Link } from 'expo-router';
 import type { LucideIcon } from 'lucide-react-native';
 import {
 	RequisicoesIcon,
@@ -19,12 +19,6 @@ import {
 	IntegracoesIcon,
 } from '../shared/components/icon/icon';
 
-export function SideBar() {
-	const [isOpen, setIsOpen] = useState(true);
-	const pathname = usePathname();
-
-	const isOrcamentoActive = pathname.startsWith('/orcamento');
-	const IsSupportAgentActive = pathname.startsWith('/support-agent');
 type NavItemProps = {
 	icon: LucideIcon;
 	label: string;
@@ -94,7 +88,10 @@ export function SideBar() {
 	const [isOpen, setIsOpen] = useState<boolean>(true);
 	const [activeItem, setActiveItem] = useState<string>('Requisições');
 	const [adminExpanded, setAdminExpanded] = useState<boolean>(false);
+
 	const isClientsActive = pathname.startsWith('/clientes');
+	const isOrcamentoActive = pathname.startsWith('/orcamento');
+	const isSupportAgentActive = pathname.startsWith('/support-agent');
 
 	return (
 		<View
@@ -146,19 +143,46 @@ export function SideBar() {
 								active={activeItem === 'Requisições'}
 								onPress={() => setActiveItem('Requisições')}
 							/>
-							<NavItem
-								icon={OrcamentoIcon}
-								label="Orçamento"
-								isOpen={isOpen}
-								active={activeItem === 'Orçamento'}
-								onPress={() => setActiveItem('Orçamento')}
-							/>
+							<Link href={'/orcamento/novo-orcamento' as never} asChild>
+								<TouchableOpacity
+									className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${
+										isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'
+									} ${!isOpen ? 'justify-center px-0' : ''}`}
+								>
+									<OrcamentoIcon
+										size={20}
+										color={isOrcamentoActive ? '#2563eb' : '#4b5563'}
+										strokeWidth={1.8}
+									/>
+									{isOpen && (
+										<Text
+											className={`font-inter text-sm flex-1 ${
+												isOrcamentoActive
+													? 'font-semibold text-blue-600'
+													: 'font-medium text-gray-700'
+											}`}
+										>
+											Orçamento
+										</Text>
+									)}
+								</TouchableOpacity>
+							</Link>
 							<NavItem
 								icon={OrdemServicoIcon}
 								label="Ordem de serviço"
 								isOpen={isOpen}
 								active={activeItem === 'Ordem de serviço'}
 								onPress={() => setActiveItem('Ordem de serviço')}
+							/>
+							<NavItem
+								icon={SuporteIcon}
+								label="Agente"
+								isOpen={isOpen}
+								active={isSupportAgentActive}
+								onPress={() => {
+									setActiveItem('Agente');
+									router.push('/support-agent');
+								}}
 							/>
 						</View>
 					</View>
@@ -185,22 +209,6 @@ export function SideBar() {
 							/>
 						</View>
 					</View>
-
-					<View>
-						<GroupLabel isOpen={isOpen}>Outros</GroupLabel>
-						<View className="flex-col gap-1">
-							<NavItem
-								icon={SuporteIcon}
-								label="Agente"
-								isOpen={isOpen}
-								active={isSupportAgentActive}
-								onPress={() => {
-									setActiveItem('Agente');
-									router.push('/support-agent');
-								}}
-							/>
-						</View>
-					</View>
 				</View>
 			</ScrollView>
 
@@ -210,7 +218,6 @@ export function SideBar() {
 						<View className="absolute left-full ml-2 w-48 bg-white border border-gray-100 rounded-xl p-1.5 shadow-lg z-50">
 							<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
 								<ClientesIcon size={16} color="#6b7280" strokeWidth={1.8} />
-
 								<Text className="font-inter text-[13px] text-gray-600">
 									Usuários da plataforma
 								</Text>
@@ -218,7 +225,6 @@ export function SideBar() {
 
 							<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
 								<PermissoesIcon size={16} color="#6b7280" strokeWidth={1.8} />
-
 								<Text className="font-inter text-[13px] text-gray-600">
 									Perfis de acesso
 								</Text>
@@ -226,7 +232,6 @@ export function SideBar() {
 
 							<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
 								<IntegracoesIcon size={16} color="#6b7280" strokeWidth={1.8} />
-
 								<Text className="font-inter text-[13px] text-gray-600">
 									Integrações
 								</Text>
@@ -241,7 +246,6 @@ export function SideBar() {
 								setAdminExpanded(true);
 								return;
 							}
-
 							setAdminExpanded((prev) => !prev);
 						}}
 						className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none ${
@@ -249,13 +253,11 @@ export function SideBar() {
 						} ${!isOpen ? 'justify-center px-0' : ''}`}
 					>
 						<AdminIcon size={20} color="#4b5563" strokeWidth={1.8} />
-
 						{isOpen && (
 							<>
 								<Text className="font-inter font-medium text-gray-700 text-sm flex-1">
 									Administração
 								</Text>
-
 								<ChevronRight size={16} color="#9ca3af" strokeWidth={2} />
 							</>
 						)}
