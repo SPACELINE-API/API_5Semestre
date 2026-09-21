@@ -16,7 +16,8 @@ def get_model():
     if ADK_PROVIDER == "gemini":
         if not GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY é obrigatória quando ADK_PROVIDER=gemini")
-        return LiteLlm(model=f"gemini/{ADK_MODEL}", api_key=GEMINI_API_KEY)
+        os.environ.setdefault("GOOGLE_API_KEY", GEMINI_API_KEY)
+        return ADK_MODEL
 
     if ADK_PROVIDER == "ollama":
         return LiteLlm(model=f"ollama_chat/{ADK_MODEL}", api_base=OLLAMA_BASE_URL)
