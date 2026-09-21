@@ -7,13 +7,13 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.modules.clients.models.company import Company
-from app.modules.contacts.models.contact import Contact
 from app.modules.clients.schemas.company import (
     CompanyCreate,
     CompanyUpdate,
     calculate_cnpj_check_digit,
 )
 from app.modules.clients.services.company_service import CompanyService
+from app.modules.contacts.models.contact import Contact
 from app.shared.database import Base, get_database_url
 
 _FIRST_DV_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
