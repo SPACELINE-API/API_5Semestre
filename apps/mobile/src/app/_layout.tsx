@@ -1,8 +1,6 @@
-import { useEffect } from 'react';
-import { View } from 'react-native';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useEffect, useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import {
 	SafeAreaProvider,
 	useSafeAreaInsets,
@@ -67,14 +65,6 @@ export default function AppLayout() {
 		);
 
 	return (
-		<KeyboardProvider>
-			<View
-				style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}
-			>
-				<SideBar />
-				<View style={{ flex: 1, overflow: 'hidden' }} className="ml-16 md:ml-0">
-					<Slot />
-				</View>
 		<SafeAreaProvider>
 			<AppShell
 				isMobileNavOpen={isMobileNavOpen}
@@ -119,6 +109,6 @@ function AppShell({
 
 				<Slot />
 			</View>
-		</KeyboardProvider>
+		</View>
 	);
 }
