@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.main import app
 from app.modules.clients.models.company import Company
 from app.modules.clients.schemas.company import calculate_cnpj_check_digit
-from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.contacts.models.contact import Contact
+from app.modules.service_orders.models.service_order import ServiceOrder
 from app.shared.database import Base, get_database_url, get_db
 
 _FIRST_DV_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
