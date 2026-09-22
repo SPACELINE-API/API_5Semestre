@@ -89,7 +89,7 @@ const TABS: { key: TabKey; label: string }[] = [
 	},
 	{
 		key: 'clients',
-		label: 'Clientes',
+		label: 'Funcionários',
 	},
 	{
 		key: 'projects',
@@ -120,12 +120,14 @@ function InfoField({ label, value }: InfoFieldProps) {
 function TableHeaderCell({
 	label,
 	flex = 1,
+	hideOnMobile = false,
 }: {
 	label: string;
 	flex?: number;
+	hideOnMobile?: boolean;
 }) {
 	return (
-		<View style={{ flex }}>
+		<View style={{ flex }} className={hideOnMobile ? 'hidden md:flex' : ''}>
 			<Text className="font-inter text-gray-400 text-xs">{label}</Text>
 		</View>
 	);
@@ -148,35 +150,52 @@ function ClientRow({
 				isFirst ? '' : 'border-t border-gray-100'
 			}`}
 		>
-			<View style={{ flex: 2 }} className="flex-row items-center gap-2.5">
-				<View className="h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+			<View style={{ flex: 2 }} className="flex-row items-center gap-2.5 pr-3">
+				<View className="h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
 					<Text className="font-inter font-semibold text-gray-500 text-[11px]">
 						{contact.name[0]?.toUpperCase() ?? '?'}
 					</Text>
 				</View>
 
-				<Text className="font-inter font-medium text-gray-800 text-sm">
-					{contact.name}
-				</Text>
+				<View className="min-w-0 flex-1">
+					<Text
+						className="font-inter font-medium text-gray-800 text-sm"
+						numberOfLines={1}
+					>
+						{contact.name}
+					</Text>
+					<Text
+						className="mt-0.5 font-inter text-gray-400 text-xs md:hidden"
+						numberOfLines={1}
+					>
+						{contact.email}
+					</Text>
+				</View>
 			</View>
 
-			<Text style={{ flex: 1 }} className="font-inter text-gray-500 text-sm">
+			<Text
+				style={{ flex: 1 }}
+				className="hidden font-inter text-gray-500 text-sm md:flex"
+			>
 				{contact.department}
 			</Text>
 
 			<Text
 				style={{ flex: 1 }}
-				className="font-inter text-gray-500 text-sm"
+				className="hidden font-inter text-gray-500 text-sm md:flex"
 				numberOfLines={1}
 			>
 				{contact.email}
 			</Text>
 
-			<Text style={{ flex: 1 }} className="font-inter text-gray-500 text-sm">
+			<Text
+				style={{ flex: 1 }}
+				className="hidden font-inter text-gray-500 text-sm md:flex"
+			>
 				{contact.phone}
 			</Text>
 
-			<View className="flex-row items-center justify-end gap-3 w-[60px]">
+			<View className="w-[60px] flex-row items-center justify-end gap-3">
 				<TouchableOpacity
 					onPress={() => onEdit(contact)}
 					activeOpacity={0.7}
@@ -229,7 +248,10 @@ function ProjectRow({
 				</View>
 			</View>
 
-			<Text style={{ flex: 2 }} className="font-inter text-gray-500 text-sm">
+			<Text
+				style={{ flex: 2 }}
+				className="hidden font-inter text-gray-500 text-sm md:flex"
+			>
 				{project.updatedAt}
 			</Text>
 		</View>
@@ -371,7 +393,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 									</View>
 								</View>
 
-								<View className="flex-row items-center gap-5 self-start md:self-auto">
+								<View className="flex-row flex-wrap items-center gap-5 self-start md:self-auto">
 									<View className="flex-row items-center">
 										<View className="px-5">
 											<Text className="font-inter font-bold text-gray-900 text-lg">
@@ -423,7 +445,12 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 							</View>
 						</View>
 
-						<View className="flex-row gap-7 border-b border-gray-200">
+						<ScrollView
+							horizontal
+							showsHorizontalScrollIndicator={false}
+							className="border-b border-gray-200"
+							contentContainerClassName="flex-row gap-7"
+						>
 							{TABS.map((tab) => {
 								const isActive = tab.key === activeTab;
 
@@ -448,7 +475,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 									</TouchableOpacity>
 								);
 							})}
-						</View>
+						</ScrollView>
 
 						<View className="py-7">
 							{activeTab === 'info' && (
@@ -550,11 +577,15 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 									<View className="flex-row items-center border-b border-gray-100 pb-3">
 										<TableHeaderCell label="Nome" flex={2} />
 
-										<TableHeaderCell label="Departamento" flex={1} />
+										<TableHeaderCell
+											label="Departamento"
+											flex={1}
+											hideOnMobile
+										/>
 
-										<TableHeaderCell label="Email" flex={1} />
+										<TableHeaderCell label="Email" flex={1} hideOnMobile />
 
-										<TableHeaderCell label="Telefone" flex={1} />
+										<TableHeaderCell label="Telefone" flex={1} hideOnMobile />
 
 										<View className="w-[60px]" />
 									</View>
@@ -581,7 +612,11 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 
 										<TableHeaderCell label="Status" flex={2} />
 
-										<TableHeaderCell label="Atualizado em" flex={2} />
+										<TableHeaderCell
+											label="Atualizado em"
+											flex={2}
+											hideOnMobile
+										/>
 									</View>
 
 									{mockProjects.map((project, index) => (
