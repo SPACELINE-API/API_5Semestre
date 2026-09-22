@@ -1,4 +1,4 @@
-import { apiPost } from '../../../shared/services/apiClient';
+import { apiPost } from '../../../shared/services/publicApiClient';
 
 export type LoginResponse = {
 	access_token: string;
