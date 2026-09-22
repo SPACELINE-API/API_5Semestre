@@ -10,6 +10,10 @@ class SupabaseAuthInvalidRecoveryTokenError(Exception):
     pass
 
 
+class SupabaseAuthInvalidTokenError(Exception):
+    pass
+
+
 class SupabaseAuthUnexpectedError(Exception):
     pass
 

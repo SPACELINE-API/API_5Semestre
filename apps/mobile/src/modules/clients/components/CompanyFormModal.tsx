@@ -337,7 +337,11 @@ export function CompanyFormModal({
 						</View>
 					</View>
 
-					<ScrollView className="px-6 py-4" contentContainerClassName="gap-4">
+					<ScrollView
+						className="px-6 py-4"
+						contentContainerClassName="gap-4 pb-6"
+						keyboardShouldPersistTaps="handled"
+					>
 						{step === 0 && (
 							<>
 								<FormField

@@ -17,6 +17,11 @@ class Env(BaseModel):
     supabase_anon_key: str = Field(default="", alias="ANON_KEY")
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")
     site_url: str = Field(default="http://localhost:5173", alias="SITE_URL")
+    smtp_host: str = Field(default="localhost", alias="SMTP_HOST")
+    smtp_port: int = Field(default=1025, alias="SMTP_PORT")
+    smtp_user: str = Field(default="", alias="SMTP_USER")
+    smtp_password: str = Field(default="", alias="SMTP_PASSWORD")
+    smtp_from_email: str = Field(default="noreply@spaceline.local", alias="SMTP_FROM_EMAIL")
 
 
 env_schema = Env
@@ -31,6 +36,11 @@ def load_env() -> Env:
         "ANON_KEY",
         "SUPABASE_SERVICE_ROLE_KEY",
         "SITE_URL",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_USER",
+        "SMTP_PASSWORD",
+        "SMTP_FROM_EMAIL",
     ]:
         if values.get(key) == "":
             values.pop(key)
@@ -68,6 +78,21 @@ class EnvProvider:
 
     def get_site_url(self) -> str:
         return self.env.site_url
+
+    def get_smtp_host(self) -> str:
+        return self.env.smtp_host
+
+    def get_smtp_port(self) -> int:
+        return self.env.smtp_port
+
+    def get_smtp_user(self) -> str:
+        return self.env.smtp_user
+
+    def get_smtp_password(self) -> str:
+        return self.env.smtp_password
+
+    def get_smtp_from_email(self) -> str:
+        return self.env.smtp_from_email
 
 
 @lru_cache

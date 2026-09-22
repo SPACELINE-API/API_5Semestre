@@ -9,8 +9,14 @@
 		"android": {
 			"predictiveBackGestureEnabled": false
 		},
-		"web": { "output": "static" },
-		"plugins": ["expo-router", "expo-splash-screen"],
+		"web": {
+			"output": "static"
+		},
+		"plugins": [
+			"expo-router",
+			"expo-splash-screen",
+			"@react-native-community/datetimepicker"
+		],
 		"experiments": {
 			"typedRoutes": true,
 			"reactCompiler": true

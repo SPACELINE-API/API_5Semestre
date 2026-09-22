@@ -1,4 +1,5 @@
 import { env } from '../env';
+import { getSession } from '../../modules/auth/services/auth';
 
 export const apiUrl = env.apiUrl;
 
@@ -22,6 +23,11 @@ function extractErrorMessage(payload: unknown, status: number): string {
 	}
 
 	return `Request failed with status ${status}`;
+}
+
+function authHeaders(): Record<string, string> {
+	const session = getSession();
+	return session ? { Authorization: `Bearer ${session.access_token}` } : {};
 }
 
 async function request<TResponse>(path: string, init?: RequestInit) {
@@ -61,4 +67,16 @@ export async function apiDelete(path: string): Promise<void> {
 		const payload = await response.json().catch(() => null);
 		throw new Error(extractErrorMessage(payload, response.status));
 	}
+}
+
+export async function apiGetAuth<TResponse>(path: string): Promise<TResponse> {
+	return request<TResponse>(path, { headers: authHeaders() });
+}
+
+export function apiPostAuth<TResponse, TBody>(path: string, body: TBody) {
+	return request<TResponse>(path, {
+		method: 'POST',
+		body: JSON.stringify(body),
+		headers: authHeaders(),
+	});
 }

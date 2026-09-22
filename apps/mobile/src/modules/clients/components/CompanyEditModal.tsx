@@ -284,7 +284,11 @@ export function CompanyEditModal({
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView className="px-6 py-4" contentContainerClassName="gap-4">
+					<ScrollView
+						className="px-6 py-4"
+						contentContainerClassName="gap-4 pb-6"
+						keyboardShouldPersistTaps="handled"
+					>
 						<Text className="font-inter font-bold text-gray-900 text-sm">
 							Identificação
 						</Text>
