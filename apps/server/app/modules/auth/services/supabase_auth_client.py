@@ -6,6 +6,7 @@ import httpx
 from app.modules.auth.exceptions.exceptions import (
     SupabaseAuthInvalidCredentialsError,
     SupabaseAuthInvalidRecoveryTokenError,
+    SupabaseAuthInvalidTokenError,
     SupabaseAuthUnexpectedError,
 )
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser, SupabaseAuthSession
@@ -53,6 +54,30 @@ class SupabaseAuthClient:
 
         if response.status_code >= 300:
             raise SupabaseAuthUnexpectedError
+
+    def get_user(self, access_token: str) -> SupabaseAuthenticatedUser:
+        headers = create_supabase_headers(self.anon_key)
+        headers["Authorization"] = f"Bearer {access_token}"
+
+        try:
+            response = self.http_client.get(
+                f"{self.supabase_url}/auth/v1/user",
+                headers=headers,
+            )
+        except httpx.HTTPError as error:
+            raise SupabaseAuthUnexpectedError from error
+
+        if response.status_code in {401, 403}:
+            raise SupabaseAuthInvalidTokenError
+
+        if response.status_code >= 300:
+            raise SupabaseAuthUnexpectedError
+
+        try:
+            payload = response.json()
+            return SupabaseAuthenticatedUser(id=payload["id"], email=payload["email"])
+        except (KeyError, TypeError, ValueError) as error:
+            raise SupabaseAuthUnexpectedError from error
 
     def update_password(self, access_token: str, password: str) -> None:
         headers = create_supabase_headers(self.anon_key)

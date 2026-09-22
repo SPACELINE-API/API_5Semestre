@@ -7,10 +7,17 @@
 		"scheme": "mobile",
 		"userInterfaceStyle": "automatic",
 		"android": {
-			"predictiveBackGestureEnabled": false
+			"predictiveBackGestureEnabled": false,
+			"softwareKeyboardLayoutMode": "resize"
 		},
-		"web": { "output": "static" },
-		"plugins": ["expo-router", "expo-splash-screen"],
+		"web": {
+			"output": "static"
+		},
+		"plugins": [
+			"expo-router",
+			"expo-splash-screen",
+			"@react-native-community/datetimepicker"
+		],
 		"experiments": {
 			"typedRoutes": true,
 			"reactCompiler": true

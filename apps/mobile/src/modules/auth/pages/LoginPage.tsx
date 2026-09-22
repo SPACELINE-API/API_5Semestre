@@ -1,22 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
-import { Check } from 'lucide-react-native';
-import { useLocalSearchParams, useRouter, Link } from 'expo-router';
 import {
-	acceptCookies,
-	hasAcceptedCookies,
+	useEffect,
+	useRef,
+	useState,
+	type ComponentProps,
+	type ComponentType,
+} from 'react';
+import { Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { Check } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import {
 	login,
 	requestPasswordRecovery,
 	resetPassword,
 	saveSession,
 } from '../services/auth';
-import { CookieConsentModal } from '../components/CookieConsentModal';
 import { DecorativeBackground } from '../components/DecorativeBackground';
-import { PasswordField } from '../components/PasswordField';
+import { LoginFields } from '../components/LoginFields';
+import { LoginHero } from '../components/LoginHero';
 
 export function LoginPage() {
 	const router = useRouter();
 	const passwordInputRef = useRef<TextInput>(null);
+	const KeyboardContainer = (
+		Platform.OS === 'web' ? View : KeyboardAwareScrollView
+	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
@@ -31,9 +39,8 @@ export function LoginPage() {
 	const [showNewPassword, setShowNewPassword] = useState(false);
 	const [showConfirmation, setShowConfirmation] = useState(false);
 	const [remember, setRemember] = useState(false);
-	const [cookiesAccepted, setCookiesAccepted] = useState(true);
-	const [showCookieModal, setShowCookieModal] = useState(false);
 	const [recoveryCooldown, setRecoveryCooldown] = useState(0);
+	const contentClassName = `grow px-6 py-6 md:px-[7.5%] md:py-5 ${token ? 'items-center justify-center' : 'flex-col justify-center md:flex-row md:items-center md:justify-between'}`;
 	const params = useLocalSearchParams<{
 		access_token?: string;
 		type?: string;
@@ -52,11 +59,6 @@ export function LoginPage() {
 		}
 	}, [params.access_token, params.type]);
 	useEffect(() => {
-		const accepted = hasAcceptedCookies();
-		setCookiesAccepted(accepted);
-		setShowCookieModal(!accepted);
-	}, []);
-	useEffect(() => {
 		if (!recoveryCooldown) return;
 		const timer = setInterval(
 			() => setRecoveryCooldown((value) => Math.max(value - 1, 0)),
@@ -66,7 +68,6 @@ export function LoginPage() {
 	}, [recoveryCooldown]);
 
 	async function submit() {
-		if (!cookiesAccepted) return;
 		setError('');
 		setMessage('');
 		if (token) {
@@ -143,49 +144,24 @@ export function LoginPage() {
 		setError('');
 		setMessage('');
 	}
-	function acceptCookieConsent() {
-		acceptCookies();
-		setCookiesAccepted(true);
-		setShowCookieModal(false);
-	}
-	function declineCookieConsent() {
-		setCookiesAccepted(false);
-		setShowCookieModal(false);
-	}
-
 	return (
-		<View className="min-h-screen flex-1 overflow-hidden bg-[#dceeff]">
+		<KeyboardContainer
+			className={
+				Platform.OS === 'web'
+					? 'min-h-screen flex-1 overflow-hidden bg-[#dceeff]'
+					: 'flex-1 bg-[#dceeff]'
+			}
+			{...(Platform.OS === 'web'
+				? {}
+				: {
+						bottomOffset: 20,
+						keyboardShouldPersistTaps: 'handled',
+						contentContainerClassName: 'grow',
+					})}
+		>
 			<DecorativeBackground />
-			<View
-				className={`z-10 flex-1 px-6 py-6 md:px-[7.5%] md:py-5 ${token ? 'items-center justify-center' : 'flex-col justify-center md:flex-row md:items-center md:justify-between'}`}
-			>
-				{!token ? (
-					<View className="flex-1 justify-center py-8 md:py-2">
-						<View className="max-w-xl mb-9">
-							<View className="mb-7 self-start rounded-full border border-[#2f86d1]/35 bg-white/70 px-4 py-1.5">
-								<Text className="text-[11px] font-bold tracking-[2px] text-[#2478c2]">
-									• PORTAL DO CLIENTE
-								</Text>
-							</View>
-							<Text className="text-5xl font-extrabold leading-[1.03] tracking-[-1.5px] text-[#101b35] sm:text-6xl">
-								Traduções com{`\n`}
-								<Text className="text-[#2783d4]">clareza</Text>, prazo e{`\n`}
-								controle.
-							</Text>
-							<Text className="mt-6 max-w-md text-base leading-6 text-[#506481] sm:text-lg">
-								Acesse sua conta para gerenciar pedidos e acompanhar orçamentos
-								ou solicite um serviço sem precisar se cadastrar.
-							</Text>
-							<Link href="/solicitar-servico">
-								<Pressable className="w-60 h-12 mt-5 items-center justify-center rounded-full bg-[#2d83cd] shadow-md shadow-blue-600/30 transition-transform duration-300 ease-in-out hover:-translate-y-1">
-									<Text className="font-bold text-white">
-										Solicitar serviço
-									</Text>
-								</Pressable>
-							</Link>
-						</View>
-					</View>
-				) : null}
+			<View className={`z-10 flex-1 ${contentClassName}`}>
+				{!token ? <LoginHero /> : null}
 				<View className="w-full items-center justify-center py-6 md:w-[46%] md:py-0">
 					<View className="w-full max-w-[450px] rounded-[28px] border border-white/80 bg-white/90 px-6 py-7 shadow-2xl shadow-[#173a68]/15 sm:px-9 sm:py-8">
 						<View className="mb-6">
@@ -198,63 +174,30 @@ export function LoginPage() {
 									: 'Bem-vindo de volta.'}
 							</Text>
 						</View>
-						{token ? (
-							<View className="gap-5">
-								<PasswordField
-									label="Nova senha"
-									placeholder="Digite sua nova senha"
-									value={newPassword}
-									onChangeText={setNewPassword}
-									visible={showNewPassword}
-									onToggle={() => setShowNewPassword(!showNewPassword)}
-								/>
-								<PasswordField
-									label="Confirme a nova senha"
-									placeholder="Digite a senha novamente"
-									value={confirmation}
-									onChangeText={setConfirmation}
-									visible={showConfirmation}
-									onToggle={() => setShowConfirmation(!showConfirmation)}
-								/>
-							</View>
-						) : (
-							<>
-								<Text className="mb-2 text-sm font-bold text-[#101b35]">
-									{recovery ? 'E-mail para recuperação' : 'E-mail'}
-								</Text>
-								<TextInput
-									className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
-									placeholder={
-										recovery ? 'Digite seu e-mail' : 'seuemail@exemplo.com'
-									}
-									placeholderTextColor="#94a3b8"
-									keyboardType="email-address"
-									autoCapitalize="none"
-									returnKeyType={recovery ? 'done' : 'next'}
-									onSubmitEditing={() =>
-										recovery ? submit() : passwordInputRef.current?.focus()
-									}
-									value={email}
-									onChangeText={setEmail}
-								/>
-								{!recovery ? (
-									<>
-										<Text className="mb-2 mt-5 text-sm font-bold text-[#101b35]">
-											Senha
-										</Text>
-										<PasswordField
-											ref={passwordInputRef}
-											placeholder="••••••••"
-											value={password}
-											onChangeText={setPassword}
-											visible={showPassword}
-											onToggle={() => setShowPassword(!showPassword)}
-											onSubmitEditing={submit}
-										/>
-									</>
-								) : null}
-							</>
-						)}
+						<LoginFields
+							token={token}
+							recovery={recovery}
+							email={email}
+							password={password}
+							newPassword={newPassword}
+							confirmation={confirmation}
+							showPassword={showPassword}
+							showNewPassword={showNewPassword}
+							showConfirmation={showConfirmation}
+							passwordInputRef={passwordInputRef}
+							onEmailChange={setEmail}
+							onPasswordChange={setPassword}
+							onNewPasswordChange={setNewPassword}
+							onConfirmationChange={setConfirmation}
+							onTogglePassword={() => setShowPassword(!showPassword)}
+							onToggleNewPassword={() => setShowNewPassword(!showNewPassword)}
+							onToggleConfirmation={() =>
+								setShowConfirmation(!showConfirmation)
+							}
+							onSubmitEditing={
+								recovery ? submit : () => passwordInputRef.current?.focus()
+							}
+						/>
 						{!recovery && !token ? (
 							<View className="mb-6 mt-5 flex-row items-center justify-between">
 								<Pressable
@@ -319,12 +262,6 @@ export function LoginPage() {
 					</View>
 				</View>
 			</View>
-			{showCookieModal ? (
-				<CookieConsentModal
-					onAccept={acceptCookieConsent}
-					onDecline={declineCookieConsent}
-				/>
-			) : null}
-		</View>
+		</KeyboardContainer>
 	);
 }

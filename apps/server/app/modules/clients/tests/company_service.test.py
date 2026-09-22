@@ -14,6 +14,7 @@ from app.modules.clients.schemas.company import (
 )
 from app.modules.clients.services.company_service import CompanyService
 from app.modules.contacts.models.contact import Contact
+from app.modules.service_orders.models.service_order import ServiceOrder
 from app.shared.database import Base, get_database_url
 
 _FIRST_DV_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
@@ -42,6 +43,7 @@ def db_session():
         if transaction.nested and not transaction._parent.nested:
             session.begin_nested()
 
+    session.query(ServiceOrder).delete()
     session.query(Contact).delete()
     session.query(Company).delete()
 
