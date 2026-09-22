@@ -1,5 +1,9 @@
+import * as DocumentPicker from 'expo-document-picker';
+import { DocumentPickerAsset } from 'expo-document-picker';
+
 import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FileUp, Trash } from 'lucide-react-native';
 
 import { createRequest } from '../services/requests';
 
@@ -13,6 +17,9 @@ export default function FormsRequest() {
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
+	const [document, setDocument] = useState<DocumentPickerAsset | null>(null);
+
+	const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 
 	async function handleSubmit() {
 		setError('');
@@ -28,7 +35,7 @@ export default function FormsRequest() {
 		];
 
 		if (fields.some((field) => !field.trim())) {
-			setError('Preencha todos os campos.');
+			setError('Preencha todos os campos obrigatórios.');
 			return;
 		}
 
@@ -40,6 +47,9 @@ export default function FormsRequest() {
 			customer_need: customerNeed,
 			original_language: originalLanguage,
 			translation_language: translationLanguage,
+			document: document
+				? { uri: document.uri, name: document.name, file: document.file }
+				: null,
 		});
 		setSubmitting(false);
 
@@ -51,12 +61,38 @@ export default function FormsRequest() {
 			setCustomerNeed('');
 			setOriginalLanguage('');
 			setTranslationLanguage('');
+			setDocument(null);
 		} else if (result.status === 400) {
 			setError(
 				'Você precisa aguardar no mínimo uma semana para enviar outra solicitação.',
 			);
 		} else {
 			setError('Não foi possível enviar a solicitação. Tente novamente.');
+		}
+	}
+
+	async function uploadFile() {
+		try {
+			const result = await DocumentPicker.getDocumentAsync({
+				type: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+			});
+
+			if (result.canceled) {
+				return
+			};
+
+			const file = result.assets[0];
+
+			if (!file.size || file.size > MAX_FILE_SIZE_BYTES) {
+				setError('Tamanho de arquivo não aceito.');
+				return;
+			}
+
+			setError('');
+			setDocument(file);
+		}
+		catch (error) {
+			setError("Não foi possível fazer o upload. Tente novamente.");
 		}
 	}
 
@@ -78,7 +114,12 @@ export default function FormsRequest() {
 
 				<View className="flex flex-row flex-wrap gap-4">
 					<View className="min-w-[200px] flex-1 gap-1">
-						<Text className="mb-1 text-sm font-bold text-[#101b35]">Nome</Text>
+						<Text className="mb-1 text-sm font-bold text-[#101b35]">
+							Nome
+							<Text className="text-red-500">
+								*
+							</Text>
+						</Text>
 						<TextInput
 							value={customerName}
 							onChangeText={setCustomerName}
@@ -89,7 +130,12 @@ export default function FormsRequest() {
 					</View>
 
 					<View className="min-w-[200px] flex-1 gap-1">
-						<Text className="mb-1 text-sm font-bold text-[#101b35]">Email</Text>
+						<Text className="mb-1 text-sm font-bold text-[#101b35]">
+							Email
+							<Text className="text-red-500">
+								*
+							</Text>
+						</Text>
 						<TextInput
 							value={email}
 							onChangeText={setEmail}
@@ -104,6 +150,9 @@ export default function FormsRequest() {
 					<View className="min-w-[200px] flex-1 gap-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Empresa
+							<Text className="text-red-500">
+								*
+							</Text>
 						</Text>
 						<TextInput
 							value={enterprise}
@@ -123,6 +172,9 @@ export default function FormsRequest() {
 					<View className="min-w-[200px] flex-1 gap-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Tipo de documento
+							<Text className="text-red-500">
+								*
+							</Text>
 						</Text>
 						<TextInput
 							value={customerNeed}
@@ -136,6 +188,9 @@ export default function FormsRequest() {
 					<View className="min-w-[200px] flex-1 gap-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Idioma original
+							<Text className="text-red-500">
+								*
+							</Text>
 						</Text>
 						<TextInput
 							value={originalLanguage}
@@ -149,6 +204,9 @@ export default function FormsRequest() {
 					<View className="min-w-[200px] flex-1 gap-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Idioma de tradução
+							<Text className="text-red-500">
+								*
+							</Text>
 						</Text>
 						<TextInput
 							value={translationLanguage}
@@ -159,6 +217,35 @@ export default function FormsRequest() {
 						/>
 					</View>
 				</View>
+			</View>
+
+			<View className="mt-6 gap-3">
+				<Text className="text-sm font-bold text-blue-500 mt-4">DOCUMENTO (PDF/DOCX)</Text>
+
+				<View className="min-w-[200px] flex-1 gap-1">
+					<TouchableOpacity className="flex flex-column items-center justify-center gap-5 h-40 rounded-xl border border-dashed border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
+						onPress={uploadFile}
+					>
+						<FileUp color={'#c5d0df'} size={'60px'} />
+						<Text className="mb-1 text-sm text-[#94a3b8]">
+							Faça o upload do documento a ser traduzido
+						</Text>
+					</TouchableOpacity>
+
+					{document ? (
+						<View className='flex flex-row justify-between bg-white border border-[#c7dced] rounded-xl p-4 mt-6 cursor-pointer'>
+							<Text>
+								{document.name}
+							</Text>
+							<TouchableOpacity onPress={() => setDocument(null)} >
+								<Trash color={'red'} />
+							</TouchableOpacity>
+						</View>
+					) : (
+						<></>
+					)}
+				</View>
+
 			</View>
 
 			{error ? (

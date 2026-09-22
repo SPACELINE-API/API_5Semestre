@@ -16,9 +16,9 @@ export default function ViewRequestPage() {
 	}, []);
 
 	return (
-		<View className="p-6">
-			<Text className="text-2xl font-bold text-gray-900 mb-1">Requisições</Text>
-			<Text className="text-sm text-gray-500 mb-4">
+		<View className="p-8">
+			<Text className="text-2xl font-poppins-bold text-gray-900">Requisições</Text>
+			<Text className="text-sm text-gray-500 font-inter mt-1 flex-wrap">
 				{requests.length} solicitações aguardando orçamento
 			</Text>
 
@@ -31,7 +31,7 @@ export default function ViewRequestPage() {
 					))}
 				</View>
 			) : (
-				<Text className="text-gray-500">
+				<Text className="text-gray-500 mt-8">
 					Nenhuma requisição disponível no momento
 				</Text>
 			)}

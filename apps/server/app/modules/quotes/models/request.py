@@ -3,7 +3,7 @@ import uuid
 from datetime import date
 
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import String, func
+from sqlalchemy import LargeBinary, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -34,3 +34,5 @@ class Request(Base):
     status: Mapped[StatusEnum] = mapped_column(SQLEnum(StatusEnum), default=StatusEnum.PENDING)
 
     request_date: Mapped[date] = mapped_column(server_default=func.current_date())
+
+    document: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
