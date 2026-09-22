@@ -1,9 +1,12 @@
 import {
+	apiDelete,
 	apiGet,
 	apiPatch,
 	apiPost,
 	apiUrl,
 } from '../../../shared/services/apiClient';
+import { appendFileToFormData } from '../../../shared/utils/formDataFile';
+import type { UploadableFile } from '../../../shared/types/file';
 import type {
 	CreateServiceOrderItemInput,
 	GenerateServiceOrderInput,
@@ -24,6 +27,10 @@ export function listServiceOrders(): Promise<ServiceOrder[]> {
 
 export function getServiceOrder(id: string): Promise<ServiceOrder> {
 	return apiGet<ServiceOrder>(`${SERVICE_ORDERS_PATH}/${id}`);
+}
+
+export function deleteServiceOrder(id: string): Promise<void> {
+	return apiDelete(`${SERVICE_ORDERS_PATH}/${id}`);
 }
 
 export function generateServiceOrderFromQuote(
@@ -47,11 +54,11 @@ export function updateServiceOrder(
 
 export async function uploadServiceOrderFile(
 	serviceOrderId: string,
-	file: File,
+	file: UploadableFile,
 	direction: ServiceOrderFileDirection,
 ): Promise<ServiceOrderFile> {
 	const formData = new FormData();
-	formData.append('file', file);
+	appendFileToFormData(formData, 'file', file);
 	formData.append('direction', direction);
 
 	const response = await fetch(
@@ -73,7 +80,7 @@ export async function uploadServiceOrderFile(
 export async function createServiceOrderItem(
 	serviceOrderId: string,
 	data: CreateServiceOrderItemInput,
-	file: File | null,
+	file: UploadableFile | null,
 ): Promise<ServiceOrderItem> {
 	const formData = new FormData();
 	formData.append('source_language', data.source_language);
@@ -84,7 +91,7 @@ export async function createServiceOrderItem(
 	}
 	if (data.price != null) formData.append('price', String(data.price));
 	if (data.deadline) formData.append('deadline', data.deadline);
-	if (file) formData.append('file', file);
+	if (file) appendFileToFormData(formData, 'file', file);
 
 	const response = await fetch(
 		`${apiUrl}${SERVICE_ORDERS_PATH}/${serviceOrderId}/items`,
@@ -105,7 +112,7 @@ export async function createServiceOrderItem(
 export async function updateServiceOrderItem(
 	itemId: string,
 	data: UpdateServiceOrderItemInput,
-	file: File | null,
+	file: UploadableFile | null,
 ): Promise<ServiceOrderItem> {
 	const formData = new FormData();
 	formData.append('source_language', data.source_language);
@@ -116,7 +123,7 @@ export async function updateServiceOrderItem(
 	}
 	if (data.price != null) formData.append('price', String(data.price));
 	if (data.deadline) formData.append('deadline', data.deadline);
-	if (file) formData.append('file', file);
+	if (file) appendFileToFormData(formData, 'file', file);
 
 	const response = await fetch(
 		`${apiUrl}${SERVICE_ORDERS_PATH}/items/${itemId}`,

@@ -11,6 +11,7 @@ import {
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { StatusBadge } from './StatusBadge';
 import { FilePreview } from '../../../shared/components/FilePreview';
+import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
 import { formatDate, formatPrice } from '../utils/format';
 
 type ItemsTableProps = {
@@ -32,6 +33,22 @@ function HeaderCell({ label, width }: { label: string; width: `${number}%` }) {
 }
 
 function AddItemButton({ onPress }: { onPress: () => void }) {
+	const isDesktop = useIsDesktop();
+
+	if (!isDesktop) {
+		return (
+			<TouchableOpacity
+				onPress={onPress}
+				activeOpacity={0.7}
+				accessibilityRole="button"
+				accessibilityLabel="Adicionar item"
+				className="h-11 w-11 items-center justify-center self-end rounded-full bg-blue-300"
+			>
+				<Plus size={20} color="#042C53" />
+			</TouchableOpacity>
+		);
+	}
+
 	return (
 		<TouchableOpacity
 			onPress={onPress}

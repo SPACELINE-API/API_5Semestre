@@ -7,6 +7,7 @@ import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 type InviteTranslatorsModalProps = {
 	visible: boolean;
 	translators: Translator[];
+	pendingTranslatorIds?: Set<string>;
 	onClose: () => void;
 	onSubmit: (translatorIds: string[]) => Promise<void>;
 	toast?: ToastData | null;
@@ -41,6 +42,7 @@ function Checkbox({
 export function InviteTranslatorsModal({
 	visible,
 	translators,
+	pendingTranslatorIds = new Set(),
 	onClose,
 	onSubmit,
 	toast,
@@ -109,21 +111,37 @@ export function InviteTranslatorsModal({
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView className="px-6 py-4" contentContainerClassName="gap-3">
+					<ScrollView
+						className="px-6 py-4"
+						contentContainerClassName="gap-3 pb-6"
+						keyboardShouldPersistTaps="handled"
+					>
 						{translators.map((translator) => {
 							const isSelected = selectedIds.has(translator.id);
+							const hasPendingInvite = pendingTranslatorIds.has(translator.id);
 
 							return (
 								<TouchableOpacity
 									key={translator.id}
-									onPress={() => toggleSelect(translator.id)}
-									activeOpacity={0.7}
-									className="flex-row items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5"
+									onPress={() => {
+										if (hasPendingInvite) return;
+										toggleSelect(translator.id);
+									}}
+									activeOpacity={hasPendingInvite ? 1 : 0.7}
+									accessibilityState={{ disabled: hasPendingInvite }}
+									className={`flex-row items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5 ${
+										hasPendingInvite ? 'opacity-50' : ''
+									}`}
 								>
 									<Checkbox
 										checked={isSelected}
-										onPress={() => toggleSelect(translator.id)}
-										accessibilityLabel={`Selecionar tradutor ${translator.name}`}
+										onPress={() => {
+											if (hasPendingInvite) return;
+											toggleSelect(translator.id);
+										}}
+										accessibilityLabel={`Selecionar tradutor ${translator.name}${
+											hasPendingInvite ? ' (convite pendente)' : ''
+										}`}
 									/>
 
 									<View className="flex-1">
@@ -131,7 +149,7 @@ export function InviteTranslatorsModal({
 											{translator.name}
 										</Text>
 										<Text className="font-inter text-gray-400 text-xs">
-											{translator.email}
+											{hasPendingInvite ? 'Convite pendente' : translator.email}
 										</Text>
 									</View>
 								</TouchableOpacity>

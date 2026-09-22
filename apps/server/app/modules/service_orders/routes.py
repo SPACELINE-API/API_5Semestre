@@ -63,6 +63,15 @@ def update_service_order(
     return service.update_service_order(service_order_id, data)
 
 
+@router.delete("/{service_order_id}", status_code=204)
+def delete_service_order(
+    service_order_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    service = ServiceOrderService(db)
+    service.delete_service_order(service_order_id)
+
+
 @router.post(
     "/{service_order_id}/files",
     response_model=ServiceOrderFileResponse,

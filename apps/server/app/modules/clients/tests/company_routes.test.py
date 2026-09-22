@@ -10,6 +10,7 @@ from app.main import app
 from app.modules.clients.models.company import Company
 from app.modules.clients.schemas.company import calculate_cnpj_check_digit
 from app.modules.service_orders.models.service_order import ServiceOrder
+from app.modules.contacts.models.contact import Contact
 from app.shared.database import Base, get_database_url, get_db
 
 _FIRST_DV_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
@@ -40,6 +41,7 @@ def db_session():
             session.begin_nested()
 
     session.query(ServiceOrder).delete()
+    session.query(Contact).delete()
     session.query(Company).delete()
 
     yield session

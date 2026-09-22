@@ -45,9 +45,30 @@ class InviteService:
     ) -> list[ServiceOrderItemInvite]:
         item = self._get_item_or_404(item_id)
 
+        if item.translator_id is not None:
+            raise HTTPException(
+                status_code=409,
+                detail="Este item já possui um tradutor atribuído",
+            )
+
         translators = self.db.query(Translator).filter(Translator.id.in_(translator_ids)).all()
         if len(translators) != len(set(translator_ids)):
             raise HTTPException(status_code=422, detail="Um ou mais tradutores não encontrados")
+
+        existing_pending = (
+            self.db.query(ServiceOrderItemInvite)
+            .filter(
+                ServiceOrderItemInvite.service_order_item_id == item.id,
+                ServiceOrderItemInvite.translator_id.in_(translator_ids),
+                ServiceOrderItemInvite.status == INVITE_STATUS_PENDENTE,
+            )
+            .first()
+        )
+        if existing_pending is not None:
+            raise HTTPException(
+                status_code=409,
+                detail="Um ou mais tradutores já possuem convite pendente para este item",
+            )
 
         invites = [
             ServiceOrderItemInvite(service_order_item_id=item.id, translator_id=translator.id)

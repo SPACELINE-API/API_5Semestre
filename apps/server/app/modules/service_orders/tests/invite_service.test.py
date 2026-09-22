@@ -3,6 +3,7 @@ import uuid
 from decimal import Decimal
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -158,6 +159,21 @@ def test_send_invites_creates_pending_invites_and_sends_email(
     assert sent_emails[0]["to"] == translator.email
 
 
+def test_send_invites_raises_409_when_translator_has_pending_invite(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+    service = InviteService(db_session)
+
+    service.send_invites(item.id, [translator.id])
+
+    with pytest.raises(HTTPException) as exc_info:
+        service.send_invites(item.id, [translator.id])
+
+    assert exc_info.value.status_code == 409
+
+
 def test_accept_invite_assigns_translator_and_expires_other_invites(
     db_session: Session, sent_emails: list[dict]
 ) -> None:
@@ -177,6 +193,39 @@ def test_accept_invite_assigns_translator_and_expires_other_invites(
 
     db_session.refresh(invite_b)
     assert invite_b.status == INVITE_STATUS_EXPIRADO
+
+
+def test_send_invites_raises_409_when_item_already_has_translator(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator_a = make_translator(db_session)
+    translator_b = make_translator(db_session)
+    service = InviteService(db_session)
+
+    (invite_a,) = service.send_invites(item.id, [translator_a.id])
+    service.accept_invite(invite_a.id, translator_a.email)
+
+    with pytest.raises(HTTPException) as exc_info:
+        service.send_invites(item.id, [translator_b.id])
+
+    assert exc_info.value.status_code == 409
+
+
+def test_send_invites_allows_same_translator_on_different_items(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item_a = make_item(db_session)
+    item_b = make_item(db_session)
+    translator = make_translator(db_session)
+    service = InviteService(db_session)
+
+    invites_a = service.send_invites(item_a.id, [translator.id])
+    invites_b = service.send_invites(item_b.id, [translator.id])
+
+    assert invites_a[0].translator_id == translator.id
+    assert invites_b[0].translator_id == translator.id
+    assert invites_a[0].id != invites_b[0].id
 
 
 def test_accept_invite_with_wrong_email_raises_403(

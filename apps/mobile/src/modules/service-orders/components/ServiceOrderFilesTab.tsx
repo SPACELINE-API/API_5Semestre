@@ -6,13 +6,18 @@ import type {
 	ServiceOrderFileDirection,
 	ServiceOrderItem,
 } from '../types/serviceOrder';
+import type { UploadableFile } from '../../../shared/types/file';
+import { pickDocument } from '../../../shared/utils/pickDocument';
 import { FilePreview } from '../../../shared/components/FilePreview';
 import { formatDate } from '../utils/format';
 
 type ServiceOrderFilesTabProps = {
 	items: ServiceOrderItem[];
 	files: ServiceOrderFile[];
-	onUpload: (file: File, direction: ServiceOrderFileDirection) => Promise<void>;
+	onUpload: (
+		file: UploadableFile,
+		direction: ServiceOrderFileDirection,
+	) => Promise<void>;
 };
 
 type DisplayFile = {
@@ -137,13 +142,10 @@ export function ServiceOrderFilesTab({
 		files.filter((file) => file.direction === 'saida'),
 	);
 
-	async function handleFileSelected(
-		fileList: FileList | null,
+	async function uploadFile(
+		file: UploadableFile,
 		direction: ServiceOrderFileDirection,
 	) {
-		const file = fileList?.[0];
-		if (!file) return;
-
 		setIsUploading(direction);
 		try {
 			await onUpload(file, direction);
@@ -152,12 +154,19 @@ export function ServiceOrderFilesTab({
 		}
 	}
 
-	if (Platform.OS !== 'web') {
-		return (
-			<Text className="font-inter text-gray-400 text-sm">
-				O envio de arquivos está disponível apenas na versão web por enquanto.
-			</Text>
-		);
+	async function handleFileSelected(
+		fileList: FileList | null,
+		direction: ServiceOrderFileDirection,
+	) {
+		const file = fileList?.[0];
+		if (!file) return;
+		await uploadFile(file, direction);
+	}
+
+	async function handlePickNativeFile(direction: ServiceOrderFileDirection) {
+		const file = await pickDocument();
+		if (!file) return;
+		await uploadFile(file, direction);
 	}
 
 	return (
@@ -169,7 +178,11 @@ export function ServiceOrderFilesTab({
 					</Text>
 
 					<TouchableOpacity
-						onPress={() => inputEntradaRef.current?.click()}
+						onPress={() =>
+							Platform.OS === 'web'
+								? inputEntradaRef.current?.click()
+								: handlePickNativeFile('entrada')
+						}
 						disabled={isUploading === 'entrada'}
 						activeOpacity={0.7}
 						accessibilityRole="button"
@@ -184,14 +197,16 @@ export function ServiceOrderFilesTab({
 						</Text>
 					</TouchableOpacity>
 
-					<input
-						ref={inputEntradaRef}
-						type="file"
-						style={{ display: 'none' }}
-						onChange={(event: { target: { files: FileList | null } }) => {
-							handleFileSelected(event.target.files, 'entrada');
-						}}
-					/>
+					{Platform.OS === 'web' && (
+						<input
+							ref={inputEntradaRef}
+							type="file"
+							style={{ display: 'none' }}
+							onChange={(event: { target: { files: FileList | null } }) => {
+								handleFileSelected(event.target.files, 'entrada');
+							}}
+						/>
+					)}
 				</View>
 
 				<FileGroupList title="Enviados pelo cliente" files={entradaFiles} />
@@ -204,7 +219,11 @@ export function ServiceOrderFilesTab({
 					</Text>
 
 					<TouchableOpacity
-						onPress={() => inputSaidaRef.current?.click()}
+						onPress={() =>
+							Platform.OS === 'web'
+								? inputSaidaRef.current?.click()
+								: handlePickNativeFile('saida')
+						}
 						disabled={isUploading === 'saida'}
 						activeOpacity={0.7}
 						accessibilityRole="button"
@@ -219,14 +238,16 @@ export function ServiceOrderFilesTab({
 						</Text>
 					</TouchableOpacity>
 
-					<input
-						ref={inputSaidaRef}
-						type="file"
-						style={{ display: 'none' }}
-						onChange={(event: { target: { files: FileList | null } }) => {
-							handleFileSelected(event.target.files, 'saida');
-						}}
-					/>
+					{Platform.OS === 'web' && (
+						<input
+							ref={inputSaidaRef}
+							type="file"
+							style={{ display: 'none' }}
+							onChange={(event: { target: { files: FileList | null } }) => {
+								handleFileSelected(event.target.files, 'saida');
+							}}
+						/>
+					)}
 				</View>
 
 				<FileGroupList title="Entregues ao cliente" files={saidaFiles} />

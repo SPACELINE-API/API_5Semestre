@@ -166,6 +166,11 @@ class ServiceOrderService:
 
         return ServiceOrderFileResponse.model_validate(service_order_file)
 
+    def delete_service_order(self, service_order_id: uuid.UUID) -> None:
+        service_order = self._get_service_order_or_404(service_order_id)
+        self.db.delete(service_order)
+        self.db.commit()
+
     def add_item(
         self,
         service_order_id: uuid.UUID,

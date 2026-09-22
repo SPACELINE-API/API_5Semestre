@@ -344,3 +344,32 @@ def test_add_file_appends_to_service_order(db_session: Session, fake_upload) -> 
     assert file_response.service_order_id == order.id
     assert file_response.direction == "entrada"
     assert file_response.file_url == "https://fake-storage.test/entrada.pdf"
+
+
+def test_delete_service_order_removes_it(db_session: Session) -> None:
+    company = make_company(db_session)
+    quote = make_quote_with_items(db_session, item_count=1)
+    service = ServiceOrderService(db_session)
+    order = service.generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id,
+            company_id=company.id,
+            project_name="Projeto para deletar",
+        )
+    )
+
+    service.delete_service_order(order.id)
+
+    with pytest.raises(Exception) as exc_info:
+        service.get_service_order(order.id)
+
+    assert getattr(exc_info.value, "status_code", None) == 404
+
+
+def test_delete_service_order_not_found_raises_404(db_session: Session) -> None:
+    service = ServiceOrderService(db_session)
+
+    with pytest.raises(Exception) as exc_info:
+        service.delete_service_order(uuid.uuid4())
+
+    assert getattr(exc_info.value, "status_code", None) == 404

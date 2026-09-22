@@ -1,4 +1,6 @@
-import { Platform, View, Text } from 'react-native';
+import { Platform, View, Text, TouchableOpacity } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { FileText } from 'lucide-react-native';
 
 type FilePreviewProps = {
 	fileUrl: string;
@@ -8,9 +10,18 @@ type FilePreviewProps = {
 export function FilePreview({ fileUrl, height = 320 }: FilePreviewProps) {
 	if (Platform.OS !== 'web') {
 		return (
-			<Text className="font-inter text-gray-400 text-sm">
-				A pré-visualização está disponível apenas na versão web por enquanto.
-			</Text>
+			<TouchableOpacity
+				onPress={() => WebBrowser.openBrowserAsync(fileUrl)}
+				activeOpacity={0.7}
+				accessibilityRole="button"
+				accessibilityLabel="Abrir documento"
+				className="flex-row items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3"
+			>
+				<FileText size={16} color="#1C6FB0" />
+				<Text className="font-inter font-medium text-blue-600 text-sm">
+					Toque para abrir o documento
+				</Text>
+			</TouchableOpacity>
 		);
 	}
 

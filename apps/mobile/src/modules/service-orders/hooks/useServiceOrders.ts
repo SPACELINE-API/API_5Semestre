@@ -39,5 +39,12 @@ export function useServiceOrders() {
 		return serviceOrder;
 	}, []);
 
-	return { serviceOrders, isLoading, error, refresh, create };
+	const removeMany = useCallback((ids: string[]) => {
+		const idSet = new Set(ids);
+		setServiceOrders((current) =>
+			current.filter((serviceOrder) => !idSet.has(serviceOrder.id)),
+		);
+	}, []);
+
+	return { serviceOrders, isLoading, error, refresh, create, removeMany };
 }

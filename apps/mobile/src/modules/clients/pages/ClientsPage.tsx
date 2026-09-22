@@ -34,12 +34,14 @@ import { CompanyFormModal } from '../components/CompanyFormModal';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
 import { deleteCompany } from '../services/companyService';
 import { exportCompaniesAsJson } from '../utils/export';
 
 export function ClientsPage() {
 	const router = useRouter();
 	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
+	const isDesktop = useIsDesktop();
 
 	const { companies, isLoading, error, create, removeMany } = useCompanies();
 
@@ -179,8 +181,8 @@ export function ClientsPage() {
 			>
 				<View className="gap-6">
 					<View className="border-b border-gray-200 pb-6">
-						<View className="flex-col gap-4 md:flex-row md:items-center md:justify-between">
-							<View>
+						<View className="flex-row items-start justify-between gap-4 md:items-center">
+							<View className="flex-1">
 								<Text className="font-inter font-bold text-gray-950 text-2xl">
 									Clientes
 								</Text>
@@ -212,13 +214,21 @@ export function ClientsPage() {
 							<TouchableOpacity
 								onPress={() => setIsFormVisible(true)}
 								activeOpacity={0.8}
-								className="h-10 flex-row items-center justify-center gap-2 self-start rounded-lg bg-blue-300 px-4"
+								accessibilityRole="button"
+								accessibilityLabel="Novo cliente"
+								className={
+									isDesktop
+										? 'h-10 flex-row items-center justify-center gap-2 self-start rounded-lg bg-blue-300 px-4'
+										: 'h-11 w-11 items-center justify-center self-start rounded-full bg-blue-300'
+								}
 							>
-								<Plus size={16} color="#042C53" />
+								<Plus size={isDesktop ? 16 : 20} color="#042C53" />
 
-								<Text className="font-inter font-semibold text-blue-900 text-sm">
-									Novo cliente
-								</Text>
+								{isDesktop && (
+									<Text className="font-inter font-semibold text-blue-900 text-sm">
+										Novo cliente
+									</Text>
+								)}
 							</TouchableOpacity>
 						</View>
 					</View>

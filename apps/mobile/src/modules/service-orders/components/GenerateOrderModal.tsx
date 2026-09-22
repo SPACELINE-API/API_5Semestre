@@ -6,6 +6,7 @@ import {
 	TextInput,
 	TouchableOpacity,
 	ScrollView,
+	Platform,
 } from 'react-native';
 import { X, Search, Check, User, FileText } from 'lucide-react-native';
 import type { ReactNode } from 'react';
@@ -77,6 +78,14 @@ function SectionLabel({ step, label }: { step: number; label: string }) {
 }
 
 function DropdownPanel({ children }: { children: ReactNode }) {
+	if (Platform.OS !== 'web') {
+		return (
+			<View className="rounded-xl border border-gray-100 bg-white shadow-lg overflow-hidden">
+				<View>{children}</View>
+			</View>
+		);
+	}
+
 	return (
 		<View className="rounded-xl border border-gray-100 bg-white shadow-lg max-h-[220px] overflow-hidden">
 			<ScrollView showsVerticalScrollIndicator={false}>
@@ -128,6 +137,11 @@ export function GenerateOrderModal({
 }: GenerateOrderModalProps) {
 	const [form, setForm] = useState<FormState>(EMPTY_FORM);
 	const [error, setError] = useState<string | null>(null);
+	const [fieldErrors, setFieldErrors] = useState<{
+		company?: string;
+		quote?: string;
+		project_name?: string;
+	}>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [companySearch, setCompanySearch] = useState('');
 	const [isCompanyPickerOpen, setIsCompanyPickerOpen] = useState(false);
@@ -180,6 +194,7 @@ export function GenerateOrderModal({
 	function handleClose() {
 		setForm(EMPTY_FORM);
 		setError(null);
+		setFieldErrors({});
 		setCompanySearch('');
 		setIsCompanyPickerOpen(false);
 		setIsQuotePickerOpen(false);
@@ -188,6 +203,7 @@ export function GenerateOrderModal({
 
 	function handleSelectCompany(companyId: string) {
 		setForm((current) => ({ ...current, company_id: companyId, quote_id: '' }));
+		setFieldErrors((current) => ({ ...current, company: undefined }));
 		setCompanySearch('');
 		setIsCompanyPickerOpen(false);
 		setIsQuotePickerOpen(true);
@@ -200,6 +216,7 @@ export function GenerateOrderModal({
 
 	function handleSelectQuote(quoteId: string) {
 		setField('quote_id', quoteId);
+		setFieldErrors((current) => ({ ...current, quote: undefined }));
 		setIsQuotePickerOpen(false);
 	}
 
@@ -211,18 +228,21 @@ export function GenerateOrderModal({
 	async function handleSubmit() {
 		setError(null);
 
-		if (!form.quote_id) {
-			setError('Selecione o orçamento aprovado.');
-			return;
-		}
-
+		const nextFieldErrors: typeof fieldErrors = {};
 		if (!form.company_id) {
-			setError('Selecione a empresa.');
-			return;
+			nextFieldErrors.company = 'Selecione a empresa.';
+		}
+		if (!form.quote_id) {
+			nextFieldErrors.quote = 'Selecione o orçamento aprovado.';
+		}
+		if (!form.project_name.trim()) {
+			nextFieldErrors.project_name = 'Informe o nome do projeto.';
 		}
 
-		if (!form.project_name.trim()) {
-			setError('Informe o nome do projeto.');
+		setFieldErrors(nextFieldErrors);
+
+		if (Object.keys(nextFieldErrors).length > 0) {
+			setError('Preencha os campos obrigatórios destacados abaixo.');
 			return;
 		}
 
@@ -262,8 +282,8 @@ export function GenerateOrderModal({
 		>
 			<View className="flex-1 items-center justify-center bg-black/40 px-4">
 				<View className="w-full max-w-[560px] max-h-[88%] rounded-2xl bg-white overflow-hidden shadow-2xl">
-					<View className="flex-row items-center justify-between border-b border-gray-100 px-6 py-5">
-						<View>
+					<View className="flex-row items-center justify-between gap-3 border-b border-gray-100 px-6 py-5">
+						<View className="flex-1">
 							<Text className="font-inter font-bold text-gray-900 text-lg">
 								Gerar ordem de serviço
 							</Text>
@@ -274,13 +294,17 @@ export function GenerateOrderModal({
 						<TouchableOpacity
 							onPress={handleClose}
 							activeOpacity={0.7}
-							className="h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100"
+							className="h-8 w-8 shrink-0 items-center justify-center rounded-full hover:bg-gray-100"
 						>
 							<X size={18} color="#6B7280" />
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView className="px-6 py-5" contentContainerClassName="gap-5">
+					<ScrollView
+						className="px-6 py-5"
+						contentContainerClassName="gap-5 pb-6"
+						keyboardShouldPersistTaps="handled"
+					>
 						<View className="gap-2">
 							<SectionLabel step={1} label="Selecione a empresa" />
 
@@ -288,25 +312,32 @@ export function GenerateOrderModal({
 								<TouchableOpacity
 									onPress={handleChangeCompany}
 									activeOpacity={0.7}
-									className="flex-row items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5"
+									className="flex-row items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5"
 								>
-									<View className="flex-row items-center gap-2.5">
-										<View className="h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+									<View className="min-w-0 flex-1 flex-row items-center gap-2.5">
+										<View className="h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
 											<Text className="font-inter font-bold text-blue-700 text-xs">
 												{selectedCompany.trade_name.slice(0, 2).toUpperCase()}
 											</Text>
 										</View>
-										<Text className="font-inter font-medium text-gray-800 text-sm">
+										<Text
+											className="flex-1 font-inter font-medium text-gray-800 text-sm"
+											numberOfLines={1}
+										>
 											{selectedCompany.trade_name}
 										</Text>
 									</View>
-									<Text className="font-inter font-semibold text-blue-600 text-xs">
+									<Text className="shrink-0 font-inter font-semibold text-blue-600 text-xs">
 										Trocar
 									</Text>
 								</TouchableOpacity>
 							) : (
 								<>
-									<View className="flex-row items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+									<View
+										className={`flex-row items-center gap-2 rounded-lg border bg-gray-50 px-3 py-2.5 ${
+											fieldErrors.company ? 'border-red-900' : 'border-gray-200'
+										}`}
+									>
 										<Search size={16} color="#9CA3AF" />
 										<TextInput
 											value={companySearch}
@@ -318,6 +349,12 @@ export function GenerateOrderModal({
 											accessibilityLabel="Buscar empresa"
 										/>
 									</View>
+
+									{fieldErrors.company && (
+										<Text className="font-inter text-red-900 text-xs">
+											{fieldErrors.company}
+										</Text>
+									)}
 
 									{isCompanyPickerOpen && (
 										<DropdownPanel>
@@ -391,15 +428,18 @@ export function GenerateOrderModal({
 									<TouchableOpacity
 										onPress={handleChangeQuote}
 										activeOpacity={0.7}
-										className="flex-row items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5"
+										className="flex-row items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5"
 									>
-										<View className="flex-row items-center gap-2.5">
+										<View className="min-w-0 flex-1 flex-row items-center gap-2.5">
 											<FileText size={16} color="#2563EB" />
-											<Text className="font-inter font-medium text-gray-800 text-sm">
+											<Text
+												className="flex-1 font-inter font-medium text-gray-800 text-sm"
+												numberOfLines={1}
+											>
 												{selectedQuote.label}
 											</Text>
 										</View>
-										<Text className="font-inter font-semibold text-blue-600 text-xs">
+										<Text className="shrink-0 font-inter font-semibold text-blue-600 text-xs">
 											Trocar
 										</Text>
 									</TouchableOpacity>
@@ -408,13 +448,21 @@ export function GenerateOrderModal({
 										<TouchableOpacity
 											onPress={() => setIsQuotePickerOpen(true)}
 											activeOpacity={0.7}
-											className="flex-row items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5"
+											className={`flex-row items-center gap-2 rounded-lg border bg-gray-50 px-3 py-2.5 ${
+												fieldErrors.quote ? 'border-red-900' : 'border-gray-200'
+											}`}
 										>
 											<Search size={16} color="#9CA3AF" />
 											<Text className="flex-1 font-inter text-sm text-gray-400">
 												Selecionar orçamento
 											</Text>
 										</TouchableOpacity>
+
+										{fieldErrors.quote && (
+											<Text className="font-inter text-red-900 text-xs">
+												{fieldErrors.quote}
+											</Text>
+										)}
 
 										{isQuotePickerOpen && (
 											<DropdownPanel>
@@ -453,8 +501,15 @@ export function GenerateOrderModal({
 							<FormField
 								label="Nome do projeto"
 								value={form.project_name}
-								onChangeText={(value) => setField('project_name', value)}
+								onChangeText={(value) => {
+									setField('project_name', value);
+									setFieldErrors((current) => ({
+										...current,
+										project_name: undefined,
+									}));
+								}}
 								placeholder="Ex: Tradução de contratos comerciais"
+								error={fieldErrors.project_name}
 							/>
 
 							<DateField

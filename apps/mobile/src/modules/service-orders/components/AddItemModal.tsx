@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { X, Upload, FileText } from 'lucide-react-native';
 import type { CreateServiceOrderItemInput } from '../types/serviceOrder';
+import type { UploadableFile } from '../../../shared/types/file';
+import { pickDocument } from '../../../shared/utils/pickDocument';
 import { FormField } from '../../clients/components/FormField';
 import { DateField } from '../../../shared/components/DateField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
@@ -18,7 +20,7 @@ type AddItemModalProps = {
 	onClose: () => void;
 	onSubmit: (
 		data: CreateServiceOrderItemInput,
-		file: File | null,
+		file: UploadableFile | null,
 	) => Promise<void>;
 	toast?: ToastData | null;
 };
@@ -35,7 +37,7 @@ export function AddItemModal({
 	const [wordCount, setWordCount] = useState('');
 	const [price, setPrice] = useState('');
 	const [deadline, setDeadline] = useState('');
-	const [file, setFile] = useState<File | null>(null);
+	const [file, setFile] = useState<UploadableFile | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -108,7 +110,11 @@ export function AddItemModal({
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView className="px-6 py-4" contentContainerClassName="gap-4">
+					<ScrollView
+						className="px-6 py-4"
+						contentContainerClassName="gap-4 pb-6"
+						keyboardShouldPersistTaps="handled"
+					>
 						<View className="flex-row gap-3">
 							<FormField
 								label="Idioma de origem"
@@ -154,30 +160,37 @@ export function AddItemModal({
 							onChangeText={setDeadline}
 						/>
 
-						{Platform.OS === 'web' && (
-							<View className="gap-1.5">
-								<Text className="font-inter font-semibold text-gray-800 text-xs">
-									Arquivo
-								</Text>
+						<View className="gap-1.5">
+							<Text className="font-inter font-semibold text-gray-800 text-xs">
+								Arquivo
+							</Text>
 
-								<TouchableOpacity
-									onPress={() => fileInputRef.current?.click()}
-									activeOpacity={0.7}
-									className="flex-row items-center gap-2 rounded-lg border border-gray-300 px-3 py-2.5"
+							<TouchableOpacity
+								onPress={async () => {
+									if (Platform.OS === 'web') {
+										fileInputRef.current?.click();
+										return;
+									}
+									const picked = await pickDocument();
+									if (picked) setFile(picked);
+								}}
+								activeOpacity={0.7}
+								className="flex-row items-center gap-2 rounded-lg border border-gray-300 px-3 py-2.5"
+							>
+								{file ? (
+									<FileText size={16} color="#1C6FB0" />
+								) : (
+									<Upload size={16} color="#353535" />
+								)}
+								<Text
+									className="flex-1 font-inter text-sm text-gray-700"
+									numberOfLines={1}
 								>
-									{file ? (
-										<FileText size={16} color="#1C6FB0" />
-									) : (
-										<Upload size={16} color="#353535" />
-									)}
-									<Text
-										className="flex-1 font-inter text-sm text-gray-700"
-										numberOfLines={1}
-									>
-										{file ? file.name : 'Selecionar arquivo (opcional)'}
-									</Text>
-								</TouchableOpacity>
+									{file ? file.name : 'Selecionar arquivo (opcional)'}
+								</Text>
+							</TouchableOpacity>
 
+							{Platform.OS === 'web' && (
 								<input
 									ref={fileInputRef}
 									type="file"
@@ -186,8 +199,8 @@ export function AddItemModal({
 										setFile(event.target.files?.[0] ?? null);
 									}}
 								/>
-							</View>
-						)}
+							)}
+						</View>
 
 						{error && (
 							<View className="rounded-lg bg-red-50 px-3 py-2.5">

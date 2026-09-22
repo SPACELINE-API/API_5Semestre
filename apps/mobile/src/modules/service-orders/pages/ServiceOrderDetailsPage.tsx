@@ -6,12 +6,13 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 } from 'react-native';
-import { ArrowLeft, AlertCircle, RefreshCw } from 'lucide-react-native';
+import { ArrowLeft, AlertCircle, RefreshCw, Trash2 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useServiceOrder } from '../hooks/useServiceOrder';
 import { useCompanies } from '../../clients/hooks/useCompanies';
 import { useTranslators } from '../hooks/useTranslators';
 import { useContacts } from '../hooks/useContacts';
+import { useItemInvites } from '../hooks/useItemInvites';
 import { StatusBadge } from '../components/StatusBadge';
 import { ServiceOrderItemRow } from '../components/ServiceOrderItemRow';
 import { WorkflowItemCard } from '../components/WorkflowItemCard';
@@ -25,6 +26,7 @@ import { AddItemModal } from '../components/AddItemModal';
 import { EditItemModal } from '../components/EditItemModal';
 import {
 	createServiceOrderItem,
+	deleteServiceOrder,
 	sendItemInvites,
 	updateServiceOrder,
 	updateServiceOrderItem,
@@ -33,6 +35,7 @@ import {
 import { formatDate } from '../utils/format';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import type { ServiceOrderItem } from '../types/serviceOrder';
 
 type ServiceOrderDetailsPageProps = {
@@ -73,6 +76,13 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const [refreshToken, setRefreshToken] = useState(0);
 	const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
 	const [editingItem, setEditingItem] = useState<ServiceOrderItem | null>(null);
+	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
+
+	const { invites: inviteTargetItemInvites } = useItemInvites(
+		inviteTargetItem?.id ?? '',
+		refreshToken,
+	);
 
 	const company = useMemo(
 		() => companies.find((item) => item.id === serviceOrder?.company_id),
@@ -91,6 +101,26 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 		() => new Map(translators.map((translator) => [translator.id, translator])),
 		[translators],
 	);
+
+	async function handleDelete() {
+		if (!serviceOrder) return;
+
+		setIsDeleting(true);
+
+		try {
+			await deleteServiceOrder(serviceOrder.id);
+			router.replace('/ordens-de-servico?deleted=1');
+		} catch (deleteError) {
+			showToast(
+				deleteError instanceof Error
+					? deleteError.message
+					: 'Não foi possível excluir a ordem de serviço.',
+				'error',
+			);
+			setIsDeleting(false);
+			setIsDeleteConfirmVisible(false);
+		}
+	}
 
 	return (
 		<View className="relative flex-1 bg-white">
@@ -196,6 +226,16 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 									<RefreshCw size={16} color="#6B7280" />
 								</TouchableOpacity>
 
+								<TouchableOpacity
+									onPress={() => setIsDeleteConfirmVisible(true)}
+									activeOpacity={0.7}
+									accessibilityRole="button"
+									accessibilityLabel="Excluir ordem de serviço"
+									className="h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100"
+								>
+									<Trash2 size={16} color="#791F1F" />
+								</TouchableOpacity>
+
 								<View className="flex-row gap-2 rounded-lg bg-gray-100 p-1">
 									{VIEW_TABS.map((tab) => {
 										const isActive = tab.key === view;
@@ -230,7 +270,12 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 
 						{view === 'detalhes' && (
 							<View>
-								<View className="mt-5 flex-row gap-7 border-b border-gray-200">
+								<ScrollView
+									horizontal
+									showsHorizontalScrollIndicator={false}
+									className="mt-5 border-b border-gray-200"
+									contentContainerClassName="flex-row gap-7"
+								>
 									{DETAIL_TABS.map((tab) => {
 										const isActive = tab.key === detailTab;
 
@@ -252,13 +297,14 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 															? 'font-semibold text-blue-600'
 															: 'font-medium text-gray-400'
 													}`}
+													numberOfLines={1}
 												>
 													{tab.label}
 												</Text>
 											</TouchableOpacity>
 										);
 									})}
-								</View>
+								</ScrollView>
 
 								<View className="py-7">
 									{detailTab === 'equipe' && (
@@ -397,6 +443,13 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 			<InviteTranslatorsModal
 				visible={inviteTargetItem !== null}
 				translators={translators}
+				pendingTranslatorIds={
+					new Set(
+						inviteTargetItemInvites
+							.filter((invite) => invite.status === 'pendente')
+							.map((invite) => invite.translator_id),
+					)
+				}
 				onClose={() => setInviteTargetItem(null)}
 				onSubmit={async (translatorIds) => {
 					if (!inviteTargetItem) return;
@@ -460,9 +513,23 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 				}}
 			/>
 
+			<ConfirmDialog
+				visible={isDeleteConfirmVisible}
+				title="Excluir ordem de serviço"
+				message={`Tem certeza que deseja excluir "${serviceOrder?.project_name}"? Essa ação não pode ser desfeita.`}
+				confirmLabel="Excluir"
+				destructive
+				isLoading={isDeleting}
+				onConfirm={handleDelete}
+				onCancel={() => setIsDeleteConfirmVisible(false)}
+			/>
+
 			<Toast
 				toast={
-					inviteTargetItem || isAddItemModalVisible || editingItem
+					inviteTargetItem ||
+					isAddItemModalVisible ||
+					editingItem ||
+					isDeleteConfirmVisible
 						? null
 						: toast
 				}
