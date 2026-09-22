@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import {
 	SafeAreaProvider,
 	useSafeAreaInsets,
@@ -56,7 +57,12 @@ export default function AppLayout() {
 	}
 	const isLogin = pathname === '/login';
 	if (!isLogin && !getSession()) return <Redirect href={'/login' as never} />;
-	if (isLogin) return <Slot />;
+	if (isLogin)
+		return (
+			<KeyboardProvider>
+				<Slot />
+			</KeyboardProvider>
+		);
 
 	return (
 		<SafeAreaProvider>
