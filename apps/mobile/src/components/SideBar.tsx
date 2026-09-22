@@ -136,199 +136,198 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 								MD
 							</Text>
 						</View>
-					</View>
-					{showExpanded && (
-						<View className="flex-col">
-							<Text className="font-inter font-bold text-gray-900 text-sm leading-tight">
-								Marina Duarte
-							</Text>
-							<Text className="font-inter text-gray-500 text-xs mt-0.5">
-								Atendente
-							</Text>
-						</View>
-					)}
-				</View>
-				<TouchableOpacity
-					onPress={onCloseMobile ?? (() => setIsOpen(!isOpen))}
-					className="items-center justify-center w-8 h-8 rounded-lg outline-none hover:bg-gray-50 shrink-0 md:hidden"
-				>
-					<CloseIcon size={20} color="#1f2937" strokeWidth={2.0} />
-				</TouchableOpacity>
-				<TouchableOpacity
-					onPress={() => setIsOpen(!isOpen)}
-					className="hidden items-center justify-center w-8 h-8 rounded-lg outline-none hover:bg-gray-50 shrink-0 md:flex"
-				>
-					{isOpen ? (
-						<FecharIcon size={20} color="#1f2937" strokeWidth={2.0} />
-					) : (
-						<AbrirIcon size={20} color="#1f2937" strokeWidth={2.0} />
-					)}
-				</TouchableOpacity>
-			</View>
-
-			<ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-				<View className="flex-col gap-6">
-					<View>
-						<GroupLabel isOpen={showExpanded}>Serviços</GroupLabel>
-						<View className="flex-col gap-1">
-							<NavItem
-								icon={RequisicoesIcon}
-								label="Requisições"
-								isOpen={showExpanded}
-								active={!isKnownRoute && activeItem === 'Requisições'}
-								onPress={() => navigate('/visualizar-requisicoes', 'Requisições')}
-							/>
-							<Link href={'/orcamento/novo-orcamento' as never} asChild>
-								<TouchableOpacity
-									className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'
-										} ${!showExpanded ? 'justify-center px-0' : ''}`}
-								>
-									<OrcamentoIcon
-										size={20}
-										color={isOrcamentoActive ? '#2563eb' : '#4b5563'}
-										strokeWidth={1.8}
-									/>
-									{showExpanded && (
-										<Text
-											className={`font-inter text-sm flex-1 ${isOrcamentoActive
-												? 'font-semibold text-blue-600'
-												: 'font-medium text-gray-700'
-												}`}
-										>
-											Orçamento
-										</Text>
-									)}
-								</TouchableOpacity>
-							</Link>
-							<NavItem
-								icon={OrdemServicoIcon}
-								label="Ordem de serviço"
-								isOpen={showExpanded}
-								active={isOrdersActive}
-								onPress={() =>
-									navigate('/ordens-de-servico', 'Ordem de serviço')
-								}
-							/>
-						</View>
-					</View>
-
-					<View>
-						<GroupLabel isOpen={showExpanded}>Gerenciamento</GroupLabel>
-						<View className="flex-col gap-1">
-							<NavItem
-								icon={ClientesIcon}
-								label="Clientes"
-								isOpen={showExpanded}
-								active={isClientsActive}
-								onPress={() => navigate('/clientes', 'Clientes')}
-							/>
-							<NavItem
-								icon={TradutoresIcon}
-								label="Tradutores"
-								isOpen={showExpanded}
-								active={!isKnownRoute && activeItem === 'Tradutores'}
-								onPress={() => {
-									setActiveItem('Tradutores');
-									onCloseMobile?.();
-								}}
-							/>
-						</View>
-					</View>
-
-					<View>
-						<GroupLabel isOpen={showExpanded}>Outros</GroupLabel>
-						<View className="flex-col gap-1">
-							<NavItem
-								icon={SuporteIcon}
-								label="Suporte"
-								isOpen={showExpanded}
-								active={isSupportAgentActive}
-								onPress={() => navigate('/support-agent', 'Suporte')}
-							/>
-						</View>
-					</View>
-				</View>
-			</ScrollView>
-
-			<View className="relative flex-col gap-1 pt-4 mt-2 border-t border-gray-100">
-				<View className="relative">
-					{showExpanded && adminExpanded && (
-						<View className="absolute left-full ml-2 w-48 bg-white border border-gray-100 rounded-xl p-1.5 shadow-lg z-50">
-							<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
-								<ClientesIcon size={16} color="#6b7280" strokeWidth={1.8} />
-								<Text className="font-inter text-[13px] text-gray-600">
-									Usuários da plataforma
-								</Text>
-							</TouchableOpacity>
-
-							<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
-								<PermissoesIcon size={16} color="#6b7280" strokeWidth={1.8} />
-								<Text className="font-inter text-[13px] text-gray-600">
-									Perfis de acesso
-								</Text>
-							</TouchableOpacity>
-
-							<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
-								<IntegracoesIcon
-									size={16}
-									color="#6b7280"
-									strokeWidth={1.8}
-								/>
-								<Text className="font-inter text-[13px] text-gray-600">
-									Integrações
-								</Text>
-							</TouchableOpacity>
-						</View>
-					)}
-
-					<TouchableOpacity
-						onPress={() => {
-							if (!showExpanded) {
-								setIsOpen(true);
-								setAdminExpanded(true);
-								return;
-							}
-							setAdminExpanded((prev) => !prev);
-						}}
-						className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none ${adminExpanded ? 'bg-gray-50' : 'hover:bg-gray-50'
-							} ${!showExpanded ? 'justify-center px-0' : ''}`}
-					>
-						<AdminIcon size={20} color="#4b5563" strokeWidth={1.8} />
 						{showExpanded && (
-							<>
-								<Text className="font-inter font-medium text-gray-700 text-sm flex-1">
-									Administração
+							<View className="flex-col">
+								<Text className="font-inter font-bold text-gray-900 text-sm leading-tight">
+									Marina Duarte
 								</Text>
-								<ChevronRight size={16} color="#9ca3af" strokeWidth={2} />
-							</>
+								<Text className="font-inter text-gray-500 text-xs mt-0.5">
+									Atendente
+								</Text>
+							</View>
+						)}
+					</View>
+					<TouchableOpacity
+						onPress={onCloseMobile ?? (() => setIsOpen(!isOpen))}
+						className="items-center justify-center w-8 h-8 rounded-lg outline-none hover:bg-gray-50 shrink-0 md:hidden"
+					>
+						<CloseIcon size={20} color="#1f2937" strokeWidth={2.0} />
+					</TouchableOpacity>
+					<TouchableOpacity
+						onPress={() => setIsOpen(!isOpen)}
+						className="hidden items-center justify-center w-8 h-8 rounded-lg outline-none hover:bg-gray-50 shrink-0 md:flex"
+					>
+						{isOpen ? (
+							<FecharIcon size={20} color="#1f2937" strokeWidth={2.0} />
+						) : (
+							<AbrirIcon size={20} color="#1f2937" strokeWidth={2.0} />
 						)}
 					</TouchableOpacity>
 				</View>
 
-				<NavItem
-					icon={ConfiguracoesIcon}
-					label="Configurações"
-					isOpen={showExpanded}
-					active={!isKnownRoute && activeItem === 'Configurações'}
-					onPress={() => {
-						setActiveItem('Configurações');
-						onCloseMobile?.();
-					}}
-				/>
+				<ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+					<View className="flex-col gap-6">
+						<View>
+							<GroupLabel isOpen={showExpanded}>Serviços</GroupLabel>
+							<View className="flex-col gap-1">
+								<NavItem
+									icon={RequisicoesIcon}
+									label="Requisições"
+									isOpen={showExpanded}
+									active={!isKnownRoute && activeItem === 'Requisições'}
+									onPress={() => navigate('/visualizar-requisicoes', 'Requisições')}
+								/>
+								<Link href={'/orcamento/novo-orcamento' as never} asChild>
+									<TouchableOpacity
+										className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'
+											} ${!showExpanded ? 'justify-center px-0' : ''}`}
+									>
+										<OrcamentoIcon
+											size={20}
+											color={isOrcamentoActive ? '#2563eb' : '#4b5563'}
+											strokeWidth={1.8}
+										/>
+										{showExpanded && (
+											<Text
+												className={`font-inter text-sm flex-1 ${isOrcamentoActive
+													? 'font-semibold text-blue-600'
+													: 'font-medium text-gray-700'
+													}`}
+											>
+												Orçamento
+											</Text>
+										)}
+									</TouchableOpacity>
+								</Link>
+								<NavItem
+									icon={OrdemServicoIcon}
+									label="Ordem de serviço"
+									isOpen={showExpanded}
+									active={isOrdersActive}
+									onPress={() =>
+										navigate('/ordens-de-servico', 'Ordem de serviço')
+									}
+								/>
+							</View>
+						</View>
 
-				<TouchableOpacity
-					className={`flex-row items-center gap-3 px-3 py-2.5 mt-1 rounded-xl outline-none hover:bg-red-50 ${!showExpanded ? 'justify-center px-0' : ''
-						}`}
-				>
-					<SairIcon size={20} color="#dc2626" strokeWidth={1.8} />
-					{showExpanded && (
-						<Text className="font-inter font-medium text-red-600 text-sm">
-							Sair do sistema
-						</Text>
-					)}
-				</TouchableOpacity>
+						<View>
+							<GroupLabel isOpen={showExpanded}>Gerenciamento</GroupLabel>
+							<View className="flex-col gap-1">
+								<NavItem
+									icon={ClientesIcon}
+									label="Clientes"
+									isOpen={showExpanded}
+									active={isClientsActive}
+									onPress={() => navigate('/clientes', 'Clientes')}
+								/>
+								<NavItem
+									icon={TradutoresIcon}
+									label="Tradutores"
+									isOpen={showExpanded}
+									active={!isKnownRoute && activeItem === 'Tradutores'}
+									onPress={() => {
+										setActiveItem('Tradutores');
+										onCloseMobile?.();
+									}}
+								/>
+							</View>
+						</View>
+
+						<View>
+							<GroupLabel isOpen={showExpanded}>Outros</GroupLabel>
+							<View className="flex-col gap-1">
+								<NavItem
+									icon={SuporteIcon}
+									label="Suporte"
+									isOpen={showExpanded}
+									active={isSupportAgentActive}
+									onPress={() => navigate('/support-agent', 'Suporte')}
+								/>
+							</View>
+						</View>
+					</View>
+				</ScrollView>
+
+				<View className="relative flex-col gap-1 pt-4 mt-2 border-t border-gray-100">
+					<View className="relative">
+						{showExpanded && adminExpanded && (
+							<View className="absolute left-full ml-2 w-48 bg-white border border-gray-100 rounded-xl p-1.5 shadow-lg z-50">
+								<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
+									<ClientesIcon size={16} color="#6b7280" strokeWidth={1.8} />
+									<Text className="font-inter text-[13px] text-gray-600">
+										Usuários da plataforma
+									</Text>
+								</TouchableOpacity>
+
+								<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
+									<PermissoesIcon size={16} color="#6b7280" strokeWidth={1.8} />
+									<Text className="font-inter text-[13px] text-gray-600">
+										Perfis de acesso
+									</Text>
+								</TouchableOpacity>
+
+								<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
+									<IntegracoesIcon
+										size={16}
+										color="#6b7280"
+										strokeWidth={1.8}
+									/>
+									<Text className="font-inter text-[13px] text-gray-600">
+										Integrações
+									</Text>
+								</TouchableOpacity>
+							</View>
+						)}
+
+						<TouchableOpacity
+							onPress={() => {
+								if (!showExpanded) {
+									setIsOpen(true);
+									setAdminExpanded(true);
+									return;
+								}
+								setAdminExpanded((prev) => !prev);
+							}}
+							className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none ${adminExpanded ? 'bg-gray-50' : 'hover:bg-gray-50'
+								} ${!showExpanded ? 'justify-center px-0' : ''}`}
+						>
+							<AdminIcon size={20} color="#4b5563" strokeWidth={1.8} />
+							{showExpanded && (
+								<>
+									<Text className="font-inter font-medium text-gray-700 text-sm flex-1">
+										Administração
+									</Text>
+									<ChevronRight size={16} color="#9ca3af" strokeWidth={2} />
+								</>
+							)}
+						</TouchableOpacity>
+					</View>
+
+					<NavItem
+						icon={ConfiguracoesIcon}
+						label="Configurações"
+						isOpen={showExpanded}
+						active={!isKnownRoute && activeItem === 'Configurações'}
+						onPress={() => {
+							setActiveItem('Configurações');
+							onCloseMobile?.();
+						}}
+					/>
+
+					<TouchableOpacity
+						className={`flex-row items-center gap-3 px-3 py-2.5 mt-1 rounded-xl outline-none hover:bg-red-50 ${!showExpanded ? 'justify-center px-0' : ''
+							}`}
+					>
+						<SairIcon size={20} color="#dc2626" strokeWidth={1.8} />
+						{showExpanded && (
+							<Text className="font-inter font-medium text-red-600 text-sm">
+								Sair do sistema
+							</Text>
+						)}
+					</TouchableOpacity>
+				</View>
 			</View>
-		</View >
 		</>
 	);
 }
