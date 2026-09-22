@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 
-from app.modules.quotes.schemas.quote import QuoteCreate, QuoteResponse
+from app.modules.quotes.schemas.quote import QuoteCreate, QuoteFromRequestResponse, QuoteResponse
 from app.modules.quotes.schemas.request import RequestCreate, RequestResponse
 from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemCreate,
@@ -37,6 +37,17 @@ def create_quote(
 ):
     service = QuoteService(db)
     return service.create_quote(quote_data)
+
+
+@router.post(
+    "/from-request/{request_id}", response_model=QuoteFromRequestResponse, status_code=201
+)
+def generate_quote_from_request(
+    request_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    service = QuoteService(db)
+    return service.generate_from_approved_request(request_id)
 
 
 @router.post(

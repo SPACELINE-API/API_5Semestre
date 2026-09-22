@@ -1,13 +1,17 @@
 import enum
 import uuid
 from datetime import date
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.shared.database import Base
+
+if TYPE_CHECKING:
+    from app.modules.quotes.models.quote import Quote
 
 
 class StatusEnum(enum.StrEnum):
@@ -34,3 +38,5 @@ class Request(Base):
     status: Mapped[StatusEnum] = mapped_column(SQLEnum(StatusEnum), default=StatusEnum.PENDING)
 
     request_date: Mapped[date] = mapped_column(server_default=func.current_date())
+
+    quote: Mapped["Quote | None"] = relationship("Quote", back_populates="request", uselist=False)

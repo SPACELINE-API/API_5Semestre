@@ -33,3 +33,51 @@ def test_create_quote_success_contract() -> None:
     )
 
     write_pact(pact, PACT_DIR)
+
+
+def test_generate_quote_from_approved_request_contract() -> None:
+    pact = Pact("web", "server").with_specification("V4")
+
+    (
+        pact.upon_receiving("a request to generate a quote from an approved request")
+        .given("the request is approved")
+        .with_request("POST", "/api/quotes/from-request/123e4567-e89b-12d3-a456-426614174000")
+        .will_respond_with(201)
+        .with_headers({"Content-Type": "application/json"})
+        .with_body(
+            {
+                "id": "223e4567-e89b-12d3-a456-426614174000",
+                "request_id": "123e4567-e89b-12d3-a456-426614174000",
+                "status": "draft",
+                "customer_name": "João Silva",
+                "enterprise": "Empresa X",
+                "email": "joao@teste.com",
+                "original_language": "Português",
+                "translation_language": "Inglês",
+                "customer_need": "Contrato social",
+                "created_at": "2026-09-22T10:00:00Z",
+                "updated_at": "2026-09-22T10:00:00Z",
+            }
+        )
+    )
+
+    pact.write_file(PACT_DIR)
+
+
+def test_generate_quote_from_request_error_contracts() -> None:
+    pact = Pact("web", "server").with_specification("V4")
+
+    (
+        pact.upon_receiving("a request to generate a quote from a pending request")
+        .given("the request is pending")
+        .with_request("POST", "/api/quotes/from-request/123e4567-e89b-12d3-a456-426614174000")
+        .will_respond_with(400)
+    )
+    (
+        pact.upon_receiving("a request to generate a quote from an unknown request")
+        .given("the request does not exist")
+        .with_request("POST", "/api/quotes/from-request/323e4567-e89b-12d3-a456-426614174000")
+        .will_respond_with(404)
+    )
+
+    pact.write_file(PACT_DIR)
