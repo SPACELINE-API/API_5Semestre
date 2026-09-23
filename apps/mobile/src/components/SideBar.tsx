@@ -41,8 +41,9 @@ function NavItem({
 	return (
 		<TouchableOpacity
 			onPress={onPress}
-			className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${active ? 'bg-blue-50' : 'hover:bg-gray-50'
-				} ${!isOpen ? 'justify-center px-0' : ''}`}
+			className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${
+				active ? 'bg-blue-50' : 'hover:bg-gray-50'
+			} ${!isOpen ? 'justify-center px-0' : ''}`}
 		>
 			<Icon
 				size={20}
@@ -51,8 +52,9 @@ function NavItem({
 			/>
 			{isOpen && (
 				<Text
-					className={`font-inter text-sm flex-1 ${active ? 'font-semibold text-blue-600' : 'font-medium text-gray-700'
-						}`}
+					className={`font-inter text-sm flex-1 ${
+						active ? 'font-semibold text-blue-600' : 'font-medium text-gray-700'
+					}`}
 				>
 					{label}
 				</Text>
@@ -123,12 +125,14 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 
 			<View
 				style={mobileOpen ? { paddingTop: insets.top } : undefined}
-				className={`h-full bg-white border-r border-gray-100 z-40 flex-col py-6 shadow-sm ${mobileOpen ? 'absolute inset-y-0 left-0 flex' : 'hidden'
-					} md:relative md:z-10 md:flex ${showExpanded ? 'w-72 px-4' : 'w-20 px-2'}`}
+				className={`h-full bg-white border-r border-gray-100 z-40 flex-col py-6 shadow-sm ${
+					mobileOpen ? 'absolute inset-y-0 left-0 flex' : 'hidden'
+				} md:relative md:z-10 md:flex ${showExpanded ? 'w-72 px-4' : 'w-20 px-2'}`}
 			>
 				<View
-					className={`items-center mb-6 pb-5 px-3 border-b border-gray-100 ${showExpanded ? 'flex-row justify-between' : 'flex-col gap-3 px-0'
-						}`}
+					className={`items-center mb-6 pb-5 px-3 border-b border-gray-100 ${
+						showExpanded ? 'flex-row justify-between' : 'flex-col gap-3 px-0'
+					}`}
 				>
 					<View className="flex-row items-center gap-3">
 						<View className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 bg-blue-500 items-center justify-center shrink-0">
@@ -175,12 +179,15 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 									label="Requisições"
 									isOpen={showExpanded}
 									active={!isKnownRoute && activeItem === 'Requisições'}
-									onPress={() => navigate('/visualizar-requisicoes', 'Requisições')}
+									onPress={() =>
+										navigate('/visualizar-requisicoes', 'Requisições')
+									}
 								/>
 								<Link href={'/orcamento/novo-orcamento' as never} asChild>
 									<TouchableOpacity
-										className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'
-											} ${!showExpanded ? 'justify-center px-0' : ''}`}
+										className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${
+											isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'
+										} ${!showExpanded ? 'justify-center px-0' : ''}`}
 									>
 										<OrcamentoIcon
 											size={20}
@@ -189,10 +196,11 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 										/>
 										{showExpanded && (
 											<Text
-												className={`font-inter text-sm flex-1 ${isOrcamentoActive
-													? 'font-semibold text-blue-600'
-													: 'font-medium text-gray-700'
-													}`}
+												className={`font-inter text-sm flex-1 ${
+													isOrcamentoActive
+														? 'font-semibold text-blue-600'
+														: 'font-medium text-gray-700'
+												}`}
 											>
 												Orçamento
 											</Text>
@@ -289,8 +297,9 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 								}
 								setAdminExpanded((prev) => !prev);
 							}}
-							className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none ${adminExpanded ? 'bg-gray-50' : 'hover:bg-gray-50'
-								} ${!showExpanded ? 'justify-center px-0' : ''}`}
+							className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none ${
+								adminExpanded ? 'bg-gray-50' : 'hover:bg-gray-50'
+							} ${!showExpanded ? 'justify-center px-0' : ''}`}
 						>
 							<AdminIcon size={20} color="#4b5563" strokeWidth={1.8} />
 							{showExpanded && (
@@ -316,8 +325,9 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 					/>
 
 					<TouchableOpacity
-						className={`flex-row items-center gap-3 px-3 py-2.5 mt-1 rounded-xl outline-none hover:bg-red-50 ${!showExpanded ? 'justify-center px-0' : ''
-							}`}
+						className={`flex-row items-center gap-3 px-3 py-2.5 mt-1 rounded-xl outline-none hover:bg-red-50 ${
+							!showExpanded ? 'justify-center px-0' : ''
+						}`}
 					>
 						<SairIcon size={20} color="#dc2626" strokeWidth={1.8} />
 						{showExpanded && (

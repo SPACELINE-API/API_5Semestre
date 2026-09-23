@@ -39,7 +39,9 @@ test.describe('Requests Service Unit Tests', () => {
 			}
 
 			expect(capturedBody).toBeInstanceOf(FormData);
-			expect((capturedBody as FormData | null)?.get('customer_name')).toBe('João Silva');
+			expect((capturedBody as FormData | null)?.get('customer_name')).toBe(
+				'João Silva',
+			);
 			expect((capturedBody as FormData | null)?.get('document')).toBeNull();
 		} finally {
 			globalThis.fetch = originalFetch;
@@ -50,7 +52,7 @@ test.describe('Requests Service Unit Tests', () => {
 		const originalFetch = globalThis.fetch;
 		let capturedUrl: string | undefined;
 		let capturedBody: FormData | null = null;
-		
+
 		globalThis.fetch = async (url, init) => {
 			capturedUrl = url as string;
 			capturedBody = init?.body as FormData;

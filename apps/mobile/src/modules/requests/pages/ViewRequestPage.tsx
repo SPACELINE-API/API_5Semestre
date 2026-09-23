@@ -17,7 +17,9 @@ export default function ViewRequestPage() {
 
 	return (
 		<View className="p-8">
-			<Text className="text-2xl font-poppins-bold text-gray-900">Requisições</Text>
+			<Text className="text-2xl font-poppins-bold text-gray-900">
+				Requisições
+			</Text>
 			<Text className="text-sm text-gray-500 font-inter mt-1 flex-wrap">
 				{requests.length} solicitações aguardando orçamento
 			</Text>

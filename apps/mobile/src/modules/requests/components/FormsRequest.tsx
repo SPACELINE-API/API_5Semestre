@@ -74,12 +74,15 @@ export default function FormsRequest() {
 	async function uploadFile() {
 		try {
 			const result = await DocumentPicker.getDocumentAsync({
-				type: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+				type: [
+					'application/pdf',
+					'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+				],
 			});
 
 			if (result.canceled) {
-				return
-			};
+				return;
+			}
 
 			const file = result.assets[0];
 
@@ -90,9 +93,8 @@ export default function FormsRequest() {
 
 			setError('');
 			setDocument(file);
-		}
-		catch {
-			setError("Não foi possível fazer o upload. Tente novamente.");
+		} catch {
+			setError('Não foi possível fazer o upload. Tente novamente.');
 		}
 	}
 
@@ -116,9 +118,7 @@ export default function FormsRequest() {
 					<View className="min-w-[200px] flex-1 gap-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Nome
-							<Text className="text-red-500">
-								*
-							</Text>
+							<Text className="text-red-500">*</Text>
 						</Text>
 						<TextInput
 							value={customerName}
@@ -132,9 +132,7 @@ export default function FormsRequest() {
 					<View className="min-w-[200px] flex-1 gap-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Email
-							<Text className="text-red-500">
-								*
-							</Text>
+							<Text className="text-red-500">*</Text>
 						</Text>
 						<TextInput
 							value={email}
@@ -150,9 +148,7 @@ export default function FormsRequest() {
 					<View className="min-w-[200px] flex-1 gap-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Empresa
-							<Text className="text-red-500">
-								*
-							</Text>
+							<Text className="text-red-500">*</Text>
 						</Text>
 						<TextInput
 							value={enterprise}
@@ -172,9 +168,7 @@ export default function FormsRequest() {
 					<View className="min-w-[200px] flex-1 gap-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Tipo de documento
-							<Text className="text-red-500">
-								*
-							</Text>
+							<Text className="text-red-500">*</Text>
 						</Text>
 						<TextInput
 							value={customerNeed}
@@ -188,9 +182,7 @@ export default function FormsRequest() {
 					<View className="min-w-[200px] flex-1 gap-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Idioma original
-							<Text className="text-red-500">
-								*
-							</Text>
+							<Text className="text-red-500">*</Text>
 						</Text>
 						<TextInput
 							value={originalLanguage}
@@ -204,9 +196,7 @@ export default function FormsRequest() {
 					<View className="min-w-[200px] flex-1 gap-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Idioma de tradução
-							<Text className="text-red-500">
-								*
-							</Text>
+							<Text className="text-red-500">*</Text>
 						</Text>
 						<TextInput
 							value={translationLanguage}
@@ -220,10 +210,13 @@ export default function FormsRequest() {
 			</View>
 
 			<View className="mt-6 gap-3">
-				<Text className="text-sm font-bold text-blue-500 mt-4">DOCUMENTO (PDF/DOCX)</Text>
+				<Text className="text-sm font-bold text-blue-500 mt-4">
+					DOCUMENTO (PDF/DOCX)
+				</Text>
 
 				<View className="min-w-[200px] flex-1 gap-1">
-					<TouchableOpacity className="flex flex-column items-center justify-center gap-5 h-40 rounded-xl border border-dashed border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
+					<TouchableOpacity
+						className="flex flex-column items-center justify-center gap-5 h-40 rounded-xl border border-dashed border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
 						onPress={uploadFile}
 					>
 						<FileUp color={'#c5d0df'} size={'60px'} />
@@ -233,11 +226,9 @@ export default function FormsRequest() {
 					</TouchableOpacity>
 
 					{document ? (
-						<View className='flex flex-row justify-between bg-white border border-[#c7dced] rounded-xl p-4 mt-6 cursor-pointer'>
-							<Text>
-								{document.name}
-							</Text>
-							<TouchableOpacity onPress={() => setDocument(null)} >
+						<View className="flex flex-row justify-between bg-white border border-[#c7dced] rounded-xl p-4 mt-6 cursor-pointer">
+							<Text>{document.name}</Text>
+							<TouchableOpacity onPress={() => setDocument(null)}>
 								<Trash color={'red'} />
 							</TouchableOpacity>
 						</View>
@@ -245,7 +236,6 @@ export default function FormsRequest() {
 						<></>
 					)}
 				</View>
-
 			</View>
 
 			{error ? (

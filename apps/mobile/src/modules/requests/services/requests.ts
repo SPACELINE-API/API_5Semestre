@@ -59,7 +59,11 @@ export async function createRequest(
 
 		if (payload.document) {
 			if (payload.document.file) {
-				formData.append('document', payload.document.file, payload.document.name);
+				formData.append(
+					'document',
+					payload.document.file,
+					payload.document.name,
+				);
 			} else {
 				formData.append('document', {
 					uri: payload.document.uri,
