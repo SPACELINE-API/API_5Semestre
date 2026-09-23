@@ -1,6 +1,8 @@
 import * as DocumentPicker from 'expo-document-picker';
 import { DocumentPickerAsset } from 'expo-document-picker';
 
+import { useRouter } from 'expo-router';
+
 import { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { FileUp, Trash } from 'lucide-react-native';
@@ -18,6 +20,8 @@ export default function FormsRequest() {
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
 	const [document, setDocument] = useState<DocumentPickerAsset | null>(null);
+
+	const router = useRouter();
 
 	const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 
@@ -62,6 +66,7 @@ export default function FormsRequest() {
 			setOriginalLanguage('');
 			setTranslationLanguage('');
 			setDocument(null);
+			router.replace('/login');
 		} else if (result.status === 400) {
 			setError(
 				'Você precisa aguardar no mínimo uma semana para enviar outra solicitação.',
