@@ -5,45 +5,58 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.modules.clients.models.company import Company
+from app.modules.clients.repositories.company_repository import CompanyRepository
 from app.modules.clients.schemas.company import CompanyCreate, CompanyUpdate
 
 
 class CompanyService:
     def __init__(self, db: Session):
-        self.db = db
+        self.repo = CompanyRepository(db)
 
     def create_company(self, company_data: CompanyCreate) -> Company:
         company = Company(**company_data.model_dump())
-        self.db.add(company)
+        self.repo.add(company)
 
         try:
-            self.db.commit()
+            self.repo.commit()
         except IntegrityError:
-            self.db.rollback()
+            self.repo.rollback()
             raise HTTPException(status_code=409, detail="CNPJ ou email já existe") from None
 
-        self.db.refresh(company)
+        self.repo.refresh(company)
         return company
 
     def delete_company(self, company_id: uuid.UUID) -> None:
         company = self.get_company(company_id)
 
-        self.db.delete(company)
+        self.repo.delete(company)
 
         try:
-            self.db.commit()
+            self.repo.commit()
         except IntegrityError:
-            self.db.rollback()
+            self.repo.rollback()
             raise HTTPException(
                 status_code=409,
                 detail="Empresa não pode ser deletada, pois possui registros relacionados",
             ) from None
 
     def list_companies(self) -> list[Company]:
-        return self.db.query(Company).all()
+        return self.repo.list_all()
+
+    def search_companies(
+        self,
+        name: str | None = None,
+        status: bool | None = None,
+        product: str | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Company], int]:
+        return self.repo.search(
+            name=name, status=status, product=product, page=page, page_size=page_size
+        )
 
     def get_company(self, company_id: uuid.UUID) -> Company:
-        company = self.db.query(Company).filter(Company.id == company_id).first()
+        company = self.repo.get_by_id(company_id)
 
         if not company:
             raise HTTPException(status_code=404, detail="Empresa não encontrada")
@@ -57,10 +70,10 @@ class CompanyService:
             setattr(company, field, value)
 
         try:
-            self.db.commit()
+            self.repo.commit()
         except IntegrityError:
-            self.db.rollback()
+            self.repo.rollback()
             raise HTTPException(status_code=409, detail="CNPJ ou email já existe") from None
 
-        self.db.refresh(company)
+        self.repo.refresh(company)
         return company

@@ -1,9 +1,14 @@
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.modules.clients.schemas.company import CompanyCreate, CompanyResponse, CompanyUpdate
+from app.modules.clients.schemas.company import (
+    CompanyCreate,
+    CompanyPage,
+    CompanyResponse,
+    CompanyUpdate,
+)
 from app.modules.clients.services.company_service import CompanyService
 from app.shared.database import get_db
 
@@ -19,12 +24,25 @@ def create_company(
     return service.create_company(company_data)
 
 
-@router.get("", response_model=list[CompanyResponse])
+@router.get("", response_model=CompanyPage)
 def list_companies(
+    name: str | None = None,
+    status: bool | None = None,
+    product: str | None = None,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),  # noqa: B008
 ):
     service = CompanyService(db)
-    return service.list_companies()
+    items, total = service.search_companies(
+        name=name, status=status, product=product, page=page, page_size=page_size
+    )
+    return CompanyPage(
+        items=[CompanyResponse.model_validate(item) for item in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get("/{company_id}", response_model=CompanyResponse)
