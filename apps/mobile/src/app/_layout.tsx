@@ -55,9 +55,11 @@ export default function AppLayout() {
 	if (!fontsLoaded && !error) {
 		return null;
 	}
-	const isLogin = pathname === '/login';
-	if (!isLogin && !getSession()) return <Redirect href={'/login' as never} />;
-	if (isLogin)
+
+	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
+
+	if (!isPublic && !getSession()) return <Redirect href={'/login' as never} />;
+	if (isPublic)
 		return (
 			<KeyboardProvider>
 				<Slot />
