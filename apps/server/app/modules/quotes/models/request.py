@@ -4,7 +4,7 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import String, func
+from sqlalchemy import LargeBinary, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -47,3 +47,4 @@ class Request(Base):
     reproval_reason: Mapped[str | None] = mapped_column(String(500))
 
     quote: Mapped["Quote | None"] = relationship("Quote", back_populates="request", uselist=False)
+    document: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)

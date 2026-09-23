@@ -13,6 +13,7 @@ class RequestCreate(BaseModel):
     original_language: str = Field(..., max_length=50)
     translation_language: str = Field(..., max_length=50)
     customer_need: str = Field(..., max_length=100)
+    document: bytes | None = None
 
 
 class RequestStatusUpdate(BaseModel):
@@ -25,7 +26,7 @@ class RequestStatusUpdate(BaseModel):
 
 
 class RequestResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, ser_json_bytes="base64")
 
     id: uuid.UUID
     customer_name: str
@@ -39,3 +40,4 @@ class RequestResponse(BaseModel):
     approved_at: datetime | None = None
     reproved_at: datetime | None = None
     reproval_reason: str | None = None
+    document: bytes | None = None
