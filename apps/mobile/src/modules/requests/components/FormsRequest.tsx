@@ -91,7 +91,7 @@ export default function FormsRequest() {
 			setError('');
 			setDocument(file);
 		}
-		catch (error) {
+		catch {
 			setError("Não foi possível fazer o upload. Tente novamente.");
 		}
 	}
