@@ -40,7 +40,7 @@ export function LoginPage() {
 	const [showConfirmation, setShowConfirmation] = useState(false);
 	const [remember, setRemember] = useState(false);
 	const [recoveryCooldown, setRecoveryCooldown] = useState(0);
-	const contentClassName = `grow px-6 py-6 md:px-[7.5%] md:py-5 ${token ? 'items-center justify-center' : 'flex-col justify-center md:flex-row md:items-center md:justify-between'}`;
+	const contentClassName = `grow px-5 py-8 sm:px-6 md:px-[7.5%] md:py-5 ${token ? 'items-center justify-center' : 'flex-col justify-start gap-8 md:flex-row md:items-center md:justify-between'}`;
 	const params = useLocalSearchParams<{
 		access_token?: string;
 		type?: string;
@@ -148,7 +148,7 @@ export function LoginPage() {
 		<KeyboardContainer
 			className={
 				Platform.OS === 'web'
-					? 'min-h-screen flex-1 overflow-hidden bg-[#dceeff]'
+					? 'min-h-screen flex-1 overflow-y-auto bg-[#dceeff]'
 					: 'flex-1 bg-[#dceeff]'
 			}
 			{...(Platform.OS === 'web'
@@ -162,8 +162,8 @@ export function LoginPage() {
 			<DecorativeBackground />
 			<View className={`z-10 flex-1 ${contentClassName}`}>
 				{!token ? <LoginHero /> : null}
-				<View className="w-full items-center justify-center py-6 md:w-[46%] md:py-0">
-					<View className="w-full max-w-[450px] rounded-[28px] border border-white/80 bg-white/90 px-6 py-7 shadow-2xl shadow-[#173a68]/15 sm:px-9 sm:py-8">
+				<View className="w-full items-center justify-center md:w-[46%] md:py-0">
+					<View className="w-full max-w-[450px] rounded-[28px] border border-white/80 bg-white/90 px-5 py-6 shadow-2xl shadow-[#173a68]/15 sm:px-9 sm:py-8">
 						<View className="mb-6">
 							<Text className="text-[26px] font-extrabold tracking-[-0.8px] text-[#101b35]">
 								{token ? 'Crie uma nova senha' : 'Acesse sua conta'}
@@ -199,7 +199,7 @@ export function LoginPage() {
 							}
 						/>
 						{!recovery && !token ? (
-							<View className="mb-6 mt-5 flex-row items-center justify-between">
+							<View className="mb-6 mt-5 flex-row flex-wrap items-center justify-between gap-y-4">
 								<Pressable
 									className="flex-row items-center gap-3"
 									accessibilityRole="checkbox"

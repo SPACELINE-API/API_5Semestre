@@ -1,10 +1,10 @@
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from app.modules.quotes.schemas.quote import QuoteCreate, QuoteResponse
-from app.modules.quotes.schemas.request import RequestCreate, RequestResponse
+from app.modules.quotes.schemas.quote import QuoteCreate, QuoteFromRequestResponse, QuoteResponse
+from app.modules.quotes.schemas.request import RequestCreate, RequestResponse, RequestStatusUpdate
 from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemCreate,
     QuoteTranslationItemResponse,
@@ -37,6 +37,20 @@ def create_quote(
 ):
     service = QuoteService(db)
     return service.create_quote(quote_data)
+
+
+@router.post("/from-request/{request_id}", response_model=QuoteFromRequestResponse, status_code=201)
+def generate_quote_from_request(
+    request_id: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        parsed_request_id = uuid.UUID(request_id)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="request_id deve ser um UUID válido.") from None
+
+    service = QuoteService(db)
+    return service.generate_from_approved_request(parsed_request_id)
 
 
 @router.post(
@@ -91,3 +105,18 @@ def list_requests(
 ):
     service = RequestService(db)
     return service.list_all()
+
+
+@router.patch("/requests/{request_id}/status", response_model=RequestResponse)
+def update_request_status(
+    request_id: str,
+    data: RequestStatusUpdate,
+    db: Session = Depends(get_db),
+):
+    try:
+        parsed_request_id = uuid.UUID(request_id)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="request_id deve ser um UUID válido.") from None
+
+    service = RequestService(db)
+    return service.update_status(parsed_request_id, data)

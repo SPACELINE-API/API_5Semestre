@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,6 +16,15 @@ class RequestCreate(BaseModel):
     document: bytes | None = None
 
 
+class RequestStatusUpdate(BaseModel):
+    status: StatusEnum
+    reproval_reason: str | None = Field(default=None, max_length=500)
+
+    @property
+    def reason_is_required(self) -> bool:
+        return self.status == StatusEnum.REPROVED and not self.reproval_reason
+
+
 class RequestResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, ser_json_bytes="base64")
 
@@ -28,4 +37,7 @@ class RequestResponse(BaseModel):
     customer_need: str
     status: StatusEnum
     request_date: date
+    approved_at: datetime | None = None
+    reproved_at: datetime | None = None
+    reproval_reason: str | None = None
     document: bytes | None = None

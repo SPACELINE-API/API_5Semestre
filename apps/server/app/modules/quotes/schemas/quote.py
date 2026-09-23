@@ -16,3 +16,20 @@ class QuoteResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class QuoteFromRequestResponse(BaseModel):
+    id: uuid.UUID
+    request_id: uuid.UUID
+    status: str
+    customer_name: str
+    enterprise: str
+    email: str
+    original_language: str
+    translation_language: str
+    customer_need: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
