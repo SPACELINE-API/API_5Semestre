@@ -97,6 +97,7 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 	const [activeItem, setActiveItem] = useState<string>('Requisições');
 	const [adminExpanded, setAdminExpanded] = useState<boolean>(false);
 
+	const isRequestsActive = pathname.startsWith('/visualizar-requisicoes');
 	const isClientsActive = pathname.startsWith('/clientes');
 	const isOrdersActive = pathname.startsWith('/ordens-de-servico');
 	const isSupportAgentActive = pathname.startsWith('/support-agent');
@@ -178,7 +179,7 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 									icon={RequisicoesIcon}
 									label="Requisições"
 									isOpen={showExpanded}
-									active={!isKnownRoute && activeItem === 'Requisições'}
+									active={isRequestsActive}
 									onPress={() =>
 										navigate('/visualizar-requisicoes', 'Requisições')
 									}
