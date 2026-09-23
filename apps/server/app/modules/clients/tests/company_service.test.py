@@ -210,3 +210,103 @@ def test_delete_company_raises_404_when_not_found(db_session: Session) -> None:
         service.delete_company(uuid.uuid4())
 
     assert exc_info.value.status_code == 404
+
+
+def test_search_companies_by_name_matches_partial_case_insensitive(
+    db_session: Session,
+) -> None:
+    service = CompanyService(db_session)
+    service.create_company(make_company_data(legal_name="Acme Tecnologia Ltda"))
+    service.create_company(
+        make_company_data(legal_name="Globex Corporation", trade_name="Globex")
+    )
+
+    results, total = service.search_companies(name="acme")
+
+    assert total == 1
+    assert len(results) == 1
+    assert results[0].legal_name == "Acme Tecnologia Ltda"
+
+
+def test_search_companies_by_status(db_session: Session) -> None:
+    service = CompanyService(db_session)
+    active = service.create_company(make_company_data())
+    inactive = service.create_company(make_company_data())
+    service.update_company(inactive.id, CompanyUpdate(is_active=False))
+
+    results, total = service.search_companies(status=True)
+
+    assert total == 1
+    assert [company.id for company in results] == [active.id]
+
+
+def test_search_companies_by_product(db_session: Session) -> None:
+    service = CompanyService(db_session)
+    service.create_company(make_company_data(product="Traducao Juramentada"))
+    service.create_company(make_company_data(product="Legendagem"))
+
+    results, total = service.search_companies(product="traducao")
+
+    assert total == 1
+    assert len(results) == 1
+    assert results[0].product == "Traducao Juramentada"
+
+
+def test_search_companies_combines_filters(db_session: Session) -> None:
+    service = CompanyService(db_session)
+    match = service.create_company(
+        make_company_data(legal_name="Acme Tecnologia Ltda", product="Traducao")
+    )
+    service.create_company(make_company_data(legal_name="Acme Outra Filial", product="Legendagem"))
+
+    results, total = service.search_companies(name="Acme", product="Traducao")
+
+    assert total == 1
+    assert [company.id for company in results] == [match.id]
+
+
+def test_search_companies_without_filters_returns_all(db_session: Session) -> None:
+    service = CompanyService(db_session)
+    service.create_company(make_company_data())
+    service.create_company(make_company_data())
+
+    results, total = service.search_companies()
+
+    assert total == 2
+    assert len(results) == 2
+
+
+def test_search_companies_returns_empty_list_when_no_match(db_session: Session) -> None:
+    service = CompanyService(db_session)
+    service.create_company(make_company_data(legal_name="Acme Tecnologia Ltda"))
+
+    results, total = service.search_companies(name="Inexistente")
+
+    assert results == []
+    assert total == 0
+
+
+def test_search_companies_paginates_results(db_session: Session) -> None:
+    service = CompanyService(db_session)
+    for _ in range(5):
+        service.create_company(make_company_data())
+
+    first_page, total = service.search_companies(page=1, page_size=2)
+    second_page, _ = service.search_companies(page=2, page_size=2)
+
+    assert total == 5
+    assert len(first_page) == 2
+    assert len(second_page) == 2
+    assert {company.id for company in first_page}.isdisjoint(
+        {company.id for company in second_page}
+    )
+
+
+def test_search_companies_page_beyond_results_returns_empty(db_session: Session) -> None:
+    service = CompanyService(db_session)
+    service.create_company(make_company_data())
+
+    results, total = service.search_companies(page=2, page_size=20)
+
+    assert results == []
+    assert total == 1
