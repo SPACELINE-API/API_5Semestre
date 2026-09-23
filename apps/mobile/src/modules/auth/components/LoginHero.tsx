@@ -2,7 +2,7 @@ import { Text, View } from 'react-native';
 
 export function LoginHero() {
 	return (
-		<View className="flex-1 justify-center py-8 md:py-2">
+		<View className="w-full flex-none justify-center py-2 md:flex-1 md:py-2">
 			<View className="max-w-xl">
 				<View className="mb-7 self-start rounded-full border border-[#2f86d1]/35 bg-white/70 px-4 py-1.5">
 					<Text className="text-[11px] font-bold tracking-[2px] text-[#2478c2]">
