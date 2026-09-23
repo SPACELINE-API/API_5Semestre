@@ -4,6 +4,7 @@ from pathlib import Path
 
 from app.shared.database import Base
 from scripts import create_migration
+from scripts.apply_migrations import migration_sort_key
 
 
 def test_server_package_exposes_database_migration_commands() -> None:
@@ -62,3 +63,23 @@ def test_create_migration_name_uses_next_number_and_current_date(
 
     assert migration_name == "migration3_1209_1945"
     assert migration_stem == "migration3_1209_1945"
+
+
+def test_migrations_are_sorted_by_creation_number_not_filename(tmp_path: Path) -> None:
+    migrations = [
+        tmp_path / "migration10_2209_automatic_quote.sql",
+        tmp_path / "migration7_1709_1519.sql",
+        tmp_path / "0002_create_quotes_schema.sql",
+        tmp_path / "migration1_2026_09_12.sql",
+        tmp_path / "migration9_2109_1500.sql",
+    ]
+
+    ordered = sorted(migrations, key=migration_sort_key)
+
+    assert [path.name for path in ordered] == [
+        "migration1_2026_09_12.sql",
+        "0002_create_quotes_schema.sql",
+        "migration7_1709_1519.sql",
+        "migration9_2109_1500.sql",
+        "migration10_2209_automatic_quote.sql",
+    ]

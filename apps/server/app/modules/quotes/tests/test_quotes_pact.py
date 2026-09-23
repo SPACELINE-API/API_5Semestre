@@ -79,5 +79,17 @@ def test_generate_quote_from_request_error_contracts() -> None:
         .with_request("POST", "/api/quotes/from-request/323e4567-e89b-12d3-a456-426614174000")
         .will_respond_with(404)
     )
+    (
+        pact.upon_receiving("a request to generate a duplicate quote")
+        .given("the request already has a quote")
+        .with_request("POST", "/api/quotes/from-request/423e4567-e89b-12d3-a456-426614174000")
+        .will_respond_with(409)
+    )
+    (
+        pact.upon_receiving("a request to generate a quote with an invalid path id")
+        .given("the path id is invalid")
+        .with_request("POST", "/api/quotes/from-request/not-an-uuid")
+        .will_respond_with(422)
+    )
 
     pact.write_file(PACT_DIR)

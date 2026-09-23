@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Enum as SQLEnum
@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 class StatusEnum(enum.StrEnum):
     PENDING = "pending"
     APPROVED = "approved"
+    REPROVED = "reproved"
 
 
 class Request(Base):
@@ -38,5 +39,11 @@ class Request(Base):
     status: Mapped[StatusEnum] = mapped_column(SQLEnum(StatusEnum), default=StatusEnum.PENDING)
 
     request_date: Mapped[date] = mapped_column(server_default=func.current_date())
+
+    approved_at: Mapped[datetime | None]
+
+    reproved_at: Mapped[datetime | None]
+
+    reproval_reason: Mapped[str | None] = mapped_column(String(500))
 
     quote: Mapped["Quote | None"] = relationship("Quote", back_populates="request", uselist=False)

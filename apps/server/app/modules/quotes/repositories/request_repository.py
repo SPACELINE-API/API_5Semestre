@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -29,3 +30,19 @@ class RequestRepository:
             .order_by(Request.request_date.desc())
             .first()
         )
+
+    def update_status(
+        self, request: Request, status: object, reproval_reason: str | None = None
+    ) -> Request:
+        request.status = status
+        if getattr(status, "value", status) == "approved":
+            request.approved_at = datetime.now(UTC)
+            request.reproved_at = None
+            request.reproval_reason = None
+        elif getattr(status, "value", status) == "reproved":
+            request.reproved_at = datetime.now(UTC)
+            request.approved_at = None
+            request.reproval_reason = reproval_reason
+        self.db.commit()
+        self.db.refresh(request)
+        return request

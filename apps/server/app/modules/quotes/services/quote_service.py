@@ -25,7 +25,9 @@ class QuoteService:
     def generate_from_approved_request(self, request_id: uuid.UUID) -> Quote:
         request = self.request_repository.get_by_id(request_id)
         if request is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Requisição não encontrada.")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Requisição não encontrada."
+            )
 
         request_status = getattr(request.status, "value", request.status)
         if request_status != "approved":
