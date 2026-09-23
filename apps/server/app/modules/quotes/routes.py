@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 
 from app.modules.quotes.schemas.quote import QuoteCreate, QuoteResponse
@@ -61,10 +61,26 @@ def list_translation_items(
 
 
 @router.post("/requests", response_model=RequestResponse, status_code=201)
-def create_request(
-    request_data: RequestCreate,
+async def create_request(
+    customer_name: str = Form(..., max_length=255),
+    enterprise: str = Form(..., max_length=155),
+    email: str = Form(..., max_length=155),
+    original_language: str = Form(..., max_length=50),
+    translation_language: str = Form(..., max_length=50),
+    customer_need: str = Form(..., max_length=100),
+    document: UploadFile | None = File(None),
     db: Session = Depends(get_db),  # noqa: B008
 ):
+    document_bytes = await document.read() if document else None
+    request_data = RequestCreate(
+        customer_name=customer_name,
+        enterprise=enterprise,
+        email=email,
+        original_language=original_language,
+        translation_language=translation_language,
+        customer_need=customer_need,
+        document=document_bytes,
+    )
     service = RequestService(db)
     return service.create(request_data)
 
