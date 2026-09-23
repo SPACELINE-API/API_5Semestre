@@ -27,16 +27,11 @@ export default function ViewRequestPage() {
 				</Text>
 
 				{loading ? (
-					<Text className="text-gray-500 mt-8">
-						Carregando...
-					</Text>
+					<Text className="text-gray-500 mt-8">Carregando...</Text>
 				) : requests.length > 0 ? (
 					<View className="flex-row flex-wrap gap-4 mt-8">
 						{requests.map((request) => (
-							<CardRequest
-								key={request.id}
-								{...request}
-							/>
+							<CardRequest key={request.id} {...request} />
 						))}
 					</View>
 				) : (
