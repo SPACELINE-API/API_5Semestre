@@ -1,3 +1,4 @@
+import re
 import sys
 from importlib import import_module
 from pathlib import Path
@@ -7,13 +8,21 @@ import psycopg
 SERVER_PATH = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SERVER_PATH))
 
-MIGRATIONS_PATH = Path("migrations")
+MIGRATIONS_PATH = SERVER_PATH / "migrations"
 MIGRATION_TABLE_NAME = "schema_migrations"
 get_database_url = import_module("app.shared.database").get_database_url
 
 
+def migration_sort_key(path: Path) -> tuple[int, str]:
+    match = re.match(r"(?:migration)?(\d+)_", path.name)
+    if match is None:
+        raise ValueError(f"Nome de migration inválido: {path.name}")
+
+    return int(match.group(1)), path.name
+
+
 def _migration_files() -> list[Path]:
-    return sorted(MIGRATIONS_PATH.glob("*.sql"))
+    return sorted(MIGRATIONS_PATH.glob("*.sql"), key=migration_sort_key)
 
 
 def apply_migrations() -> list[str]:
@@ -21,14 +30,12 @@ def apply_migrations() -> list[str]:
 
     with psycopg.connect(_get_psycopg_database_url()) as connection:
         with connection.cursor() as cursor:
-            cursor.execute(
-                f"""
+            cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS {MIGRATION_TABLE_NAME} (
                     filename TEXT PRIMARY KEY,
                     applied_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
                 )
-                """
-            )
+                """)
 
             for migration_path in _migration_files():
                 cursor.execute(
