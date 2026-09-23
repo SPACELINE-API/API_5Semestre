@@ -58,7 +58,7 @@ export default function AppLayout() {
 
 	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
 
-	if (!isPublic && !getSession()) return <Redirect href={'/Public' as never} />;
+	if (!isPublic && !getSession()) return <Redirect href={'/login' as never} />;
 	if (isPublic)
 		return (
 			<KeyboardProvider>
