@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
-from app.modules.quotes.models.request import Request
+from app.modules.quotes.models.request import Request, StatusEnum
 
 
 class RequestRepository:
@@ -32,7 +32,7 @@ class RequestRepository:
         )
 
     def update_status(
-        self, request: Request, status: object, reproval_reason: str | None = None
+        self, request: Request, status: StatusEnum, reproval_reason: str | None = None
     ) -> Request:
         request.status = status
         if getattr(status, "value", status) == "approved":
