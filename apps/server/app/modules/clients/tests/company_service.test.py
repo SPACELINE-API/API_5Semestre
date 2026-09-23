@@ -217,9 +217,7 @@ def test_search_companies_by_name_matches_partial_case_insensitive(
 ) -> None:
     service = CompanyService(db_session)
     service.create_company(make_company_data(legal_name="Acme Tecnologia Ltda"))
-    service.create_company(
-        make_company_data(legal_name="Globex Corporation", trade_name="Globex")
-    )
+    service.create_company(make_company_data(legal_name="Globex Corporation", trade_name="Globex"))
 
     results, total = service.search_companies(name="acme")
 
