@@ -106,7 +106,31 @@ def test_list_companies_returns_created_companies(client: TestClient) -> None:
     response = client.get("/api/clients")
 
     assert response.status_code == 200
-    assert len(response.json()) == 2
+    body = response.json()
+    assert body["total"] == 2
+    assert len(body["items"]) == 2
+    assert body["page"] == 1
+    assert body["page_size"] == 20
+
+
+def test_list_companies_paginates(client: TestClient) -> None:
+    for _ in range(3):
+        client.post("/api/clients", json=make_company_payload())
+
+    response = client.get("/api/clients?page=1&page_size=2")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 3
+    assert len(body["items"]) == 2
+    assert body["page"] == 1
+    assert body["page_size"] == 2
+
+
+def test_list_companies_invalid_page_returns_422(client: TestClient) -> None:
+    response = client.get("/api/clients?page=0")
+
+    assert response.status_code == 422
 
 
 def test_get_company_returns_matching_company(client: TestClient) -> None:
