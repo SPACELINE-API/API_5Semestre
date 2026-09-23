@@ -53,4 +53,5 @@ def listar_usuarios(email: str = "", role: str = "", apenas_ativos: bool = False
     finally:
         db.close()
 
+
 listar_usuarios.__test__ = False  # type: ignore[attr-defined]

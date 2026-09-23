@@ -20,41 +20,32 @@ def extract_final_response(events) -> str:
     return ""
 
 
+async def run_support_agent(texto: str, user_id: str) -> str:
+    app_name = "support_agents"
+    session_service = InMemorySessionService()
+    session = await session_service.create_session(app_name=app_name, user_id=user_id)
+    runner = Runner(app_name=app_name, agent=root_agent, session_service=session_service)
+    message = types.Content(role="user", parts=[types.Part(text=texto)])
+    events = [
+        event
+        async for event in runner.run_async(
+            user_id=user_id,
+            session_id=session.id,
+            new_message=message,
+        )
+    ]
+    return extract_final_response(events)
+
+
 @inngest_client.create_function(
     fn_id="support-agent-test",
     trigger=inngest.TriggerEvent(event="support/agent.test"),
 )
 async def test_support_agent(ctx: inngest.Context) -> dict:
     text = ctx.event.data.get("texto", "Olá, faça um teste.")
-
-    async def _run_agent():
-        app_name = "support_agents"
-        user_id = "inngest-test"
-        session_service = InMemorySessionService()
-        session = await session_service.create_session(
-            app_name=app_name,
-            user_id=user_id,
-        )
-        runner = Runner(
-            app_name=app_name,
-            agent=root_agent,
-            session_service=session_service,
-        )
-        message = types.Content(
-            role="user",
-            parts=[types.Part(text=text)],
-        )
-        events = [
-            event
-            async for event in runner.run_async(
-                user_id=user_id,
-                session_id=session.id,
-                new_message=message,
-            )
-        ]
-        return extract_final_response(events)
-
-    response = await ctx.step.run("run-support-agent", _run_agent)
+    response = await ctx.step.run(
+        "run-support-agent", lambda: run_support_agent(text, "inngest-test")
+    )
     return {
         "status": "success",
         "data": {
@@ -66,23 +57,31 @@ async def test_support_agent(ctx: inngest.Context) -> dict:
 
 
 @inngest_client.create_function(
+    fn_id="support-agent-chat",
+    trigger=inngest.TriggerEvent(event="support/chat.ask"),
+)
+async def process_chat_message(ctx: inngest.Context) -> dict:
+    texto = ctx.event.data.get("texto", "")
+    resposta = await ctx.step.run(
+        "run-support-agent", lambda: run_support_agent(texto, "chat-support")
+    )
+    return {"resposta": resposta}
+
+
+@inngest_client.create_function(
     fn_id="support-agent-process-ticket",
     trigger=inngest.TriggerEvent(event="support/ticket.process"),
 )
 async def process_support_ticket(ctx: inngest.Context) -> dict:
-    async def _prepare_context():
-        ticket_id = ctx.event.data.get("ticket_id")
-        return {"ticket_id": ticket_id, "status": "context_ready"}
-
     async def _execute_llm():
         return {"response": "Resposta gerada pelo agente de suporte", "status": "completed"}
 
     llm_result = await ctx.step.run("generate-llm-response", _execute_llm)
-
     return {"status": "success", "data": llm_result}
 
 
 support_agent_inngest_functions = [
     test_support_agent,
+    process_chat_message,
     process_support_ticket,
 ]

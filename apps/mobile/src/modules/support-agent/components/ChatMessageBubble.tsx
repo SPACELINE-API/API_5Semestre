@@ -1,11 +1,20 @@
 import { Bot, User } from 'lucide-react-native';
 import { Text, View } from 'react-native';
+import Markdown from 'react-native-markdown-display';
 
 type ChatMessageBubbleProps = {
 	role: 'user' | 'agent';
 	message: string;
 	timestamp: string;
 	loading?: boolean;
+};
+
+const markdownStyles = {
+	body: { fontSize: 14, lineHeight: 24, color: '#1a2942' },
+	paragraph: { marginTop: 0, marginBottom: 4 },
+	strong: { fontWeight: '700' as const },
+	bullet_list: { marginVertical: 2 },
+	list_item: { marginVertical: 1 },
 };
 
 export function ChatMessageBubble({
@@ -37,11 +46,11 @@ export function ChatMessageBubble({
 						isUser ? 'rounded-tr-sm bg-[#2d83cd]' : 'rounded-tl-sm bg-[#e5f1fc]'
 					} ${loading ? 'opacity-60' : ''}`}
 				>
-					<Text
-						className={`text-sm leading-6 ${isUser ? 'text-white' : 'text-[#1a2942]'}`}
-					>
-						{message}
-					</Text>
+					{isUser ? (
+						<Text className="text-sm leading-6 text-white">{message}</Text>
+					) : (
+						<Markdown style={markdownStyles}>{message}</Markdown>
+					)}
 				</View>
 				{timestamp ? (
 					<Text className="mt-1.5 text-xs text-[#8a99b3]">{timestamp}</Text>
