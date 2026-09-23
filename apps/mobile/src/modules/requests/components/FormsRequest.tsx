@@ -66,7 +66,7 @@ export default function FormsRequest() {
 			setOriginalLanguage('');
 			setTranslationLanguage('');
 			setDocument(null);
-			router.replace('/login');
+			setTimeout(() => router.replace('/login'), 1500);
 		} else if (result.status === 400) {
 			setError(
 				'Você precisa aguardar no mínimo uma semana para enviar outra solicitação.',
