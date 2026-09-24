@@ -327,6 +327,189 @@
         "status": 422
       },
       "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to search translators with valid filters",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "at least one active translator matching the filters exists"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/translators",
+        "query": {
+          "language": [
+            "en"
+          ],
+          "specialty": [
+            "Juridico"
+          ],
+          "status": [
+            "true"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [
+              {
+                "created_at": "2023-01-01T00:00:00Z",
+                "email": "joao.tradutor@spaceline.com.br",
+                "id": "00000000-0000-0000-0000-000000000001",
+                "is_active": true,
+                "language_pairs": [
+                  {
+                    "id": "00000000-0000-0000-0000-000000000003",
+                    "language_pair_id": "00000000-0000-0000-0000-000000000004",
+                    "proficiency_level": "fluent"
+                  }
+                ],
+                "name": "Joao Tradutor",
+                "phone": "11987654321",
+                "qualifications": [
+                  {
+                    "description": null,
+                    "id": "00000000-0000-0000-0000-000000000002",
+                    "name": "Juridico"
+                  }
+                ],
+                "updated_at": "2023-01-01T00:00:00Z"
+              }
+            ],
+            "page": 1,
+            "page_size": 20,
+            "total": 1
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to search translators without filters",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no filters are provided"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/translators"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [],
+            "page": 1,
+            "page_size": 20,
+            "total": 0
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to search translators with pagination",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "more translators exist than fit in a single page"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/translators",
+        "query": {
+          "page": [
+            "2"
+          ],
+          "page_size": [
+            "10"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [],
+            "page": 2,
+            "page_size": 10,
+            "total": 15
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to search translators with an invalid status filter",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no translator data is required"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/translators",
+        "query": {
+          "status": [
+            "not-a-boolean"
+          ]
+        }
+      },
+      "response": {
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to search translators with an invalid page number",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no translator data is required"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/translators",
+        "query": {
+          "page": [
+            "0"
+          ]
+        }
+      },
+      "response": {
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
     }
   ],
   "metadata": {
