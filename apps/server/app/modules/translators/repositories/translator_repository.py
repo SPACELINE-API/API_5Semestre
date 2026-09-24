@@ -1,5 +1,6 @@
 import uuid
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.modules.translators.models.language_pair import LanguagePair, TranslatorLanguagePair
@@ -25,6 +26,45 @@ class TranslatorRepository:
     # LISTA TODOS OS TRADUTORES
     def list_all(self) -> list[Translator]:
         return self.db.query(Translator).all()
+
+    # PESQUISA TRADUTORES POR IDIOMA, ESPECIALIDADE E DISPONIBILIDADE, PAGINADA
+    def search(
+        self,
+        language: str | None = None,
+        specialty: str | None = None,
+        status: bool | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Translator], int]:
+        query = self.db.query(Translator)
+
+        if language:
+            query = (
+                query.join(Translator.language_pairs)
+                .join(TranslatorLanguagePair.language_pair)
+                .filter(
+                    or_(
+                        LanguagePair.source_language.ilike(language),
+                        LanguagePair.target_language.ilike(language),
+                    )
+                )
+            )
+
+        if specialty:
+            query = query.join(Translator.qualifications).filter(
+                TechnicalQualification.name.ilike(f"%{specialty}%")
+            )
+
+        if status is not None:
+            query = query.filter(Translator.is_active == status)
+
+        if language or specialty:
+            query = query.distinct()
+
+        total = query.count()
+        items = query.offset((page - 1) * page_size).limit(page_size).all()
+
+        return items, total
 
     # BUSCA QUALIFICACOES PELOS IDS
     def get_qualifications_by_ids(self, ids: list[uuid.UUID]) -> list[TechnicalQualification]:

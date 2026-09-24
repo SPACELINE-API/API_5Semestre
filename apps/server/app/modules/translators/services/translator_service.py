@@ -67,6 +67,22 @@ class TranslatorService:
     def list_all(self) -> list[Translator]:
         return self.repo.list_all()
 
+    def search(
+        self,
+        language: str | None = None,
+        specialty: str | None = None,
+        status: bool | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Translator], int]:
+        return self.repo.search(
+            language=language,
+            specialty=specialty,
+            status=status,
+            page=page,
+            page_size=page_size,
+        )
+
     def update(self, translator_id: uuid.UUID, data: TranslatorUpdate) -> Translator:
         translator = self._get_translator_or_404(translator_id)
 

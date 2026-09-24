@@ -1,11 +1,12 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.modules.translators.schemas.translator import (
     TranslatorCreate,
+    TranslatorPage,
     TranslatorResponse,
     TranslatorUpdate,
 )
@@ -25,11 +26,25 @@ def create_translator(
     return TranslatorService(db).create(data)
 
 
-@router.get("", response_model=list[TranslatorResponse])
+@router.get("", response_model=TranslatorPage)
 def list_translators(
     db: DbSession,
+    language: str | None = None,
+    specialty: str | None = None,
+    status: bool | None = None,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
 ):
-    return TranslatorService(db).list_all()
+    service = TranslatorService(db)
+    items, total = service.search(
+        language=language, specialty=specialty, status=status, page=page, page_size=page_size
+    )
+    return TranslatorPage(
+        items=[TranslatorResponse.model_validate(item) for item in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get("/{translator_id}", response_model=TranslatorResponse)

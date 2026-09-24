@@ -63,3 +63,11 @@ class TranslatorResponse(BaseModel):
     updated_at: datetime
     qualifications: list[QualificationResponse] = []
     language_pairs: list[LanguagePairResponse] = []
+
+
+# RESPOSTA PAGINADA DA PESQUISA DE TRADUTORES
+class TranslatorPage(BaseModel):
+    items: list[TranslatorResponse]
+    total: int
+    page: int
+    page_size: int
