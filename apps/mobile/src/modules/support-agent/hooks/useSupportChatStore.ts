@@ -31,8 +31,8 @@ function sleep(ms: number) {
 
 async function pollForAnswer(
 	eventId: string,
-	maxAttempts = 60,
-	intervalMs = 150000,
+	maxAttempts = 200,
+	intervalMs = 500,
 ): Promise<string> {
 	for (let attempt = 0; attempt < maxAttempts; attempt++) {
 		const result = await consultarStatusPergunta(eventId);

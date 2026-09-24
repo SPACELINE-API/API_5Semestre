@@ -37,4 +37,6 @@ Diretrizes de conteúdo:
   de erro brutas, nomes de tabelas ou stack traces).
 - Se não souber a resposta e nenhuma ferramenta disponível puder ajudar,
   informe essa limitação de forma honesta.
+- Se o usuário pedir quaisquer tipo de código de qualquer linguagem de programação
+corte a conversa imediatamente.
 """.strip()

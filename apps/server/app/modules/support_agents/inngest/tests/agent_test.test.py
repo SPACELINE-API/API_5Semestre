@@ -49,7 +49,7 @@ def test_agente_teste_publica_evento_e_retorna_201(monkeypatch):
 def test_agente_teste_rejeita_texto_vazio():
     response = client.post("/api/suporte/agente/teste", json={"texto": ""})
 
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_agente_teste_retorna_502_quando_inngest_falha(monkeypatch):
@@ -80,7 +80,7 @@ def test_criar_pergunta_chat_enfileira_evento_e_retorna_event_id(monkeypatch):
 def test_criar_pergunta_chat_rejeita_texto_vazio():
     response = client.post("/api/suporte/chat", json={"texto": ""})
 
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_criar_pergunta_chat_retorna_502_quando_inngest_falha(monkeypatch):
@@ -119,7 +119,7 @@ async def test_consultar_status_pergunta_completed(monkeypatch):
     monkeypatch.setattr(
         support_agent_services.httpx,
         "AsyncClient",
-        lambda: _fake_async_client(mock_response),
+        lambda *args, **kwargs: _fake_async_client(mock_response),
     )
 
     resultado = await support_agent_services.consultar_status_pergunta("event-chat-123")
@@ -136,7 +136,7 @@ async def test_consultar_status_pergunta_ainda_pendente(monkeypatch):
     monkeypatch.setattr(
         support_agent_services.httpx,
         "AsyncClient",
-        lambda: _fake_async_client(mock_response),
+        lambda *args, **kwargs: _fake_async_client(mock_response),
     )
 
     resultado = await support_agent_services.consultar_status_pergunta("event-chat-456")
@@ -153,7 +153,7 @@ async def test_consultar_status_pergunta_running_ainda_conta_como_pendente(monke
     monkeypatch.setattr(
         support_agent_services.httpx,
         "AsyncClient",
-        lambda: _fake_async_client(mock_response),
+        lambda *args, **kwargs: _fake_async_client(mock_response),
     )
 
     resultado = await support_agent_services.consultar_status_pergunta("event-chat-789")
@@ -172,7 +172,7 @@ async def test_consultar_status_pergunta_com_falha(monkeypatch):
     monkeypatch.setattr(
         support_agent_services.httpx,
         "AsyncClient",
-        lambda: _fake_async_client(mock_response),
+        lambda *args, **kwargs: _fake_async_client(mock_response),
     )
 
     resultado = await support_agent_services.consultar_status_pergunta("event-chat-999")

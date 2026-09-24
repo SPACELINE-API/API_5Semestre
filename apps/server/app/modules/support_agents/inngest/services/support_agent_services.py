@@ -79,10 +79,16 @@ async def enfileirar_pergunta_chat(payload: SuportePerguntaRequest) -> dict:
 
 
 async def consultar_status_pergunta(event_id: str) -> dict:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{INNGEST_DEV_URL}/v1/events/{event_id}/runs")
-        response.raise_for_status()
-        body = response.json()
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
+            response = await client.get(f"{INNGEST_DEV_URL}/v1/events/{event_id}/runs")
+            response.raise_for_status()
+            body = response.json()
+    except httpx.ConnectTimeout:
+        logger.warning("Timeout ao conectar no Inngest Dev Server (%s)", INNGEST_DEV_URL)
+        return {"status": "pending"}  # trata como "ainda processando" em vez de quebrar
+    except httpx.HTTPStatusError as exc:
+        return {"status": "error", "error": f"Erro HTTP {exc.response.status_code}"}
 
     runs = body.get("data", [])
     if not runs:
