@@ -7,7 +7,9 @@ const DEBOUNCE_MS = 300;
 const DEFAULT_PAGE_SIZE = 100;
 const EMPTY_FILTERS: TranslatorSearchParams = {};
 
-export function useTranslators(filters: TranslatorSearchParams = EMPTY_FILTERS) {
+export function useTranslators(
+	filters: TranslatorSearchParams = EMPTY_FILTERS,
+) {
 	// Serializa os filtros para uma chave estável (string): o chamador costuma
 	// passar um objeto literal novo a cada render, o que quebraria a igualdade
 	// de referência usada pelo debounce e causaria um loop de refetch.

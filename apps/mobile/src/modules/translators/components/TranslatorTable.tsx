@@ -53,7 +53,10 @@ export function TranslatorTable({ translators }: TranslatorTableProps) {
 						</View>
 
 						<View className="hidden w-[24%] min-w-0 flex-none pr-3 md:flex">
-							<Text className="font-inter text-gray-700 text-sm" numberOfLines={1}>
+							<Text
+								className="font-inter text-gray-700 text-sm"
+								numberOfLines={1}
+							>
 								{translator.email}
 							</Text>
 							{translator.phone && (
@@ -67,7 +70,10 @@ export function TranslatorTable({ translators }: TranslatorTableProps) {
 						</View>
 
 						<View className="hidden w-[24%] min-w-0 flex-none pr-3 md:flex">
-							<Text className="font-inter text-gray-600 text-sm" numberOfLines={2}>
+							<Text
+								className="font-inter text-gray-600 text-sm"
+								numberOfLines={2}
+							>
 								{translator.qualifications.length > 0
 									? translator.qualifications.map((q) => q.name).join(', ')
 									: 'Nenhuma cadastrada'}

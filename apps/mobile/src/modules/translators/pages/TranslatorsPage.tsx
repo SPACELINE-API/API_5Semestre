@@ -30,7 +30,9 @@ export function TranslatorsPage() {
 		language: languageFilter || undefined,
 		specialty: specialtyFilter || undefined,
 		status:
-			availabilityFilter === 'all' ? undefined : availabilityFilter === 'active',
+			availabilityFilter === 'all'
+				? undefined
+				: availabilityFilter === 'active',
 	});
 
 	const hasActiveFilters =

@@ -1,5 +1,8 @@
 import { apiGet } from '../../../shared/services/apiClient';
-import type { TranslatorPage, TranslatorSearchParams } from '../types/translator';
+import type {
+	TranslatorPage,
+	TranslatorSearchParams,
+} from '../types/translator';
 
 const TRANSLATORS_PATH = '/api/translators';
 
