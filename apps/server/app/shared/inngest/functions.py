@@ -44,8 +44,8 @@ async def run_support_agent(texto: str, user_id: str) -> str:
 async def test_support_agent(ctx: inngest.Context) -> dict:
     text = ctx.event.data.get("texto", "Olá, faça um teste.")
 
-    if not text:
-        return {"status": "error", "data": {"message": "Texto vazio."}}
+    if not isinstance(text, str):
+        raise ValueError("O campo 'texto' deve ser uma string")
 
     response = await ctx.step.run(
         "run-support-agent", lambda: run_support_agent(text, "inngest-test")
@@ -67,8 +67,8 @@ async def test_support_agent(ctx: inngest.Context) -> dict:
 async def process_chat_message(ctx: inngest.Context) -> dict:
     texto = ctx.event.data.get("texto", "")
 
-    if not texto:
-        return {"status": "error", "data": {"message": "Texto vazio."}}
+    if not isinstance(texto, str):
+        raise ValueError("O campo 'texto' deve ser uma string")
 
     resposta = await ctx.step.run(
         "run-support-agent", lambda: run_support_agent(texto, "chat-support")
