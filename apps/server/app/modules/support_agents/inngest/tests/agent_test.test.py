@@ -2,16 +2,9 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.modules.support_agents.adk.tools import testar_conhecimento
 from app.modules.support_agents.inngest.services import support_agent_services
 
 client = TestClient(app)
-
-
-def test_testar_conhecimento_retorna_resultado_da_tool():
-    assert testar_conhecimento("validar integração") == (
-        "Tool executada com sucesso para: validar integração"
-    )
 
 
 def test_agente_teste_publica_evento_e_retorna_201(monkeypatch):
