@@ -79,11 +79,16 @@ test.describe('Service order details', () => {
 				body: JSON.stringify([COMPANY]),
 			});
 		});
-		await page.route('**/api/translators', async (route) => {
+		await page.route('**/api/translators*', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([TRANSLATOR]),
+				body: JSON.stringify({
+					items: [TRANSLATOR],
+					total: 1,
+					page: 1,
+					page_size: 100,
+				}),
 			});
 		});
 		await page.route('**/api/service-orders/order-1', async (route) => {
@@ -164,11 +169,16 @@ test.describe('Service order details', () => {
 				body: JSON.stringify([COMPANY]),
 			});
 		});
-		await page.route('**/api/translators', async (route) => {
+		await page.route('**/api/translators*', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([TRANSLATOR]),
+				body: JSON.stringify({
+					items: [TRANSLATOR],
+					total: 1,
+					page: 1,
+					page_size: 100,
+				}),
 			});
 		});
 		await page.route('**/api/service-orders/order-1', async (route) => {
