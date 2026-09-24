@@ -327,6 +327,185 @@
         "status": 422
       },
       "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to search companies with valid filters",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "at least one active company matching the filters exists"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/clients",
+        "query": {
+          "name": [
+            "Acme"
+          ],
+          "product": [
+            "Traducao"
+          ],
+          "status": [
+            "true"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [
+              {
+                "city": "Sao Paulo",
+                "cnpj": "11444777000161",
+                "complement": null,
+                "created_at": "2023-01-01T00:00:00Z",
+                "email": "contato@acmetech.com",
+                "id": "00000000-0000-0000-0000-000000000001",
+                "industry": "juridico",
+                "is_active": true,
+                "legal_name": "Acme Tecnologia Ltda",
+                "neighborhood": "Bela Vista",
+                "number": "1000",
+                "phone": "11987654321",
+                "state": "SP",
+                "street": "Avenida Paulista",
+                "trade_name": "Acme Tech",
+                "updated_at": "2023-01-01T00:00:00Z",
+                "zip_code": "01310-100"
+              }
+            ],
+            "page": 1,
+            "page_size": 20,
+            "total": 1
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to search companies without filters",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no filters are provided"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/clients"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [],
+            "page": 1,
+            "page_size": 20,
+            "total": 0
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to search companies with pagination",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "more companies exist than fit in a single page"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/clients",
+        "query": {
+          "page": [
+            "2"
+          ],
+          "page_size": [
+            "10"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [],
+            "page": 2,
+            "page_size": 10,
+            "total": 15
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to search companies with an invalid status filter",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no company data is required"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/clients",
+        "query": {
+          "status": [
+            "not-a-boolean"
+          ]
+        }
+      },
+      "response": {
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to search companies with an invalid page number",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no company data is required"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/clients",
+        "query": {
+          "page": [
+            "0"
+          ]
+        }
+      },
+      "response": {
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
     }
   ],
   "metadata": {

@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PACT_PATH = ROOT / "web-server.json"
+PACT_PATH = ROOT / "pacts" / "web-server.json"
 PACT_TESTS = [
     "app/modules/auth/tests/pact_login.test.py",
     "app/modules/quotes/tests/test_translation_items_pact.py",

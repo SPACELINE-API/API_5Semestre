@@ -4,7 +4,7 @@ from pact import Pact
 
 from app.shared.pact_writer import write_pact
 
-PACT_DIR = Path(__file__).parents[4]
+PACT_DIR = Path(__file__).parents[4] / "pacts"
 
 
 def test_search_companies_success_contract() -> None:
@@ -27,7 +27,6 @@ def test_search_companies_success_contract() -> None:
                         "cnpj": "11444777000161",
                         "is_active": True,
                         "industry": "juridico",
-                        "product": "Traducao Juramentada",
                         "phone": "11987654321",
                         "email": "contato@acmetech.com",
                         "zip_code": "01310-100",
