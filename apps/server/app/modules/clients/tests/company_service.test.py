@@ -14,7 +14,9 @@ from app.modules.clients.schemas.company import (
 )
 from app.modules.clients.services.company_service import CompanyService
 from app.modules.contacts.models.contact import Contact
+from app.modules.quotes.models.quote import Quote
 from app.modules.service_orders.models.service_order import ServiceOrder
+from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 from app.shared.database import Base, get_database_url
 
 _FIRST_DV_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
@@ -43,7 +45,9 @@ def db_session():
         if transaction.nested and not transaction._parent.nested:
             session.begin_nested()
 
+    session.query(ServiceOrderItem).delete()
     session.query(ServiceOrder).delete()
+    session.query(Quote).delete()
     session.query(Contact).delete()
     session.query(Company).delete()
 
@@ -74,6 +78,32 @@ def make_company_data(**overrides) -> CompanyCreate:
     }
     data.update(overrides)
     return CompanyCreate(**data)
+
+
+def add_service_order_item(
+    db_session: Session, company: Company, document_type: str
+) -> ServiceOrderItem:
+    quote = Quote()
+    db_session.add(quote)
+    db_session.flush()
+
+    service_order = ServiceOrder(
+        quote_id=quote.id,
+        company_id=company.id,
+        project_name=f"Projeto {document_type}",
+    )
+    db_session.add(service_order)
+    db_session.flush()
+
+    item = ServiceOrderItem(
+        service_order_id=service_order.id,
+        source_language="pt",
+        target_language="en",
+        document_type=document_type,
+    )
+    db_session.add(item)
+    db_session.commit()
+    return item
 
 
 def test_create_company_success(db_session: Session) -> None:
@@ -240,22 +270,35 @@ def test_search_companies_by_status(db_session: Session) -> None:
 
 def test_search_companies_by_product(db_session: Session) -> None:
     service = CompanyService(db_session)
-    service.create_company(make_company_data(product="Traducao Juramentada"))
-    service.create_company(make_company_data(product="Legendagem"))
+    with_translation = service.create_company(make_company_data())
+    with_subtitling = service.create_company(make_company_data())
+    add_service_order_item(db_session, with_translation, document_type="Traducao Juramentada")
+    add_service_order_item(db_session, with_subtitling, document_type="Legendagem")
 
     results, total = service.search_companies(product="traducao")
 
     assert total == 1
-    assert len(results) == 1
-    assert results[0].product == "Traducao Juramentada"
+    assert [company.id for company in results] == [with_translation.id]
+
+
+def test_search_companies_by_product_matches_any_item(db_session: Session) -> None:
+    service = CompanyService(db_session)
+    company = service.create_company(make_company_data())
+    add_service_order_item(db_session, company, document_type="Legendagem")
+    add_service_order_item(db_session, company, document_type="Traducao Juramentada")
+
+    results, total = service.search_companies(product="traducao")
+
+    assert total == 1
+    assert [company_result.id for company_result in results] == [company.id]
 
 
 def test_search_companies_combines_filters(db_session: Session) -> None:
     service = CompanyService(db_session)
-    match = service.create_company(
-        make_company_data(legal_name="Acme Tecnologia Ltda", product="Traducao")
-    )
-    service.create_company(make_company_data(legal_name="Acme Outra Filial", product="Legendagem"))
+    match = service.create_company(make_company_data(legal_name="Acme Tecnologia Ltda"))
+    other = service.create_company(make_company_data(legal_name="Acme Outra Filial"))
+    add_service_order_item(db_session, match, document_type="Traducao")
+    add_service_order_item(db_session, other, document_type="Legendagem")
 
     results, total = service.search_companies(name="Acme", product="Traducao")
 
