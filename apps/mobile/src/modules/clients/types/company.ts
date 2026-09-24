@@ -37,3 +37,18 @@ export type CompanyCreateInput = {
 export type CompanyUpdateInput = CompanyCreateInput & {
 	is_active: boolean;
 };
+
+export type CompanyPage = {
+	items: Company[];
+	total: number;
+	page: number;
+	page_size: number;
+};
+
+export type CompanySearchParams = {
+	name?: string;
+	status?: boolean;
+	product?: string;
+	page?: number;
+	page_size?: number;
+};

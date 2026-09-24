@@ -1,9 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
-import { createCompany, listCompanies } from '../services/companyService';
-import type { Company, CompanyCreateInput } from '../types/company';
+import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
+import { createCompany, searchCompanies } from '../services/companyService';
+import type {
+	Company,
+	CompanyCreateInput,
+	CompanySearchParams,
+} from '../types/company';
 
-export function useCompanies() {
+const DEBOUNCE_MS = 300;
+const DEFAULT_PAGE_SIZE = 100;
+const EMPTY_FILTERS: CompanySearchParams = {};
+
+export function useCompanies(filters: CompanySearchParams = EMPTY_FILTERS) {
+	// Serializa os filtros para uma chave estável (string): o chamador costuma
+	// passar um objeto literal novo a cada render, o que quebraria a igualdade
+	// de referência usada pelo debounce e causaria um loop de refetch.
+	const filtersKey = JSON.stringify(filters);
+	const debouncedFiltersKey = useDebouncedValue(filtersKey, DEBOUNCE_MS);
+
 	const [companies, setCompanies] = useState<Company[]>([]);
+	const [total, setTotal] = useState(0);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -12,14 +28,18 @@ export function useCompanies() {
 		setError(null);
 
 		try {
-			const data = await listCompanies();
-			setCompanies(data);
+			const result = await searchCompanies({
+				page_size: DEFAULT_PAGE_SIZE,
+				...(JSON.parse(debouncedFiltersKey) as CompanySearchParams),
+			});
+			setCompanies(result.items);
+			setTotal(result.total);
 		} catch {
 			setError('Não foi possível carregar os clientes. Tente novamente.');
 		} finally {
 			setIsLoading(false);
 		}
-	}, []);
+	}, [debouncedFiltersKey]);
 
 	useEffect(() => {
 		refresh();
@@ -28,6 +48,7 @@ export function useCompanies() {
 	const create = useCallback(async (data: CompanyCreateInput) => {
 		const company = await createCompany(data);
 		setCompanies((current) => [company, ...current]);
+		setTotal((current) => current + 1);
 		return company;
 	}, []);
 
@@ -36,7 +57,8 @@ export function useCompanies() {
 		setCompanies((current) =>
 			current.filter((company) => !idSet.has(company.id)),
 		);
+		setTotal((current) => Math.max(0, current - idSet.size));
 	}, []);
 
-	return { companies, isLoading, error, refresh, create, removeMany };
+	return { companies, total, isLoading, error, refresh, create, removeMany };
 }

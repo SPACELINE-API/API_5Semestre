@@ -7,13 +7,30 @@ import {
 import type {
 	Company,
 	CompanyCreateInput,
+	CompanyPage,
+	CompanySearchParams,
 	CompanyUpdateInput,
 } from '../types/company';
 
 const CLIENTS_PATH = '/api/clients';
 
-export function listCompanies(): Promise<Company[]> {
-	return apiGet<Company[]>(CLIENTS_PATH);
+export function searchCompanies(
+	params: CompanySearchParams = {},
+): Promise<CompanyPage> {
+	const query = new URLSearchParams();
+
+	if (params.name) query.set('name', params.name);
+	if (params.status !== undefined) query.set('status', String(params.status));
+	if (params.product) query.set('product', params.product);
+	if (params.page !== undefined) query.set('page', String(params.page));
+	if (params.page_size !== undefined) {
+		query.set('page_size', String(params.page_size));
+	}
+
+	const queryString = query.toString();
+	return apiGet<CompanyPage>(
+		queryString ? `${CLIENTS_PATH}?${queryString}` : CLIENTS_PATH,
+	);
 }
 
 export function createCompany(data: CompanyCreateInput): Promise<Company> {

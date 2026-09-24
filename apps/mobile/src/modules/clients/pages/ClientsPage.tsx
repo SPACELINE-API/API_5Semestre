@@ -43,10 +43,17 @@ export function ClientsPage() {
 	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
 	const isDesktop = useIsDesktop();
 
-	const { companies, isLoading, error, create, removeMany } = useCompanies();
-
 	const [search, setSearch] = useState('');
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+	const [productFilter, setProductFilter] = useState('');
+
+	const { companies, total, isLoading, error, create, removeMany } =
+		useCompanies({
+			name: search || undefined,
+			status:
+				statusFilter === 'all' ? undefined : statusFilter === 'active',
+			product: productFilter || undefined,
+		});
 
 	const [isFormVisible, setIsFormVisible] = useState(false);
 
@@ -66,25 +73,15 @@ export function ClientsPage() {
 		}
 	}, [deleted]);
 
-	const filteredCompanies = useMemo(() => {
-		const normalizedSearch = search.toLowerCase().trim();
+	// A pesquisa (nome, status, produto) já é feita pelo backend via useCompanies;
+	// aqui só ordenamos o resultado atual para exibição (ativos primeiro).
+	const sortedCompanies = useMemo(
+		() =>
+			[...companies].sort((a, b) => Number(b.is_active) - Number(a.is_active)),
+		[companies],
+	);
 
-		return companies
-			.filter((company) => {
-				const matchesSearch =
-					!normalizedSearch ||
-					company.trade_name?.toLowerCase().includes(normalizedSearch) ||
-					company.legal_name?.toLowerCase().includes(normalizedSearch) ||
-					company.cnpj?.toLowerCase().includes(normalizedSearch);
-
-				const matchesStatus =
-					statusFilter === 'all' ||
-					(statusFilter === 'active' ? company.is_active : !company.is_active);
-
-				return matchesSearch && matchesStatus;
-			})
-			.sort((a, b) => Number(b.is_active) - Number(a.is_active));
-	}, [companies, search, statusFilter]);
+	const hasActiveFilters = statusFilter !== 'all' || productFilter.length > 0;
 
 	const activeCompanies = companies.filter(
 		(company) => company.is_active,
@@ -111,17 +108,17 @@ export function ClientsPage() {
 	function toggleSelectAll() {
 		setSelectedIds((current) => {
 			const allSelected =
-				filteredCompanies.length > 0 &&
-				filteredCompanies.every((company) => current.has(company.id));
+				sortedCompanies.length > 0 &&
+				sortedCompanies.every((company) => current.has(company.id));
 
 			if (allSelected) {
 				const next = new Set(current);
-				for (const company of filteredCompanies) next.delete(company.id);
+				for (const company of sortedCompanies) next.delete(company.id);
 				return next;
 			}
 
 			const next = new Set(current);
-			for (const company of filteredCompanies) next.add(company.id);
+			for (const company of sortedCompanies) next.add(company.id);
 			return next;
 		});
 	}
@@ -189,8 +186,7 @@ export function ClientsPage() {
 
 								<View className="mt-2 flex-row items-center gap-2">
 									<Text className="font-inter text-gray-500 text-sm">
-										{companies.length}{' '}
-										{companies.length === 1 ? 'cliente' : 'clientes'}
+										{total} {total === 1 ? 'cliente' : 'clientes'}
 									</Text>
 
 									<View className="h-1 w-1 rounded-full bg-gray-300" />
@@ -269,7 +265,7 @@ export function ClientsPage() {
 									border
 									px-3
 									${
-										showFilters || statusFilter !== 'all'
+										showFilters || hasActiveFilters
 											? 'border-blue-300 bg-blue-50'
 											: 'border-gray-200 bg-white'
 									}
@@ -278,15 +274,13 @@ export function ClientsPage() {
 								<SlidersHorizontal
 									size={16}
 									color={
-										showFilters || statusFilter !== 'all'
-											? '#1C6FB0'
-											: '#6B7280'
+										showFilters || hasActiveFilters ? '#1C6FB0' : '#6B7280'
 									}
 								/>
 
 								<Text
 									className={`font-inter font-medium text-sm ${
-										showFilters || statusFilter !== 'all'
+										showFilters || hasActiveFilters
 											? 'text-blue-900'
 											: 'text-gray-600'
 									}`}
@@ -294,7 +288,7 @@ export function ClientsPage() {
 									Filtros
 								</Text>
 
-								{statusFilter !== 'all' && (
+								{hasActiveFilters && (
 									<View className="h-1.5 w-1.5 rounded-full bg-blue-600" />
 								)}
 							</TouchableOpacity>
@@ -302,8 +296,7 @@ export function ClientsPage() {
 
 						<View className="flex-row items-center justify-between">
 							<Text className="font-inter text-gray-400 text-xs">
-								{filteredCompanies.length}{' '}
-								{filteredCompanies.length === 1 ? 'resultado' : 'resultados'}
+								{total} {total === 1 ? 'resultado' : 'resultados'}
 							</Text>
 
 							{selectedIds.size > 0 && (
@@ -375,7 +368,7 @@ export function ClientsPage() {
 					{!isLoading && !error && (
 						<View className="border-t border-gray-200">
 							<CompanyTable
-								companies={filteredCompanies}
+								companies={sortedCompanies}
 								onSelectCompany={(company) =>
 									router.push({
 										pathname: '/clientes/[id]',
@@ -456,11 +449,16 @@ export function ClientsPage() {
 						<CompanyFilters
 							statusFilter={statusFilter}
 							onStatusFilterChange={setStatusFilter}
+							productFilter={productFilter}
+							onProductFilterChange={setProductFilter}
 						/>
 
-						{statusFilter !== 'all' && (
+						{hasActiveFilters && (
 							<TouchableOpacity
-								onPress={() => setStatusFilter('all')}
+								onPress={() => {
+									setStatusFilter('all');
+									setProductFilter('');
+								}}
 								activeOpacity={0.7}
 								className="self-start"
 							>
