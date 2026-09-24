@@ -37,7 +37,6 @@ class CompanyCreate(BaseModel):
     trade_name: str = Field(min_length=1, max_length=150)
     cnpj: str = Field(min_length=1, max_length=18)
     industry: str = Field(min_length=1, max_length=100)
-    product: str | None = Field(default=None, max_length=100)
 
     phone: str = Field(min_length=1, max_length=30)
     email: str = Field(min_length=1, max_length=255)
@@ -65,7 +64,6 @@ class CompanyUpdate(BaseModel):
     cnpj: str | None = Field(default=None, min_length=1, max_length=18)
     is_active: bool | None = None
     industry: str | None = Field(default=None, min_length=1, max_length=100)
-    product: str | None = Field(default=None, max_length=100)
 
     phone: str | None = Field(default=None, min_length=1, max_length=30)
     email: str | None = Field(default=None, min_length=1, max_length=255)
@@ -97,7 +95,6 @@ class CompanyResponse(BaseModel):
     cnpj: str
     is_active: bool
     industry: str
-    product: str | None
 
     phone: str
     email: str

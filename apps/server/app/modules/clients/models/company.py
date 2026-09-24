@@ -22,7 +22,6 @@ class Company(Base):
     cnpj: Mapped[str] = mapped_column(String(18), unique=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     industry: Mapped[str] = mapped_column(String(100), nullable=False)
-    product: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     phone: Mapped[str] = mapped_column(String(30), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)

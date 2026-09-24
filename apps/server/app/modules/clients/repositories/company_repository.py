@@ -4,6 +4,8 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.modules.clients.models.company import Company
+from app.modules.service_orders.models.service_order import ServiceOrder
+from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 
 
 class CompanyRepository:
@@ -36,7 +38,12 @@ class CompanyRepository:
             query = query.filter(Company.is_active == status)
 
         if product:
-            query = query.filter(Company.product.ilike(f"%{product}%"))
+            query = (
+                query.join(ServiceOrder, ServiceOrder.company_id == Company.id)
+                .join(ServiceOrderItem, ServiceOrderItem.service_order_id == ServiceOrder.id)
+                .filter(ServiceOrderItem.document_type.ilike(f"%{product}%"))
+                .distinct()
+            )
 
         total = query.count()
         items = query.offset((page - 1) * page_size).limit(page_size).all()
