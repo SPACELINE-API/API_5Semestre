@@ -39,7 +39,7 @@ async function pollForAnswer(
 		if (result.status === 'completed') return result.resposta;
 		if (result.status === 'error') {
 			throw new Error('Ocorreu um erro ao processar sua pergunta.');
-		} 
+		}
 		await sleep(intervalMs);
 	}
 	throw new Error('A resposta demorou mais que o esperado. Tente novamente.');
