@@ -145,9 +145,7 @@ def test_search_translators_by_status(db_session: Session) -> None:
 def test_search_translators_combines_filters(db_session: Session) -> None:
     en_pt = make_language_pair(db_session, "en", "pt-BR")
     legal = make_qualification(db_session, "Juridico")
-    match = make_translator(
-        db_session, qualification_ids=[legal.id], language_pair_ids=[en_pt.id]
-    )
+    match = make_translator(db_session, qualification_ids=[legal.id], language_pair_ids=[en_pt.id])
     make_translator(db_session, language_pair_ids=[en_pt.id])
 
     results, total = TranslatorService(db_session).search(language="en", specialty="jurid")
