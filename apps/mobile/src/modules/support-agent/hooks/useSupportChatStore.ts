@@ -31,15 +31,15 @@ function sleep(ms: number) {
 
 async function pollForAnswer(
 	eventId: string,
-	maxAttempts = 20,
-	intervalMs = 1500,
+	maxAttempts = 60,
+	intervalMs = 150000,
 ): Promise<string> {
 	for (let attempt = 0; attempt < maxAttempts; attempt++) {
 		const result = await consultarStatusPergunta(eventId);
 		if (result.status === 'completed') return result.resposta;
 		if (result.status === 'error') {
 			throw new Error('Ocorreu um erro ao processar sua pergunta.');
-		}
+		} 
 		await sleep(intervalMs);
 	}
 	throw new Error('A resposta demorou mais que o esperado. Tente novamente.');
