@@ -109,7 +109,12 @@ test.describe('CompanyFormModal', () => {
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
-					body: JSON.stringify({ items: [], total: 0, page: 1, page_size: 100 }),
+					body: JSON.stringify({
+						items: [],
+						total: 0,
+						page: 1,
+						page_size: 100,
+					}),
 				});
 				return;
 			}

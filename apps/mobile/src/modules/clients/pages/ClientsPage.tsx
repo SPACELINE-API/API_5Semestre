@@ -50,8 +50,7 @@ export function ClientsPage() {
 	const { companies, total, isLoading, error, create, removeMany } =
 		useCompanies({
 			name: search || undefined,
-			status:
-				statusFilter === 'all' ? undefined : statusFilter === 'active',
+			status: statusFilter === 'all' ? undefined : statusFilter === 'active',
 			product: productFilter || undefined,
 		});
 
