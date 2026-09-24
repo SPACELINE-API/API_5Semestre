@@ -1,0 +1,10 @@
+ALTER TABLE quotes
+    ADD COLUMN IF NOT EXISTS request_id UUID REFERENCES request(id) ON DELETE RESTRICT,
+    ADD COLUMN IF NOT EXISTS customer_name VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS enterprise VARCHAR(155),
+    ADD COLUMN IF NOT EXISTS email VARCHAR(155),
+    ADD COLUMN IF NOT EXISTS original_language VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS translation_language VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS customer_need VARCHAR(100);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ix_quotes_request_id_unique ON quotes(request_id);
