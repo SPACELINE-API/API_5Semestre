@@ -65,7 +65,10 @@ def test_is_valid_cnpj_accepts_alphanumeric_cnpj() -> None:
 def test_is_valid_cnpj_rejects_wrong_check_digits() -> None:
     base = random_numeric_base()
     valid_cnpj = build_cnpj(base)
-    tampered = valid_cnpj[:12] + "00"
+
+    original_digits = valid_cnpj[12:]
+    wrong_digits = "00" if original_digits != "00" else "11"
+    tampered = valid_cnpj[:12] + wrong_digits
 
     assert is_valid_cnpj(tampered) is False
 
