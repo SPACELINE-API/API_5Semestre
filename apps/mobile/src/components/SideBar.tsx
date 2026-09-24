@@ -99,10 +99,14 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 
 	const isRequestsActive = pathname.startsWith('/visualizar-requisicoes');
 	const isClientsActive = pathname.startsWith('/clientes');
+	const isTranslatorsActive = pathname.startsWith('/tradutores');
 	const isOrdersActive = pathname.startsWith('/ordens-de-servico');
 	const isSupportAgentActive = pathname.startsWith('/support-agent');
 	const isKnownRoute =
-		isClientsActive || isOrdersActive || isSupportAgentActive;
+		isClientsActive ||
+		isTranslatorsActive ||
+		isOrdersActive ||
+		isSupportAgentActive;
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
 	const showExpanded = isOpen || mobileOpen;
 
@@ -234,11 +238,8 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 									icon={TradutoresIcon}
 									label="Tradutores"
 									isOpen={showExpanded}
-									active={!isKnownRoute && activeItem === 'Tradutores'}
-									onPress={() => {
-										setActiveItem('Tradutores');
-										onCloseMobile?.();
-									}}
+									active={isTranslatorsActive}
+									onPress={() => navigate('/tradutores', 'Tradutores')}
 								/>
 							</View>
 						</View>
