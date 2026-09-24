@@ -53,11 +53,16 @@ test.describe('Service orders list', () => {
 	test('loads and renders service orders with resolved company name', async ({
 		page,
 	}) => {
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([COMPANY]),
+				body: JSON.stringify({
+					items: [COMPANY],
+					total: 1,
+					page: 1,
+					page_size: 100,
+				}),
 			});
 		});
 		await page.route('**/api/service-orders', async (route) => {
@@ -84,11 +89,11 @@ test.describe('Service orders list', () => {
 	test('shows an error message when the initial load fails', async ({
 		page,
 	}) => {
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([]),
+				body: JSON.stringify({ items: [], total: 0, page: 1, page_size: 100 }),
 			});
 		});
 		await page.route('**/api/service-orders', async (route) => {
@@ -112,11 +117,16 @@ test.describe('Service orders list', () => {
 	test('generates a new service order from a quote id', async ({ page }) => {
 		let requestBody: Record<string, unknown> = {};
 
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([COMPANY]),
+				body: JSON.stringify({
+					items: [COMPANY],
+					total: 1,
+					page: 1,
+					page_size: 100,
+				}),
 			});
 		});
 		await page.route(

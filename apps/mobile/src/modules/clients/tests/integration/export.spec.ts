@@ -25,11 +25,16 @@ test.describe('Export selected companies as JSON', () => {
 	test('triggers a JSON file download with the selected companies', async ({
 		page,
 	}) => {
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([COMPANY_A]),
+				body: JSON.stringify({
+					items: [COMPANY_A],
+					total: 1,
+					page: 1,
+					page_size: 100,
+				}),
 			});
 		});
 

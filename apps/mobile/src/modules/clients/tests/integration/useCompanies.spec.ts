@@ -30,27 +30,33 @@ const COMPANY_B = {
 	is_active: false,
 };
 
+function companyPage(items: (typeof COMPANY_A)[]) {
+	return { items, total: items.length, page: 1, page_size: 100 };
+}
+
 test.describe('Clients list (hook + service + apiClient integration)', () => {
 	test('loads companies from the API on mount', async ({ page }) => {
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([COMPANY_A, COMPANY_B]),
+				body: JSON.stringify(companyPage([COMPANY_A, COMPANY_B])),
 			});
 		});
 
 		await loginAs(page);
 		await page.goto('/clientes');
 
-		await expect(page.getByText('Rezende Advogados')).toBeVisible();
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
 		await expect(page.getByText('Global Traducoes')).toBeVisible();
 	});
 
 	test('shows an error message when the initial load fails', async ({
 		page,
 	}) => {
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			await route.fulfill({
 				status: 500,
 				contentType: 'application/json',
@@ -70,13 +76,13 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 		page,
 	}) => {
 		let getCallCount = 0;
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			if (route.request().method() === 'GET') {
 				getCallCount += 1;
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
-					body: JSON.stringify([COMPANY_A]),
+					body: JSON.stringify(companyPage([COMPANY_A])),
 				});
 				return;
 			}
@@ -100,14 +106,16 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 
 		await loginAs(page);
 		await page.goto('/clientes');
-		await expect(page.getByText('Rezende Advogados')).toBeVisible();
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
 
 		await page.getByText('Novo cliente').click();
 		await page
 			.getByPlaceholder('Ex: Rezende Advogados Ltda')
 			.fill(COMPANY_B.legal_name);
 		await page
-			.getByPlaceholder('Ex: Rezende Advogados')
+			.getByPlaceholder('Ex: Rezende Advogados', { exact: true })
 			.fill(COMPANY_B.trade_name);
 		await page.getByPlaceholder('00.000.000/0000-00').fill(COMPANY_B.cnpj);
 		await page.getByPlaceholder('Ex: Jurídico').fill(COMPANY_B.industry);
@@ -125,8 +133,12 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 		await page.getByPlaceholder('SP').fill(COMPANY_B.state);
 		await page.getByText('Salvar').click();
 
-		const rows = page.getByText(/Traducoes|Advogados/);
-		await expect(rows.first()).toHaveText('Global Traducoes');
+		// A lista sempre ordena ativos primeiro (independente da ordem de
+		// criação), e a COMPANY_B criada aqui é inativa — então validamos que
+		// ela aparece na lista, não a posição exata.
+		await expect(
+			page.getByText('Global Traducoes', { exact: true }),
+		).toBeVisible();
 		expect(getCallCount).toBe(1);
 	});
 
@@ -134,13 +146,13 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 		page,
 	}) => {
 		let getCallCount = 0;
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			if (route.request().method() === 'GET') {
 				getCallCount += 1;
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
-					body: JSON.stringify([COMPANY_A, COMPANY_B]),
+					body: JSON.stringify(companyPage([COMPANY_A, COMPANY_B])),
 				});
 				return;
 			}
@@ -156,14 +168,123 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 
 		await loginAs(page);
 		await page.goto('/clientes');
-		await expect(page.getByText('Rezende Advogados')).toBeVisible();
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
 
 		await page.getByLabel('Selecionar Rezende Advogados').click();
-		await page.getByRole('button', { name: 'Excluir' }).first().click();
-		await page.getByRole('button', { name: 'Excluir' }).last().click();
+		await page.getByText('Excluir').first().click();
+		await page.getByText('Excluir').last().click();
 
-		await expect(page.getByText('Rezende Advogados')).toHaveCount(0);
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toHaveCount(0);
 		await expect(page.getByText('Global Traducoes')).toBeVisible();
 		expect(getCallCount).toBe(1);
+	});
+});
+
+test.describe('Clients search filters (name, status, product)', () => {
+	test('sends a debounced name filter to the API while typing', async ({
+		page,
+	}) => {
+		const requestedUrls: string[] = [];
+		await page.route('**/api/clients*', async (route) => {
+			requestedUrls.push(route.request().url());
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(companyPage([COMPANY_A])),
+			});
+		});
+
+		await loginAs(page);
+		await page.goto('/clientes');
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
+
+		const requestsBeforeTyping = requestedUrls.length;
+		await page.getByPlaceholder('Buscar por nome, CNPJ...').fill('Acme');
+
+		await expect
+			.poll(() => requestedUrls.some((url) => url.includes('name=Acme')))
+			.toBe(true);
+
+		// Confirma que a busca é debounced: não deve disparar uma requisição
+		// por tecla digitada (fill dispara change de uma vez, mas o hook
+		// ainda deve esperar o debounce antes de buscar).
+		expect(requestedUrls.length).toBeGreaterThan(requestsBeforeTyping);
+		expect(requestedUrls.length).toBeLessThan(requestsBeforeTyping + 4);
+	});
+
+	test('sends the product filter to the API', async ({ page }) => {
+		const requestedUrls: string[] = [];
+		await page.route('**/api/clients*', async (route) => {
+			requestedUrls.push(route.request().url());
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(companyPage([COMPANY_A])),
+			});
+		});
+
+		await loginAs(page);
+		await page.goto('/clientes');
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
+
+		await page.getByText('Filtros').click();
+		await page.getByPlaceholder('Ex: Tradução Juramentada').fill('Legendagem');
+
+		await expect
+			.poll(() =>
+				requestedUrls.some((url) => url.includes('product=Legendagem')),
+			)
+			.toBe(true);
+	});
+
+	test('sends the status filter to the API', async ({ page }) => {
+		const requestedUrls: string[] = [];
+		await page.route('**/api/clients*', async (route) => {
+			requestedUrls.push(route.request().url());
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(companyPage([COMPANY_A])),
+			});
+		});
+
+		await loginAs(page);
+		await page.goto('/clientes');
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
+
+		await page.getByText('Filtros').click();
+		await page.getByLabel('Filtrar por status Ativo').click();
+
+		await expect
+			.poll(() => requestedUrls.some((url) => url.includes('status=true')))
+			.toBe(true);
+	});
+
+	test('shows an empty state when the search has no results', async ({
+		page,
+	}) => {
+		await page.route('**/api/clients*', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(companyPage([])),
+			});
+		});
+
+		await loginAs(page);
+		await page.goto('/clientes');
+
+		await expect(page.getByText('Nenhum cliente encontrado')).toBeVisible();
+		await expect(page.getByText('0 resultados')).toBeVisible();
 	});
 });

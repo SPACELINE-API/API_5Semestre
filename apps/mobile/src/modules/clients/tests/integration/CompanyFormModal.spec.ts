@@ -10,12 +10,12 @@ const VIA_CEP_RESPONSE = {
 };
 
 async function mockEmptyCompanyList(page: import('@playwright/test').Page) {
-	await page.route('**/api/clients', async (route) => {
+	await page.route('**/api/clients*', async (route) => {
 		if (route.request().method() === 'GET') {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([]),
+				body: JSON.stringify({ items: [], total: 0, page: 1, page_size: 100 }),
 			});
 			return;
 		}
@@ -42,7 +42,7 @@ async function fillIdentificationStep(page: import('@playwright/test').Page) {
 		.getByPlaceholder('Ex: Rezende Advogados Ltda')
 		.fill('Rezende Advogados Associados Ltda');
 	await page
-		.getByPlaceholder('Ex: Rezende Advogados')
+		.getByPlaceholder('Ex: Rezende Advogados', { exact: true })
 		.fill('Rezende Advogados');
 	await page.getByPlaceholder('00.000.000/0000-00').fill('11222333000181');
 	await page.getByPlaceholder('Ex: Jurídico').fill('Juridico');
@@ -104,12 +104,12 @@ test.describe('CompanyFormModal', () => {
 		page,
 	}) => {
 		let requestBody: Record<string, unknown> = {};
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			if (route.request().method() === 'GET') {
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
-					body: JSON.stringify([]),
+					body: JSON.stringify({ items: [], total: 0, page: 1, page_size: 100 }),
 				});
 				return;
 			}

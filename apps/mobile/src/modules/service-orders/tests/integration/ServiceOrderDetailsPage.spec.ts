@@ -72,11 +72,16 @@ test.describe('Service order details', () => {
 	test('renders order items and lets staff send invites', async ({ page }) => {
 		let inviteRequestBody: Record<string, unknown> = {};
 
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([COMPANY]),
+				body: JSON.stringify({
+					items: [COMPANY],
+					total: 1,
+					page: 1,
+					page_size: 100,
+				}),
 			});
 		});
 		await page.route('**/api/translators', async (route) => {
@@ -157,11 +162,16 @@ test.describe('Service order details', () => {
 		let addItemMethod = '';
 		let updateItemMethod = '';
 
-		await page.route('**/api/clients', async (route) => {
+		await page.route('**/api/clients*', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([COMPANY]),
+				body: JSON.stringify({
+					items: [COMPANY],
+					total: 1,
+					page: 1,
+					page_size: 100,
+				}),
 			});
 		});
 		await page.route('**/api/translators', async (route) => {
