@@ -65,7 +65,7 @@ export function SupportPage() {
 			if (!isPrintableChar || isModifierPressed) return;
 
 			inputRef.current?.focus();
-			setDraft((current) => current + event.key);
+			setDraft(draft + event.key);
 		}
 
 		document.addEventListener('keydown', handleGlobalKeyDown);

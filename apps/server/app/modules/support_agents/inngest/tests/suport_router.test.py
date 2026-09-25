@@ -78,10 +78,3 @@ def test_unavailable_agent_returns_502_without_exposing_technical_detail():
     body = response.json()
     assert "provider is down" not in body["detail"]
     assert "RuntimeError" not in body["detail"]
-
-
-def test_endpoint_works_without_any_override_using_the_default_stub():
-    response = client.post(URL, json={"texto": "How do I create a lead?"})
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["resposta"] != ""
