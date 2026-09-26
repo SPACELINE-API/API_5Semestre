@@ -1,0 +1,5 @@
+ALTER TABLE quotes
+    ADD COLUMN IF NOT EXISTS approved_by UUID,
+    ADD COLUMN IF NOT EXISTS approved_by_email VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS reproved_by UUID,
+    ADD COLUMN IF NOT EXISTS reproved_by_email VARCHAR(255);

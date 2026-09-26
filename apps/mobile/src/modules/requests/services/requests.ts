@@ -1,6 +1,6 @@
 import { env } from '../../../shared/env';
 
-export type RequestStatus = 'pending' | 'approved';
+export type RequestStatus = 'pending' | 'approved' | 'reproved';
 
 export type RequestItem = {
 	id: string;
@@ -12,8 +12,15 @@ export type RequestItem = {
 	customer_need: string;
 	status: RequestStatus;
 	request_date: string;
+	approved_at?: string | null;
+	reproved_at?: string | null;
+	reproval_reason?: string | null;
 	document: string | null;
 };
+
+export type RequestStatusUpdateResult =
+	| { success: true; data: RequestItem }
+	| { success: false; status: number; detail?: string };
 
 export type CreateRequestPayload = {
 	customer_name: string;
@@ -32,16 +39,58 @@ export type CreateRequestResult =
 const API_BASE_URL = env.apiUrl;
 
 export async function fetchRequests(): Promise<RequestItem[]> {
+	const response = await fetch(`${API_BASE_URL}/api/quotes/requests`);
+	if (!response.ok) {
+		throw new Error(`Não foi possível carregar as solicitações (${response.status}).`);
+	}
+	return (await response.json()) as RequestItem[];
+}
+
+export async function fetchRequestById(
+	requestId: string,
+): Promise<RequestItem | null> {
+	const response = await fetch(`${API_BASE_URL}/api/quotes/requests`);
+	if (!response.ok) {
+		throw new Error('Não foi possível carregar as requisições.');
+	}
+
+	const requests: RequestItem[] = await response.json();
+	return requests.find((request) => request.id === requestId) ?? null;
+}
+
+export async function updateRequestStatus(
+	requestId: string,
+	status: Extract<RequestStatus, 'approved' | 'reproved'>,
+	reprovalReason?: string,
+): Promise<RequestStatusUpdateResult> {
 	try {
-		const response = await fetch(`${API_BASE_URL}/api/quotes/requests`);
+		const response = await fetch(
+			`${API_BASE_URL}/api/quotes/requests/${encodeURIComponent(requestId)}/status`,
+			{
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					status,
+					...(status === 'reproved'
+						? { reproval_reason: reprovalReason?.trim() }
+						: {}),
+				}),
+			},
+		);
+		const data = await response.json().catch(() => null);
+
 		if (!response.ok) {
-			throw new Error('Failed to fetch requests');
+			return {
+				success: false,
+				status: response.status,
+				detail: typeof data?.detail === 'string' ? data.detail : undefined,
+			};
 		}
-		const data = await response.json();
-		return data;
+
+		return { success: true, data: data as RequestItem };
 	} catch (error) {
-		console.error('Error fetching requests:', error);
-		return [];
+		console.error('Error updating request status:', error);
+		return { success: false, status: 0 };
 	}
 }
 

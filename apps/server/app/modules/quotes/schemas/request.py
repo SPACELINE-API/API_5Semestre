@@ -7,6 +7,8 @@ from app.modules.quotes.models.request import StatusEnum
 
 
 class RequestCreate(BaseModel):
+    company_id: uuid.UUID | None = None
+    contact_id: uuid.UUID | None = None
     customer_name: str = Field(..., max_length=255)
     enterprise: str = Field(..., max_length=155)
     email: str = Field(..., max_length=155, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -29,6 +31,8 @@ class RequestResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, ser_json_bytes="base64")
 
     id: uuid.UUID
+    company_id: uuid.UUID | None = None
+    contact_id: uuid.UUID | None = None
     customer_name: str
     enterprise: str
     email: str

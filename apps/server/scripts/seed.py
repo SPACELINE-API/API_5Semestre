@@ -7,6 +7,8 @@ sys.path.insert(0, str(SERVER_PATH))
 
 seed_users = import_module("app.modules.seed.seed_users").seed_users
 seed_companies = import_module("app.modules.seed.seed_companies").seed_companies
+seed_contacts = import_module("app.modules.seed.seed_contacts").seed_contacts
+seed_requests = import_module("app.modules.seed.seed_requests").seed_requests
 seed_languages = import_module("app.modules.seed.seed_languages").seed_languages
 seed_quotes = import_module("app.modules.seed.seed_quotes").seed_quotes
 seed_translators = import_module("app.modules.seed.seed_translators").seed_translators
@@ -16,6 +18,8 @@ seed_invites = import_module("app.modules.seed.seed_invites").seed_invites
 if __name__ == "__main__":
     users = seed_users()
     companies = seed_companies()
+    contacts = seed_contacts()
+    requests = seed_requests()
     languages = seed_languages()
     quotes = seed_quotes()
     translators = seed_translators()
@@ -23,6 +27,7 @@ if __name__ == "__main__":
     invites = seed_invites()
     print(
         f"Seeded {len(users)} users, {len(companies)} companies, "
+        f"{len(contacts)} contacts, {len(requests)} requests, "
         f"{len(languages)} languages, {len(quotes)} quotes, "
         f"{len(translators)} translators, {len(service_orders)} service orders "
         f"and {len(invites)} invites."

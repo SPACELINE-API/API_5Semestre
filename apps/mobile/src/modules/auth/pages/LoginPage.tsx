@@ -5,10 +5,18 @@ import {
 	type ComponentProps,
 	type ComponentType,
 } from 'react';
-import { Platform, Pressable, Text, TextInput, View } from 'react-native';
+import {
+	Platform,
+	Pressable,
+	Text,
+	TextInput,
+	View,
+	useWindowDimensions,
+} from 'react-native';
 import { Check } from 'lucide-react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { ApiError } from '../../../shared/services/publicApiClient';
 import {
 	login,
 	requestPasswordRecovery,
@@ -19,15 +27,79 @@ import { DecorativeBackground } from '../components/DecorativeBackground';
 import { LoginFields } from '../components/LoginFields';
 import { LoginHero } from '../components/LoginHero';
 
+type LoginError = {
+	code: string;
+	title: string;
+	description: string;
+	action: string;
+};
+
+function getLoginError(cause: unknown): LoginError {
+	if (cause instanceof ApiError && cause.kind === 'network') {
+		return {
+			code: 'API_UNAVAILABLE',
+			title: 'Não foi possível conectar',
+			description: 'O serviço de acesso não respondeu.',
+			action: 'Verifique sua conexão e tente novamente em instantes.',
+		};
+	}
+
+	if (cause instanceof ApiError && cause.status === 401) {
+		return {
+			code: 'INVALID_CREDENTIALS',
+			title: 'E-mail ou senha incorretos',
+			description: 'Não foi possível validar suas credenciais.',
+			action: 'Confira os dados informados e tente novamente.',
+		};
+	}
+
+	if (cause instanceof ApiError && cause.status === 403) {
+		return {
+			code: 'ACCESS_DENIED',
+			title: 'Acesso não autorizado',
+			description: cause.message,
+			action: 'Entre em contato com o administrador do sistema.',
+		};
+	}
+
+	if (cause instanceof ApiError && cause.status === 422) {
+		return {
+			code: 'INVALID_LOGIN_DATA',
+			title: 'Dados de acesso inválidos',
+			description: cause.message,
+			action: 'Confira o formato do e-mail e tente novamente.',
+		};
+	}
+
+	if (cause instanceof ApiError && cause.status && cause.status >= 500) {
+		return {
+			code: 'API_ERROR',
+			title: 'Serviço temporariamente indisponível',
+			description: 'A API encontrou um erro ao processar o login.',
+			action: 'Tente novamente em instantes.',
+		};
+	}
+
+	return {
+		code: 'LOGIN_FAILED',
+		title: 'Não foi possível entrar',
+		description:
+			cause instanceof Error ? cause.message : 'Ocorreu um erro inesperado.',
+		action: 'Tente novamente. Se o problema continuar, contate o suporte.',
+	};
+}
+
 export function LoginPage() {
 	const router = useRouter();
+	const { width } = useWindowDimensions();
+	const isMobileLayout = width < 768;
 	const passwordInputRef = useRef<TextInput>(null);
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? View : KeyboardAwareScrollView
 	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
-	const [error, setError] = useState('');
+	const [error, setError] = useState<LoginError | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [recovery, setRecovery] = useState(false);
 	const [token, setToken] = useState('');
@@ -72,7 +144,12 @@ export function LoginPage() {
 		setMessage('');
 		if (token) {
 			if (!newPassword || newPassword !== confirmation) {
-				setError('As senhas não coincidem.');
+				setError({
+					code: 'PASSWORD_MISMATCH',
+					title: 'As senhas não coincidem',
+					description: 'A confirmação precisa ser igual à nova senha.',
+					action: 'Confira os campos e tente novamente.',
+				});
 				return;
 			}
 			setLoading(true);
@@ -83,11 +160,7 @@ export function LoginPage() {
 				setRedirecting(true);
 				setTimeout(() => router.replace('/login' as never), 1500);
 			} catch (cause) {
-				setError(
-					cause instanceof Error
-						? cause.message
-						: 'Não foi possível atualizar a senha.',
-				);
+				setError(getLoginError(cause));
 			} finally {
 				setLoading(false);
 			}
@@ -96,7 +169,12 @@ export function LoginPage() {
 		if (recovery) {
 			if (recoveryCooldown) return;
 			if (!email.trim()) {
-				setError('Digite o e-mail para recuperar sua senha.');
+				setError({
+					code: 'EMAIL_REQUIRED',
+					title: 'Informe seu e-mail',
+					description: 'Precisamos do e-mail para localizar sua conta.',
+					action: 'Digite seu e-mail e tente novamente.',
+				});
 				return;
 			}
 			setLoading(true);
@@ -104,18 +182,19 @@ export function LoginPage() {
 				setMessage((await requestPasswordRecovery(email.trim())).message);
 				setRecoveryCooldown(15);
 			} catch (cause) {
-				setError(
-					cause instanceof Error
-						? cause.message
-						: 'Não foi possível enviar o link.',
-				);
+				setError(getLoginError(cause));
 			} finally {
 				setLoading(false);
 			}
 			return;
 		}
 		if (!email.trim() || !password) {
-			setError('Informe seu e-mail e sua senha.');
+			setError({
+				code: 'CREDENTIALS_REQUIRED',
+				title: 'Preencha seus dados de acesso',
+				description: 'E-mail e senha são necessários para entrar.',
+				action: 'Confira os campos e tente novamente.',
+			});
 			return;
 		}
 		setLoading(true);
@@ -123,9 +202,7 @@ export function LoginPage() {
 			saveSession(await login(email.trim(), password), remember);
 			router.replace('/dashboard' as never);
 		} catch (cause) {
-			setError(
-				cause instanceof Error ? cause.message : 'Não foi possível entrar.',
-			);
+			setError(getLoginError(cause));
 		} finally {
 			setLoading(false);
 		}
@@ -161,7 +238,9 @@ export function LoginPage() {
 		>
 			<DecorativeBackground />
 			<View className={`z-10 flex-1 ${contentClassName}`}>
-				{!token ? <LoginHero /> : null}
+				{!token ? (
+					<LoginHero showRequestServiceButton={!isMobileLayout} />
+				) : null}
 				<View className="w-full items-center justify-center md:w-[46%] md:py-0">
 					<View className="w-full max-w-[450px] rounded-[28px] border border-white/80 bg-white/90 px-5 py-6 shadow-2xl shadow-[#173a68]/15 sm:px-9 sm:py-8">
 						<View className="mb-6">
@@ -223,7 +302,24 @@ export function LoginPage() {
 							</View>
 						) : null}
 						{error ? (
-							<Text className="mb-4 mt-4 text-sm text-red-600">{error}</Text>
+							<View
+								className="mb-4 mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3"
+								accessibilityRole="alert"
+								accessibilityLiveRegion="assertive"
+							>
+								<Text className="text-[10px] font-bold uppercase tracking-wider text-red-700">
+									{error.code}
+								</Text>
+								<Text className="mt-1 text-sm font-bold text-red-900">
+									{error.title}
+								</Text>
+								<Text className="mt-1 text-sm text-red-800">
+									{error.description}
+								</Text>
+								<Text className="mt-2 text-xs text-red-700">
+									{error.action}
+								</Text>
+							</View>
 						) : null}
 						<Pressable
 							className={`h-12 items-center justify-center rounded-full bg-[#2d83cd] shadow-md shadow-blue-600/30 ${token ? 'mt-3' : recovery ? 'mt-6' : ''}`}
@@ -244,6 +340,24 @@ export function LoginPage() {
 													: 'ENTRAR'}
 							</Text>
 						</Pressable>
+						{!recovery && !token && isMobileLayout ? (
+							<View className="mt-5">
+								<View className="mb-4 flex-row items-center gap-3">
+									<View className="h-px flex-1 bg-[#d7e2ef]" />
+									<Text className="text-xs font-medium text-[#7b8da7]">
+										ou
+									</Text>
+									<View className="h-px flex-1 bg-[#d7e2ef]" />
+								</View>
+								<Link href="/solicitar-servico" asChild>
+									<Pressable className="h-12 items-center justify-center rounded-full border border-[#2d83cd]/40 bg-white/70">
+										<Text className="font-bold text-[#176ed0]">
+											Solicitar serviço
+										</Text>
+									</Pressable>
+								</Link>
+							</View>
+						) : null}
 						{recovery ? (
 							<Pressable
 								className="mt-3 h-11 items-center justify-center rounded-full border border-[#2d83cd] bg-transparent"

@@ -7,18 +7,18 @@ def test_create_quote_endpoint(client, override_get_db):
 
         class MockQuote:
             id = "123e4567-e89b-12d3-a456-426614174000"
-            status = "draft"
+            status = "pending"
             created_at = "2026-09-17T10:00:00Z"
             updated_at = "2026-09-17T10:00:00Z"
 
         instance.create_quote.return_value = MockQuote()
 
-        response = client.post("/api/quotes", json={"status": "draft"})
+        response = client.post("/api/quotes", json={})
 
         assert response.status_code == 201
         data = response.json()
         assert data["id"] == "123e4567-e89b-12d3-a456-426614174000"
-        assert data["status"] == "draft"
+        assert data["status"] == "pending"
 
 
 def test_create_quote_endpoint_invalid_schema(client):
@@ -34,7 +34,7 @@ def test_generate_quote_from_request_endpoint(client):
         class MockQuote:
             id = "223e4567-e89b-12d3-a456-426614174000"
             request_id = "123e4567-e89b-12d3-a456-426614174000"
-            status = "draft"
+            status = "pending"
             customer_name = "João Silva"
             enterprise = "Empresa X"
             email = "joao@teste.com"
@@ -50,7 +50,7 @@ def test_generate_quote_from_request_endpoint(client):
 
     assert response.status_code == 201
     assert response.json()["request_id"] == request_id
-    assert response.json()["status"] == "draft"
+    assert response.json()["status"] == "pending"
 
 
 def test_generate_quote_from_request_endpoint_rejects_invalid_uuid(client):

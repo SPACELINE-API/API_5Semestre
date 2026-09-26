@@ -53,7 +53,7 @@ class ServiceOrder(Base):
         nullable=False,
     )
 
-    quote = relationship("Quote", backref="service_orders")
+    quote = relationship("Quote", back_populates="service_orders")
     company = relationship("Company", backref="service_orders")
     items: Mapped[list["ServiceOrderItem"]] = relationship(
         "ServiceOrderItem",

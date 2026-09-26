@@ -1,13 +1,22 @@
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from app.modules.quotes.schemas.quote import QuoteCreate, QuoteFromRequestResponse, QuoteResponse
+from app.modules.auth.dependencies.dependencies import get_current_user
+from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
+from app.modules.quotes.schemas.quote import (
+    QuoteCreate,
+    QuoteFromRequestResponse,
+    QuoteListResponse,
+    QuoteResponse,
+    QuoteStatusUpdate,
+)
 from app.modules.quotes.schemas.request import RequestCreate, RequestResponse, RequestStatusUpdate
 from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemCreate,
     QuoteTranslationItemResponse,
+    QuoteTranslationItemUpdate,
 )
 from app.modules.quotes.services.quote_service import QuoteService
 from app.modules.quotes.services.request_service import RequestService
@@ -37,6 +46,36 @@ def create_quote(
 ):
     service = QuoteService(db)
     return service.create_quote(quote_data)
+
+
+@router.get("", response_model=QuoteListResponse)
+def list_quotes(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=10, ge=1, le=10),
+    search: str | None = Query(default=None, max_length=255),
+    status_filter: str | None = Query(
+        default=None, alias="status", pattern="^(pending|approved|reproved)$"
+    ),
+    db: Session = Depends(get_db),
+):
+    service = QuoteService(db)
+    return service.list_quotes(
+        page=page,
+        page_size=page_size,
+        search=search,
+        status_filter=status_filter,
+    )
+
+
+@router.patch("/{quote_id}/status", response_model=QuoteResponse)
+def update_quote_status(
+    quote_id: uuid.UUID,
+    data: QuoteStatusUpdate,
+    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    service = QuoteService(db)
+    return service.update_status(quote_id, data, current_user)
 
 
 @router.post("/from-request/{request_id}", response_model=QuoteFromRequestResponse, status_code=201)
@@ -74,6 +113,19 @@ def list_translation_items(
     return service.list_items(quote_id)
 
 
+@router.patch(
+    "/{quote_id}/translation-items/{item_id}", response_model=QuoteTranslationItemResponse
+)
+def update_translation_item(
+    quote_id: uuid.UUID,
+    item_id: uuid.UUID,
+    item_data: QuoteTranslationItemUpdate,
+    db: Session = Depends(get_db),
+):
+    service = TranslationItemService(db)
+    return service.update_item(quote_id, item_id, item_data)
+
+
 @router.post("/requests", response_model=RequestResponse, status_code=201)
 async def create_request(
     customer_name: str = Form(..., max_length=255),
@@ -83,10 +135,14 @@ async def create_request(
     translation_language: str = Form(..., max_length=50),
     customer_need: str = Form(..., max_length=100),
     document: UploadFile | None = File(None),
+    company_id: uuid.UUID | None = Form(None),
+    contact_id: uuid.UUID | None = Form(None),
     db: Session = Depends(get_db),  # noqa: B008
 ):
     document_bytes = await document.read() if document else None
     request_data = RequestCreate(
+        company_id=company_id,
+        contact_id=contact_id,
         customer_name=customer_name,
         enterprise=enterprise,
         email=email,

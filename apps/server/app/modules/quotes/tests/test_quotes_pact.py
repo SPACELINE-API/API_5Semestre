@@ -16,16 +16,14 @@ def test_create_quote_success_contract() -> None:
         .with_request("POST", "/api/quotes")
         .with_headers({"Content-Type": "application/json"})
         .with_body(
-            {
-                "status": "draft",
-            }
+            {}
         )
         .will_respond_with(201)
         .with_headers({"Content-Type": "application/json"})
         .with_body(
             {
                 "id": "123e4567-e89b-12d3-a456-426614174000",
-                "status": "draft",
+                "status": "pending",
                 "created_at": "2026-09-13T10:00:00Z",
                 "updated_at": "2026-09-13T10:00:00Z",
             }
@@ -48,7 +46,7 @@ def test_generate_quote_from_approved_request_contract() -> None:
             {
                 "id": "223e4567-e89b-12d3-a456-426614174000",
                 "request_id": "123e4567-e89b-12d3-a456-426614174000",
-                "status": "draft",
+                "status": "pending",
                 "customer_name": "João Silva",
                 "enterprise": "Empresa X",
                 "email": "joao@teste.com",
