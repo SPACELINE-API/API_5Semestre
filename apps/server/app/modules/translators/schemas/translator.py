@@ -39,6 +39,8 @@ class LanguagePairResponse(BaseModel):
     id: uuid.UUID
     language_pair_id: uuid.UUID
     proficiency_level: str
+    source_language: str | None = None
+    target_language: str | None = None
 
 
 # RESPOSTA DE UMA QUALIFICACAO TECNICA

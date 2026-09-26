@@ -327,6 +327,788 @@
         "status": 422
       },
       "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create a valid translation item",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a quote exists"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "document_type": "Documento Padrão",
+            "estimated_value": 480.0,
+            "file_url": "https://example.com/file.pdf",
+            "source_language": "es-ES",
+            "target_language": "en-US"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/quotes/123e4567-e89b-12d3-a456-426614174000/translation-items"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "created_at": "2026-09-13T10:00:00Z",
+            "document_type": "Documento Padrão",
+            "estimated_value": 480.0,
+            "file_url": "https://example.com/file.pdf",
+            "id": "123e4567-e89b-12d3-a456-426614174001",
+            "quote_id": "123e4567-e89b-12d3-a456-426614174000",
+            "source_language": "es-ES",
+            "target_language": "en-US",
+            "updated_at": "2026-09-13T10:00:00Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 201
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create an item for a non-existent quote",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the quote does not exist"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "source_language": "es-ES",
+            "target_language": "en-US"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/quotes/999e4567-e89b-12d3-a456-426614174999/translation-items"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "detail": "Quote not found"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 404
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create a translation item with missing body",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the request is completely empty"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {},
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/quotes/123e4567-e89b-12d3-a456-426614174000/translation-items"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list translation items for a quote",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a quote exists with no items"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/quotes/123e4567-e89b-12d3-a456-426614174000/translation-items"
+      },
+      "response": {
+        "body": {
+          "content": [],
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create a quote",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the server is ready"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "status": "draft"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/quotes"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "created_at": "2026-09-13T10:00:00Z",
+            "id": "123e4567-e89b-12d3-a456-426614174000",
+            "status": "draft",
+            "updated_at": "2026-09-13T10:00:00Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 201
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to generate a quote from an approved request",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the request is approved"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "path": "/api/quotes/from-request/123e4567-e89b-12d3-a456-426614174000"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "created_at": "2026-09-22T10:00:00Z",
+            "customer_name": "João Silva",
+            "customer_need": "Contrato social",
+            "email": "joao@teste.com",
+            "enterprise": "Empresa X",
+            "id": "223e4567-e89b-12d3-a456-426614174000",
+            "original_language": "Português",
+            "request_id": "123e4567-e89b-12d3-a456-426614174000",
+            "status": "draft",
+            "translation_language": "Inglês",
+            "updated_at": "2026-09-22T10:00:00Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 201
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to generate a duplicate quote",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the request already has a quote"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "path": "/api/quotes/from-request/423e4567-e89b-12d3-a456-426614174000"
+      },
+      "response": {
+        "status": 409
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to generate a quote from a pending request",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the request is pending"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "path": "/api/quotes/from-request/123e4567-e89b-12d3-a456-426614174000"
+      },
+      "response": {
+        "status": 400
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to generate a quote from an unknown request",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the request does not exist"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "path": "/api/quotes/from-request/323e4567-e89b-12d3-a456-426614174000"
+      },
+      "response": {
+        "status": 404
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to generate a quote with an invalid path id",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the path id is invalid"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "path": "/api/quotes/from-request/not-an-uuid"
+      },
+      "response": {
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create a translator with qualifications and language pairs",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "qualifications and language pairs exist in database"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "email": "maria.silva@exemplo.com",
+            "language_pairs": [
+              {
+                "language_pair_id": "eb162eb3-b88c-42f6-89d7-3da5112f7d31",
+                "proficiency_level": "fluent"
+              }
+            ],
+            "name": "Maria Silva",
+            "phone": "11988887777",
+            "qualification_ids": [
+              "c731d4d4-9569-4db2-9d7f-1569db5f270e"
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/translators"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "created_at": "2026-09-15T10:00:00Z",
+            "email": "maria.silva@exemplo.com",
+            "id": "123e4567-e89b-12d3-a456-426614174000",
+            "is_active": true,
+            "language_pairs": [
+              {
+                "id": "123e4567-e89b-12d3-a456-426614174001",
+                "language_pair_id": "eb162eb3-b88c-42f6-89d7-3da5112f7d31",
+                "proficiency_level": "fluent",
+                "source_language": "pt-BR",
+                "target_language": "en-US"
+              }
+            ],
+            "name": "Maria Silva",
+            "phone": "11988887777",
+            "qualifications": [
+              {
+                "description": "Contratos e peças",
+                "id": "c731d4d4-9569-4db2-9d7f-1569db5f270e",
+                "name": "Tradução Jurídica"
+              }
+            ],
+            "updated_at": "2026-09-15T10:00:00Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 201
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to update a translator with qualifications and language pairs",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a translator exists"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "email": "maria.silva@exemplo.com",
+            "language_pairs": [
+              {
+                "language_pair_id": "eb162eb3-b88c-42f6-89d7-3da5112f7d31",
+                "proficiency_level": "native"
+              }
+            ],
+            "name": "Maria Silva Atualizada",
+            "phone": "11999990000",
+            "qualification_ids": [
+              "c731d4d4-9569-4db2-9d7f-1569db5f270e"
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "PUT",
+        "path": "/api/translators/123e4567-e89b-12d3-a456-426614174000"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "created_at": "2026-09-15T10:00:00Z",
+            "email": "maria.silva@exemplo.com",
+            "id": "123e4567-e89b-12d3-a456-426614174000",
+            "is_active": true,
+            "language_pairs": [
+              {
+                "id": "123e4567-e89b-12d3-a456-426614174001",
+                "language_pair_id": "eb162eb3-b88c-42f6-89d7-3da5112f7d31",
+                "proficiency_level": "native",
+                "source_language": "pt-BR",
+                "target_language": "en-US"
+              }
+            ],
+            "name": "Maria Silva Atualizada",
+            "phone": "11999990000",
+            "qualifications": [
+              {
+                "description": "Contratos e peças",
+                "id": "c731d4d4-9569-4db2-9d7f-1569db5f270e",
+                "name": "Tradução Jurídica"
+              }
+            ],
+            "updated_at": "2026-09-15T10:30:00Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to get a translator by id with relationships",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a translator exists with qualifications and language pairs"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/translators/123e4567-e89b-12d3-a456-426614174000"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "created_at": "2026-09-15T10:00:00Z",
+            "email": "maria.silva@exemplo.com",
+            "id": "123e4567-e89b-12d3-a456-426614174000",
+            "is_active": true,
+            "language_pairs": [
+              {
+                "id": "123e4567-e89b-12d3-a456-426614174001",
+                "language_pair_id": "eb162eb3-b88c-42f6-89d7-3da5112f7d31",
+                "proficiency_level": "fluent",
+                "source_language": "pt-BR",
+                "target_language": "en-US"
+              }
+            ],
+            "name": "Maria Silva",
+            "phone": "11988887777",
+            "qualifications": [
+              {
+                "description": "Contratos e peças",
+                "id": "c731d4d4-9569-4db2-9d7f-1569db5f270e",
+                "name": "Tradução Jurídica"
+              }
+            ],
+            "updated_at": "2026-09-15T10:00:00Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list all translators",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "translators exist"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/translators"
+      },
+      "response": {
+        "body": {
+          "content": [
+            {
+              "created_at": "2026-09-15T10:00:00Z",
+              "email": "maria.silva@exemplo.com",
+              "id": "123e4567-e89b-12d3-a456-426614174000",
+              "is_active": true,
+              "language_pairs": [],
+              "name": "Maria Silva",
+              "phone": "11988887777",
+              "qualifications": [],
+              "updated_at": "2026-09-15T10:00:00Z"
+            }
+          ],
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to create a translator with empty body",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the request is completely empty"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {},
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/translators"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to get a non-existent translator",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the translator does not exist"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/translators/999e4567-e89b-12d3-a456-426614174999"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "detail": "Translator not found"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 404
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to delete an existing translator",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a translator exists"
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "path": "/api/translators/123e4567-e89b-12d3-a456-426614174000"
+      },
+      "response": {
+        "status": 204
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a support question within the allowed length",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the support agent is available"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "texto": "Como eu crio um lead?"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/suporte/perguntas"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "resposta": "[stub] resposta simulada para: Como eu crio um lead?"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a support question with empty text",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the request payload fails schema validation"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "texto": ""
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/suporte/perguntas"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a support question when the agent is unavailable",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the support agent dependency raises an error"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "texto": "Como eu crio um lead?"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/suporte/perguntas"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "detail": "O agente de suporte está indisponível no momento. Tente novamente em instantes."
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 502
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to enqueue a support agent test",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the Inngest event service is available"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "texto": "Validar o agente de suporte"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/suporte/agente/teste"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "evento": "support/agent.test",
+            "ids": [
+              "event-id"
+            ],
+            "status": "queued"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 201
+      },
+      "type": "Synchronous/HTTP"
     }
   ],
   "metadata": {

@@ -19,6 +19,13 @@ export function apiPatch<TResponse, TBody>(path: string, body: TBody) {
 	});
 }
 
+export function apiPut<TResponse, TBody>(path: string, body: TBody) {
+	return request<TResponse>(path, {
+		method: 'PUT',
+		body: JSON.stringify(body),
+	});
+}
+
 export async function apiDelete(path: string): Promise<void> {
 	const response = await fetch(`${apiUrl}${path}`, { method: 'DELETE' });
 

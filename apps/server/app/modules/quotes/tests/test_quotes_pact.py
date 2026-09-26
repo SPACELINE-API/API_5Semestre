@@ -61,7 +61,7 @@ def test_generate_quote_from_approved_request_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 def test_generate_quote_from_request_error_contracts() -> None:
@@ -92,4 +92,4 @@ def test_generate_quote_from_request_error_contracts() -> None:
         .will_respond_with(422)
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
