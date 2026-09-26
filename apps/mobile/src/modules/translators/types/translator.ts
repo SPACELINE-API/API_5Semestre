@@ -83,19 +83,19 @@ export const AVAILABLE_LANGUAGES = [
 ];
 
 export const KNOWN_LANGUAGE_PAIRS: Record<string, string> = {
-	'pt-BR->en-US': 'eb162eb3-b88c-42f6-89d7-3da5112f7d31',
-	'en-US->pt-BR': 'eb162eb3-b88c-42f6-89d7-3da5112f7d32',
-	'pt-BR->es-ES': 'eb162eb3-b88c-42f6-89d7-3da5112f7d33',
-	'es-ES->pt-BR': 'eb162eb3-b88c-42f6-89d7-3da5112f7d34',
-	'en-US->es-ES': 'eb162eb3-b88c-42f6-89d7-3da5112f7d35',
-	'pt-BR->fr-FR': 'eb162eb3-b88c-42f6-89d7-3da5112f7d36',
-	'pt-BR->de-DE': 'eb162eb3-b88c-42f6-89d7-3da5112f7d37',
-	'pt-BR->it-IT': 'eb162eb3-b88c-42f6-89d7-3da5112f7d38',
+	'pt-BR->en-US': 'b1b2b3b4-0000-4000-8000-000000000001',
+	'en-US->pt-BR': 'b1b2b3b4-0000-4000-8000-000000000002',
+	'pt-BR->es-ES': 'b1b2b3b4-0000-4000-8000-000000000003',
+	'es-ES->pt-BR': 'b1b2b3b4-0000-4000-8000-000000000004',
+	'pt-BR->fr-FR': 'b1b2b3b4-0000-4000-8000-000000000005',
+	'pt-BR->de-DE': 'b1b2b3b4-0000-4000-8000-000000000006',
+	'en-US->es-ES': 'b1b2b3b4-0000-4000-8000-000000000007',
+	'pt-BR->ja-JP': 'b1b2b3b4-0000-4000-8000-000000000008',
 };
 
 export function resolveLanguagePairId(source: string, target: string): string {
 	const key = `${source}->${target}`;
-	return KNOWN_LANGUAGE_PAIRS[key] ?? 'eb162eb3-b88c-42f6-89d7-3da5112f7d31';
+	return KNOWN_LANGUAGE_PAIRS[key] ?? 'b1b2b3b4-0000-4000-8000-000000000001';
 }
 
 export function getLanguageName(code: string): string {

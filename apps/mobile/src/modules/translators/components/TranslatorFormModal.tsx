@@ -14,6 +14,7 @@ import {
 	PROFICIENCY_OPTIONS,
 	AVAILABLE_LANGUAGES,
 	resolveLanguagePairId,
+	getLanguageName,
 } from '../types/translator';
 import { FormField } from '../../clients/components/FormField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
@@ -80,6 +81,7 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 	const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState<string | null>(null);
+	const [langPicker, setLangPicker] = useState<{ index: number; field: 'source_language' | 'target_language' } | null>(null);
 
 	const isLastStep = step === STEPS.length - 1;
 
@@ -245,37 +247,33 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 						{STEPS.map((s, i) => (
 							<View key={i} className="flex-1 flex-row items-center">
 								<View
-									className={`flex-row items-center gap-2 ${
-										i === step
+									className={`flex-row items-center gap-2 ${i === step
 											? 'opacity-100'
 											: i < step
 												? 'opacity-80'
 												: 'opacity-40'
-									}`}
+										}`}
 								>
 									<View
-										className={`h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-											i === step
+										className={`h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${i === step
 												? 'bg-blue-600 text-white'
 												: i < step
 													? 'bg-blue-100 text-blue-800'
 													: 'bg-gray-200 text-gray-600'
-										}`}
+											}`}
 									>
 										<Text
-											className={`font-inter text-xs font-bold ${
-												i === step ? 'text-white' : 'text-gray-700'
-											}`}
+											className={`font-inter text-xs font-bold ${i === step ? 'text-white' : 'text-gray-700'
+												}`}
 										>
 											{i + 1}
 										</Text>
 									</View>
 									<Text
-										className={`font-inter text-xs ${
-											i === step
+										className={`font-inter text-xs ${i === step
 												? 'font-bold text-blue-900'
 												: 'font-medium text-gray-600'
-										}`}
+											}`}
 									>
 										{s.title}
 									</Text>
@@ -402,11 +400,13 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 														))}
 													</select>
 												) : (
-													<TextInput
-														value={pair.source_language}
-														onChangeText={(v) => updatePair(index, 'source_language', v)}
-														className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-													/>
+													<TouchableOpacity
+														activeOpacity={0.7}
+														onPress={() => setLangPicker({ index, field: 'source_language' })}
+														className="rounded-lg border border-gray-300 bg-white px-3 py-2"
+													>
+														<Text className="text-sm text-gray-900">{getLanguageName(pair.source_language) || 'Selecione...'}</Text>
+													</TouchableOpacity>
 												)}
 											</View>
 
@@ -441,11 +441,13 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 														))}
 													</select>
 												) : (
-													<TextInput
-														value={pair.target_language}
-														onChangeText={(v) => updatePair(index, 'target_language', v)}
-														className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-													/>
+													<TouchableOpacity
+														activeOpacity={0.7}
+														onPress={() => setLangPicker({ index, field: 'target_language' })}
+														className="rounded-lg border border-gray-300 bg-white px-3 py-2"
+													>
+														<Text className="text-sm text-gray-900">{getLanguageName(pair.target_language) || 'Selecione...'}</Text>
+													</TouchableOpacity>
 												)}
 											</View>
 										</View>
@@ -465,18 +467,16 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 																updatePair(index, 'proficiency_level', opt.value)
 															}
 															activeOpacity={0.7}
-															className={`rounded-lg border px-2.5 py-1.5 ${
-																isSelected
+															className={`rounded-lg border px-2.5 py-1.5 ${isSelected
 																	? 'border-blue-600 bg-blue-50'
 																	: 'border-gray-200 bg-white hover:bg-gray-50'
-															}`}
+																}`}
 														>
 															<Text
-																className={`font-inter text-xs ${
-																	isSelected
+																className={`font-inter text-xs ${isSelected
 																		? 'font-bold text-blue-900'
 																		: 'text-gray-600'
-																}`}
+																	}`}
 															>
 																{opt.label}
 															</Text>
@@ -515,18 +515,16 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 											key={qual.id}
 											onPress={() => toggleQualification(qual.id)}
 											activeOpacity={0.7}
-											className={`flex-row items-start gap-3 rounded-xl border p-3.5 transition-all ${
-												isChecked
+											className={`flex-row items-start gap-3 rounded-xl border p-3.5 transition-all ${isChecked
 													? 'border-blue-500 bg-blue-50/60'
 													: 'border-gray-200 bg-white hover:bg-gray-50'
-											}`}
+												}`}
 										>
 											<View
-												className={`mt-0.5 h-4 w-4 rounded items-center justify-center border ${
-													isChecked
+												className={`mt-0.5 h-4 w-4 rounded items-center justify-center border ${isChecked
 														? 'border-blue-600 bg-blue-600'
 														: 'border-gray-300 bg-white'
-												}`}
+													}`}
 											>
 												{isChecked && <Text className="text-white text-[10px] font-bold">✓</Text>}
 											</View>
@@ -569,9 +567,8 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 							<TouchableOpacity
 								onPress={handleSubmit}
 								disabled={isSubmitting}
-								className={`rounded-lg bg-blue-600 px-6 py-2.5 hover:bg-blue-700 ${
-									isSubmitting ? 'opacity-60' : ''
-								}`}
+								className={`rounded-lg bg-blue-600 px-6 py-2.5 hover:bg-blue-700 ${isSubmitting ? 'opacity-60' : ''
+									}`}
 							>
 								<Text className="font-inter font-semibold text-white text-sm">
 									{isSubmitting ? 'Cadastrando...' : 'Finalizar Cadastro'}
@@ -591,6 +588,37 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 					</View>
 				</View>
 			</View>
+
+			{/* MOBILE LANGUAGE PICKER MODAL */}
+			{langPicker && (
+				<Modal visible transparent animationType="fade" onRequestClose={() => setLangPicker(null)}>
+					<View className="flex-1 justify-end bg-black/50">
+						<View className="bg-white rounded-t-3xl max-h-[80%] pb-8">
+							<View className="flex-row items-center justify-between p-5 border-b border-gray-100">
+								<Text className="font-poppins font-bold text-gray-900 text-lg">Selecione o Idioma</Text>
+								<TouchableOpacity onPress={() => setLangPicker(null)} className="p-2 bg-gray-100 rounded-full">
+									<X size={20} color="#374151" />
+								</TouchableOpacity>
+							</View>
+							<ScrollView className="p-4">
+								{AVAILABLE_LANGUAGES.map((lang) => (
+									<TouchableOpacity
+										key={lang.code}
+										onPress={() => {
+											updatePair(langPicker.index, langPicker.field, lang.code);
+											setLangPicker(null);
+										}}
+										className="flex-row items-center py-4 border-b border-gray-50 px-2 active:bg-gray-50"
+									>
+										<Text className="text-xl mr-3">{lang.flag}</Text>
+										<Text className="font-inter text-gray-800 text-base">{lang.label}</Text>
+									</TouchableOpacity>
+								))}
+							</ScrollView>
+						</View>
+					</View>
+				</Modal>
+			)}
 
 			{toast && (
 				<View className="absolute bottom-6 left-6 right-6 items-center">
