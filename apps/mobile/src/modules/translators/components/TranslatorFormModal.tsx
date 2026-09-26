@@ -5,18 +5,26 @@ import {
 	Text,
 	TouchableOpacity,
 	ScrollView,
-	TextInput,
 	Platform,
 } from 'react-native';
 import { X, Plus, Trash2, AlertCircle, ArrowRight } from 'lucide-react-native';
-import type { TranslatorCreateInput, LanguagePairFormRow } from '../types/translator';
+import type {
+	TranslatorCreateInput,
+	LanguagePairFormRow,
+} from '../types/translator';
 import {
 	PROFICIENCY_OPTIONS,
 	AVAILABLE_LANGUAGES,
 	getLanguageName,
 } from '../types/translator';
-import type { QualificationResponse, DictionaryLanguagePairResponse } from '../types/translator';
-import { listQualifications, listLanguagePairs } from '../services/translatorService';
+import type {
+	QualificationResponse,
+	DictionaryLanguagePairResponse,
+} from '../types/translator';
+import {
+	listQualifications,
+	listLanguagePairs,
+} from '../services/translatorService';
 import { FormField } from '../../clients/components/FormField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
@@ -48,12 +56,37 @@ const STEPS = [
 ];
 
 const PREDEFINED_QUALIFICATIONS = [
-	{ id: 'c1c2c3c4-0000-4000-8000-000000000001', name: 'Tradução Jurídica', description: 'Contratos, peças processuais e documentos legais' },
-	{ id: 'c1c2c3c4-0000-4000-8000-000000000002', name: 'Tradução Técnica', description: 'Manuais, documentação de engenharia e especificações técnicas' },
-	{ id: 'c1c2c3c4-0000-4000-8000-000000000003', name: 'Tradução Médica', description: 'Bulas, prontuários, laudos e documentos clínicos' },
-	{ id: 'c1c2c3c4-0000-4000-8000-000000000004', name: 'Tradução Literária', description: 'Livros, contos, poesia e textos de ficção' },
-	{ id: 'c1c2c3c4-0000-4000-8000-000000000005', name: 'Tradução Financeira', description: 'Relatórios financeiros, balanços e documentos contábeis' },
-	{ id: 'c1c2c3c4-0000-4000-8000-000000000006', name: 'Tradução Acadêmica', description: 'Artigos científicos, dissertações e publicações acadêmicas' },
+	{
+		id: 'c1c2c3c4-0000-4000-8000-000000000001',
+		name: 'Tradução Jurídica',
+		description: 'Contratos, peças processuais e documentos legais',
+	},
+	{
+		id: 'c1c2c3c4-0000-4000-8000-000000000002',
+		name: 'Tradução Técnica',
+		description:
+			'Manuais, documentação de engenharia e especificações técnicas',
+	},
+	{
+		id: 'c1c2c3c4-0000-4000-8000-000000000003',
+		name: 'Tradução Médica',
+		description: 'Bulas, prontuários, laudos e documentos clínicos',
+	},
+	{
+		id: 'c1c2c3c4-0000-4000-8000-000000000004',
+		name: 'Tradução Literária',
+		description: 'Livros, contos, poesia e textos de ficção',
+	},
+	{
+		id: 'c1c2c3c4-0000-4000-8000-000000000005',
+		name: 'Tradução Financeira',
+		description: 'Relatórios financeiros, balanços e documentos contábeis',
+	},
+	{
+		id: 'c1c2c3c4-0000-4000-8000-000000000006',
+		name: 'Tradução Acadêmica',
+		description: 'Artigos científicos, dissertações e publicações acadêmicas',
+	},
 ];
 
 function isValidEmail(email: string) {
@@ -73,20 +106,34 @@ function maskPhone(value: string) {
 	return value;
 }
 
-export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props) {
+export function TranslatorFormModal({
+	visible,
+	onClose,
+	onSubmit,
+	toast,
+}: Props) {
 	const [step, setStep] = useState(0);
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
 	const [phone, setPhone] = useState('');
 	const [pairs, setPairs] = useState<LanguagePairFormRow[]>([{ ...EMPTY_ROW }]);
-	const [selectedQualifications, setSelectedQualifications] = useState<string[]>([]);
+	const [selectedQualifications, setSelectedQualifications] = useState<
+		string[]
+	>([]);
 	const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState<string | null>(null);
-	const [langPicker, setLangPicker] = useState<{ index: number; field: 'source_language' | 'target_language' } | null>(null);
+	const [langPicker, setLangPicker] = useState<{
+		index: number;
+		field: 'source_language' | 'target_language';
+	} | null>(null);
 
-	const [apiQualifications, setApiQualifications] = useState<QualificationResponse[]>(PREDEFINED_QUALIFICATIONS);
-	const [apiLanguagePairs, setApiLanguagePairs] = useState<DictionaryLanguagePairResponse[]>([]);
+	const [apiQualifications, setApiQualifications] = useState<
+		QualificationResponse[]
+	>(PREDEFINED_QUALIFICATIONS);
+	const [apiLanguagePairs, setApiLanguagePairs] = useState<
+		DictionaryLanguagePairResponse[]
+	>([]);
 
 	useEffect(() => {
 		if (visible) {
@@ -95,9 +142,11 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 		}
 	}, [visible]);
 
-	function resolvePairId(source: string, target: string) {
-		const found = apiLanguagePairs.find((p) => p.source_language === source && p.target_language === target);
-		return found
+	function resolvePairId(source: string, target: string): string {
+		const found = apiLanguagePairs.find(
+			(p) => p.source_language === source && p.target_language === target,
+		);
+		return found?.id ?? '';
 	}
 
 	const isLastStep = step === STEPS.length - 1;
@@ -120,7 +169,8 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 		if (!email.trim()) errors.email = 'Email é obrigatório.';
 		else if (!isValidEmail(email)) errors.email = 'Email inválido.';
 		if (!phone.trim()) errors.phone = 'Telefone é obrigatório.';
-		else if (!isValidPhone(phone)) errors.phone = 'Telefone inválido (mínimo 10 dígitos).';
+		else if (!isValidPhone(phone))
+			errors.phone = 'Telefone inválido (mínimo 10 dígitos).';
 		return errors;
 	}
 
@@ -130,7 +180,8 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 			(p) => p.source_language.trim() === p.target_language.trim(),
 		);
 		if (hasSame) {
-			errors.language_pairs = 'O idioma de origem e de destino não podem ser iguais.';
+			errors.language_pairs =
+				'O idioma de origem e de destino não podem ser iguais.';
 			return errors;
 		}
 		return errors;
@@ -154,7 +205,9 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 	}
 
 	function addPair() {
-		const usedPairs = new Set(pairs.map((p) => `${p.source_language}->${p.target_language}`));
+		const usedPairs = new Set(
+			pairs.map((p) => `${p.source_language}->${p.target_language}`),
+		);
 		// Tenta sugerir um par que ainda não foi adicionado
 		const nextSource = 'pt-BR';
 		let nextTarget = 'es-ES';
@@ -164,7 +217,7 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 		setPairs((prev) => [
 			...prev,
 			{
-				language_pair_id: resolveLanguagePairId(nextSource, nextTarget),
+				language_pair_id: resolvePairId(nextSource, nextTarget),
 				source_language: nextSource,
 				target_language: nextTarget,
 				proficiency_level: 'intermediate',
@@ -176,7 +229,11 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 		setPairs((prev) => prev.filter((_, i) => i !== index));
 	}
 
-	function updatePair(index: number, field: keyof LanguagePairFormRow, value: string) {
+	function updatePair(
+		index: number,
+		field: keyof LanguagePairFormRow,
+		value: string,
+	) {
 		setPairs((prev) =>
 			prev.map((row, i) => {
 				if (i !== index) return row;
@@ -237,7 +294,12 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 	}
 
 	return (
-		<Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
+		<Modal
+			visible={visible}
+			transparent
+			animationType="slide"
+			onRequestClose={handleClose}
+		>
 			<View className="flex-1 justify-end bg-black/40">
 				<View className="w-full max-h-[92%] overflow-hidden rounded-t-3xl bg-white shadow-2xl">
 					{/* HEADER */}
@@ -264,33 +326,37 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 						{STEPS.map((s, i) => (
 							<View key={i} className="flex-1 flex-row items-center">
 								<View
-									className={`flex-row items-center gap-2 ${i === step
+									className={`flex-row items-center gap-2 ${
+										i === step
 											? 'opacity-100'
 											: i < step
 												? 'opacity-80'
 												: 'opacity-40'
-										}`}
+									}`}
 								>
 									<View
-										className={`h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${i === step
+										className={`h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+											i === step
 												? 'bg-blue-600 text-white'
 												: i < step
 													? 'bg-blue-100 text-blue-800'
 													: 'bg-gray-200 text-gray-600'
-											}`}
+										}`}
 									>
 										<Text
-											className={`font-inter text-xs font-bold ${i === step ? 'text-white' : 'text-gray-700'
-												}`}
+											className={`font-inter text-xs font-bold ${
+												i === step ? 'text-white' : 'text-gray-700'
+											}`}
 										>
 											{i + 1}
 										</Text>
 									</View>
 									<Text
-										className={`font-inter text-xs ${i === step
+										className={`font-inter text-xs ${
+											i === step
 												? 'font-bold text-blue-900'
 												: 'font-medium text-gray-600'
-											}`}
+										}`}
 									>
 										{s.title}
 									</Text>
@@ -312,7 +378,8 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 									value={name}
 									onChangeText={(v) => {
 										setName(v);
-										if (fieldErrors.name) setFieldErrors((p) => ({ ...p, name: undefined }));
+										if (fieldErrors.name)
+											setFieldErrors((p) => ({ ...p, name: undefined }));
 									}}
 									placeholder="Ex: Carlos Eduardo de Oliveira"
 									error={fieldErrors.name}
@@ -323,7 +390,8 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 									value={email}
 									onChangeText={(v) => {
 										setEmail(v);
-										if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }));
+										if (fieldErrors.email)
+											setFieldErrors((p) => ({ ...p, email: undefined }));
 									}}
 									placeholder="carlos.oliveira@spaceline.com.br"
 									autoCapitalize="none"
@@ -335,7 +403,8 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 									value={phone}
 									onChangeText={(v) => {
 										setPhone(maskPhone(v));
-										if (fieldErrors.phone) setFieldErrors((p) => ({ ...p, phone: undefined }));
+										if (fieldErrors.phone)
+											setFieldErrors((p) => ({ ...p, phone: undefined }));
 									}}
 									placeholder="(11) 98765-4321"
 									error={fieldErrors.phone}
@@ -348,7 +417,8 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 							<View className="gap-4">
 								<View className="rounded-lg bg-blue-50/70 p-3">
 									<Text className="font-inter text-blue-900 text-xs">
-										Selecione os idiomas de trabalho e o nível de domínio do tradutor. Você pode adicionar vários pares.
+										Selecione os idiomas de trabalho e o nível de domínio do
+										tradutor. Você pode adicionar vários pares.
 									</Text>
 								</View>
 
@@ -395,7 +465,11 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 													<select
 														value={pair.source_language}
 														onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-															updatePair(index, 'source_language', e.target.value)
+															updatePair(
+																index,
+																'source_language',
+																e.target.value,
+															)
 														}
 														style={{
 															width: '100%',
@@ -419,10 +493,15 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 												) : (
 													<TouchableOpacity
 														activeOpacity={0.7}
-														onPress={() => setLangPicker({ index, field: 'source_language' })}
+														onPress={() =>
+															setLangPicker({ index, field: 'source_language' })
+														}
 														className="rounded-lg border border-gray-300 bg-white px-3 py-2"
 													>
-														<Text className="text-sm text-gray-900">{getLanguageName(pair.source_language) || 'Selecione...'}</Text>
+														<Text className="text-sm text-gray-900">
+															{getLanguageName(pair.source_language) ||
+																'Selecione...'}
+														</Text>
 													</TouchableOpacity>
 												)}
 											</View>
@@ -436,7 +515,11 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 													<select
 														value={pair.target_language}
 														onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-															updatePair(index, 'target_language', e.target.value)
+															updatePair(
+																index,
+																'target_language',
+																e.target.value,
+															)
 														}
 														style={{
 															width: '100%',
@@ -460,10 +543,15 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 												) : (
 													<TouchableOpacity
 														activeOpacity={0.7}
-														onPress={() => setLangPicker({ index, field: 'target_language' })}
+														onPress={() =>
+															setLangPicker({ index, field: 'target_language' })
+														}
 														className="rounded-lg border border-gray-300 bg-white px-3 py-2"
 													>
-														<Text className="text-sm text-gray-900">{getLanguageName(pair.target_language) || 'Selecione...'}</Text>
+														<Text className="text-sm text-gray-900">
+															{getLanguageName(pair.target_language) ||
+																'Selecione...'}
+														</Text>
 													</TouchableOpacity>
 												)}
 											</View>
@@ -476,24 +564,31 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 											</Text>
 											<View className="flex-row flex-wrap gap-1.5">
 												{PROFICIENCY_OPTIONS.map((opt) => {
-													const isSelected = pair.proficiency_level === opt.value;
+													const isSelected =
+														pair.proficiency_level === opt.value;
 													return (
 														<TouchableOpacity
 															key={opt.value}
 															onPress={() =>
-																updatePair(index, 'proficiency_level', opt.value)
+																updatePair(
+																	index,
+																	'proficiency_level',
+																	opt.value,
+																)
 															}
 															activeOpacity={0.7}
-															className={`rounded-lg border px-2.5 py-1.5 ${isSelected
+															className={`rounded-lg border px-2.5 py-1.5 ${
+																isSelected
 																	? 'border-blue-600 bg-blue-50'
 																	: 'border-gray-200 bg-white hover:bg-gray-50'
-																}`}
+															}`}
 														>
 															<Text
-																className={`font-inter text-xs ${isSelected
+																className={`font-inter text-xs ${
+																	isSelected
 																		? 'font-bold text-blue-900'
 																		: 'text-gray-600'
-																	}`}
+																}`}
 															>
 																{opt.label}
 															</Text>
@@ -522,7 +617,8 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 						{step === 2 && (
 							<View className="gap-3">
 								<Text className="font-inter text-gray-600 text-xs">
-									Selecione as especialidades técnicas deste tradutor (opcional):
+									Selecione as especialidades técnicas deste tradutor
+									(opcional):
 								</Text>
 
 								{apiQualifications.map((qual) => {
@@ -532,18 +628,24 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 											key={qual.id}
 											onPress={() => toggleQualification(qual.id)}
 											activeOpacity={0.7}
-											className={`flex-row items-start gap-3 rounded-xl border p-3.5 transition-all ${isChecked
+											className={`flex-row items-start gap-3 rounded-xl border p-3.5 transition-all ${
+												isChecked
 													? 'border-blue-500 bg-blue-50/60'
 													: 'border-gray-200 bg-white hover:bg-gray-50'
-												}`}
+											}`}
 										>
 											<View
-												className={`mt-0.5 h-4 w-4 rounded items-center justify-center border ${isChecked
+												className={`mt-0.5 h-4 w-4 rounded items-center justify-center border ${
+													isChecked
 														? 'border-blue-600 bg-blue-600'
 														: 'border-gray-300 bg-white'
-													}`}
+												}`}
 											>
-												{isChecked && <Text className="text-white text-[10px] font-bold">✓</Text>}
+												{isChecked && (
+													<Text className="text-white text-[10px] font-bold">
+														✓
+													</Text>
+												)}
 											</View>
 											<View className="flex-1">
 												<Text className="font-inter font-semibold text-gray-900 text-xs">
@@ -584,8 +686,9 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 							<TouchableOpacity
 								onPress={handleSubmit}
 								disabled={isSubmitting}
-								className={`rounded-lg bg-blue-600 px-6 py-2.5 hover:bg-blue-700 ${isSubmitting ? 'opacity-60' : ''
-									}`}
+								className={`rounded-lg bg-blue-600 px-6 py-2.5 hover:bg-blue-700 ${
+									isSubmitting ? 'opacity-60' : ''
+								}`}
 							>
 								<Text className="font-inter font-semibold text-white text-sm">
 									{isSubmitting ? 'Cadastrando...' : 'Finalizar Cadastro'}
@@ -608,12 +711,22 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 
 			{/* MOBILE LANGUAGE PICKER MODAL */}
 			{langPicker && (
-				<Modal visible transparent animationType="fade" onRequestClose={() => setLangPicker(null)}>
+				<Modal
+					visible
+					transparent
+					animationType="fade"
+					onRequestClose={() => setLangPicker(null)}
+				>
 					<View className="flex-1 justify-end bg-black/50">
 						<View className="bg-white rounded-t-3xl max-h-[80%] pb-8">
 							<View className="flex-row items-center justify-between p-5 border-b border-gray-100">
-								<Text className="font-poppins font-bold text-gray-900 text-lg">Selecione o Idioma</Text>
-								<TouchableOpacity onPress={() => setLangPicker(null)} className="p-2 bg-gray-100 rounded-full">
+								<Text className="font-poppins font-bold text-gray-900 text-lg">
+									Selecione o Idioma
+								</Text>
+								<TouchableOpacity
+									onPress={() => setLangPicker(null)}
+									className="p-2 bg-gray-100 rounded-full"
+								>
 									<X size={20} color="#374151" />
 								</TouchableOpacity>
 							</View>
@@ -628,7 +741,9 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 										className="flex-row items-center py-4 border-b border-gray-50 px-2 active:bg-gray-50"
 									>
 										<Text className="text-xl mr-3">{lang.flag}</Text>
-										<Text className="font-inter text-gray-800 text-base">{lang.label}</Text>
+										<Text className="font-inter text-gray-800 text-base">
+											{lang.label}
+										</Text>
 									</TouchableOpacity>
 								))}
 							</ScrollView>

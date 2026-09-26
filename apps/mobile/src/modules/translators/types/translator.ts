@@ -1,9 +1,5 @@
 export type ProficiencyLevel =
-	| 'basic'
-	| 'intermediate'
-	| 'advanced'
-	| 'fluent'
-	| 'native';
+	'basic' | 'intermediate' | 'advanced' | 'fluent' | 'native';
 
 export const PROFICIENCY_LABELS: Record<ProficiencyLevel, string> = {
 	basic: 'Básico',
@@ -126,7 +122,7 @@ export function formatLanguagePairDisplay(p: {
 
 	if ((!source || !target) && p.language_pair_id) {
 		const match = Object.entries(KNOWN_LANGUAGE_PAIRS).find(
-			([, id]) => id.toLowerCase() === p.language_pair_id?.toLowerCase()
+			([, id]) => id.toLowerCase() === p.language_pair_id?.toLowerCase(),
 		);
 		if (match) {
 			const [s, t] = match[0].split('->');
@@ -156,7 +152,7 @@ export function formatLanguagePairCode(p: {
 
 	if ((!source || !target) && p.language_pair_id) {
 		const match = Object.entries(KNOWN_LANGUAGE_PAIRS).find(
-			([, id]) => id.toLowerCase() === p.language_pair_id?.toLowerCase()
+			([, id]) => id.toLowerCase() === p.language_pair_id?.toLowerCase(),
 		);
 		if (match) {
 			const [s, t] = match[0].split('->');
@@ -177,5 +173,3 @@ export function formatLanguagePairCode(p: {
 }
 
 export type TranslatorUpdateInput = TranslatorCreateInput;
-
-

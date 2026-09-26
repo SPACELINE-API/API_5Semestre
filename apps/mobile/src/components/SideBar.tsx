@@ -103,7 +103,10 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 	const isSupportAgentActive = pathname.startsWith('/support-agent');
 	const isTradutoresActive = pathname.startsWith('/tradutores');
 	const isKnownRoute =
-		isClientsActive || isOrdersActive || isSupportAgentActive || isTradutoresActive;
+		isClientsActive ||
+		isOrdersActive ||
+		isSupportAgentActive ||
+		isTradutoresActive;
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
 	const showExpanded = isOpen || mobileOpen;
 

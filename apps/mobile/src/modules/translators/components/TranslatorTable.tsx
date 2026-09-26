@@ -1,7 +1,10 @@
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { ChevronRight, UserRound } from 'lucide-react-native';
 import type { Translator } from '../types/translator';
-import { PROFICIENCY_LABELS, formatLanguagePairCode } from '../types/translator';
+import {
+	PROFICIENCY_LABELS,
+	formatLanguagePairCode,
+} from '../types/translator';
 
 type Props = {
 	translators: Translator[];
@@ -71,9 +74,13 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 								{t.language_pairs.length > 0 && (
 									<View className="mt-1 flex-row flex-wrap gap-1 md:hidden">
 										{t.language_pairs.slice(0, 2).map((p) => (
-											<View key={p.id} className="rounded bg-blue-50 px-1.5 py-0.5">
+											<View
+												key={p.id}
+												className="rounded bg-blue-50 px-1.5 py-0.5"
+											>
 												<Text className="font-inter text-blue-700 text-[10px]">
-													{formatLanguagePairCode(p)} • {PROFICIENCY_LABELS[p.proficiency_level]}
+													{formatLanguagePairCode(p)} •{' '}
+													{PROFICIENCY_LABELS[p.proficiency_level]}
 												</Text>
 											</View>
 										))}
@@ -89,10 +96,16 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 
 						{/* CONTATO */}
 						<View className="hidden w-[22%] min-w-0 flex-none pr-3 md:flex">
-							<Text className="font-inter text-gray-700 text-sm" numberOfLines={1}>
+							<Text
+								className="font-inter text-gray-700 text-sm"
+								numberOfLines={1}
+							>
 								{t.email}
 							</Text>
-							<Text className="mt-0.5 font-inter text-gray-400 text-xs" numberOfLines={1}>
+							<Text
+								className="mt-0.5 font-inter text-gray-400 text-xs"
+								numberOfLines={1}
+							>
 								{t.phone}
 							</Text>
 						</View>
@@ -137,7 +150,10 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 											key={q.id}
 											className="rounded-full bg-gray-100 px-2 py-0.5"
 										>
-											<Text className="font-inter text-gray-700 text-[10px]" numberOfLines={1}>
+											<Text
+												className="font-inter text-gray-700 text-[10px]"
+												numberOfLines={1}
+											>
 												{q.name}
 											</Text>
 										</View>

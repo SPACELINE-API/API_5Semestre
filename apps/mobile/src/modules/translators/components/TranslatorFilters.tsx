@@ -14,7 +14,10 @@ const OPTIONS: { value: StatusFilter; label: string }[] = [
 	{ value: 'inactive', label: 'Inativo' },
 ];
 
-export function TranslatorFilters({ statusFilter, onStatusFilterChange }: Props) {
+export function TranslatorFilters({
+	statusFilter,
+	onStatusFilterChange,
+}: Props) {
 	return (
 		<View className="gap-1">
 			<Text className="mb-2 font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">

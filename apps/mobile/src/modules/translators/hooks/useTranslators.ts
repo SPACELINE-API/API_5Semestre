@@ -1,5 +1,8 @@
 ﻿import { useCallback, useEffect, useState } from 'react';
-import { createTranslator, listTranslators } from '../services/translatorService';
+import {
+	createTranslator,
+	listTranslators,
+} from '../services/translatorService';
 import type { Translator, TranslatorCreateInput } from '../types/translator';
 
 export function useTranslators() {

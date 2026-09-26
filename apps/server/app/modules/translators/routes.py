@@ -5,11 +5,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.modules.translators.schemas.translator import (
+    DictionaryLanguagePairResponse,
+    QualificationResponse,
     TranslatorCreate,
     TranslatorResponse,
     TranslatorUpdate,
-    QualificationResponse,
-    DictionaryLanguagePairResponse,
 )
 from app.modules.translators.services.translator_service import TranslatorService
 from app.shared.database import get_db

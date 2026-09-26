@@ -18,7 +18,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslators } from '../hooks/useTranslators';
 import { TranslatorTable } from '../components/TranslatorTable';
 import { TranslatorFormModal } from '../components/TranslatorFormModal';
-import { TranslatorFilters, type StatusFilter } from '../components/TranslatorFilters';
+import {
+	TranslatorFilters,
+	type StatusFilter,
+} from '../components/TranslatorFilters';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
@@ -132,7 +135,10 @@ export function TranslatorsPage() {
 									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none"
 								/>
 								{search.length > 0 && (
-									<TouchableOpacity onPress={() => setSearch('')} activeOpacity={0.7}>
+									<TouchableOpacity
+										onPress={() => setSearch('')}
+										activeOpacity={0.7}
+									>
 										<X size={15} color="#9CA3AF" />
 									</TouchableOpacity>
 								)}
@@ -149,7 +155,11 @@ export function TranslatorsPage() {
 							>
 								<SlidersHorizontal
 									size={16}
-									color={showFilters || statusFilter !== 'all' ? '#1C6FB0' : '#6B7280'}
+									color={
+										showFilters || statusFilter !== 'all'
+											? '#1C6FB0'
+											: '#6B7280'
+									}
 								/>
 								<Text
 									className={`font-inter font-medium text-sm ${
@@ -167,7 +177,8 @@ export function TranslatorsPage() {
 						</View>
 
 						<Text className="font-inter text-gray-400 text-xs">
-							{filtered.length} {filtered.length === 1 ? 'resultado' : 'resultados'}
+							{filtered.length}{' '}
+							{filtered.length === 1 ? 'resultado' : 'resultados'}
 						</Text>
 					</View>
 
@@ -189,7 +200,9 @@ export function TranslatorsPage() {
 									Não foi possível carregar os tradutores
 								</Text>
 							</View>
-							<Text className="mt-1 font-inter text-gray-500 text-sm">{error}</Text>
+							<Text className="mt-1 font-inter text-gray-500 text-sm">
+								{error}
+							</Text>
 						</View>
 					)}
 
@@ -246,7 +259,10 @@ export function TranslatorsPage() {
 							<Text className="font-inter font-bold text-gray-900 text-base">
 								Filtros
 							</Text>
-							<TouchableOpacity onPress={() => setShowFilters(false)} activeOpacity={0.7}>
+							<TouchableOpacity
+								onPress={() => setShowFilters(false)}
+								activeOpacity={0.7}
+							>
 								<X size={18} color="#8A8A8A" />
 							</TouchableOpacity>
 						</View>

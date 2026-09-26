@@ -19,14 +19,18 @@ export function listQualifications(): Promise<QualificationResponse[]> {
 }
 
 export function listLanguagePairs(): Promise<DictionaryLanguagePairResponse[]> {
-	return apiGet<DictionaryLanguagePairResponse[]>(`${BASE}/metadata/language-pairs`);
+	return apiGet<DictionaryLanguagePairResponse[]>(
+		`${BASE}/metadata/language-pairs`,
+	);
 }
 
 export function listTranslators(): Promise<Translator[]> {
 	return apiGet<Translator[]>(BASE);
 }
 
-export function createTranslator(data: TranslatorCreateInput): Promise<Translator> {
+export function createTranslator(
+	data: TranslatorCreateInput,
+): Promise<Translator> {
 	return apiPost<Translator, TranslatorCreateInput>(BASE, data);
 }
 
