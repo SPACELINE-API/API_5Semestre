@@ -1,8 +1,17 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+SAO_PAULO_TIMEZONE = ZoneInfo("America/Sao_Paulo")
+
+
+def _validate_deadline_not_in_past(value: datetime | None) -> datetime | None:
+    if value is not None and value.date() < datetime.now(SAO_PAULO_TIMEZONE).date():
+        raise ValueError("O prazo não pode ser anterior à data de hoje.")
+    return value
 
 
 class GenerateServiceOrderRequest(BaseModel):
@@ -15,6 +24,11 @@ class GenerateServiceOrderRequest(BaseModel):
     internal_notes: str | None = None
     external_notes: str | None = None
 
+    @field_validator("deadline")
+    @classmethod
+    def validate_deadline(cls, value: datetime | None) -> datetime | None:
+        return _validate_deadline_not_in_past(value)
+
 
 class UpdateServiceOrderRequest(BaseModel):
     project_name: str | None = Field(default=None, min_length=1, max_length=150)
@@ -23,6 +37,11 @@ class UpdateServiceOrderRequest(BaseModel):
     price_category: str | None = None
     internal_notes: str | None = None
     external_notes: str | None = None
+
+    @field_validator("deadline")
+    @classmethod
+    def validate_deadline(cls, value: datetime | None) -> datetime | None:
+        return _validate_deadline_not_in_past(value)
 
 
 class ServiceOrderItemResponse(BaseModel):

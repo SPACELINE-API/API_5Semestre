@@ -57,8 +57,8 @@ export default function NewQuotePage() {
 		setTimeout(() => setBannerMessage(null), 3000);
 	};
 
-	const handleSubmitQuote = async (status: string) => {
-		const quote = await createQuote(status);
+	const handleSubmitQuote = async () => {
+		const quote = await createQuote();
 		if (quote) {
 			for (const item of items) {
 				if (item.source && item.target) {
@@ -69,11 +69,7 @@ export default function NewQuotePage() {
 					});
 				}
 			}
-			if (status === 'draft') {
-				showBanner('O rascunho do orçamento foi salvo com sucesso!');
-			} else {
-				showBanner('O orçamento foi aprovado e encaminhado!');
-			}
+			showBanner('Orçamento criado e aguardando decisão.');
 		}
 	};
 
@@ -248,19 +244,11 @@ export default function NewQuotePage() {
 					</View>
 					<View className="flex-col md:flex-row gap-3 w-full md:w-auto">
 						<TouchableOpacity
-							onPress={() => handleSubmitQuote('draft')}
-							className="bg-white border border-blue-200 hover:bg-blue-50 w-full md:w-auto px-6 py-2.5 rounded-lg items-center transition-colors"
-						>
-							<Text className="text-blue-600 font-inter-medium text-sm">
-								Salvar rascunho
-							</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							onPress={() => handleSubmitQuote('approved')}
+							onPress={() => handleSubmitQuote()}
 							className="bg-blue-400 hover:bg-blue-500 w-full md:w-auto px-6 py-2.5 rounded-lg items-center transition-colors"
 						>
 							<Text className="text-white font-inter-medium text-sm">
-								Aprovar orçamento
+								Criar orçamento
 							</Text>
 						</TouchableOpacity>
 					</View>

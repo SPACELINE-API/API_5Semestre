@@ -1,7 +1,11 @@
 import { Text, View, Pressable } from 'react-native';
 import { Link } from 'expo-router';
 
-export function LoginHero() {
+export function LoginHero({
+	showRequestServiceButton,
+}: {
+	showRequestServiceButton: boolean;
+}) {
 	return (
 		<View className="w-full flex-none justify-center py-2 md:flex-1 md:py-2">
 			<View className="max-w-xl">
@@ -19,11 +23,13 @@ export function LoginHero() {
 					Acesse sua conta para acompanhar pedidos, ou solicite um serviço sem
 					precisar se cadastrar.
 				</Text>
-				<Link href="/solicitar-servico">
-					<Pressable className="w-60 h-12 mt-5 items-center justify-center rounded-full bg-[#2d83cd] shadow-md shadow-blue-600/30 transition-transform duration-300 ease-in-out hover:-translate-y-1">
-						<Text className="font-bold text-white">Solicitar serviço</Text>
-					</Pressable>
-				</Link>
+				{showRequestServiceButton ? (
+					<Link href="/solicitar-servico">
+						<Pressable className="w-60 h-12 mt-5 items-center justify-center rounded-full bg-[#2d83cd] shadow-md shadow-blue-600/30 transition-transform duration-300 ease-in-out hover:-translate-y-1">
+							<Text className="font-bold text-white">Solicitar serviço</Text>
+						</Pressable>
+					</Link>
+				) : null}
 			</View>
 		</View>
 	);
