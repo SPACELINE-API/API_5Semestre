@@ -80,6 +80,14 @@ class TranslatorLanguagePair(Base):
     # RELACIONAMENTO COM O PAR DE IDIOMA DO CATALOGO
     language_pair: Mapped["LanguagePair"] = relationship("LanguagePair")
 
+    @property
+    def source_language(self) -> str | None:
+        return self.language_pair.source_language if self.language_pair else None
+
+    @property
+    def target_language(self) -> str | None:
+        return self.language_pair.target_language if self.language_pair else None
+
     # REGRA NO BANCO QUE IMPEDE DUPLICIDADE DO MESMO PAR PARA O MESMO TRADUTOR
     __table_args__ = (
         UniqueConstraint("translator_id", "language_pair_id", name="uq_translator_language_pair"),

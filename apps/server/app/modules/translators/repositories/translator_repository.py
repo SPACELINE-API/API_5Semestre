@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.modules.translators.models.language_pair import LanguagePair, TranslatorLanguagePair
 from app.modules.translators.models.qualification import (
@@ -16,7 +16,17 @@ class TranslatorRepository:
 
     # BUSCA TRADUTOR POR ID
     def get_by_id(self, translator_id: uuid.UUID) -> Translator | None:
-        return self.db.get(Translator, translator_id)
+        return (
+            self.db.query(Translator)
+            .options(
+                joinedload(Translator.language_pairs).joinedload(
+                    TranslatorLanguagePair.language_pair
+                ),
+                joinedload(Translator.qualifications),
+            )
+            .filter(Translator.id == translator_id)
+            .first()
+        )
 
     # BUSCA TRADUTOR POR EMAIL
     def get_by_email(self, email: str) -> Translator | None:
@@ -24,7 +34,16 @@ class TranslatorRepository:
 
     # LISTA TODOS OS TRADUTORES
     def list_all(self) -> list[Translator]:
-        return self.db.query(Translator).all()
+        return (
+            self.db.query(Translator)
+            .options(
+                joinedload(Translator.language_pairs).joinedload(
+                    TranslatorLanguagePair.language_pair
+                ),
+                joinedload(Translator.qualifications),
+            )
+            .all()
+        )
 
     # BUSCA QUALIFICACOES PELOS IDS
     def get_qualifications_by_ids(self, ids: list[uuid.UUID]) -> list[TechnicalQualification]:
@@ -73,8 +92,7 @@ class TranslatorRepository:
             )
 
         self.db.commit()
-        self.db.refresh(translator)
-        return translator
+        return self.get_by_id(translator.id) or translator
 
     # ATUALIZA TRADUTOR SUBSTITUINDO QUALIFICACOES E PARES DE IDIOMA
     def update(
@@ -106,8 +124,7 @@ class TranslatorRepository:
             )
 
         self.db.commit()
-        self.db.refresh(translator)
-        return translator
+        return self.get_by_id(translator.id) or translator
 
     # REMOVE O TRADUTOR DO BANCO
     def delete(self, translator: Translator) -> None:

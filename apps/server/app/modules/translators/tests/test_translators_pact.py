@@ -2,6 +2,8 @@ from pathlib import Path
 
 from pact import Pact
 
+from app.shared.pact_writer import write_pact
+
 # DIRETORIO RAIZ ONDE OS CONTRATOS PACT FICAM SALVOS
 PACT_DIR = Path(__file__).parents[4]
 
@@ -11,6 +13,9 @@ NON_EXISTENT_TRANSLATOR_ID = "999e4567-e89b-12d3-a456-426614174999"
 MOCK_QUALIFICATION_ID = "c731d4d4-9569-4db2-9d7f-1569db5f270e"
 MOCK_LANGUAGE_PAIR_ID = "eb162eb3-b88c-42f6-89d7-3da5112f7d31"
 MOCK_TRANSLATOR_PAIR_ID = "123e4567-e89b-12d3-a456-426614174001"
+# IDIOMAS FICTICIOS PARA OS CONTRATOS
+MOCK_SOURCE_LANGUAGE = "pt-BR"
+MOCK_TARGET_LANGUAGE = "en"
 
 
 # CONTRATO DE CRIACAO DE TRADUTOR COM QUALIFICACOES E PARES DE IDIOMA
@@ -61,13 +66,15 @@ def test_create_translator_success_contract() -> None:
                         "id": MOCK_TRANSLATOR_PAIR_ID,
                         "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
                         "proficiency_level": "fluent",
+                        "source_language": MOCK_SOURCE_LANGUAGE,
+                        "target_language": MOCK_TARGET_LANGUAGE,
                     }
                 ],
             }
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE ATUALIZACAO DE TRADUTOR COM QUALIFICACOES E PARES DE IDIOMA
@@ -118,13 +125,15 @@ def test_update_translator_success_contract() -> None:
                         "id": MOCK_TRANSLATOR_PAIR_ID,
                         "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
                         "proficiency_level": "native",
+                        "source_language": MOCK_SOURCE_LANGUAGE,
+                        "target_language": MOCK_TARGET_LANGUAGE,
                     }
                 ],
             }
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE CONSULTA DE TRADUTOR COM SEUS RELACIONAMENTOS
@@ -158,13 +167,15 @@ def test_get_translator_success_contract() -> None:
                         "id": MOCK_TRANSLATOR_PAIR_ID,
                         "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
                         "proficiency_level": "fluent",
+                        "source_language": MOCK_SOURCE_LANGUAGE,
+                        "target_language": MOCK_TARGET_LANGUAGE,
                     }
                 ],
             }
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE LISTAGEM DE TRADUTORES
@@ -194,7 +205,7 @@ def test_list_translators_success_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE ERRO PARA DADOS OBRIGATORIOS AUSENTES OU INVALIDOS
@@ -211,7 +222,7 @@ def test_create_translator_missing_fields_contract() -> None:
         .with_headers({"Content-Type": "application/json"})
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE ERRO PARA TRADUTOR INEXISTENTE
@@ -231,7 +242,7 @@ def test_get_translator_not_found_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE EXCLUSAO DE TRADUTOR
@@ -245,4 +256,4 @@ def test_delete_translator_success_contract() -> None:
         .will_respond_with(204)
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
