@@ -174,7 +174,7 @@ export default function TranslatorDetailsScreen() {
 								key={p.id}
 								className="flex-row items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2.5"
 							>
-								<Text 
+								<Text
 									className="flex-1 font-inter font-medium text-gray-800 text-sm"
 									numberOfLines={2}
 								>
