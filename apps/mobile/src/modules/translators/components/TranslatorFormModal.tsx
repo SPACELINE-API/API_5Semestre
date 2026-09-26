@@ -220,7 +220,7 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 				phone: phone.trim(),
 				qualification_ids: selectedQualifications,
 				language_pairs: pairs.map((p) => ({
-					language_pair_id: resolvePairId(p.source_language, p.target_language),
+					language_pair_id: p.language_pair_id,
 					proficiency_level: p.proficiency_level,
 				})),
 			});
