@@ -8,9 +8,19 @@ import type {
 	Translator,
 	TranslatorCreateInput,
 	TranslatorUpdateInput,
+	QualificationResponse,
+	DictionaryLanguagePairResponse,
 } from '../types/translator';
 
 const BASE = '/api/translators';
+
+export function listQualifications(): Promise<QualificationResponse[]> {
+	return apiGet<QualificationResponse[]>(`${BASE}/metadata/qualifications`);
+}
+
+export function listLanguagePairs(): Promise<DictionaryLanguagePairResponse[]> {
+	return apiGet<DictionaryLanguagePairResponse[]>(`${BASE}/metadata/language-pairs`);
+}
 
 export function listTranslators(): Promise<Translator[]> {
 	return apiGet<Translator[]>(BASE);

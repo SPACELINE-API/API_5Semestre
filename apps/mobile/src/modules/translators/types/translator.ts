@@ -37,6 +37,18 @@ export type TranslatorQualification = {
 	description: string | null;
 };
 
+export type QualificationResponse = {
+	id: string;
+	name: string;
+	description?: string;
+};
+
+export type DictionaryLanguagePairResponse = {
+	id: string;
+	source_language: string;
+	target_language: string;
+};
+
 export type Translator = {
 	id: string;
 	name: string;

@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react';
+import { useState, useEffect, type ChangeEvent } from 'react';
 import {
 	Modal,
 	View,
@@ -13,9 +13,10 @@ import type { TranslatorCreateInput, LanguagePairFormRow } from '../types/transl
 import {
 	PROFICIENCY_OPTIONS,
 	AVAILABLE_LANGUAGES,
-	resolveLanguagePairId,
 	getLanguageName,
 } from '../types/translator';
+import type { QualificationResponse, DictionaryLanguagePairResponse } from '../types/translator';
+import { listQualifications, listLanguagePairs } from '../services/translatorService';
 import { FormField } from '../../clients/components/FormField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
@@ -83,6 +84,21 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [langPicker, setLangPicker] = useState<{ index: number; field: 'source_language' | 'target_language' } | null>(null);
+
+	const [apiQualifications, setApiQualifications] = useState<QualificationResponse[]>(PREDEFINED_QUALIFICATIONS);
+	const [apiLanguagePairs, setApiLanguagePairs] = useState<DictionaryLanguagePairResponse[]>([]);
+
+	useEffect(() => {
+		if (visible) {
+			listQualifications().then(setApiQualifications).catch(console.error);
+			listLanguagePairs().then(setApiLanguagePairs).catch(console.error);
+		}
+	}, [visible]);
+
+	function resolvePairId(source: string, target: string) {
+		const found = apiLanguagePairs.find((p) => p.source_language === source && p.target_language === target);
+		return found
+	}
 
 	const isLastStep = step === STEPS.length - 1;
 
@@ -165,7 +181,7 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 			prev.map((row, i) => {
 				if (i !== index) return row;
 				const updated = { ...row, [field]: value };
-				updated.language_pair_id = resolveLanguagePairId(
+				updated.language_pair_id = resolvePairId(
 					updated.source_language,
 					updated.target_language,
 				);
@@ -204,7 +220,7 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 				phone: phone.trim(),
 				qualification_ids: selectedQualifications,
 				language_pairs: pairs.map((p) => ({
-					language_pair_id: resolveLanguagePairId(p.source_language, p.target_language),
+					language_pair_id: resolvePairId(p.source_language, p.target_language),
 					proficiency_level: p.proficiency_level,
 				})),
 			});
@@ -509,7 +525,7 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 									Selecione as especialidades técnicas deste tradutor (opcional):
 								</Text>
 
-								{PREDEFINED_QUALIFICATIONS.map((qual) => {
+								{apiQualifications.map((qual) => {
 									const isChecked = selectedQualifications.includes(qual.id);
 									return (
 										<TouchableOpacity

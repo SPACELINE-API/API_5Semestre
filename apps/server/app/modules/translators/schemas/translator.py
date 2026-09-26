@@ -41,6 +41,15 @@ class LanguagePairResponse(BaseModel):
     proficiency_level: str
 
 
+# RESPOSTA DE UM PAR DE IDIOMA NO DICIONARIO/METADATA
+class DictionaryLanguagePairResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    source_language: str
+    target_language: str
+
+
 # RESPOSTA DE UMA QUALIFICACAO TECNICA
 class QualificationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
