@@ -36,6 +36,12 @@ def seed_service_orders(*, db: Session | None = None) -> list[str]:
             return []
 
         service_order = database_session.get(ServiceOrder, SEED_SERVICE_ORDER_ID)
+        if quote.status != "approved":
+            if service_order is not None:
+                database_session.delete(service_order)
+                database_session.commit()
+            return []
+
         if service_order is None:
             service_order = ServiceOrder(id=SEED_SERVICE_ORDER_ID)
             database_session.add(service_order)

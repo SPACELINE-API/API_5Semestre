@@ -75,4 +75,6 @@ class Quote(Base):
 
     @property
     def service_order_id(self) -> uuid.UUID | None:
-        return self.service_orders[0].id if self.service_orders else None
+        if self.status != "approved" or not self.service_orders:
+            return None
+        return self.service_orders[0].id

@@ -15,9 +15,7 @@ def test_create_quote_success_contract() -> None:
         .given("the server is ready")
         .with_request("POST", "/api/quotes")
         .with_headers({"Content-Type": "application/json"})
-        .with_body(
-            {}
-        )
+        .with_body({})
         .will_respond_with(201)
         .with_headers({"Content-Type": "application/json"})
         .with_body(

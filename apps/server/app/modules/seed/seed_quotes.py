@@ -91,7 +91,9 @@ def seed_quotes(*, db: Session | None = None) -> list[str]:
                 .first()
             )
             if request is None or company is None or request.company_id != company.id:
-                raise ValueError(f"Solicitação/empresa inválida no seed do orçamento {seed_quote.id}")
+                raise ValueError(
+                    f"Solicitação/empresa inválida no seed do orçamento {seed_quote.id}"
+                )
 
             contact = database_session.get(Contact, request.contact_id)
             if contact is None or contact.company_id != company.id:

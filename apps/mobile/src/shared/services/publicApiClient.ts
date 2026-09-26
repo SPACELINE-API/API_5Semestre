@@ -41,10 +41,7 @@ export async function request<TResponse>(path: string, init?: RequestInit) {
 			headers: { 'Content-Type': 'application/json', ...init?.headers },
 		});
 	} catch {
-		throw new ApiError(
-			'Não foi possível conectar à API.',
-			'network',
-		);
+		throw new ApiError('Não foi possível conectar à API.', 'network');
 	}
 	if (!response.ok) {
 		const payload = await response.json().catch(() => null);

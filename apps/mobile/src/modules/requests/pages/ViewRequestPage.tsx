@@ -44,7 +44,10 @@ export default function ViewRequestPage() {
 					Requisições
 				</Text>
 				<Text className="mt-1 font-inter text-sm text-gray-500">
-					{requests.length} {requests.length === 1 ? 'solicitação cadastrada' : 'solicitações cadastradas'}
+					{requests.length}{' '}
+					{requests.length === 1
+						? 'solicitação cadastrada'
+						: 'solicitações cadastradas'}
 				</Text>
 
 				{loading ? (

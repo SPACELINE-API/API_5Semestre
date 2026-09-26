@@ -76,6 +76,8 @@ class ServiceOrderService:
         service_order = (
             self.db.query(ServiceOrder)
             .options(selectinload(ServiceOrder.items), selectinload(ServiceOrder.files))
+            .join(Quote, ServiceOrder.quote_id == Quote.id)
+            .filter(Quote.status == "approved")
             .filter(ServiceOrder.id == service_order_id)
             .first()
         )
@@ -86,9 +88,21 @@ class ServiceOrderService:
         return service_order
 
     def generate_from_quote(self, data: GenerateServiceOrderRequest) -> ServiceOrderResponse:
-        quote = self.db.query(Quote).filter(Quote.id == data.quote_id).first()
+        quote = self.db.query(Quote).filter(Quote.id == data.quote_id).with_for_update().first()
         if not quote:
             raise HTTPException(status_code=404, detail="Orçamento não encontrado")
+
+        if quote.status != "approved":
+            raise HTTPException(
+                status_code=409,
+                detail="A ordem de serviço só pode ser criada para orçamentos aprovados.",
+            )
+
+        if self.db.query(ServiceOrder.id).filter(ServiceOrder.quote_id == quote.id).first():
+            raise HTTPException(
+                status_code=409,
+                detail="Este orçamento já possui uma ordem de serviço.",
+            )
 
         if not quote.items:
             raise HTTPException(
@@ -234,6 +248,8 @@ class ServiceOrderService:
         service_orders = (
             self.db.query(ServiceOrder)
             .options(selectinload(ServiceOrder.items), selectinload(ServiceOrder.files))
+            .join(Quote, ServiceOrder.quote_id == Quote.id)
+            .filter(Quote.status == "approved")
             .all()
         )
         return [to_response(service_order) for service_order in service_orders]

@@ -50,7 +50,7 @@ export default function CardRequest({
 			? { container: 'bg-green-50', text: 'text-green-800' }
 			: status === 'reproved'
 				? { container: 'bg-red-50', text: 'text-red-800' }
-			: { container: 'bg-orange-100', text: 'text-orange-800' };
+				: { container: 'bg-orange-100', text: 'text-orange-800' };
 	const actionLabel =
 		status === 'approved'
 			? 'Revisar e gerar orçamento'
@@ -99,9 +99,7 @@ export default function CardRequest({
 				onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
 				className={`rounded-md py-2 items-center hover:bg-blue-500 mt-4 ${status === 'reproved' ? 'bg-gray-500' : 'bg-blue-500'}`}
 			>
-				<Text className="text-white text-xs font-medium">
-					{actionLabel}
-				</Text>
+				<Text className="text-white text-xs font-medium">{actionLabel}</Text>
 			</TouchableOpacity>
 		</View>
 	);

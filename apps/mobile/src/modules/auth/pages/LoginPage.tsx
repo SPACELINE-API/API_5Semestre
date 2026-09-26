@@ -140,7 +140,7 @@ export function LoginPage() {
 	}, [recoveryCooldown]);
 
 	async function submit() {
-		setError('');
+		setError(null);
 		setMessage('');
 		if (token) {
 			if (!newPassword || newPassword !== confirmation) {
@@ -211,14 +211,14 @@ export function LoginPage() {
 	function startRecovery() {
 		setEmail('');
 		setPassword('');
-		setError('');
+		setError(null);
 		setMessage('');
 		setRecovery(true);
 	}
 	function returnToLogin() {
 		setRecovery(false);
 		setEmail('');
-		setError('');
+		setError(null);
 		setMessage('');
 	}
 	return (
@@ -344,9 +344,7 @@ export function LoginPage() {
 							<View className="mt-5">
 								<View className="mb-4 flex-row items-center gap-3">
 									<View className="h-px flex-1 bg-[#d7e2ef]" />
-									<Text className="text-xs font-medium text-[#7b8da7]">
-										ou
-									</Text>
+									<Text className="text-xs font-medium text-[#7b8da7]">ou</Text>
 									<View className="h-px flex-1 bg-[#d7e2ef]" />
 								</View>
 								<Link href="/solicitar-servico" asChild>

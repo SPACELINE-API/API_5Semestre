@@ -1,6 +1,11 @@
 import { clearSession, getSession } from '../../modules/auth/services/auth';
 import { router } from 'expo-router';
-import { ApiError, apiUrl, extractErrorMessage, request } from './publicApiClient';
+import {
+	ApiError,
+	apiUrl,
+	extractErrorMessage,
+	request,
+} from './publicApiClient';
 
 export { apiPost, apiUrl } from './publicApiClient';
 
@@ -9,7 +14,10 @@ function authHeaders(): Record<string, string> {
 	return session ? { Authorization: `Bearer ${session.access_token}` } : {};
 }
 
-async function authenticatedRequest<TResponse>(path: string, init?: RequestInit) {
+async function authenticatedRequest<TResponse>(
+	path: string,
+	init?: RequestInit,
+) {
 	try {
 		return await request<TResponse>(path, {
 			...init,

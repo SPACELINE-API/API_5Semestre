@@ -61,12 +61,7 @@ class QuoteService:
         data: QuoteStatusUpdate,
         current_user: SupabaseAuthenticatedUser,
     ) -> Quote:
-        quote = (
-            self.db.query(Quote)
-            .filter(Quote.id == quote_id)
-            .with_for_update()
-            .first()
-        )
+        quote = self.db.query(Quote).filter(Quote.id == quote_id).with_for_update().first()
         if quote is None:
             raise HTTPException(status_code=404, detail="Orçamento não encontrado.")
         if quote.status != "pending":
@@ -125,7 +120,7 @@ class QuoteService:
         quote.reproved_by = uuid.UUID(current_user.id) if data.status == "reproved" else None
         quote.reproved_by_email = current_user.email if data.status == "reproved" else None
         quote.reproval_reason = (
-            data.reproval_reason.strip() if data.status == "reproved" else None
+            (data.reproval_reason or "").strip() if data.status == "reproved" else None
         )
         try:
             self.db.commit()

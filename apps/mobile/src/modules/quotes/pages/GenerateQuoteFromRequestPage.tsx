@@ -86,8 +86,11 @@ function getGenerationError(status: number, detail?: string) {
 function getStatusUpdateError(status: number, detail?: string) {
 	if (status === 404) return 'Esta requisição não foi encontrada.';
 	if (status === 409)
-		return detail ?? 'A situação da requisição foi alterada. Atualize os dados.';
-	if (status === 422) return detail ?? 'Informe um motivo válido para reprovar.';
+		return (
+			detail ?? 'A situação da requisição foi alterada. Atualize os dados.'
+		);
+	if (status === 422)
+		return detail ?? 'Informe um motivo válido para reprovar.';
 	if (status === 0)
 		return 'Falha de conexão. Verifique a conexão e tente novamente.';
 	return detail ?? 'Não foi possível atualizar a requisição. Tente novamente.';
@@ -270,10 +273,11 @@ export default function GenerateQuoteFromRequestPage() {
 											Orçamento criado a partir da requisição.
 										</Text>
 										<Text className="font-inter text-sm text-green-800 mt-1">
-											Código do orçamento: #{generatedQuote.id.slice(0, 8).toUpperCase()}
+											Código do orçamento: #
+											{generatedQuote.id.slice(0, 8).toUpperCase()}
 										</Text>
 										<Text className="font-inter text-xs text-green-800 mt-1">
-												Status: Pendente
+											Status: Pendente
 										</Text>
 										<Text className="font-inter text-xs text-green-800 mt-1">
 											Criado em: {formatDate(generatedQuote.created_at)}
@@ -369,7 +373,8 @@ export default function GenerateQuoteFromRequestPage() {
 									Decisão da solicitação
 								</Text>
 								<Text className="mt-1 font-inter text-sm text-gray-500">
-									Aprove para liberar a geração do orçamento ou informe o motivo da reprovação.
+									Aprove para liberar a geração do orçamento ou informe o motivo
+									da reprovação.
 								</Text>
 								{statusError ? (
 									<View className="mt-4 flex-row items-start gap-2 rounded-lg bg-red-50 p-3">
@@ -408,7 +413,9 @@ export default function GenerateQuoteFromRequestPage() {
 												className={`rounded-lg px-4 py-2.5 ${statusUpdating ? 'bg-gray-300' : 'bg-red-600'}`}
 											>
 												<Text className="font-inter-medium text-sm text-white">
-													{statusUpdating ? 'Salvando...' : 'Confirmar reprovação'}
+													{statusUpdating
+														? 'Salvando...'
+														: 'Confirmar reprovação'}
 												</Text>
 											</TouchableOpacity>
 											<TouchableOpacity
@@ -472,10 +479,9 @@ export default function GenerateQuoteFromRequestPage() {
 												Dados obrigatórios ausentes
 											</Text>
 											<Text className="mt-1 font-inter text-sm text-red-800">
-												Preencha na requisição: {missingFields
-													.map((field) => field.label)
-													.join(', ')}.
-												</Text>
+												Preencha na requisição:{' '}
+												{missingFields.map((field) => field.label).join(', ')}.
+											</Text>
 										</View>
 									</View>
 								)}
@@ -494,19 +500,23 @@ export default function GenerateQuoteFromRequestPage() {
 											Revisão do orçamento
 										</Text>
 										<Text className="mt-1 font-inter text-sm text-gray-500">
-											Os dados aprovados serão usados para criar o orçamento. Itens
-											e documentos poderão ser incluídos depois.
+											Os dados aprovados serão usados para criar o orçamento.
+											Itens e documentos poderão ser incluídos depois.
 										</Text>
 									</View>
 									<TouchableOpacity
 										accessibilityRole="button"
-										accessibilityState={{ disabled: !canGenerate || generating }}
+										accessibilityState={{
+											disabled: !canGenerate || generating,
+										}}
 										disabled={!canGenerate || generating}
 										onPress={() => void handleGenerateQuote()}
 										className={`w-full items-center rounded-lg px-6 py-3 md:w-auto ${canGenerate && !generating ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300'}`}
 									>
 										<Text className="font-inter-medium text-sm text-white">
-											{generating ? 'Gerando orçamento...' : 'Confirmar geração'}
+											{generating
+												? 'Gerando orçamento...'
+												: 'Confirmar geração'}
 										</Text>
 									</TouchableOpacity>
 								</View>

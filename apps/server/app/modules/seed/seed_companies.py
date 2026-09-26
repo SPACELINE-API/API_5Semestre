@@ -133,9 +133,7 @@ def seed_companies(*, db: Session | None = None) -> list[str]:
 
         for seed_company in SEED_COMPANIES:
             cnpj = _generate_cnpj(seed_company.cnpj_base)
-            company = (
-                database_session.query(Company).filter(Company.cnpj == cnpj).first()
-            )
+            company = database_session.query(Company).filter(Company.cnpj == cnpj).first()
             if company is None:
                 company = Company(cnpj=cnpj)
                 database_session.add(company)

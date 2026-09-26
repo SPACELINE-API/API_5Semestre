@@ -41,7 +41,9 @@ const API_BASE_URL = env.apiUrl;
 export async function fetchRequests(): Promise<RequestItem[]> {
 	const response = await fetch(`${API_BASE_URL}/api/quotes/requests`);
 	if (!response.ok) {
-		throw new Error(`Não foi possível carregar as solicitações (${response.status}).`);
+		throw new Error(
+			`Não foi possível carregar as solicitações (${response.status}).`,
+		);
 	}
 	return (await response.json()) as RequestItem[];
 }

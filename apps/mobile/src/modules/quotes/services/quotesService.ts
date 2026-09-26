@@ -111,10 +111,13 @@ function quoteDecisionErrorMessage(status: number): string {
 	if (status === 401 || status === 403) {
 		return 'Sua sessão expirou. Entre novamente para registrar esta decisão.';
 	}
-	if (status === 404) return 'Este orçamento não foi encontrado. Atualize a lista e tente novamente.';
-	if (status === 409) return 'Este orçamento já recebeu uma decisão. Atualize a lista.';
+	if (status === 404)
+		return 'Este orçamento não foi encontrado. Atualize a lista e tente novamente.';
+	if (status === 409)
+		return 'Este orçamento já recebeu uma decisão. Atualize a lista.';
 	if (status === 422) return 'Confira os dados informados e tente novamente.';
-	if (status === 0) return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+	if (status === 0)
+		return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
 	return 'Não foi possível registrar a decisão agora. Tente novamente em instantes.';
 }
 
@@ -186,10 +189,13 @@ export async function updateQuoteStatus(
 	reprovalReason?: string,
 ): Promise<QuoteDecisionResult> {
 	try {
-		const data = await apiPatchAuth<QuoteResponse, {
-			status: 'approved' | 'reproved';
-			reproval_reason?: string;
-		}>(`/api/quotes/${encodeURIComponent(quoteId)}/status`, {
+		const data = await apiPatchAuth<
+			QuoteResponse,
+			{
+				status: 'approved' | 'reproved';
+				reproval_reason?: string;
+			}
+		>(`/api/quotes/${encodeURIComponent(quoteId)}/status`, {
 			status,
 			reproval_reason: reprovalReason,
 		});
