@@ -201,7 +201,7 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 				name: name.trim(),
 				email: email.trim(),
 				phone: phone.trim(),
-				qualification_ids: [],
+				qualification_ids: selectedQualifications,
 				language_pairs: pairs.map((p) => ({
 					language_pair_id: resolveLanguagePairId(p.source_language, p.target_language),
 					proficiency_level: p.proficiency_level,
@@ -220,9 +220,9 @@ export function TranslatorFormModal({ visible, onClose, onSubmit, toast }: Props
 	}
 
 	return (
-		<Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="w-full max-w-[560px] max-h-[90%] overflow-hidden rounded-2xl bg-white shadow-2xl">
+		<Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
+			<View className="flex-1 justify-end bg-black/40">
+				<View className="w-full max-h-[92%] overflow-hidden rounded-t-3xl bg-white shadow-2xl">
 					{/* HEADER */}
 					<View className="flex-row items-center justify-between border-b border-gray-100 px-6 py-5">
 						<View>
