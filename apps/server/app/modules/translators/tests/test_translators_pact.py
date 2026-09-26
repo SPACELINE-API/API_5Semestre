@@ -2,6 +2,8 @@ from pathlib import Path
 
 from pact import Pact
 
+from app.shared.pact_writer import write_pact
+
 # DIRETORIO RAIZ ONDE OS CONTRATOS PACT FICAM SALVOS
 PACT_DIR = Path(__file__).parents[4]
 
@@ -72,7 +74,7 @@ def test_create_translator_success_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE ATUALIZACAO DE TRADUTOR COM QUALIFICACOES E PARES DE IDIOMA
@@ -131,7 +133,7 @@ def test_update_translator_success_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE CONSULTA DE TRADUTOR COM SEUS RELACIONAMENTOS
@@ -173,7 +175,7 @@ def test_get_translator_success_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE LISTAGEM DE TRADUTORES
@@ -203,7 +205,7 @@ def test_list_translators_success_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE ERRO PARA DADOS OBRIGATORIOS AUSENTES OU INVALIDOS
@@ -220,7 +222,7 @@ def test_create_translator_missing_fields_contract() -> None:
         .with_headers({"Content-Type": "application/json"})
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE ERRO PARA TRADUTOR INEXISTENTE
@@ -240,7 +242,7 @@ def test_get_translator_not_found_contract() -> None:
         )
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
 
 
 # CONTRATO DE EXCLUSAO DE TRADUTOR
@@ -254,4 +256,4 @@ def test_delete_translator_success_contract() -> None:
         .will_respond_with(204)
     )
 
-    pact.write_file(PACT_DIR)
+    write_pact(pact, PACT_DIR)
