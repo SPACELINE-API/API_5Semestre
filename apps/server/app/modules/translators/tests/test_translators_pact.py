@@ -11,6 +11,9 @@ NON_EXISTENT_TRANSLATOR_ID = "999e4567-e89b-12d3-a456-426614174999"
 MOCK_QUALIFICATION_ID = "c731d4d4-9569-4db2-9d7f-1569db5f270e"
 MOCK_LANGUAGE_PAIR_ID = "eb162eb3-b88c-42f6-89d7-3da5112f7d31"
 MOCK_TRANSLATOR_PAIR_ID = "123e4567-e89b-12d3-a456-426614174001"
+# IDIOMAS FICTICIOS PARA OS CONTRATOS
+MOCK_SOURCE_LANGUAGE = "pt-BR"
+MOCK_TARGET_LANGUAGE = "en"
 
 
 # CONTRATO DE CRIACAO DE TRADUTOR COM QUALIFICACOES E PARES DE IDIOMA
@@ -61,6 +64,8 @@ def test_create_translator_success_contract() -> None:
                         "id": MOCK_TRANSLATOR_PAIR_ID,
                         "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
                         "proficiency_level": "fluent",
+                        "source_language": MOCK_SOURCE_LANGUAGE,
+                        "target_language": MOCK_TARGET_LANGUAGE,
                     }
                 ],
             }
@@ -118,6 +123,8 @@ def test_update_translator_success_contract() -> None:
                         "id": MOCK_TRANSLATOR_PAIR_ID,
                         "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
                         "proficiency_level": "native",
+                        "source_language": MOCK_SOURCE_LANGUAGE,
+                        "target_language": MOCK_TARGET_LANGUAGE,
                     }
                 ],
             }
@@ -158,6 +165,8 @@ def test_get_translator_success_contract() -> None:
                         "id": MOCK_TRANSLATOR_PAIR_ID,
                         "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
                         "proficiency_level": "fluent",
+                        "source_language": MOCK_SOURCE_LANGUAGE,
+                        "target_language": MOCK_TARGET_LANGUAGE,
                     }
                 ],
             }
