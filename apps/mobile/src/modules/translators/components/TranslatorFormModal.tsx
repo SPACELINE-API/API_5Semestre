@@ -7,7 +7,7 @@ import {
 	ScrollView,
 	Platform,
 } from 'react-native';
-import { X, Plus, Trash2, AlertCircle, ArrowRight } from 'lucide-react-native';
+import { X, Plus, Trash2 } from 'lucide-react-native';
 import type {
 	TranslatorCreateInput,
 	LanguagePairFormRow,
@@ -297,84 +297,66 @@ export function TranslatorFormModal({
 		<Modal
 			visible={visible}
 			transparent
-			animationType="slide"
+			animationType="none"
 			onRequestClose={handleClose}
 		>
-			<View className="flex-1 justify-end bg-black/40">
-				<View className="w-full max-h-[92%] overflow-hidden rounded-t-3xl bg-white shadow-2xl">
-					{/* HEADER */}
-					<View className="flex-row items-center justify-between border-b border-gray-100 px-6 py-5">
-						<View>
-							<Text className="font-poppins font-bold text-gray-900 text-lg">
-								Novo Tradutor
-							</Text>
-							<Text className="font-inter text-gray-500 text-xs">
-								Preencha as informações do profissional
-							</Text>
-						</View>
-						<TouchableOpacity
-							onPress={handleClose}
-							className="rounded-lg p-1.5 hover:bg-gray-100"
-							hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-						>
-							<X size={20} color="#6B7280" />
+			<View className="flex-1 items-center justify-center bg-black/40 px-4">
+				<View className="w-full max-w-[520px] max-h-[85%] rounded-xl bg-white overflow-hidden">
+					<View className="flex-row items-center justify-between border-b border-gray-300 px-6 py-4">
+						<Text className="font-inter font-bold text-gray-900 text-lg">
+							Novo tradutor
+						</Text>
+						<TouchableOpacity onPress={handleClose}>
+							<X size={20} color="#5A5A5A" />
 						</TouchableOpacity>
 					</View>
 
-					{/* PROGRESS STEPS */}
-					<View className="flex-row border-b border-gray-100 bg-gray-50/50 px-6 py-3">
-						{STEPS.map((s, i) => (
-							<View key={i} className="flex-1 flex-row items-center">
-								<View
-									className={`flex-row items-center gap-2 ${
-										i === step
-											? 'opacity-100'
-											: i < step
-												? 'opacity-80'
-												: 'opacity-40'
-									}`}
-								>
+					<View className="gap-2 px-6 py-5">
+						<View className="flex-row gap-2">
+							{STEPS.map((s, index) => {
+								const isActive = index === step;
+								const isCompleted = index < step;
+
+								return (
 									<View
-										className={`h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-											i === step
-												? 'bg-blue-600 text-white'
-												: i < step
-													? 'bg-blue-100 text-blue-800'
-													: 'bg-gray-200 text-gray-600'
+										key={s.title}
+										className={`h-1.5 flex-1 rounded-full ${
+											isActive || isCompleted ? 'bg-blue-300' : 'bg-gray-100'
 										}`}
-									>
-										<Text
-											className={`font-inter text-xs font-bold ${
-												i === step ? 'text-white' : 'text-gray-700'
-											}`}
-										>
-											{i + 1}
-										</Text>
-									</View>
+									/>
+								);
+							})}
+						</View>
+						<View className="flex-row gap-2">
+							{STEPS.map((s, index) => {
+								const isActive = index === step;
+								const isCompleted = index < step;
+
+								return (
 									<Text
-										className={`font-inter text-xs ${
-											i === step
-												? 'font-bold text-blue-900'
-												: 'font-medium text-gray-600'
+										key={s.title}
+										className={`flex-1 text-center font-inter text-[11px] ${
+											isActive || isCompleted
+												? 'font-semibold text-blue-900'
+												: 'text-gray-400'
 										}`}
 									>
 										{s.title}
 									</Text>
-								</View>
-								{i < STEPS.length - 1 && (
-									<View className="mx-2 h-0.5 flex-1 bg-gray-200" />
-								)}
-							</View>
-						))}
+								);
+							})}
+						</View>
 					</View>
 
-					{/* CORPO DO FORMULÁRIO */}
-					<ScrollView className="max-h-[460px] px-6 py-5">
-						{/* STEP 0 — DADOS PESSOAIS */}
+					<ScrollView
+						className="px-6 py-4"
+						contentContainerClassName="gap-4 pb-6"
+						keyboardShouldPersistTaps="handled"
+					>
 						{step === 0 && (
-							<View className="gap-4">
+							<>
 								<FormField
-									label="Nome completo *"
+									label="Nome completo"
 									value={name}
 									onChangeText={(v) => {
 										setName(v);
@@ -386,7 +368,7 @@ export function TranslatorFormModal({
 								/>
 
 								<FormField
-									label="E-mail profissional *"
+									label="Email"
 									value={email}
 									onChangeText={(v) => {
 										setEmail(v);
@@ -399,7 +381,7 @@ export function TranslatorFormModal({
 								/>
 
 								<FormField
-									label="Telefone / WhatsApp *"
+									label="Telefone"
 									value={phone}
 									onChangeText={(v) => {
 										setPhone(maskPhone(v));
@@ -409,23 +391,14 @@ export function TranslatorFormModal({
 									placeholder="(11) 98765-4321"
 									error={fieldErrors.phone}
 								/>
-							</View>
+							</>
 						)}
 
-						{/* STEP 1 — PARES DE IDIOMA */}
 						{step === 1 && (
-							<View className="gap-4">
-								<View className="rounded-lg bg-blue-50/70 p-3">
-									<Text className="font-inter text-blue-900 text-xs">
-										Selecione os idiomas de trabalho e o nível de domínio do
-										tradutor. Você pode adicionar vários pares.
-									</Text>
-								</View>
-
+							<>
 								{fieldErrors.language_pairs && (
-									<View className="flex-row items-center gap-2 rounded-lg bg-red-50 p-3">
-										<AlertCircle size={15} color="#DC2626" />
-										<Text className="font-inter text-red-800 text-xs font-medium">
+									<View className="rounded-lg bg-red-50 px-3 py-2.5 mb-2">
+										<Text className="font-inter text-red-900 text-sm">
 											{fieldErrors.language_pairs}
 										</Text>
 									</View>
@@ -434,32 +407,27 @@ export function TranslatorFormModal({
 								{pairs.map((pair, index) => (
 									<View
 										key={index}
-										className="gap-3 rounded-xl border border-gray-200 bg-gray-50/40 p-4"
+										className="gap-4 rounded-xl border border-gray-200 p-4 mb-2"
 									>
-										<View className="flex-row items-center justify-between border-b border-gray-100 pb-2">
-											<Text className="font-inter font-bold text-gray-800 text-xs">
-												Par de Tradução #{index + 1}
+										<View className="flex-row items-center justify-between border-b border-gray-200 pb-2">
+											<Text className="font-inter font-bold text-gray-800 text-sm">
+												Par de idioma #{index + 1}
 											</Text>
 											{pairs.length > 1 && (
 												<TouchableOpacity
 													onPress={() => removePair(index)}
-													className="flex-row items-center gap-1 rounded-md px-2 py-1 hover:bg-red-50"
+													className="flex-row items-center gap-1 rounded-md px-2 py-1"
 													hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
 												>
-													<Trash2 size={14} color="#DC2626" />
-													<Text className="font-inter text-xs text-red-600 font-medium">
-														Remover
-													</Text>
+													<Trash2 size={16} color="#5A5A5A" />
 												</TouchableOpacity>
 											)}
 										</View>
 
-										{/* SELECTORES DE IDIOMA */}
-										<View className="flex-row gap-3">
-											{/* IDIOMA ORIGEM */}
+										<View className="flex-row gap-4">
 											<View className="flex-1 gap-1">
-												<Text className="font-inter font-semibold text-gray-700 text-xs">
-													Idioma de Origem
+												<Text className="font-inter font-medium text-gray-700 text-[13px]">
+													Origem
 												</Text>
 												{Platform.OS === 'web' ? (
 													<select
@@ -473,11 +441,13 @@ export function TranslatorFormModal({
 														}
 														style={{
 															width: '100%',
-															padding: '8px 12px',
-															borderRadius: '8px',
+															height: 48,
+															paddingLeft: 16,
+															paddingRight: 16,
+															borderRadius: 8,
 															border: '1px solid #D1D5DB',
 															backgroundColor: '#FFFFFF',
-															fontSize: '13px',
+															fontSize: 14,
 															fontFamily: 'Inter, sans-serif',
 															color: '#111827',
 															outline: 'none',
@@ -496,7 +466,7 @@ export function TranslatorFormModal({
 														onPress={() =>
 															setLangPicker({ index, field: 'source_language' })
 														}
-														className="rounded-lg border border-gray-300 bg-white px-3 py-2"
+														className="h-12 justify-center rounded-lg border border-gray-300 bg-white px-4"
 													>
 														<Text className="text-sm text-gray-900">
 															{getLanguageName(pair.source_language) ||
@@ -506,10 +476,9 @@ export function TranslatorFormModal({
 												)}
 											</View>
 
-											{/* IDIOMA DESTINO */}
 											<View className="flex-1 gap-1">
-												<Text className="font-inter font-semibold text-gray-700 text-xs">
-													Idioma de Destino
+												<Text className="font-inter font-medium text-gray-700 text-[13px]">
+													Destino
 												</Text>
 												{Platform.OS === 'web' ? (
 													<select
@@ -523,11 +492,13 @@ export function TranslatorFormModal({
 														}
 														style={{
 															width: '100%',
-															padding: '8px 12px',
-															borderRadius: '8px',
+															height: 48,
+															paddingLeft: 16,
+															paddingRight: 16,
+															borderRadius: 8,
 															border: '1px solid #D1D5DB',
 															backgroundColor: '#FFFFFF',
-															fontSize: '13px',
+															fontSize: 14,
 															fontFamily: 'Inter, sans-serif',
 															color: '#111827',
 															outline: 'none',
@@ -546,7 +517,7 @@ export function TranslatorFormModal({
 														onPress={() =>
 															setLangPicker({ index, field: 'target_language' })
 														}
-														className="rounded-lg border border-gray-300 bg-white px-3 py-2"
+														className="h-12 justify-center rounded-lg border border-gray-300 bg-white px-4"
 													>
 														<Text className="text-sm text-gray-900">
 															{getLanguageName(pair.target_language) ||
@@ -557,12 +528,11 @@ export function TranslatorFormModal({
 											</View>
 										</View>
 
-										{/* NÍVEL DE PROFICIÊNCIA */}
 										<View className="gap-1.5 pt-1">
-											<Text className="font-inter font-semibold text-gray-700 text-xs">
-												Nível de Proficiência
+											<Text className="font-inter font-medium text-gray-700 text-[13px]">
+												Nível de proficiência
 											</Text>
-											<View className="flex-row flex-wrap gap-1.5">
+											<View className="flex-row flex-wrap gap-2">
 												{PROFICIENCY_OPTIONS.map((opt) => {
 													const isSelected =
 														pair.proficiency_level === opt.value;
@@ -577,17 +547,17 @@ export function TranslatorFormModal({
 																)
 															}
 															activeOpacity={0.7}
-															className={`rounded-lg border px-2.5 py-1.5 ${
+															className={`rounded-lg border px-3 py-2 ${
 																isSelected
-																	? 'border-blue-600 bg-blue-50'
-																	: 'border-gray-200 bg-white hover:bg-gray-50'
+																	? 'border-blue-300 bg-blue-50'
+																	: 'border-gray-300 bg-white'
 															}`}
 														>
 															<Text
 																className={`font-inter text-xs ${
 																	isSelected
-																		? 'font-bold text-blue-900'
-																		: 'text-gray-600'
+																		? 'font-semibold text-blue-900'
+																		: 'text-gray-700'
 																}`}
 															>
 																{opt.label}
@@ -603,20 +573,19 @@ export function TranslatorFormModal({
 								<TouchableOpacity
 									onPress={addPair}
 									activeOpacity={0.7}
-									className="flex-row items-center justify-center gap-2 rounded-xl border border-dashed border-blue-400 bg-blue-50/40 py-3 hover:bg-blue-50"
+									className="flex-row items-center justify-center gap-2 rounded-xl border border-dashed border-gray-400 bg-gray-50 py-3"
 								>
-									<Plus size={16} color="#1D4ED8" />
-									<Text className="font-inter font-semibold text-blue-700 text-sm">
-										Adicionar outro par de idioma
+									<Plus size={16} color="#5A5A5A" />
+									<Text className="font-inter font-medium text-gray-700 text-sm">
+										Adicionar idioma
 									</Text>
 								</TouchableOpacity>
-							</View>
+							</>
 						)}
 
-						{/* STEP 2 — QUALIFICAÇÕES */}
 						{step === 2 && (
 							<View className="gap-3">
-								<Text className="font-inter text-gray-600 text-xs">
+								<Text className="font-inter text-gray-600 text-[13px]">
 									Selecione as especialidades técnicas deste tradutor
 									(opcional):
 								</Text>
@@ -630,8 +599,8 @@ export function TranslatorFormModal({
 											activeOpacity={0.7}
 											className={`flex-row items-start gap-3 rounded-xl border p-3.5 transition-all ${
 												isChecked
-													? 'border-blue-500 bg-blue-50/60'
-													: 'border-gray-200 bg-white hover:bg-gray-50'
+													? 'border-blue-300 bg-blue-50'
+													: 'border-gray-300 bg-white'
 											}`}
 										>
 											<View
@@ -648,10 +617,10 @@ export function TranslatorFormModal({
 												)}
 											</View>
 											<View className="flex-1">
-												<Text className="font-inter font-semibold text-gray-900 text-xs">
+												<Text className="font-inter font-semibold text-gray-900 text-sm">
 													{qual.name}
 												</Text>
-												<Text className="font-inter text-gray-500 text-[11px] mt-0.5">
+												<Text className="font-inter text-gray-500 text-xs mt-0.5">
 													{qual.description}
 												</Text>
 											</View>
@@ -660,9 +629,8 @@ export function TranslatorFormModal({
 								})}
 
 								{submitError && (
-									<View className="flex-row items-start gap-2 rounded-lg bg-red-50 p-3 mt-2">
-										<AlertCircle size={16} color="#DC2626" />
-										<Text className="flex-1 font-inter text-red-900 text-xs font-medium">
+									<View className="rounded-lg bg-red-50 px-3 py-2.5 mt-2">
+										<Text className="font-inter text-red-900 text-sm">
 											{submitError}
 										</Text>
 									</View>
@@ -671,13 +639,12 @@ export function TranslatorFormModal({
 						)}
 					</ScrollView>
 
-					{/* RODAPÉ DE AÇÕES */}
-					<View className="flex-row items-center justify-between border-t border-gray-100 bg-gray-50/40 px-6 py-4">
+					<View className="flex-row items-center justify-between border-t border-gray-300 px-6 py-4">
 						<TouchableOpacity
 							onPress={step === 0 ? handleClose : handleBack}
-							className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 hover:bg-gray-50"
+							className="rounded-lg border border-gray-300 px-5 py-2.5"
 						>
-							<Text className="font-inter font-semibold text-gray-700 text-sm">
+							<Text className="font-inter font-medium text-gray-800 text-sm">
 								{step === 0 ? 'Cancelar' : 'Voltar'}
 							</Text>
 						</TouchableOpacity>
@@ -686,30 +653,32 @@ export function TranslatorFormModal({
 							<TouchableOpacity
 								onPress={handleSubmit}
 								disabled={isSubmitting}
-								className={`rounded-lg bg-blue-600 px-6 py-2.5 hover:bg-blue-700 ${
-									isSubmitting ? 'opacity-60' : ''
-								}`}
+								className={`rounded-lg bg-blue-300 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 							>
-								<Text className="font-inter font-semibold text-white text-sm">
-									{isSubmitting ? 'Cadastrando...' : 'Finalizar Cadastro'}
+								<Text className="font-inter font-semibold text-blue-900 text-sm">
+									{isSubmitting ? 'Salvando…' : 'Salvar'}
 								</Text>
 							</TouchableOpacity>
 						) : (
 							<TouchableOpacity
 								onPress={handleNext}
-								className="flex-row items-center gap-1.5 rounded-lg bg-blue-600 px-6 py-2.5 hover:bg-blue-700"
+								className="rounded-lg bg-blue-300 px-5 py-2.5"
 							>
-								<Text className="font-inter font-semibold text-white text-sm">
+								<Text className="font-inter font-semibold text-blue-900 text-sm">
 									Avançar
 								</Text>
-								<ArrowRight size={15} color="#FFFFFF" />
 							</TouchableOpacity>
 						)}
 					</View>
 				</View>
+
+				{toast && (
+					<View pointerEvents="none" className="absolute bottom-6 left-6">
+						<ToastMessage toast={toast} />
+					</View>
+				)}
 			</View>
 
-			{/* MOBILE LANGUAGE PICKER MODAL */}
 			{langPicker && (
 				<Modal
 					visible
@@ -717,17 +686,14 @@ export function TranslatorFormModal({
 					animationType="fade"
 					onRequestClose={() => setLangPicker(null)}
 				>
-					<View className="flex-1 justify-end bg-black/50">
-						<View className="bg-white rounded-t-3xl max-h-[80%] pb-8">
-							<View className="flex-row items-center justify-between p-5 border-b border-gray-100">
-								<Text className="font-poppins font-bold text-gray-900 text-lg">
+					<View className="flex-1 justify-center items-center bg-black/40 px-4">
+						<View className="bg-white rounded-xl w-full max-w-[400px] max-h-[80%] pb-4 overflow-hidden">
+							<View className="flex-row items-center justify-between p-4 border-b border-gray-300">
+								<Text className="font-inter font-bold text-gray-900 text-lg">
 									Selecione o Idioma
 								</Text>
-								<TouchableOpacity
-									onPress={() => setLangPicker(null)}
-									className="p-2 bg-gray-100 rounded-full"
-								>
-									<X size={20} color="#374151" />
+								<TouchableOpacity onPress={() => setLangPicker(null)}>
+									<X size={20} color="#5A5A5A" />
 								</TouchableOpacity>
 							</View>
 							<ScrollView className="p-4">
@@ -738,10 +704,10 @@ export function TranslatorFormModal({
 											updatePair(langPicker.index, langPicker.field, lang.code);
 											setLangPicker(null);
 										}}
-										className="flex-row items-center py-4 border-b border-gray-50 px-2 active:bg-gray-50"
+										className="flex-row items-center py-3 border-b border-gray-100 px-2"
 									>
 										<Text className="text-xl mr-3">{lang.flag}</Text>
-										<Text className="font-inter text-gray-800 text-base">
+										<Text className="font-inter font-medium text-gray-800 text-sm">
 											{lang.label}
 										</Text>
 									</TouchableOpacity>
@@ -750,12 +716,6 @@ export function TranslatorFormModal({
 						</View>
 					</View>
 				</Modal>
-			)}
-
-			{toast && (
-				<View className="absolute bottom-6 left-6 right-6 items-center">
-					<ToastMessage toast={toast} />
-				</View>
 			)}
 		</Modal>
 	);

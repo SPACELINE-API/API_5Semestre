@@ -172,12 +172,15 @@ export default function TranslatorDetailsScreen() {
 						translator.language_pairs.map((p) => (
 							<View
 								key={p.id}
-								className="flex-row items-center justify-between rounded-lg bg-gray-50 px-3 py-2.5"
+								className="flex-row items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2.5"
 							>
-								<Text className="font-inter font-medium text-gray-800 text-sm">
+								<Text 
+									className="flex-1 font-inter font-medium text-gray-800 text-sm"
+									numberOfLines={2}
+								>
 									{formatLanguagePairDisplay(p)}
 								</Text>
-								<View className="rounded-full bg-blue-100 px-2.5 py-0.5">
+								<View className="shrink-0 rounded-full bg-blue-100 px-2.5 py-0.5">
 									<Text className="font-inter font-medium text-blue-800 text-xs">
 										{PROFICIENCY_LABELS[p.proficiency_level]}
 									</Text>
