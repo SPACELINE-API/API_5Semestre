@@ -39,24 +39,8 @@ class LanguagePairResponse(BaseModel):
     id: uuid.UUID
     language_pair_id: uuid.UUID
     proficiency_level: str
-    # CAMPOS DE IDIOMA EXPOSTOS PARA O FRONTEND SEM NECESSIDADE DE REQUISICAO ADICIONAL
-    source_language: str = Field(alias="language_pair.source_language", default="")
-    target_language: str = Field(alias="language_pair.target_language", default="")
-
-    @classmethod
-    def model_validate(cls, obj, *args, **kwargs):  # type: ignore[override]
-        # RESOLVE OS CAMPOS ANINHADOS DO RELACIONAMENTO SQLALCHEMY
-        if hasattr(obj, "language_pair") and obj.language_pair is not None:
-            return super().model_validate(
-                {
-                    "id": obj.id,
-                    "language_pair_id": obj.language_pair_id,
-                    "proficiency_level": obj.proficiency_level,
-                    "source_language": obj.language_pair.source_language,
-                    "target_language": obj.language_pair.target_language,
-                }
-            )
-        return super().model_validate(obj, *args, **kwargs)
+    source_language: str | None = None
+    target_language: str | None = None
 
 
 # RESPOSTA DE UMA QUALIFICACAO TECNICA
