@@ -1,4 +1,4 @@
-import { apiPost } from '../../../shared/services/apiClient';
+import { apiGet, apiPost } from '../../../shared/services/apiClient';
 import type {
 	SuportePerguntaRequest,
 	SuportePerguntaResponse,
@@ -11,4 +11,22 @@ export function askSupportAgent(texto: string) {
 		'/api/suporte/perguntas',
 		{ texto },
 	);
+}
+
+type EnfileirarChatResponse = { event_id: string };
+
+export function enviarPerguntaChat(texto: string) {
+	return apiPost<EnfileirarChatResponse, SuportePerguntaRequest>(
+		'/api/suporte/chat',
+		{ texto },
+	);
+}
+
+type StatusPerguntaResponse =
+	| { status: 'pending' }
+	| { status: 'completed'; resposta: string }
+	| { status: 'error'; error: unknown };
+
+export function consultarStatusPergunta(eventId: string) {
+	return apiGet<StatusPerguntaResponse>(`/api/suporte/chat/${eventId}/status`);
 }
