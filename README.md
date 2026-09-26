@@ -25,7 +25,7 @@ contatos, recursos, tradutores, cotações, ordens de serviço e alocações.
 <a id="tecnologias"></a>
 
 <div align="left">
-  <img src="https://go-skill-icons.vercel.app/api/icons?i=typescript,react,vite,tailwind,python,fastapi,postgresql,docker,pnpm,git,github,vscode,figma,jira" />
+  <img src="https://go-skill-icons.vercel.app/api/icons?i=typescript,react,reactnative,expo,nativewind,python,fastapi,postgresql,docker,pnpm,git,github,vscode,figma,jira" />
 </div>
 
 ---
@@ -98,7 +98,7 @@ Nesta sprint, foi planejada a construção da base inicial do sistema:
 
 <ul>
   <li>Estrutura inicial do monolito modular com frontend, backend e banco de dados</li>
-  <li>Configuração do frontend em Vite, React, TypeScript, Tailwind CSS e TanStack Router</li>
+  <li>Configuração do frontend em Expo, React Native, TypeScript, NativeWind e Expo Router</li>
   <li>Configuração do backend em FastAPI com divisão por módulos</li>
   <li>Configuração do PostgreSQL via Docker Compose</li>
   <li>Organização inicial dos módulos de autenticação, usuários, clientes, contatos, recursos, tradutores, ordens de serviço, alocações, cotações e suporte</li>
@@ -238,7 +238,11 @@ http://localhost:3333/docs
 <details>
 <summary>Acessar documentação do projeto</summary>
 
-Documentos do projeto serão adicionados conforme evolução das sprints.
+Consulte a [arquitetura do sistema](docs/architecture.md), o
+[guia de CI](docs/CI%20-%20GitHub%20Actions.md), o
+[guia de migrations](docs/Guia%20de%20Models%20e%20Migrations%20no%20Backend%20com%20SQLAlchemy%20e%20Alembic.md)
+e o
+[índice dos documentos da Sprint 1](docs/Documentacao%20Tecnica%20e%20PRDs%20da%20Sprint%201.md).
 
 </details>
 
