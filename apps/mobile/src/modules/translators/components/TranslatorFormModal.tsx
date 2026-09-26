@@ -34,7 +34,7 @@ type FormErrors = {
 };
 
 const EMPTY_ROW: LanguagePairFormRow = {
-	language_pair_id: 'eb162eb3-b88c-42f6-89d7-3da5112f7d31',
+	language_pair_id: 'b1b2b3b4-0000-4000-8000-000000000001',
 	source_language: 'pt-BR',
 	target_language: 'en-US',
 	proficiency_level: 'fluent',
@@ -47,11 +47,12 @@ const STEPS = [
 ];
 
 const PREDEFINED_QUALIFICATIONS = [
-	{ id: 'c731d4d4-9569-4db2-9d7f-1569db5f270e', name: 'Tradução Jurídica', description: 'Contratos, peças processuais e certidões' },
-	{ id: 'c731d4d4-9569-4db2-9d7f-1569db5f270f', name: 'Tradução Técnica', description: 'Manuais, patentes e relatórios de engenharia' },
-	{ id: 'c731d4d4-9569-4db2-9d7f-1569db5f2710', name: 'Tradução Médica / Farmacêutica', description: 'Bulários, ensaios clínicos e artigos científicos' },
-	{ id: 'c731d4d4-9569-4db2-9d7f-1569db5f2711', name: 'Tradução Comercial / Negócios', description: 'Propostas, balanços e correspondências' },
-	{ id: 'c731d4d4-9569-4db2-9d7f-1569db5f2712', name: 'Legendagem e Audiovisual', description: 'Transcrições, closed captions e vídeos' },
+	{ id: 'c1c2c3c4-0000-4000-8000-000000000001', name: 'Tradução Jurídica', description: 'Contratos, peças processuais e documentos legais' },
+	{ id: 'c1c2c3c4-0000-4000-8000-000000000002', name: 'Tradução Técnica', description: 'Manuais, documentação de engenharia e especificações técnicas' },
+	{ id: 'c1c2c3c4-0000-4000-8000-000000000003', name: 'Tradução Médica', description: 'Bulas, prontuários, laudos e documentos clínicos' },
+	{ id: 'c1c2c3c4-0000-4000-8000-000000000004', name: 'Tradução Literária', description: 'Livros, contos, poesia e textos de ficção' },
+	{ id: 'c1c2c3c4-0000-4000-8000-000000000005', name: 'Tradução Financeira', description: 'Relatórios financeiros, balanços e documentos contábeis' },
+	{ id: 'c1c2c3c4-0000-4000-8000-000000000006', name: 'Tradução Acadêmica', description: 'Artigos científicos, dissertações e publicações acadêmicas' },
 ];
 
 function isValidEmail(email: string) {
