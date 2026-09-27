@@ -4,6 +4,19 @@ export const apiUrl = env.apiUrl;
 
 type FastApiValidationError = { msg?: string };
 
+export type ApiErrorKind = 'network' | 'http';
+
+export class ApiError extends Error {
+	constructor(
+		message: string,
+		readonly kind: ApiErrorKind,
+		readonly status?: number,
+	) {
+		super(message);
+		this.name = 'ApiError';
+	}
+}
+
 export function extractErrorMessage(payload: unknown, status: number): string {
 	const detail = (payload as { detail?: unknown } | null)?.detail;
 
@@ -21,13 +34,22 @@ export function extractErrorMessage(payload: unknown, status: number): string {
 }
 
 export async function request<TResponse>(path: string, init?: RequestInit) {
-	const response = await fetch(`${apiUrl}${path}`, {
-		...init,
-		headers: { 'Content-Type': 'application/json', ...init?.headers },
-	});
+	let response: Response;
+	try {
+		response = await fetch(`${apiUrl}${path}`, {
+			...init,
+			headers: { 'Content-Type': 'application/json', ...init?.headers },
+		});
+	} catch {
+		throw new ApiError('Não foi possível conectar à API.', 'network');
+	}
 	if (!response.ok) {
 		const payload = await response.json().catch(() => null);
-		throw new Error(extractErrorMessage(payload, response.status));
+		throw new ApiError(
+			extractErrorMessage(payload, response.status),
+			'http',
+			response.status,
+		);
 	}
 	return response.json() as Promise<TResponse>;
 }

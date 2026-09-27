@@ -11,14 +11,14 @@ from app.modules.quotes.services.quote_service import QuoteService
 
 def test_create_quote_success(mock_db_session):
     service = QuoteService(mock_db_session)
-    quote_data = QuoteCreate(status="draft")
+    quote_data = QuoteCreate()
 
     mock_db_session.refresh.side_effect = lambda obj: None
 
     result = service.create_quote(quote_data)
 
     assert result is not None
-    assert result.status == "draft"
+    assert result.status == "pending"
     mock_db_session.add.assert_called_once()
     mock_db_session.commit.assert_called_once()
     mock_db_session.refresh.assert_called_once()
@@ -47,7 +47,7 @@ def test_generate_quote_from_approved_request(mock_db_session):
     result = service.generate_from_approved_request(request.id)
 
     assert result.request_id == request.id
-    assert result.status == "draft"
+    assert result.status == "pending"
     assert result.customer_name == request.customer_name
     mock_db_session.commit.assert_called_once()
 

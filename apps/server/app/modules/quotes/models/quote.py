@@ -9,8 +9,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.shared.database import Base
 
 if TYPE_CHECKING:
+    from app.modules.clients.models.company import Company
+    from app.modules.contacts.models.contact import Contact
     from app.modules.quotes.models.request import Request
     from app.modules.quotes.models.translation_item import QuoteTranslationItem
+    from app.modules.service_orders.models.service_order import ServiceOrder
 
 
 class Quote(Base):
@@ -24,7 +27,20 @@ class Quote(Base):
     request_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("request.id", ondelete="RESTRICT"), nullable=True, unique=True
     )
-    status: Mapped[str] = mapped_column(String(50), nullable=False, default="draft")
+    company_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("company.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    contact_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("contact.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="pending")
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    approved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    approved_by_email: Mapped[str | None] = mapped_column(String(255))
+    reproved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reproved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    reproved_by_email: Mapped[str | None] = mapped_column(String(255))
+    reproval_reason: Mapped[str | None] = mapped_column(String(500))
     customer_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     enterprise: Mapped[str | None] = mapped_column(String(155), nullable=True)
     email: Mapped[str | None] = mapped_column(String(155), nullable=True)
@@ -51,3 +67,14 @@ class Quote(Base):
     )
 
     request: Mapped["Request"] = relationship("Request", back_populates="quote")
+    company: Mapped["Company | None"] = relationship("Company")
+    contact: Mapped["Contact | None"] = relationship("Contact")
+    service_orders: Mapped[list["ServiceOrder"]] = relationship(
+        "ServiceOrder", back_populates="quote", order_by="ServiceOrder.created_at.desc()"
+    )
+
+    @property
+    def service_order_id(self) -> uuid.UUID | None:
+        if self.status != "approved" or not self.service_orders:
+            return None
+        return self.service_orders[0].id

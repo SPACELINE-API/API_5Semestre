@@ -11,6 +11,13 @@ import { FormField } from '../../clients/components/FormField';
 import { DateField } from '../../../shared/components/DateField';
 import { formatDate, formatDateInputValue } from '../utils/format';
 
+function getTodayInputValue() {
+	const today = new Date();
+	const month = String(today.getMonth() + 1).padStart(2, '0');
+	const day = String(today.getDate()).padStart(2, '0');
+	return `${today.getFullYear()}-${month}-${day}`;
+}
+
 type GeneralInfoTabProps = {
 	serviceOrder: ServiceOrder;
 	onSave: (data: UpdateServiceOrderInput) => Promise<void>;
@@ -22,6 +29,8 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 	const [deadline, setDeadline] = useState(
 		formatDateInputValue(serviceOrder.deadline),
 	);
+	const [deadlineError, setDeadlineError] = useState('');
+	const [deadlineCalendarOpen, setDeadlineCalendarOpen] = useState(false);
 	const [domainArea, setDomainArea] = useState(serviceOrder.domain_area ?? '');
 	const [priceCategory, setPriceCategory] = useState(
 		serviceOrder.price_category ?? '',
@@ -37,6 +46,7 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 	function resetForm() {
 		setProjectName(serviceOrder.project_name);
 		setDeadline(formatDateInputValue(serviceOrder.deadline));
+		setDeadlineError('');
 		setDomainArea(serviceOrder.domain_area ?? '');
 		setPriceCategory(serviceOrder.price_category ?? '');
 		setInternalNotes(serviceOrder.internal_notes ?? '');
@@ -49,6 +59,11 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 	}
 
 	async function handleSave() {
+		if (deadline && deadline < getTodayInputValue()) {
+			setDeadlineError('O prazo não pode ser anterior à data de hoje.');
+			return;
+		}
+		setDeadlineError('');
 		setIsSaving(true);
 
 		try {
@@ -149,7 +164,10 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 				</>
 			) : (
 				<>
-					<View className="gap-4">
+					<View
+						className="gap-4"
+						style={deadlineCalendarOpen ? { zIndex: 50 } : undefined}
+					>
 						<View className="flex-row flex-wrap gap-x-10 gap-y-4">
 							<FormField
 								label="Nome do projeto"
@@ -169,12 +187,30 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 							/>
 						</View>
 
-						<View className="flex-row flex-wrap gap-x-10 gap-y-4">
-							<DateField
-								label="Prazo"
-								value={deadline}
-								onChangeText={setDeadline}
-							/>
+						<View
+							className="flex-row flex-wrap gap-x-10 gap-y-4"
+							style={deadlineCalendarOpen ? { zIndex: 50 } : undefined}
+						>
+							<View
+								className="min-w-[180px] flex-1 gap-1"
+								style={deadlineCalendarOpen ? { zIndex: 51 } : undefined}
+							>
+								<DateField
+									label="Prazo"
+									value={deadline}
+									minDate={getTodayInputValue()}
+									onOpenChange={setDeadlineCalendarOpen}
+									onChangeText={(value) => {
+										setDeadline(value);
+										setDeadlineError('');
+									}}
+								/>
+								{deadlineError ? (
+									<Text className="font-inter text-red-600 text-xs">
+										{deadlineError}
+									</Text>
+								) : null}
+							</View>
 							<InfoField
 								label="Itens"
 								value={String(serviceOrder.items.length)}
