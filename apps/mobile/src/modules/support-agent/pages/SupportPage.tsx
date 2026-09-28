@@ -24,7 +24,9 @@ const QUICK_REPLIES = [
 	{ icon: Settings, label: 'Problemas técnicos' },
 ];
 
-const Container = (Platform.OS === 'web' ? View : KeyboardAvoidingView) as typeof KeyboardAvoidingView;
+const Container = (
+	Platform.OS === 'web' ? View : KeyboardAvoidingView
+) as typeof KeyboardAvoidingView;
 
 const SCROLL_CLASSNAME =
 	'flex-1 [scroll-behavior:smooth] [scrollbar-width:thin] [scrollbar-color:#bcdcf5_transparent] ' +
@@ -93,7 +95,11 @@ export function SupportPage() {
 	}
 
 	return (
-		<Container style={{ flex: 1, backgroundColor: '#eef6fd' }} {...(Platform.OS === 'web' ? {} : { behavior: 'padding' as const })}className="px-4 py-4 md:px-8 md:py-8">
+		<Container
+			style={{ flex: 1, backgroundColor: '#eef6fd' }}
+			{...(Platform.OS === 'web' ? {} : { behavior: 'padding' as const })}
+			className="px-4 py-4 md:px-8 md:py-8"
+		>
 			<View className="mb-4 flex-row items-center gap-3 md:mb-6 md:gap-4">
 				<View className="h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#d9ecfb] md:h-14 md:w-14">
 					<Headphones color="#2478c2" size={22} />
