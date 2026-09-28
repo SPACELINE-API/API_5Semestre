@@ -2,22 +2,144 @@ name: CI
 
 on:
   pull_request:
-    branches:
-      - develop
-      - main
+    types: [opened, synchronize, reopened]
+
+permissions: {}
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  web:
-    name: Web
+  # Valida commit messages, formatação, lint e tipos antes de rodar o resto do pipeline
+  guard:
+    name: Guard
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Validate commit messages
+        uses: wagoid/commitlint-github-action@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: apps/server/requirements.txt
+
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Install Python dependencies
+        working-directory: apps/server
+        run: python -m pip install --pre --no-deps -r requirements.txt
+
+      - name: Check formatting
+        run: pnpm --filter mobile format:check
+
+      - name: Lint server
+        working-directory: apps/server
+        run: ruff check .
+
+      - name: Check server formatting
+        working-directory: apps/server
+        run: ruff format --check .
+
+      - name: Typecheck server
+        working-directory: apps/server
+        run: |
+          python -m pip install mypy
+          mypy .
+
+  # Testa o backend, valida a integração com o Postgres e gera a cobertura
+  backend:
+    name: Backend quality
+    needs: guard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: apps/server/requirements.txt
+
+      - name: Install dependencies
+        working-directory: apps/server
+        run: |
+          python -m pip install --pre --no-deps -r requirements.txt
+          python -m pip install pytest-cov
+
+      - name: Start Docker services
+        run: docker compose up -d spaceline-db
+
+      - name: Check Postgres health
+        run: |
+          for i in {1..10}; do
+            docker exec spaceline-db pg_isready -U postgres -d postgres && exit 0
+            sleep 3
+          done
+
+          docker logs spaceline-db
+          exit 1
+
+      - name: Run server tests
+        working-directory: apps/server
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/postgres
+        run: |
+          if find . -type f \( -name 'test_*.py' -o -name '*_test.py' \) | grep -q .; then
+            pytest --cov --cov-report=xml
+          else
+            echo "No server tests found; skipping pytest."
+          fi
+
+      - name: Stop Docker services
+        if: always()
+        run: docker compose down -v
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: apps/server/coverage.xml
+          if-no-files-found: ignore
+
+  # Valida o app mobile com TypeScript, formatação e configuração do Expo
+  mobile:
+    name: Mobile quality
+    needs: guard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -34,67 +156,47 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Check formatting
-        run: pnpm format:check
+      - name: Typecheck mobile
+        run: pnpm exec tsc --noEmit -p apps/mobile/tsconfig.json
 
-      - name: Lint web
-        run: pnpm --filter @api/web lint
+      - name: Lint mobile
+        run: pnpm --filter mobile lint
 
-      - name: Typecheck web
-        run: pnpm --filter @api/web check:types
+      - name: Validate Expo configuration
+        working-directory: apps/mobile
+        run: pnpm exec expo config --json > /dev/null
 
-  server:
-    name: Server
+  # Publica o relatório de cobertura de código gerado no job backend
+  code-coverage:
+    name: Code coverage
+    needs: backend
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: pip
-          cache-dependency-path: apps/server/requirements.txt
+          ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Install dependencies
-        working-directory: apps/server
-        run: python -m pip install -r requirements.txt
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: apps/server
 
-      - name: Check server formatting
-        working-directory: apps/server
-        run: ruff format --check .
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          working-directory: apps/server
 
-      - name: Lint server
-        working-directory: apps/server
-        run: ruff check .
-
-      - name: Run server tests
-        working-directory: apps/server
-        run: |
-          if find . -type f \( -name 'test_*.py' -o -name '*_test.py' \) | grep -q .; then
-            pytest
-          else
-            echo "No server tests found; skipping pytest."
+  ci-success:
+    name: CI success
+    needs: [guard, backend, mobile, code-coverage]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "Algum job falhou ou foi cancelado"
+            exit 1
           fi
-
-      - name: Start Docker services
-        run: docker compose up -d
-
-      - name: Check Docker services
-        run: docker compose ps
-
-      - name: Check Postgres health
-        run: |
-          for i in {1..10}; do
-            docker exec postgresql pg_isready -U postgres -d api_5semestre && exit 0
-            sleep 3
-          done
-
-          docker logs postgresql
-          exit 1
-
-      - name: Stop Docker services
-        if: always()
-        run: docker compose down -v

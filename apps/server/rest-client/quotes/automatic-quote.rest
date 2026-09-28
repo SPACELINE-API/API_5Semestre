@@ -1,0 +1,69 @@
+@serverUrl = http://localhost:3333
+@requestId = 591f16a2-0897-4691-8a34-d569be400c2b
+
+### 1. Criar uma solicitação inicial
+### A solicitação é criada como pending.
+POST {{serverUrl}}/api/quotes/requests
+Content-Type: application/json
+
+{
+  "customer_name": "João Silva",
+  "enterprise": "Empresa Teste",
+  "email": "joao.silva+orcamento@teste.com",
+  "original_language": "Português",
+  "translation_language": "Inglês",
+  "customer_need": "Contrato social"
+}
+
+### 2. Consultar as solicitações e copiar o id da request
+GET {{serverUrl}}/api/quotes/requests
+
+### 3. Aprovar a request pela API
+PATCH {{serverUrl}}/api/quotes/requests/{{requestId}}/status
+Content-Type: application/json
+
+{
+  "status": "approved"
+}
+
+### 3.1 Reprovar outra request informando o motivo
+### Esperado: 200 OK, com reproved_at e reproval_reason preenchidos.
+PATCH {{serverUrl}}/api/quotes/requests/{{requestId}}/status
+Content-Type: application/json
+
+{
+  "status": "reproved",
+  "reproval_reason": "Documento em péssimo estado"
+}
+
+### 3.2 Reprovar sem motivo
+### Esperado: 422 Unprocessable Entity.
+PATCH {{serverUrl}}/api/quotes/requests/{{requestId}}/status
+Content-Type: application/json
+
+{
+  "status": "reproved"
+}
+
+### 4. Gerar automaticamente o orçamento a partir da request aprovada
+POST {{serverUrl}}/api/quotes/from-request/{{requestId}}
+
+### 5. Repetir a geração para validar duplicidade
+### Esperado: 409 Conflict.
+POST {{serverUrl}}/api/quotes/from-request/{{requestId}}
+
+### 6. Testar request inexistente
+POST {{serverUrl}}/api/quotes/from-request/123e4567-e89b-12d3-a456-426614174000
+
+### 7. Testar UUID inválido
+### Esperado: 422 Unprocessable Entity.
+POST {{serverUrl}}/api/quotes/from-request/not-an-uuid
+
+### 8. Tentar voltar uma request aprovada para pending
+### Esperado: 409 Conflict.
+PATCH {{serverUrl}}/api/quotes/requests/{{requestId}}/status
+Content-Type: application/json
+
+{
+  "status": "pending"
+}

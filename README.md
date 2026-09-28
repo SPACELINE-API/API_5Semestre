@@ -14,7 +14,9 @@
 
 <a id="desafio"></a>
 
-Desenvolvimento de uma aplicação web para apoiar a gestão de solicitações de serviços linguísticos, contemplando cadastro de clientes, contatos, recursos, tradutores, cotações, ordens de serviço e alocações.
+Desenvolvimento de uma aplicação mobile multiplataforma para apoiar a gestão de
+solicitações de serviços linguísticos, contemplando cadastro de clientes,
+contatos, recursos, tradutores, cotações, ordens de serviço e alocações.
 
 ---
 
@@ -147,7 +149,7 @@ Crie os arquivos `.env` com base nos exemplos:
 
 ```txt
 .env.example
-apps/web/.env.example
+apps/mobile/.env.example
 apps/server/.env.example
 ```
 
@@ -157,7 +159,9 @@ Depois de criar o `.env` da raiz, gere as chaves locais do Supabase:
 pnpm supabase:keys
 ```
 
-Esse comando lê o `JWT_SECRET` do seu `.env` e preenche `ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY`. Rode apenas uma vez por ambiente local; se o `JWT_SECRET` mudar, rode novamente para recriar as chaves.
+Esse comando lê o `JWT_SECRET` do seu `.env` e preenche `ANON_KEY` e
+`SUPABASE_SERVICE_ROLE_KEY`. Rode apenas uma vez por ambiente local; se o
+`JWT_SECRET` mudar, rode novamente para recriar as chaves.
 
 ### Instalação
 
@@ -167,7 +171,8 @@ Na raiz do projeto, execute:
 pnpm install
 ```
 
-Esse comando instala as dependências do workspace e também executa a instalação das dependências Python do backend.
+Esse comando instala as dependências do workspace e também executa a instalação
+das dependências Python do backend.
 
 ### Banco de Dados
 
@@ -181,22 +186,23 @@ O serviço do PostgreSQL é configurado pelo arquivo `docker-compose.yml`.
 
 ### Executar Aplicação
 
-Para executar frontend e backend juntos:
+Para executar o frontend mobile (Expo, com suporte a Android, iOS e web) e o
+backend juntos:
 
 ```bash
 pnpm dev
 ```
 
-Para executar apenas o frontend:
+Para executar apenas o aplicativo unificado:
 
 ```bash
-pnpm dev:web
+pnpm dev:mobile
 ```
 
 Frontend:
 
 ```txt
-http://localhost:5173
+O Expo exibirá o endereço do Metro bundler e permitirá abrir no Android, iOS ou web.
 ```
 
 Para executar apenas o backend:

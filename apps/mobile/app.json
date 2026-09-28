@@ -1,0 +1,26 @@
+{
+	"expo": {
+		"name": "mobile",
+		"slug": "mobile",
+		"version": "1.0.0",
+		"orientation": "portrait",
+		"scheme": "mobile",
+		"userInterfaceStyle": "automatic",
+		"android": {
+			"predictiveBackGestureEnabled": false,
+			"softwareKeyboardLayoutMode": "resize"
+		},
+		"web": {
+			"output": "static"
+		},
+		"plugins": [
+			"expo-router",
+			"expo-splash-screen",
+			"@react-native-community/datetimepicker"
+		],
+		"experiments": {
+			"typedRoutes": true,
+			"reactCompiler": true
+		}
+	}
+}

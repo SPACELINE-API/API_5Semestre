@@ -6,7 +6,7 @@ from app.shared.EnvProvider import Env, EnvProvider, load_env
 def test_env_provider_returns_validated_values() -> None:
     env = Env(
         DATABASE_URL="postgresql+psycopg://postgres:postgres@localhost:5432/postgres",
-        SERVER_APP_PORT="3333",
+        SERVER_APP_PORT=3333,
         SUPABASE_URL="http://localhost:8000",
     )
 

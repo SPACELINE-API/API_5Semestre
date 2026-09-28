@@ -1,0 +1,10 @@
+@serverUrl = http://localhost:3333
+
+### Enfileirar o teste no Inngest usando o provedor definido em apps/server/.env
+### Use ADK_PROVIDER=ollama ou ADK_PROVIDER=gemini
+POST {{serverUrl}}/api/suporte/agente/teste
+Content-Type: application/json
+
+{
+  "texto": "Responda confirmando qual provedor está sendo usado e utilize a tool testar_conhecimento para validar a integração."
+}

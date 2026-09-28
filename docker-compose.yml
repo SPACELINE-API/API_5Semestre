@@ -74,7 +74,15 @@ services:
       GOTRUE_MAILER_TEMPLATES_MAGIC_LINK: http://spaceline-templates/magic_link.html
       GOTRUE_MAILER_TEMPLATES_EMAIL_CHANGE: http://spaceline-templates/email_change.html
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9999/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:9999/health',
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -132,7 +140,15 @@ services:
     volumes:
       - spaceline-storage-data:/var/lib/storage
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:5000/status']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://127.0.0.1:5000/status',
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -202,7 +218,9 @@ services:
       test:
         [
           'CMD-SHELL',
-          'node -e "fetch(''http://localhost:3000/api/platform/profile'').then((r) => {if (r.status !== 200) throw new Error(r.status)})"',
+          'node -e
+          "fetch(''http://localhost:3000/api/platform/profile'').then((r) => {if
+          (r.status !== 200) throw new Error(r.status)})"',
         ]
       interval: 5s
       timeout: 10s
@@ -255,6 +273,18 @@ services:
     restart: unless-stopped
     volumes:
       - ./volumes/auth/templates:/usr/share/nginx/html:ro
+    networks:
+      - spaceline
+
+  spaceline-inngest:
+    container_name: spaceline-inngest
+    image: inngest/inngest:latest
+    restart: unless-stopped
+    ports:
+      - '${INNGEST_PORT:-8288}:8288'
+    command: 'inngest dev -u http://host.docker.internal:3333/api/inngest'
+    extra_hosts:
+      - 'host.docker.internal:${DOCKER_HOST_IP:-host-gateway}'
     networks:
       - spaceline
 

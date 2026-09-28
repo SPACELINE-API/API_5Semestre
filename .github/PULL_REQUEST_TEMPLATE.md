@@ -6,12 +6,28 @@ Descreva brevemente o que foi feito, o propósito deste Pull Request e quais pro
 
 Link para a task correspondente no Jira:
 
+## 🧭 Como testar
+
+Descreva os pré-requisitos, comandos e passos necessários para validar as alterações:
+
+### Pré-requisitos
+
+- 
+
+### Passos
+
+1. 
+
+### Resultado esperado
+
+Descreva o comportamento esperado após os testes:
+
 ## 🧪 Checklist de Qualidade e Validação
 
 Marque as opções abaixo após realizá-las localmente em sua máquina. Todas são obrigatórias para aceitação do PR:
 
 - [ ] Executei `pnpm test` e todos os testes passaram com sucesso.
-- [ ] Executei `pnpm check-types` e garanti que não há erros de tipagem no compilador TypeScript.
-- [ ] Executei `pnpm check` (Biome) e o código está devidamente formatado e sem alertas de qualidade/linter.
+- [ ] Executei `pnpm check:types` e garanti que não há erros de tipagem no compilador TypeScript.
+- [ ] Executei `pnpm format:check` e `pnpm lint` (front) e `ruff check .` / `ruff format --check .` (back) e o código está formatado e sem alertas de lint.
 - [ ] Validei as alterações manualmente no navegador/Postman para garantir o funcionamento correto.
 - [ ] Garanti que estas modificações não quebram fluxos ou páginas existentes de outros desenvolvedores.
