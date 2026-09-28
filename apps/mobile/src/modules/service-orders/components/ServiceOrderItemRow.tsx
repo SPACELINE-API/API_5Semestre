@@ -1,11 +1,5 @@
-import { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import {
-	UserPlus,
-	FileText,
-	ChevronDown,
-	ChevronUp,
-} from 'lucide-react-native';
+import { UserPlus } from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { InviteStatusBadge } from './InviteStatusBadge';
 import { FilePreview } from '../../../shared/components/FilePreview';
@@ -29,7 +23,6 @@ export function ServiceOrderItemRow({
 		item.id,
 		refreshToken,
 	);
-	const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
 	const assignedTranslator = item.translator_id
 		? translatorsById.get(item.translator_id)
@@ -71,23 +64,7 @@ export function ServiceOrderItemRow({
 				<View className="gap-0.5">
 					<Text className="font-inter text-gray-400 text-xs">Documento</Text>
 					{item.file_url ? (
-						<TouchableOpacity
-							onPress={() => setIsPreviewOpen((current) => !current)}
-							activeOpacity={0.7}
-							accessibilityRole="button"
-							accessibilityLabel={`${isPreviewOpen ? 'Ocultar' : 'Pré-visualizar'} documento`}
-							className="flex-row items-center gap-1"
-						>
-							<FileText size={14} color="#1C6FB0" />
-							<Text className="font-inter font-medium text-blue-600 text-sm">
-								{isPreviewOpen ? 'Ocultar' : 'Pré-visualizar'}
-							</Text>
-							{isPreviewOpen ? (
-								<ChevronUp size={14} color="#1C6FB0" />
-							) : (
-								<ChevronDown size={14} color="#1C6FB0" />
-							)}
-						</TouchableOpacity>
+						<FilePreview fileUrl={item.file_url} openInNewPage />
 					) : (
 						<Text className="font-inter font-medium text-gray-400 text-sm">
 							Nenhum documento anexado
@@ -95,10 +72,6 @@ export function ServiceOrderItemRow({
 					)}
 				</View>
 			</View>
-
-			{isPreviewOpen && item.file_url && (
-				<FilePreview fileUrl={item.file_url} />
-			)}
 
 			{!item.translator_id && (
 				<TouchableOpacity

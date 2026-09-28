@@ -13,16 +13,15 @@ import {
 	Mail,
 	Phone,
 	AlertCircle,
+	Power,
 	Trash2,
 } from 'lucide-react-native';
 import {
 	getTranslator,
 	deleteTranslator,
+	setTranslatorActive,
 } from '../../modules/translators/services/translatorService';
-import {
-	PROFICIENCY_LABELS,
-	formatLanguagePairDisplay,
-} from '../../modules/translators/types/translator';
+import { PROFICIENCY_LABELS } from '../../modules/translators/types/translator';
 import type { Translator } from '../../modules/translators/types/translator';
 import { Toast } from '../../shared/components/Toast';
 import { useToast } from '../../shared/hooks/useToast';
@@ -36,6 +35,8 @@ export default function TranslatorDetailsScreen() {
 	const [error, setError] = useState(null as string | null);
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [isStatusConfirmVisible, setIsStatusConfirmVisible] = useState(false);
+	const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 	const { toast, showToast } = useToast();
 
 	useEffect(() => {
@@ -57,6 +58,28 @@ export default function TranslatorDetailsScreen() {
 			showToast('Nao foi possivel excluir o tradutor.', 'error');
 			setIsDeleting(false);
 			setIsDeleteConfirmVisible(false);
+		}
+	}
+
+	async function handleToggleStatus() {
+		if (!translator) return;
+
+		setIsUpdatingStatus(true);
+		try {
+			const updated = await setTranslatorActive(
+				translator.id,
+				!translator.is_active,
+			);
+			setTranslator(updated);
+			showToast(
+				updated.is_active ? 'Tradutor ativado.' : 'Tradutor desativado.',
+				'success',
+			);
+		} catch {
+			showToast('Não foi possível atualizar o status do tradutor.', 'error');
+		} finally {
+			setIsUpdatingStatus(false);
+			setIsStatusConfirmVisible(false);
 		}
 	}
 
@@ -142,6 +165,22 @@ export default function TranslatorDetailsScreen() {
 					</TouchableOpacity>
 				</View>
 
+				<TouchableOpacity
+					onPress={() => setIsStatusConfirmVisible(true)}
+					activeOpacity={0.7}
+					className={`mb-6 flex-row items-center gap-2 self-start rounded-lg border px-4 py-2.5 ${translator.is_active ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}`}
+				>
+					<Power
+						size={16}
+						color={translator.is_active ? '#B91C1C' : '#15803D'}
+					/>
+					<Text
+						className={`font-inter font-medium text-sm ${translator.is_active ? 'text-red-800' : 'text-green-800'}`}
+					>
+						{translator.is_active ? 'Desativar tradutor' : 'Ativar tradutor'}
+					</Text>
+				</TouchableOpacity>
+
 				<View className="mb-4 gap-3 rounded-xl border border-gray-100 p-4">
 					<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
 						Contato
@@ -162,27 +201,27 @@ export default function TranslatorDetailsScreen() {
 
 				<View className="mb-4 gap-3 rounded-xl border border-gray-100 p-4">
 					<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
-						Pares de Idioma
+						Idiomas falados
 					</Text>
-					{translator.language_pairs.length === 0 ? (
+					{translator.languages.length === 0 ? (
 						<Text className="font-inter text-gray-400 text-sm">
-							Nenhum par de idioma cadastrado.
+							Nenhum idioma cadastrado.
 						</Text>
 					) : (
-						translator.language_pairs.map((p) => (
+						translator.languages.map((language) => (
 							<View
-								key={p.id}
+								key={language.id}
 								className="flex-row items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2.5"
 							>
 								<Text
 									className="flex-1 font-inter font-medium text-gray-800 text-sm"
 									numberOfLines={2}
 								>
-									{formatLanguagePairDisplay(p)}
+									{language.language_name}
 								</Text>
 								<View className="shrink-0 rounded-full bg-blue-100 px-2.5 py-0.5">
 									<Text className="font-inter font-medium text-blue-800 text-xs">
-										{PROFICIENCY_LABELS[p.proficiency_level]}
+										{PROFICIENCY_LABELS[language.proficiency_level]}
 									</Text>
 								</View>
 							</View>
@@ -216,6 +255,21 @@ export default function TranslatorDetailsScreen() {
 			</ScrollView>
 
 			<ConfirmDialog
+				visible={isStatusConfirmVisible}
+				title={translator.is_active ? 'Desativar tradutor' : 'Ativar tradutor'}
+				message={
+					translator.is_active
+						? `Tem certeza que deseja desativar ${translator.name}?`
+						: `Tem certeza que deseja ativar ${translator.name}?`
+				}
+				confirmLabel={translator.is_active ? 'Desativar' : 'Ativar'}
+				destructive={translator.is_active}
+				isLoading={isUpdatingStatus}
+				onConfirm={handleToggleStatus}
+				onCancel={() => setIsStatusConfirmVisible(false)}
+			/>
+
+			<ConfirmDialog
 				visible={isDeleteConfirmVisible}
 				title="Excluir tradutor"
 				message={
@@ -230,7 +284,11 @@ export default function TranslatorDetailsScreen() {
 				onCancel={() => setIsDeleteConfirmVisible(false)}
 			/>
 
-			<Toast toast={isDeleteConfirmVisible ? null : toast} />
+			<Toast
+				toast={
+					isDeleteConfirmVisible || isStatusConfirmVisible ? null : toast
+				}
+			/>
 		</View>
 	);
 }

@@ -3,13 +3,14 @@ import uuid
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.modules.translators.models.language_pair import LanguagePair
+from app.modules.system_parameters.models.language import Language
 from app.modules.translators.models.qualification import TechnicalQualification
 from app.modules.translators.models.translator import Translator
 from app.modules.translators.repositories.translator_repository import TranslatorRepository
 from app.modules.translators.schemas.translator import (
-    LanguagePairInput,
     TranslatorCreate,
+    TranslatorLanguageInput,
+    TranslatorStatusUpdate,
     TranslatorUpdate,
 )
 
@@ -35,13 +36,13 @@ class TranslatorService:
             )
         return qualifications
 
-    def _validate_language_pairs(self, pairs: list[LanguagePairInput]) -> list[LanguagePair]:
-        ids = [p.language_pair_id for p in pairs]
-        found = self.repo.get_language_pairs_by_ids(ids)
+    def _validate_languages(self, languages: list[TranslatorLanguageInput]) -> list[Language]:
+        ids = [language.language_id for language in languages]
+        found = self.repo.get_languages_by_ids(ids)
         if len(found) != len(ids):
             raise HTTPException(
                 status_code=422,
-                detail="One or more language pairs not found",
+                detail="One or more languages not found",
             )
         return found
 
@@ -51,14 +52,14 @@ class TranslatorService:
             raise HTTPException(status_code=400, detail="Email already registered")
 
         qualifications = self._validate_qualifications(data.qualification_ids)
-        self._validate_language_pairs(data.language_pairs)
+        self._validate_languages(data.languages)
 
         return self.repo.create(
             name=data.name,
             email=data.email,
             phone=data.phone,
             qualifications=qualifications,
-            pairs_input=data.language_pairs,
+            languages_input=data.languages,
         )
 
     def get(self, translator_id: uuid.UUID) -> Translator:
@@ -70,9 +71,6 @@ class TranslatorService:
     def list_qualifications(self) -> list[TechnicalQualification]:
         return self.repo.list_qualifications()
 
-    def list_language_pairs(self) -> list[LanguagePair]:
-        return self.repo.list_language_pairs()
-
     def update(self, translator_id: uuid.UUID, data: TranslatorUpdate) -> Translator:
         translator = self._get_translator_or_404(translator_id)
 
@@ -83,7 +81,7 @@ class TranslatorService:
                 raise HTTPException(status_code=400, detail="Email already registered")
 
         qualifications = self._validate_qualifications(data.qualification_ids)
-        self._validate_language_pairs(data.language_pairs)
+        self._validate_languages(data.languages)
 
         return self.repo.update(
             translator=translator,
@@ -91,8 +89,14 @@ class TranslatorService:
             email=data.email,
             phone=data.phone,
             qualifications=qualifications,
-            pairs_input=data.language_pairs,
+            languages_input=data.languages,
         )
+
+    def update_status(
+        self, translator_id: uuid.UUID, data: TranslatorStatusUpdate
+    ) -> Translator:
+        translator = self._get_translator_or_404(translator_id)
+        return self.repo.update_status(translator, data.is_active)
 
     def delete(self, translator_id: uuid.UUID) -> None:
         translator = self._get_translator_or_404(translator_id)

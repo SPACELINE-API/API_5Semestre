@@ -59,10 +59,10 @@ export default function CardRequest({
 				: 'Revisar solicitação';
 
 	return (
-		<View className="w-80 bg-white border border-gray-200 rounded-lg p-4">
+		<View className="w-full max-w-80 min-w-0 rounded-lg border border-gray-200 bg-white p-4">
 			<View className="flex-row items-start justify-between gap-2 mb-3">
-				<View className="flex-1">
-					<Text className="font-bold text-gray-900 text-sm">
+				<View className="min-w-0 flex-1">
+					<Text className="font-bold text-gray-900 text-sm" numberOfLines={2}>
 						{customer_name}
 					</Text>
 					<Text className="text-gray-400 text-xs mt-0.5">{enterprise}</Text>
@@ -74,21 +74,23 @@ export default function CardRequest({
 				</View>
 			</View>
 
-			<View className="flex-row justify-between mb-1">
+			<View className="mb-1 flex-row flex-wrap justify-between gap-x-2">
 				<Text className="text-gray-400 text-xs">Documento</Text>
-				<Text className="text-gray-800 text-xs">{customer_need}</Text>
+				<Text className="min-w-0 flex-1 text-right text-xs text-gray-800">
+					{customer_need}
+				</Text>
 			</View>
 
-			<View className="flex-row justify-between mb-1">
+			<View className="mb-1 flex-row flex-wrap justify-between gap-x-2">
 				<Text className="text-gray-400 text-xs">Idioma</Text>
-				<Text className="text-gray-800 text-xs">
+				<Text className="min-w-0 flex-1 text-right text-xs text-gray-800">
 					{original_language} → {translation_language}
 				</Text>
 			</View>
 
-			<View className="flex-row justify-between mb-1">
+			<View className="mb-1 flex-row flex-wrap justify-between gap-x-2">
 				<Text className="text-gray-400 text-xs">Data da solicitação</Text>
-				<Text className="text-gray-800 text-xs">
+				<Text className="min-w-0 flex-1 text-right text-xs text-gray-800">
 					{formatRequestDate(request_date)}
 				</Text>
 			</View>
@@ -97,7 +99,7 @@ export default function CardRequest({
 				accessibilityRole="button"
 				accessibilityLabel={`${actionLabel} de ${customer_name}`}
 				onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
-				className={`rounded-md py-2 items-center hover:bg-blue-500 mt-4 ${status === 'reproved' ? 'bg-gray-500' : 'bg-blue-500'}`}
+				className={`mt-4 w-full items-center rounded-md py-2 hover:bg-blue-500 ${status === 'reproved' ? 'bg-gray-500' : 'bg-blue-500'}`}
 			>
 				<Text className="text-white text-xs font-medium">{actionLabel}</Text>
 			</TouchableOpacity>

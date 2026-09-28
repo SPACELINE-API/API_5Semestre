@@ -1,31 +1,18 @@
-import { useState, useEffect, type ChangeEvent } from 'react';
-import {
-	Modal,
-	View,
-	Text,
-	TouchableOpacity,
-	ScrollView,
-	Platform,
-} from 'react-native';
-import { X, Plus, Trash2 } from 'lucide-react-native';
+import { useState, useEffect } from 'react';
+import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { X } from 'lucide-react-native';
 import type {
 	TranslatorCreateInput,
-	LanguagePairFormRow,
+	TranslatorLanguageFormRow,
+	LanguageResponse,
 } from '../types/translator';
-import {
-	PROFICIENCY_OPTIONS,
-	AVAILABLE_LANGUAGES,
-	getLanguageName,
-} from '../types/translator';
-import type {
-	QualificationResponse,
-	DictionaryLanguagePairResponse,
-} from '../types/translator';
+import type { QualificationResponse } from '../types/translator';
 import {
 	listQualifications,
-	listLanguagePairs,
+	listLanguages,
 } from '../services/translatorService';
 import { FormField } from '../../clients/components/FormField';
+import { TranslatorLanguagesStep } from './TranslatorLanguagesStep';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
 type Props = {
@@ -39,13 +26,11 @@ type FormErrors = {
 	name?: string;
 	email?: string;
 	phone?: string;
-	language_pairs?: string;
+	languages?: string;
 };
 
-const EMPTY_ROW: LanguagePairFormRow = {
-	language_pair_id: '',
-	source_language: 'pt-BR',
-	target_language: 'en-US',
+const EMPTY_ROW: TranslatorLanguageFormRow = {
+	language_id: '',
 	proficiency_level: 'fluent',
 };
 
@@ -82,53 +67,27 @@ export function TranslatorFormModal({
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
 	const [phone, setPhone] = useState('');
-	const [pairs, setPairs] = useState<LanguagePairFormRow[]>([{ ...EMPTY_ROW }]);
+	const [languages, setLanguages] = useState<TranslatorLanguageFormRow[]>([
+		{ ...EMPTY_ROW },
+	]);
 	const [selectedQualifications, setSelectedQualifications] = useState<
 		string[]
 	>([]);
 	const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState<string | null>(null);
-	const [langPicker, setLangPicker] = useState<{
-		index: number;
-		field: 'source_language' | 'target_language';
-	} | null>(null);
 
 	const [apiQualifications, setApiQualifications] = useState<
 		QualificationResponse[]
 	>([]);
-	const [apiLanguagePairs, setApiLanguagePairs] = useState<
-		DictionaryLanguagePairResponse[]
-	>([]);
+	const [apiLanguages, setApiLanguages] = useState<LanguageResponse[]>([]);
 
 	useEffect(() => {
 		if (visible) {
 			listQualifications().then(setApiQualifications).catch(console.error);
-			listLanguagePairs()
-				.then((languagePairs) => {
-					setApiLanguagePairs(languagePairs);
-					setPairs((current) =>
-						current.map((pair) => ({
-							...pair,
-							language_pair_id:
-								languagePairs.find(
-									(item) =>
-										item.source_language === pair.source_language &&
-										item.target_language === pair.target_language,
-								)?.id ?? '',
-						})),
-					);
-				})
-				.catch(console.error);
+			listLanguages().then(setApiLanguages).catch(console.error);
 		}
 	}, [visible]);
-
-	function resolvePairId(source: string, target: string): string {
-		const found = apiLanguagePairs.find(
-			(p) => p.source_language === source && p.target_language === target,
-		);
-		return found?.id ?? '';
-	}
 
 	const isLastStep = step === STEPS.length - 1;
 
@@ -137,7 +96,7 @@ export function TranslatorFormModal({
 		setName('');
 		setEmail('');
 		setPhone('');
-		setPairs([{ ...EMPTY_ROW }]);
+		setLanguages([{ ...EMPTY_ROW }]);
 		setSelectedQualifications([]);
 		setFieldErrors({});
 		setSubmitError(null);
@@ -157,16 +116,15 @@ export function TranslatorFormModal({
 
 	function validateStep1(): FormErrors {
 		const errors: FormErrors = {};
-		if (pairs.some((pair) => !pair.language_pair_id)) {
-			errors.language_pairs = 'Selecione um par de idiomas disponível.';
+		if (languages.some((language) => !language.language_id)) {
+			errors.languages = 'Selecione um idioma para cada item.';
 			return errors;
 		}
-		const hasSame = pairs.some(
-			(p) => p.source_language.trim() === p.target_language.trim(),
-		);
-		if (hasSame) {
-			errors.language_pairs =
-				'O idioma de origem e de destino não podem ser iguais.';
+		if (
+			new Set(languages.map((language) => language.language_id)).size !==
+			languages.length
+		) {
+			errors.languages = 'Não repita o mesmo idioma.';
 			return errors;
 		}
 		return errors;
@@ -189,49 +147,37 @@ export function TranslatorFormModal({
 		setStep((s) => s - 1);
 	}
 
-	function addPair() {
-		const usedPairs = new Set(
-			pairs.map((p) => `${p.source_language}->${p.target_language}`),
+	function addLanguage() {
+		const nextLanguage = apiLanguages.find(
+			(language) =>
+				!languages.some((selected) => selected.language_id === language.id),
 		);
-		// Tenta sugerir um par que ainda não foi adicionado
-		const nextSource = 'pt-BR';
-		let nextTarget = 'es-ES';
-		if (usedPairs.has('pt-BR->es-ES')) nextTarget = 'fr-FR';
-		if (usedPairs.has('pt-BR->fr-FR')) nextTarget = 'de-DE';
-
-		setPairs((prev) => [
+		setLanguages((prev) => [
 			...prev,
 			{
-				language_pair_id: resolvePairId(nextSource, nextTarget),
-				source_language: nextSource,
-				target_language: nextTarget,
+				language_id: nextLanguage?.id ?? '',
 				proficiency_level: 'intermediate',
 			},
 		]);
 	}
 
-	function removePair(index: number) {
-		setPairs((prev) => prev.filter((_, i) => i !== index));
+	function removeLanguage(index: number) {
+		setLanguages((prev) => prev.filter((_, i) => i !== index));
 	}
 
-	function updatePair(
+	function updateLanguage(
 		index: number,
-		field: keyof LanguagePairFormRow,
+		field: keyof TranslatorLanguageFormRow,
 		value: string,
 	) {
-		setPairs((prev) =>
+		setLanguages((prev) =>
 			prev.map((row, i) => {
 				if (i !== index) return row;
-				const updated = { ...row, [field]: value };
-				updated.language_pair_id = resolvePairId(
-					updated.source_language,
-					updated.target_language,
-				);
-				return updated;
+				return { ...row, [field]: value };
 			}),
 		);
-		if (fieldErrors.language_pairs) {
-			setFieldErrors((prev) => ({ ...prev, language_pairs: undefined }));
+		if (fieldErrors.languages) {
+			setFieldErrors((prev) => ({ ...prev, languages: undefined }));
 		}
 	}
 
@@ -261,9 +207,9 @@ export function TranslatorFormModal({
 				email: email.trim(),
 				phone: phone.trim(),
 				qualification_ids: selectedQualifications,
-				language_pairs: pairs.map((p) => ({
-					language_pair_id: p.language_pair_id,
-					proficiency_level: p.proficiency_level,
+				languages: languages.map((language) => ({
+					language_id: language.language_id,
+					proficiency_level: language.proficiency_level,
 				})),
 			});
 			handleClose();
@@ -380,192 +326,14 @@ export function TranslatorFormModal({
 						)}
 
 						{step === 1 && (
-							<>
-								{fieldErrors.language_pairs && (
-									<View className="rounded-lg bg-red-50 px-3 py-2.5 mb-2">
-										<Text className="font-inter text-red-900 text-sm">
-											{fieldErrors.language_pairs}
-										</Text>
-									</View>
-								)}
-
-								{pairs.map((pair, index) => (
-									<View
-										key={index}
-										className="gap-4 rounded-xl border border-gray-200 p-4 mb-2"
-									>
-										<View className="flex-row items-center justify-between border-b border-gray-200 pb-2">
-											<Text className="font-inter font-bold text-gray-800 text-sm">
-												Par de idioma #{index + 1}
-											</Text>
-											{pairs.length > 1 && (
-												<TouchableOpacity
-													onPress={() => removePair(index)}
-													className="flex-row items-center gap-1 rounded-md px-2 py-1"
-													hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-												>
-													<Trash2 size={16} color="#5A5A5A" />
-												</TouchableOpacity>
-											)}
-										</View>
-
-										<View className="flex-row gap-4">
-											<View className="flex-1 gap-1">
-												<Text className="font-inter font-medium text-gray-700 text-[13px]">
-													Origem
-												</Text>
-												{Platform.OS === 'web' ? (
-													<select
-														value={pair.source_language}
-														onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-															updatePair(
-																index,
-																'source_language',
-																e.target.value,
-															)
-														}
-														style={{
-															width: '100%',
-															height: 48,
-															paddingLeft: 16,
-															paddingRight: 16,
-															borderRadius: 8,
-															border: '1px solid #D1D5DB',
-															backgroundColor: '#FFFFFF',
-															fontSize: 14,
-															fontFamily: 'Inter, sans-serif',
-															color: '#111827',
-															outline: 'none',
-															cursor: 'pointer',
-														}}
-													>
-														{AVAILABLE_LANGUAGES.map((lang) => (
-															<option key={lang.code} value={lang.code}>
-																{lang.flag} {lang.label}
-															</option>
-														))}
-													</select>
-												) : (
-													<TouchableOpacity
-														activeOpacity={0.7}
-														onPress={() =>
-															setLangPicker({ index, field: 'source_language' })
-														}
-														className="h-12 justify-center rounded-lg border border-gray-300 bg-white px-4"
-													>
-														<Text className="text-sm text-gray-900">
-															{getLanguageName(pair.source_language) ||
-																'Selecione...'}
-														</Text>
-													</TouchableOpacity>
-												)}
-											</View>
-
-											<View className="flex-1 gap-1">
-												<Text className="font-inter font-medium text-gray-700 text-[13px]">
-													Destino
-												</Text>
-												{Platform.OS === 'web' ? (
-													<select
-														value={pair.target_language}
-														onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-															updatePair(
-																index,
-																'target_language',
-																e.target.value,
-															)
-														}
-														style={{
-															width: '100%',
-															height: 48,
-															paddingLeft: 16,
-															paddingRight: 16,
-															borderRadius: 8,
-															border: '1px solid #D1D5DB',
-															backgroundColor: '#FFFFFF',
-															fontSize: 14,
-															fontFamily: 'Inter, sans-serif',
-															color: '#111827',
-															outline: 'none',
-															cursor: 'pointer',
-														}}
-													>
-														{AVAILABLE_LANGUAGES.map((lang) => (
-															<option key={lang.code} value={lang.code}>
-																{lang.flag} {lang.label}
-															</option>
-														))}
-													</select>
-												) : (
-													<TouchableOpacity
-														activeOpacity={0.7}
-														onPress={() =>
-															setLangPicker({ index, field: 'target_language' })
-														}
-														className="h-12 justify-center rounded-lg border border-gray-300 bg-white px-4"
-													>
-														<Text className="text-sm text-gray-900">
-															{getLanguageName(pair.target_language) ||
-																'Selecione...'}
-														</Text>
-													</TouchableOpacity>
-												)}
-											</View>
-										</View>
-
-										<View className="gap-1.5 pt-1">
-											<Text className="font-inter font-medium text-gray-700 text-[13px]">
-												Nível de proficiência
-											</Text>
-											<View className="flex-row flex-wrap gap-2">
-												{PROFICIENCY_OPTIONS.map((opt) => {
-													const isSelected =
-														pair.proficiency_level === opt.value;
-													return (
-														<TouchableOpacity
-															key={opt.value}
-															onPress={() =>
-																updatePair(
-																	index,
-																	'proficiency_level',
-																	opt.value,
-																)
-															}
-															activeOpacity={0.7}
-															className={`rounded-lg border px-3 py-2 ${
-																isSelected
-																	? 'border-blue-300 bg-blue-50'
-																	: 'border-gray-300 bg-white'
-															}`}
-														>
-															<Text
-																className={`font-inter text-xs ${
-																	isSelected
-																		? 'font-semibold text-blue-900'
-																		: 'text-gray-700'
-																}`}
-															>
-																{opt.label}
-															</Text>
-														</TouchableOpacity>
-													);
-												})}
-											</View>
-										</View>
-									</View>
-								))}
-
-								<TouchableOpacity
-									onPress={addPair}
-									activeOpacity={0.7}
-									className="flex-row items-center justify-center gap-2 rounded-xl border border-dashed border-gray-400 bg-gray-50 py-3"
-								>
-									<Plus size={16} color="#5A5A5A" />
-									<Text className="font-inter font-medium text-gray-700 text-sm">
-										Adicionar idioma
-									</Text>
-								</TouchableOpacity>
-							</>
+							<TranslatorLanguagesStep
+								languages={languages}
+								availableLanguages={apiLanguages}
+								error={fieldErrors.languages}
+								onAddLanguage={addLanguage}
+								onRemoveLanguage={removeLanguage}
+								onUpdateLanguage={updateLanguage}
+							/>
 						)}
 
 						{step === 2 && (
@@ -663,45 +431,6 @@ export function TranslatorFormModal({
 					</View>
 				)}
 			</View>
-
-			{langPicker && (
-				<Modal
-					visible
-					transparent
-					animationType="fade"
-					onRequestClose={() => setLangPicker(null)}
-				>
-					<View className="flex-1 justify-center items-center bg-black/40 px-4">
-						<View className="bg-white rounded-xl w-full max-w-[400px] max-h-[80%] pb-4 overflow-hidden">
-							<View className="flex-row items-center justify-between p-4 border-b border-gray-300">
-								<Text className="font-inter font-bold text-gray-900 text-lg">
-									Selecione o Idioma
-								</Text>
-								<TouchableOpacity onPress={() => setLangPicker(null)}>
-									<X size={20} color="#5A5A5A" />
-								</TouchableOpacity>
-							</View>
-							<ScrollView className="p-4">
-								{AVAILABLE_LANGUAGES.map((lang) => (
-									<TouchableOpacity
-										key={lang.code}
-										onPress={() => {
-											updatePair(langPicker.index, langPicker.field, lang.code);
-											setLangPicker(null);
-										}}
-										className="flex-row items-center py-3 border-b border-gray-100 px-2"
-									>
-										<Text className="text-xl mr-3">{lang.flag}</Text>
-										<Text className="font-inter font-medium text-gray-800 text-sm">
-											{lang.label}
-										</Text>
-									</TouchableOpacity>
-								))}
-							</ScrollView>
-						</View>
-					</View>
-				</Modal>
-			)}
 		</Modal>
 	);
 }

@@ -42,7 +42,7 @@ async function fillIdentificationStep(page: import('@playwright/test').Page) {
 		.getByPlaceholder('Ex: Rezende Advogados Ltda')
 		.fill('Rezende Advogados Associados Ltda');
 	await page
-		.getByPlaceholder('Ex: Rezende Advogados')
+		.getByPlaceholder('Ex: Rezende Advogados', { exact: true })
 		.fill('Rezende Advogados');
 	await page.getByPlaceholder('00.000.000/0000-00').fill('11222333000181');
 	await page.getByPlaceholder('Ex: Jurídico').fill('Juridico');
@@ -97,7 +97,7 @@ test.describe('CompanyFormModal', () => {
 		await page.getByText('Avançar').click();
 
 		await expect(page.getByText('Telefone inválido.')).toBeVisible();
-		await expect(page.getByPlaceholder('00000-000')).toHaveCount(0);
+		await expect(page.getByPlaceholder('(00) 00000-0000')).toBeVisible();
 	});
 
 	test('autofills the address from the CEP lookup and submits the full form', async ({
@@ -158,7 +158,7 @@ test.describe('CompanyFormModal', () => {
 		await page.getByPlaceholder('Ex: 1000').fill('1000');
 		await page.getByText('Salvar').click();
 
-		await expect(page.getByText('Novo cliente')).toHaveCount(0);
+		await expect(page.getByRole('dialog')).toHaveCount(0);
 		expect(requestBody).toMatchObject({
 			legal_name: 'Rezende Advogados Associados Ltda',
 			cnpj: '11.222.333/0001-81',

@@ -5,7 +5,7 @@ import {
 	apiPost,
 	apiUrl,
 } from '../../../shared/services/apiClient';
-import { appendFileToFormData } from '../../../shared/utils/formDataFile';
+import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
 import type { UploadableFile } from '../../../shared/types/file';
 import type {
 	CreateServiceOrderItemInput,
@@ -57,24 +57,11 @@ export async function uploadServiceOrderFile(
 	file: UploadableFile,
 	direction: ServiceOrderFileDirection,
 ): Promise<ServiceOrderFile> {
-	const formData = new FormData();
-	appendFileToFormData(formData, 'file', file);
-	formData.append('direction', direction);
-
-	const response = await fetch(
+	return uploadFileMultipart<ServiceOrderFile>(
 		`${apiUrl}${SERVICE_ORDERS_PATH}/${serviceOrderId}/files`,
-		{ method: 'POST', body: formData },
+		file,
+		{ direction },
 	);
-
-	if (!response.ok) {
-		const payload = await response.json().catch(() => null);
-		throw new Error(
-			(payload as { detail?: string } | null)?.detail ??
-				`Request failed with status ${response.status}`,
-		);
-	}
-
-	return response.json() as Promise<ServiceOrderFile>;
 }
 
 export async function createServiceOrderItem(
@@ -83,15 +70,27 @@ export async function createServiceOrderItem(
 	file: UploadableFile | null,
 ): Promise<ServiceOrderItem> {
 	const formData = new FormData();
-	formData.append('source_language', data.source_language);
-	formData.append('target_language', data.target_language);
-	if (data.document_type) formData.append('document_type', data.document_type);
+	const fields: Record<string, string> = {
+		source_language: data.source_language,
+		target_language: data.target_language,
+	};
+	if (data.document_type) fields.document_type = data.document_type;
 	if (data.word_count != null) {
-		formData.append('word_count', String(data.word_count));
+		fields.word_count = String(data.word_count);
 	}
-	if (data.price != null) formData.append('price', String(data.price));
-	if (data.deadline) formData.append('deadline', data.deadline);
-	if (file) appendFileToFormData(formData, 'file', file);
+	if (data.price != null) fields.price = String(data.price);
+	if (data.deadline) fields.deadline = data.deadline;
+	if (file) {
+		return uploadFileMultipart<ServiceOrderItem>(
+			`${apiUrl}${SERVICE_ORDERS_PATH}/${serviceOrderId}/items`,
+			file,
+			fields,
+		);
+	}
+
+	Object.entries(fields).forEach(([name, value]) =>
+		formData.append(name, value),
+	);
 
 	const response = await fetch(
 		`${apiUrl}${SERVICE_ORDERS_PATH}/${serviceOrderId}/items`,
@@ -115,15 +114,28 @@ export async function updateServiceOrderItem(
 	file: UploadableFile | null,
 ): Promise<ServiceOrderItem> {
 	const formData = new FormData();
-	formData.append('source_language', data.source_language);
-	formData.append('target_language', data.target_language);
-	if (data.document_type) formData.append('document_type', data.document_type);
+	const fields: Record<string, string> = {
+		source_language: data.source_language,
+		target_language: data.target_language,
+	};
+	if (data.document_type) fields.document_type = data.document_type;
 	if (data.word_count != null) {
-		formData.append('word_count', String(data.word_count));
+		fields.word_count = String(data.word_count);
 	}
-	if (data.price != null) formData.append('price', String(data.price));
-	if (data.deadline) formData.append('deadline', data.deadline);
-	if (file) appendFileToFormData(formData, 'file', file);
+	if (data.price != null) fields.price = String(data.price);
+	if (data.deadline) fields.deadline = data.deadline;
+	if (file) {
+		return uploadFileMultipart<ServiceOrderItem>(
+			`${apiUrl}${SERVICE_ORDERS_PATH}/items/${itemId}`,
+			file,
+			fields,
+			'PATCH',
+		);
+	}
+
+	Object.entries(fields).forEach(([name, value]) =>
+		formData.append(name, value),
+	);
 
 	const response = await fetch(
 		`${apiUrl}${SERVICE_ORDERS_PATH}/items/${itemId}`,

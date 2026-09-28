@@ -4,14 +4,22 @@ import { DocumentPickerAsset } from 'expo-document-picker';
 import { useRouter } from 'expo-router';
 
 import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+	Platform,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import { FileUp, Trash } from 'lucide-react-native';
 
 import { createRequest } from '../services/requests';
+import { isValidEmail } from '../../clients/utils/validation';
 
 export default function FormsRequest() {
 	const [customerName, setCustomerName] = useState('');
 	const [email, setEmail] = useState('');
+	const [emailError, setEmailError] = useState('');
 	const [enterprise, setEnterprise] = useState('');
 	const [customerNeed, setCustomerNeed] = useState('');
 	const [originalLanguage, setOriginalLanguage] = useState('');
@@ -43,6 +51,15 @@ export default function FormsRequest() {
 			return;
 		}
 
+		if (!isValidEmail(email)) {
+			setEmailError(
+				'Email inválido. Informe um endereço como nome@exemplo.com.',
+			);
+			return;
+		}
+
+		setEmailError('');
+
 		setSubmitting(true);
 		const result = await createRequest({
 			customer_name: customerName,
@@ -52,7 +69,12 @@ export default function FormsRequest() {
 			original_language: originalLanguage,
 			translation_language: translationLanguage,
 			document: document
-				? { uri: document.uri, name: document.name, file: document.file }
+				? {
+						uri: document.uri,
+						name: document.name,
+						type: document.mimeType,
+						file: document.file,
+					}
 				: null,
 		});
 		setSubmitting(false);
@@ -72,13 +94,17 @@ export default function FormsRequest() {
 				'Você precisa aguardar no mínimo uma semana para enviar outra solicitação.',
 			);
 		} else {
-			setError('Não foi possível enviar a solicitação. Tente novamente.');
+			setError(
+				result.detail ??
+					'Não foi possível enviar a solicitação. Tente novamente.',
+			);
 		}
 	}
 
 	async function uploadFile() {
 		try {
 			const result = await DocumentPicker.getDocumentAsync({
+				copyToCacheDirectory: Platform.OS !== 'android',
 				type: [
 					'application/pdf',
 					'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -99,7 +125,9 @@ export default function FormsRequest() {
 			setError('');
 			setDocument(file);
 		} catch {
-			setError('Não foi possível fazer o upload. Tente novamente.');
+			setError(
+				'Não foi possível abrir o arquivo selecionado. Tente escolher outro arquivo.',
+			);
 		}
 	}
 
@@ -119,8 +147,8 @@ export default function FormsRequest() {
 					DADOS PESSOAIS
 				</Text>
 
-				<View className="flex flex-row flex-wrap gap-4">
-					<View className="min-w-[200px] flex-1 gap-1">
+				<View className="flex flex-col gap-4 md:flex-row md:flex-wrap">
+					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Nome
 							<Text className="text-red-500">*</Text>
@@ -134,23 +162,38 @@ export default function FormsRequest() {
 						/>
 					</View>
 
-					<View className="min-w-[200px] flex-1 gap-1">
+					<View className="w-full md:min-w-[200px] md:flex-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Email
 							<Text className="text-red-500">*</Text>
 						</Text>
+
 						<TextInput
 							value={email}
-							onChangeText={setEmail}
+							onChangeText={(value) => {
+								setEmail(value);
+
+								if (emailError) {
+									setEmailError(
+										value.trim() && !isValidEmail(value)
+											? 'Email inválido. Informe um endereço como nome@exemplo.com.'
+											: '',
+									);
+								}
+							}}
 							placeholder="seuemail@exemplo.com"
 							placeholderTextColor="#94a3b8"
 							keyboardType="email-address"
 							autoCapitalize="none"
-							className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
+							className="h-11 w-full rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
 						/>
+
+						{emailError && (
+							<Text className="mt-1 text-sm text-red-600">{emailError}</Text>
+						)}
 					</View>
 
-					<View className="min-w-[200px] flex-1 gap-1">
+					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Empresa
 							<Text className="text-red-500">*</Text>
@@ -169,8 +212,8 @@ export default function FormsRequest() {
 			<View className="mt-6 gap-3">
 				<Text className="text-sm font-bold text-blue-500 mt-4">SERVIÇO</Text>
 
-				<View className="flex flex-row flex-wrap gap-4">
-					<View className="min-w-[200px] flex-1 gap-1">
+				<View className="flex flex-col gap-4 md:flex-row md:flex-wrap">
+					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Tipo de documento
 							<Text className="text-red-500">*</Text>
@@ -184,7 +227,7 @@ export default function FormsRequest() {
 						/>
 					</View>
 
-					<View className="min-w-[200px] flex-1 gap-1">
+					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Idioma original
 							<Text className="text-red-500">*</Text>
@@ -198,7 +241,7 @@ export default function FormsRequest() {
 						/>
 					</View>
 
-					<View className="min-w-[200px] flex-1 gap-1">
+					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Idioma de tradução
 							<Text className="text-red-500">*</Text>
@@ -219,7 +262,7 @@ export default function FormsRequest() {
 					DOCUMENTO (PDF/DOCX)
 				</Text>
 
-				<View className="min-w-[200px] flex-1 gap-1">
+				<View className="w-full gap-1">
 					<TouchableOpacity
 						className="flex flex-column items-center justify-center gap-5 h-40 rounded-xl border border-dashed border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
 						onPress={uploadFile}
@@ -247,15 +290,24 @@ export default function FormsRequest() {
 				<Text className="mb-2 mt-4 text-sm text-red-600">{error}</Text>
 			) : null}
 
-			<TouchableOpacity
-				onPress={handleSubmit}
-				disabled={submitting}
-				className="mt-8 h-12 items-center justify-center rounded-full bg-[#2d83cd] px-8 shadow-md shadow-blue-600/30 self-end"
-			>
-				<Text className="text-sm font-bold text-white">
-					{submitting ? 'ENVIANDO...' : 'ENVIAR SOLICITAÇÃO'}
-				</Text>
-			</TouchableOpacity>
+			<View className="mt-8 w-full flex-col gap-3 sm:w-auto sm:self-end">
+				<TouchableOpacity
+					onPress={handleSubmit}
+					disabled={submitting}
+					className="h-12 w-full items-center justify-center rounded-full bg-[#2d83cd] px-5 shadow-md shadow-blue-600/30 sm:w-auto"
+				>
+					<Text className="text-sm font-bold text-white">
+						{submitting ? 'ENVIANDO...' : 'ENVIAR SOLICITAÇÃO'}
+					</Text>
+				</TouchableOpacity>
+
+				<TouchableOpacity
+					onPress={() => router.replace('/login')}
+					className="h-12 w-full items-center justify-center rounded-full border border-[#2d83cd] bg-white px-5 sm:w-auto"
+				>
+					<Text className="text-sm font-bold text-[#2d83cd]">VOLTAR</Text>
+				</TouchableOpacity>
+			</View>
 
 			{success ? (
 				<Text className="mt-5 text-center text-sm font-semibold text-emerald-600">

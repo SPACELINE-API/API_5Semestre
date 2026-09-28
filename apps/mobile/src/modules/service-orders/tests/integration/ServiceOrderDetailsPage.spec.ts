@@ -31,7 +31,7 @@ const TRANSLATOR = {
 	created_at: '2026-01-01T00:00:00Z',
 	updated_at: '2026-01-01T00:00:00Z',
 	qualifications: [],
-	language_pairs: [],
+	languages: [],
 };
 
 const SERVICE_ORDER = {
@@ -129,7 +129,7 @@ test.describe('Service order details', () => {
 		await page.goto('/ordens-de-servico/order-1');
 
 		await expect(
-			page.getByText('Tradução de contratos comerciais'),
+			page.getByText('Tradução de contratos comerciais').first(),
 		).toBeVisible();
 
 		await page.getByLabel('Ver aba Equipe').click();

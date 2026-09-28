@@ -10,6 +10,7 @@ from app.modules.auth.schemas.supabase import (
     SupabaseAuthSession,
 )
 from app.shared.database import get_db
+from app.shared.EnvProvider import env_provider
 
 
 class FakeDatabaseSession:
@@ -171,7 +172,7 @@ def test_password_recovery_uses_site_url_and_returns_generic_message() -> None:
     assert response.json() == {"message": "E-mail enviado para o destinatário."}
     assert supabase_client.recovery_request == (
         "user@example.com",
-        "http://localhost:5173/login",
+        f"{env_provider.get_site_url().rstrip('/')}/login",
     )
 
 

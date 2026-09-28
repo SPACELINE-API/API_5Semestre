@@ -124,7 +124,7 @@ export function TranslatorsPage() {
 
 					{/* BARRA DE PESQUISA + FILTROS */}
 					<View className="gap-3">
-						<View className="flex-row items-center gap-3">
+						<View className="flex-row items-center gap-2">
 							<View className="h-10 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white px-3">
 								<Search size={17} color="#9CA3AF" />
 								<TextInput
@@ -147,7 +147,7 @@ export function TranslatorsPage() {
 							<TouchableOpacity
 								onPress={() => setShowFilters(!showFilters)}
 								activeOpacity={0.7}
-								className={`h-10 flex-row items-center justify-center gap-2 rounded-lg border px-3 ${
+								className={`h-10 flex-row items-center justify-center gap-2 rounded-lg border px-2.5 ${
 									showFilters || statusFilter !== 'all'
 										? 'border-blue-300 bg-blue-50'
 										: 'border-gray-200 bg-white'

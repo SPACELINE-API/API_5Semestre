@@ -1,6 +1,7 @@
 import {
 	apiDelete,
 	apiGet,
+	apiPatch,
 	apiPost,
 	apiPut,
 } from '../../../shared/services/apiClient';
@@ -9,7 +10,7 @@ import type {
 	TranslatorCreateInput,
 	TranslatorUpdateInput,
 	QualificationResponse,
-	DictionaryLanguagePairResponse,
+	LanguageResponse,
 } from '../types/translator';
 
 const BASE = '/api/translators';
@@ -18,10 +19,8 @@ export function listQualifications(): Promise<QualificationResponse[]> {
 	return apiGet<QualificationResponse[]>(`${BASE}/metadata/qualifications`);
 }
 
-export function listLanguagePairs(): Promise<DictionaryLanguagePairResponse[]> {
-	return apiGet<DictionaryLanguagePairResponse[]>(
-		`${BASE}/metadata/language-pairs`,
-	);
+export function listLanguages(): Promise<LanguageResponse[]> {
+	return apiGet<LanguageResponse[]>('/api/support/languages');
 }
 
 export function listTranslators(): Promise<Translator[]> {
@@ -43,6 +42,15 @@ export function updateTranslator(
 	data: TranslatorUpdateInput,
 ): Promise<Translator> {
 	return apiPut<Translator, TranslatorUpdateInput>(`${BASE}/${id}`, data);
+}
+
+export function setTranslatorActive(
+	id: string,
+	isActive: boolean,
+): Promise<Translator> {
+	return apiPatch<Translator, { is_active: boolean }>(`${BASE}/${id}/status`, {
+		is_active: isActive,
+	});
 }
 
 export function deleteTranslator(id: string): Promise<void> {

@@ -78,7 +78,7 @@ test.describe('Service orders list', () => {
 		await expect(
 			page.getByText('Tradução de contratos comerciais'),
 		).toBeVisible();
-		await expect(page.getByText('Rezende Advogados')).toBeVisible();
+		await expect(page.getByText('Rezende Advogados', { exact: true }).last()).toBeVisible();
 	});
 
 	test('shows an error message when the initial load fails', async ({
@@ -120,7 +120,7 @@ test.describe('Service orders list', () => {
 			});
 		});
 		await page.route(
-			'**/api/service-orders/generate-from-quote',
+			'**/generate-from-quote**',
 			async (route) => {
 				requestBody = route.request().postDataJSON() as Record<string, unknown>;
 				await route.fulfill({
@@ -146,10 +146,9 @@ test.describe('Service orders list', () => {
 		await page.goto('/ordens-de-servico');
 
 		await page.getByText('Gerar ordem de serviço').click();
-		await page
-			.getByPlaceholder('Ex: 3fa85f64-5717-4562-b3fc-2c963f66afa6')
-			.fill('quote-1');
+		await page.getByLabel('Buscar empresa').fill('Rezende');
 		await page.getByLabel('Selecionar empresa Rezende Advogados').click();
+		await page.getByLabel(/Selecionar orçamento Orçamento #1024/).click();
 		await page
 			.getByPlaceholder('Ex: Tradução de contratos comerciais')
 			.fill('Tradução de contratos comerciais');
@@ -159,7 +158,7 @@ test.describe('Service orders list', () => {
 			page.getByText('Ordem de serviço gerada com sucesso!'),
 		).toBeVisible();
 		expect(requestBody).toMatchObject({
-			quote_id: 'quote-1',
+			quote_id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
 			company_id: 'company-1',
 			project_name: 'Tradução de contratos comerciais',
 		});

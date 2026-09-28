@@ -56,7 +56,7 @@ export function ServiceOrderDetailsHeader({
 				</View>
 			</View>
 
-			<View className="flex-row items-start gap-3 self-start">
+			<View className="flex-row flex-wrap items-start gap-3 self-start md:flex-nowrap">
 				<TouchableOpacity
 					onPress={onRefresh}
 					disabled={isLoading}
