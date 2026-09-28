@@ -6,14 +6,19 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 } from 'react-native';
-import { ArrowLeft, AlertCircle, RefreshCw, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, AlertCircle } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useServiceOrder } from '../hooks/useServiceOrder';
 import { useCompanies } from '../../clients/hooks/useCompanies';
 import { useTranslators } from '../hooks/useTranslators';
 import { useContacts } from '../hooks/useContacts';
 import { useItemInvites } from '../hooks/useItemInvites';
-import { StatusBadge } from '../components/StatusBadge';
+import {
+	ServiceOrderDetailsHeader,
+	ServiceOrderDetailTabs,
+	type ServiceOrderDetailTab,
+	type ServiceOrderView,
+} from '../components/ServiceOrderDetailsHeader';
 import { ServiceOrderItemRow } from '../components/ServiceOrderItemRow';
 import { WorkflowItemCard } from '../components/WorkflowItemCard';
 import { GeneralInfoTab } from '../components/GeneralInfoTab';
@@ -32,7 +37,6 @@ import {
 	updateServiceOrderItem,
 	uploadServiceOrderFile,
 } from '../services/serviceOrderService';
-import { formatDate } from '../utils/format';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
@@ -41,24 +45,6 @@ import type { ServiceOrderItem } from '../types/serviceOrder';
 type ServiceOrderDetailsPageProps = {
 	id: string;
 };
-
-type ViewKey = 'detalhes' | 'workflow';
-type DetailTabKey =
-	'equipe' | 'cliente' | 'geral' | 'itens' | 'arquivos' | 'tradutores';
-
-const VIEW_TABS: { key: ViewKey; label: string }[] = [
-	{ key: 'detalhes', label: 'Detalhes' },
-	{ key: 'workflow', label: 'Workflow' },
-];
-
-const DETAIL_TABS: { key: DetailTabKey; label: string }[] = [
-	{ key: 'geral', label: 'Geral' },
-	{ key: 'equipe', label: 'Equipe' },
-	{ key: 'tradutores', label: 'Tradutores' },
-	{ key: 'cliente', label: 'Cliente' },
-	{ key: 'itens', label: 'Itens' },
-	{ key: 'arquivos', label: 'Arquivos' },
-];
 
 export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const router = useRouter();
@@ -69,8 +55,8 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const { contacts } = useContacts();
 	const { toast, showToast } = useToast();
 
-	const [view, setView] = useState<ViewKey>('detalhes');
-	const [detailTab, setDetailTab] = useState<DetailTabKey>('geral');
+	const [view, setView] = useState<ServiceOrderView>('detalhes');
+	const [detailTab, setDetailTab] = useState<ServiceOrderDetailTab>('geral');
 	const [inviteTargetItem, setInviteTargetItem] =
 		useState<ServiceOrderItem | null>(null);
 	const [refreshToken, setRefreshToken] = useState(0);
@@ -137,7 +123,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 				"
 			>
 				<TouchableOpacity
-					onPress={() => router.back()}
+					onPress={() => router.replace('/ordens-de-servico')}
 					activeOpacity={0.7}
 					className="mb-7 flex-row items-center gap-2"
 				>
@@ -174,137 +160,25 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 
 				{!isLoading && !error && serviceOrder && (
 					<View>
-						<View className="flex-row flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-7">
-							<View className="flex-1 min-w-[220px]">
-								<View className="flex-row flex-wrap items-center gap-3">
-									<Text className="font-inter font-bold text-gray-950 text-xl">
-										{serviceOrder.project_name}
-									</Text>
-
-									<StatusBadge status={serviceOrder.status} />
-								</View>
-
-								<Text className="mt-1 font-inter text-gray-400 text-sm">
-									{company?.trade_name ?? 'Empresa não encontrada'}
-								</Text>
-
-								<View className="mt-4 flex-row flex-wrap gap-x-10 gap-y-3">
-									<View className="gap-0.5">
-										<Text className="font-inter text-gray-400 text-xs">
-											Prazo
-										</Text>
-										<Text className="font-inter font-medium text-gray-800 text-sm">
-											{formatDate(serviceOrder.deadline)}
-										</Text>
-									</View>
-
-									<View className="gap-0.5">
-										<Text className="font-inter text-gray-400 text-xs">
-											Itens
-										</Text>
-										<Text className="font-inter font-medium text-gray-800 text-sm">
-											{serviceOrder.items.length}
-										</Text>
-									</View>
-								</View>
-							</View>
-
-							<View className="flex-row items-start gap-3 self-start">
-								<TouchableOpacity
-									onPress={() => {
-										refresh();
-										setRefreshToken((current) => current + 1);
-									}}
-									disabled={isLoading}
-									activeOpacity={0.7}
-									accessibilityRole="button"
-									accessibilityLabel="Atualizar dados da ordem de serviço"
-									className={`h-9 w-9 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 ${
-										isLoading ? 'opacity-60' : ''
-									}`}
-								>
-									<RefreshCw size={16} color="#6B7280" />
-								</TouchableOpacity>
-
-								<TouchableOpacity
-									onPress={() => setIsDeleteConfirmVisible(true)}
-									activeOpacity={0.7}
-									accessibilityRole="button"
-									accessibilityLabel="Excluir ordem de serviço"
-									className="h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100"
-								>
-									<Trash2 size={16} color="#791F1F" />
-								</TouchableOpacity>
-
-								<View className="flex-row gap-2 rounded-lg bg-gray-100 p-1">
-									{VIEW_TABS.map((tab) => {
-										const isActive = tab.key === view;
-
-										return (
-											<TouchableOpacity
-												key={tab.key}
-												onPress={() => setView(tab.key)}
-												activeOpacity={0.7}
-												accessibilityRole="tab"
-												accessibilityState={{ selected: isActive }}
-												accessibilityLabel={`Ver ${tab.label}`}
-												className={`rounded-md px-4 py-2 ${
-													isActive ? 'bg-white shadow-sm' : ''
-												}`}
-											>
-												<Text
-													className={`font-inter text-sm ${
-														isActive
-															? 'font-semibold text-gray-900'
-															: 'font-medium text-gray-500'
-													}`}
-												>
-													{tab.label}
-												</Text>
-											</TouchableOpacity>
-										);
-									})}
-								</View>
-							</View>
-						</View>
+						<ServiceOrderDetailsHeader
+							serviceOrder={serviceOrder}
+							companyName={company?.trade_name ?? 'Empresa não encontrada'}
+							view={view}
+							isLoading={isLoading}
+							onRefresh={() => {
+								refresh();
+								setRefreshToken((current) => current + 1);
+							}}
+							onDelete={() => setIsDeleteConfirmVisible(true)}
+							onViewChange={setView}
+						/>
 
 						{view === 'detalhes' && (
 							<View>
-								<ScrollView
-									horizontal
-									showsHorizontalScrollIndicator={false}
-									className="mt-5 border-b border-gray-200"
-									contentContainerClassName="flex-row gap-7"
-								>
-									{DETAIL_TABS.map((tab) => {
-										const isActive = tab.key === detailTab;
-
-										return (
-											<TouchableOpacity
-												key={tab.key}
-												onPress={() => setDetailTab(tab.key)}
-												activeOpacity={0.7}
-												accessibilityRole="tab"
-												accessibilityState={{ selected: isActive }}
-												accessibilityLabel={`Ver aba ${tab.label}`}
-												className={`border-b-2 py-3 ${
-													isActive ? 'border-blue-600' : 'border-transparent'
-												}`}
-											>
-												<Text
-													className={`font-inter text-sm ${
-														isActive
-															? 'font-semibold text-blue-600'
-															: 'font-medium text-gray-400'
-													}`}
-													numberOfLines={1}
-												>
-													{tab.label}
-												</Text>
-											</TouchableOpacity>
-										);
-									})}
-								</ScrollView>
+								<ServiceOrderDetailTabs
+									selected={detailTab}
+									onSelect={setDetailTab}
+								/>
 
 								<View className="py-7">
 									{detailTab === 'equipe' && (

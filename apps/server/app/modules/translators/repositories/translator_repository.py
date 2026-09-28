@@ -59,6 +59,14 @@ class TranslatorRepository:
             return []
         return self.db.query(LanguagePair).filter(LanguagePair.id.in_(ids)).all()
 
+    # LISTA TODAS AS QUALIFICACOES
+    def list_qualifications(self) -> list[TechnicalQualification]:
+        return self.db.query(TechnicalQualification).order_by(TechnicalQualification.name).all()
+
+    # LISTA TODOS OS PARES DE IDIOMA
+    def list_language_pairs(self) -> list[LanguagePair]:
+        return self.db.query(LanguagePair).order_by(LanguagePair.source_language).all()
+
     # CRIA O TRADUTOR COM QUALIFICACOES E PARES EM UMA UNICA TRANSACAO
     def create(
         self,

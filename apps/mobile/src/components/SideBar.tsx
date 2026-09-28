@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, usePathname, Link } from 'expo-router';
+import { clearSession } from '../modules/auth/services/auth';
 import type { LucideIcon } from 'lucide-react-native';
 import { X as CloseIcon } from 'lucide-react-native';
 import {
@@ -101,8 +102,12 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 	const isClientsActive = pathname.startsWith('/clientes');
 	const isOrdersActive = pathname.startsWith('/ordens-de-servico');
 	const isSupportAgentActive = pathname.startsWith('/support-agent');
+	const isTradutoresActive = pathname.startsWith('/tradutores');
 	const isKnownRoute =
-		isClientsActive || isOrdersActive || isSupportAgentActive;
+		isClientsActive ||
+		isOrdersActive ||
+		isSupportAgentActive ||
+		isTradutoresActive;
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
 	const showExpanded = isOpen || mobileOpen;
 
@@ -184,7 +189,7 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 										navigate('/visualizar-requisicoes', 'Requisições')
 									}
 								/>
-								<Link href={'/orcamento/novo-orcamento' as never} asChild>
+								<Link href={'/orcamento' as never} asChild>
 									<TouchableOpacity
 										className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${
 											isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'
@@ -234,11 +239,8 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 									icon={TradutoresIcon}
 									label="Tradutores"
 									isOpen={showExpanded}
-									active={!isKnownRoute && activeItem === 'Tradutores'}
-									onPress={() => {
-										setActiveItem('Tradutores');
-										onCloseMobile?.();
-									}}
+									active={isTradutoresActive}
+									onPress={() => navigate('/tradutores', 'Tradutores')}
 								/>
 							</View>
 						</View>
@@ -326,6 +328,13 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 					/>
 
 					<TouchableOpacity
+						accessibilityRole="button"
+						accessibilityLabel="Sair do sistema"
+						onPress={() => {
+							clearSession();
+							onCloseMobile?.();
+							router.replace('/login' as never);
+						}}
 						className={`flex-row items-center gap-3 px-3 py-2.5 mt-1 rounded-xl outline-none hover:bg-red-50 ${
 							!showExpanded ? 'justify-center px-0' : ''
 						}`}

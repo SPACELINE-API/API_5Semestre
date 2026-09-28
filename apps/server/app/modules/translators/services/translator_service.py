@@ -67,6 +67,12 @@ class TranslatorService:
     def list_all(self) -> list[Translator]:
         return self.repo.list_all()
 
+    def list_qualifications(self) -> list[TechnicalQualification]:
+        return self.repo.list_qualifications()
+
+    def list_language_pairs(self) -> list[LanguagePair]:
+        return self.repo.list_language_pairs()
+
     def update(self, translator_id: uuid.UUID, data: TranslatorUpdate) -> Translator:
         translator = self._get_translator_or_404(translator_id)
 

@@ -1,5 +1,11 @@
-import { getSession } from '../../modules/auth/services/auth';
-import { apiUrl, extractErrorMessage, request } from './publicApiClient';
+import { clearSession, getSession } from '../../modules/auth/services/auth';
+import { router } from 'expo-router';
+import {
+	ApiError,
+	apiUrl,
+	extractErrorMessage,
+	request,
+} from './publicApiClient';
 
 export { apiPost, apiUrl } from './publicApiClient';
 
@@ -8,12 +14,37 @@ function authHeaders(): Record<string, string> {
 	return session ? { Authorization: `Bearer ${session.access_token}` } : {};
 }
 
+async function authenticatedRequest<TResponse>(
+	path: string,
+	init?: RequestInit,
+) {
+	try {
+		return await request<TResponse>(path, {
+			...init,
+			headers: { ...authHeaders(), ...init?.headers },
+		});
+	} catch (error) {
+		if (error instanceof ApiError && error.status === 401) {
+			clearSession();
+			router.replace('/login' as never);
+		}
+		throw error;
+	}
+}
+
 export async function apiGet<TResponse>(path: string): Promise<TResponse> {
 	return request<TResponse>(path);
 }
 
 export function apiPatch<TResponse, TBody>(path: string, body: TBody) {
 	return request<TResponse>(path, {
+		method: 'PATCH',
+		body: JSON.stringify(body),
+	});
+}
+
+export function apiPatchAuth<TResponse, TBody>(path: string, body: TBody) {
+	return authenticatedRequest<TResponse>(path, {
 		method: 'PATCH',
 		body: JSON.stringify(body),
 	});
@@ -36,13 +67,12 @@ export async function apiDelete(path: string): Promise<void> {
 }
 
 export async function apiGetAuth<TResponse>(path: string): Promise<TResponse> {
-	return request<TResponse>(path, { headers: authHeaders() });
+	return authenticatedRequest<TResponse>(path);
 }
 
 export function apiPostAuth<TResponse, TBody>(path: string, body: TBody) {
-	return request<TResponse>(path, {
+	return authenticatedRequest<TResponse>(path, {
 		method: 'POST',
 		body: JSON.stringify(body),
-		headers: authHeaders(),
 	});
 }

@@ -5,7 +5,10 @@ from sqlalchemy.orm import Session
 
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
-from app.modules.quotes.schemas.translation_item import QuoteTranslationItemCreate
+from app.modules.quotes.schemas.translation_item import (
+    QuoteTranslationItemCreate,
+    QuoteTranslationItemUpdate,
+)
 
 
 class TranslationItemService:
@@ -39,3 +42,27 @@ class TranslationItemService:
             .filter(QuoteTranslationItem.quote_id == quote_id)
             .all()
         )
+
+    def update_item(
+        self,
+        quote_id: uuid.UUID,
+        item_id: uuid.UUID,
+        item_data: QuoteTranslationItemUpdate,
+    ) -> QuoteTranslationItem:
+        item = (
+            self.db.query(QuoteTranslationItem)
+            .filter(
+                QuoteTranslationItem.id == item_id,
+                QuoteTranslationItem.quote_id == quote_id,
+            )
+            .first()
+        )
+        if item is None:
+            raise HTTPException(status_code=404, detail="Item do orçamento não encontrado.")
+
+        for field, value in item_data.model_dump(exclude_unset=True).items():
+            setattr(item, field, value)
+
+        self.db.commit()
+        self.db.refresh(item)
+        return item

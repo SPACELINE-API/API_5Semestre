@@ -1,0 +1,64 @@
+@serverUrl = http://localhost:3333
+
+### Coloque os PDFs reais em ./seed-assets com estes nomes antes de enviar.
+### As respostas de upload são vinculadas aos itens estáveis criados pelo seed.
+
+### Contrato societário (quote 3fa85f64-5717-4562-b3fc-2c963f66afa6)
+# @name uploadContratoSocietario
+POST {{serverUrl}}/api/quotes/upload-document
+Content-Type: multipart/form-data; boundary=----CodexSeedDocument
+
+------CodexSeedDocument
+Content-Disposition: form-data; name="file"; filename="contrato-societario.pdf"
+Content-Type: application/pdf
+
+< ./seed-assets/contrato-societario.pdf
+------CodexSeedDocument--
+
+### Vincular contrato societário ao item de tradução
+PATCH {{serverUrl}}/api/quotes/3fa85f64-5717-4562-b3fc-2c963f66afa6/translation-items/72dc6f7e-cf14-44c3-972a-c2cd0a64fbeb
+Content-Type: application/json
+
+{
+  "file_url": "{{uploadContratoSocietario.response.body.$.file_url}}"
+}
+
+### Certidão de nascimento (quote 7c9e6679-7425-40de-944b-e07fc1f90ae7)
+# @name uploadCertidao
+POST {{serverUrl}}/api/quotes/upload-document
+Content-Type: multipart/form-data; boundary=----CodexSeedDocument
+
+------CodexSeedDocument
+Content-Disposition: form-data; name="file"; filename="certidao-de-nascimento.pdf"
+Content-Type: application/pdf
+
+< ./seed-assets/certidao-de-nascimento.pdf
+------CodexSeedDocument--
+
+### Vincular certidão ao item de tradução
+PATCH {{serverUrl}}/api/quotes/7c9e6679-7425-40de-944b-e07fc1f90ae7/translation-items/27f0ca93-5b48-4474-a14f-2e43a4b660d6
+Content-Type: application/json
+
+{
+  "file_url": "{{uploadCertidao.response.body.$.file_url}}"
+}
+
+### Termo de confidencialidade (quote e item estáveis do seed)
+# @name uploadTermoConfidencialidade
+POST {{serverUrl}}/api/quotes/upload-document
+Content-Type: multipart/form-data; boundary=----CodexSeedDocument
+
+------CodexSeedDocument
+Content-Disposition: form-data; name="file"; filename="termo-de-confidencialidade.pdf"
+Content-Type: application/pdf
+
+< ./seed-assets/termo-de-confidencialidade.pdf
+------CodexSeedDocument--
+
+### Vincular termo ao item de tradução
+PATCH {{serverUrl}}/api/quotes/e4eaaaf2-d142-11e1-b3e4-080027620cdd/translation-items/f9b2f74e-07d4-4221-bf4c-876dd37f808b
+Content-Type: application/json
+
+{
+  "file_url": "{{uploadTermoConfidencialidade.response.body.$.file_url}}"
+}

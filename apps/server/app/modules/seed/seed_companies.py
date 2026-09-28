@@ -129,27 +129,28 @@ def seed_companies(*, db: Session | None = None) -> list[str]:
     should_close_session = db is None
 
     try:
-        database_session.query(Company).delete()
         seeded_names = []
 
         for seed_company in SEED_COMPANIES:
-            company = Company(
-                legal_name=seed_company.legal_name,
-                trade_name=seed_company.trade_name,
-                cnpj=_generate_cnpj(seed_company.cnpj_base),
-                is_active=seed_company.is_active,
-                industry=seed_company.industry,
-                phone=seed_company.phone,
-                email=seed_company.email,
-                zip_code=seed_company.zip_code,
-                street=seed_company.street,
-                number=seed_company.number,
-                complement=seed_company.complement,
-                neighborhood=seed_company.neighborhood,
-                city=seed_company.city,
-                state=seed_company.state,
-            )
-            database_session.add(company)
+            cnpj = _generate_cnpj(seed_company.cnpj_base)
+            company = database_session.query(Company).filter(Company.cnpj == cnpj).first()
+            if company is None:
+                company = Company(cnpj=cnpj)
+                database_session.add(company)
+
+            company.legal_name = seed_company.legal_name
+            company.trade_name = seed_company.trade_name
+            company.is_active = seed_company.is_active
+            company.industry = seed_company.industry
+            company.phone = seed_company.phone
+            company.email = seed_company.email
+            company.zip_code = seed_company.zip_code
+            company.street = seed_company.street
+            company.number = seed_company.number
+            company.complement = seed_company.complement
+            company.neighborhood = seed_company.neighborhood
+            company.city = seed_company.city
+            company.state = seed_company.state
             seeded_names.append(seed_company.trade_name)
 
         database_session.commit()

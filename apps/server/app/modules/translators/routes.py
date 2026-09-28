@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.modules.translators.schemas.translator import (
+    DictionaryLanguagePairResponse,
+    QualificationResponse,
     TranslatorCreate,
     TranslatorResponse,
     TranslatorUpdate,
@@ -15,6 +17,16 @@ from app.shared.database import get_db
 router = APIRouter(prefix="/translators", tags=["translators"])
 
 DbSession = Annotated[Session, Depends(get_db)]
+
+
+@router.get("/metadata/qualifications", response_model=list[QualificationResponse])
+def list_qualifications(db: DbSession):
+    return TranslatorService(db).list_qualifications()
+
+
+@router.get("/metadata/language-pairs", response_model=list[DictionaryLanguagePairResponse])
+def list_language_pairs(db: DbSession):
+    return TranslatorService(db).list_language_pairs()
 
 
 @router.post("", response_model=TranslatorResponse, status_code=201)
