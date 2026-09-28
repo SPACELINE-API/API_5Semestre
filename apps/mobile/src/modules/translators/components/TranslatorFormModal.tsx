@@ -43,7 +43,7 @@ type FormErrors = {
 };
 
 const EMPTY_ROW: LanguagePairFormRow = {
-	language_pair_id: 'b1b2b3b4-0000-4000-8000-000000000001',
+	language_pair_id: '',
 	source_language: 'pt-BR',
 	target_language: 'en-US',
 	proficiency_level: 'fluent',
@@ -53,40 +53,6 @@ const STEPS = [
 	{ title: 'Dados' },
 	{ title: 'Idiomas' },
 	{ title: 'Qualificações' },
-];
-
-const PREDEFINED_QUALIFICATIONS = [
-	{
-		id: 'c1c2c3c4-0000-4000-8000-000000000001',
-		name: 'Tradução Jurídica',
-		description: 'Contratos, peças processuais e documentos legais',
-	},
-	{
-		id: 'c1c2c3c4-0000-4000-8000-000000000002',
-		name: 'Tradução Técnica',
-		description:
-			'Manuais, documentação de engenharia e especificações técnicas',
-	},
-	{
-		id: 'c1c2c3c4-0000-4000-8000-000000000003',
-		name: 'Tradução Médica',
-		description: 'Bulas, prontuários, laudos e documentos clínicos',
-	},
-	{
-		id: 'c1c2c3c4-0000-4000-8000-000000000004',
-		name: 'Tradução Literária',
-		description: 'Livros, contos, poesia e textos de ficção',
-	},
-	{
-		id: 'c1c2c3c4-0000-4000-8000-000000000005',
-		name: 'Tradução Financeira',
-		description: 'Relatórios financeiros, balanços e documentos contábeis',
-	},
-	{
-		id: 'c1c2c3c4-0000-4000-8000-000000000006',
-		name: 'Tradução Acadêmica',
-		description: 'Artigos científicos, dissertações e publicações acadêmicas',
-	},
 ];
 
 function isValidEmail(email: string) {
@@ -130,7 +96,7 @@ export function TranslatorFormModal({
 
 	const [apiQualifications, setApiQualifications] = useState<
 		QualificationResponse[]
-	>(PREDEFINED_QUALIFICATIONS);
+	>([]);
 	const [apiLanguagePairs, setApiLanguagePairs] = useState<
 		DictionaryLanguagePairResponse[]
 	>([]);
@@ -138,7 +104,22 @@ export function TranslatorFormModal({
 	useEffect(() => {
 		if (visible) {
 			listQualifications().then(setApiQualifications).catch(console.error);
-			listLanguagePairs().then(setApiLanguagePairs).catch(console.error);
+			listLanguagePairs()
+				.then((languagePairs) => {
+					setApiLanguagePairs(languagePairs);
+					setPairs((current) =>
+						current.map((pair) => ({
+							...pair,
+							language_pair_id:
+								languagePairs.find(
+									(item) =>
+										item.source_language === pair.source_language &&
+										item.target_language === pair.target_language,
+								)?.id ?? '',
+						})),
+					);
+				})
+				.catch(console.error);
 		}
 	}, [visible]);
 
@@ -176,6 +157,10 @@ export function TranslatorFormModal({
 
 	function validateStep1(): FormErrors {
 		const errors: FormErrors = {};
+		if (pairs.some((pair) => !pair.language_pair_id)) {
+			errors.language_pairs = 'Selecione um par de idiomas disponível.';
+			return errors;
+		}
 		const hasSame = pairs.some(
 			(p) => p.source_language.trim() === p.target_language.trim(),
 		);

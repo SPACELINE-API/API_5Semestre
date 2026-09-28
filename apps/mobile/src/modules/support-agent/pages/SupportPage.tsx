@@ -52,6 +52,8 @@ export function SupportPage() {
 	}, []);
 
 	useEffect(() => {
+		if (typeof document === 'undefined') return;
+
 		function handleGlobalKeyDown(event: KeyboardEvent) {
 			if (document.activeElement === inputRef.current) return;
 
