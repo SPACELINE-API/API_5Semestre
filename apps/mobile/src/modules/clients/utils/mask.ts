@@ -1,8 +1,9 @@
 export function maskCnpj(value: string): string {
-	const normalized = value
-		.replace(/[^0-9A-Za-z]/g, '')
-		.toUpperCase()
-		.slice(0, 14);
+	const alphanumeric = value.replace(/[^0-9A-Za-z]/g, '').toUpperCase();
+	// The first 12 positions accept letters and digits. The check digits are numeric.
+	const registration = alphanumeric.slice(0, 12);
+	const checkDigits = alphanumeric.slice(12).replace(/\D/g, '').slice(0, 2);
+	const normalized = registration + checkDigits;
 
 	const parts = [
 		normalized.slice(0, 2),

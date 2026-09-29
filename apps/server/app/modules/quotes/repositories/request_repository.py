@@ -32,16 +32,25 @@ class RequestRepository:
         )
 
     def update_status(
-        self, request: Request, status: StatusEnum, reproval_reason: str | None = None
+        self,
+        request: Request,
+        status: StatusEnum,
+        reproval_reason: str | None = None,
+        reproved_by: uuid.UUID | None = None,
+        reproved_by_email: str | None = None,
     ) -> Request:
         request.status = status
         if getattr(status, "value", status) == "approved":
             request.approved_at = datetime.now(UTC)
             request.reproved_at = None
+            request.reproved_by = None
+            request.reproved_by_email = None
             request.reproval_reason = None
         elif getattr(status, "value", status) == "reproved":
             request.reproved_at = datetime.now(UTC)
             request.approved_at = None
+            request.reproved_by = reproved_by
+            request.reproved_by_email = reproved_by_email
             request.reproval_reason = reproval_reason
         self.db.commit()
         self.db.refresh(request)

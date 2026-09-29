@@ -2,12 +2,13 @@ import uuid
 
 from sqlalchemy.orm import Session, joinedload
 
-from app.modules.translators.models.language_pair import LanguagePair, TranslatorLanguagePair
+from app.modules.system_parameters.models.language import Language
 from app.modules.translators.models.qualification import (
     TechnicalQualification,
 )
 from app.modules.translators.models.translator import Translator
-from app.modules.translators.schemas.translator import LanguagePairInput
+from app.modules.translators.models.translator_language import TranslatorLanguage
+from app.modules.translators.schemas.translator import TranslatorLanguageInput
 
 
 class TranslatorRepository:
@@ -19,9 +20,7 @@ class TranslatorRepository:
         return (
             self.db.query(Translator)
             .options(
-                joinedload(Translator.language_pairs).joinedload(
-                    TranslatorLanguagePair.language_pair
-                ),
+                joinedload(Translator.languages).joinedload(TranslatorLanguage.language),
                 joinedload(Translator.qualifications),
             )
             .filter(Translator.id == translator_id)
@@ -37,9 +36,7 @@ class TranslatorRepository:
         return (
             self.db.query(Translator)
             .options(
-                joinedload(Translator.language_pairs).joinedload(
-                    TranslatorLanguagePair.language_pair
-                ),
+                joinedload(Translator.languages).joinedload(TranslatorLanguage.language),
                 joinedload(Translator.qualifications),
             )
             .all()
@@ -53,48 +50,40 @@ class TranslatorRepository:
             self.db.query(TechnicalQualification).filter(TechnicalQualification.id.in_(ids)).all()
         )
 
-    # BUSCA PARES DE IDIOMA PELOS IDS
-    def get_language_pairs_by_ids(self, ids: list[uuid.UUID]) -> list[LanguagePair]:
+    # BUSCA IDIOMAS PELOS CODIGOS
+    def get_languages_by_ids(self, ids: list[str]) -> list[Language]:
         if not ids:
             return []
-        return self.db.query(LanguagePair).filter(LanguagePair.id.in_(ids)).all()
+        return self.db.query(Language).filter(Language.id.in_(ids)).all()
 
     # LISTA TODAS AS QUALIFICACOES
     def list_qualifications(self) -> list[TechnicalQualification]:
         return self.db.query(TechnicalQualification).order_by(TechnicalQualification.name).all()
 
-    # LISTA TODOS OS PARES DE IDIOMA
-    def list_language_pairs(self) -> list[LanguagePair]:
-        return self.db.query(LanguagePair).order_by(LanguagePair.source_language).all()
-
-    # CRIA O TRADUTOR COM QUALIFICACOES E PARES EM UMA UNICA TRANSACAO
+    # CRIA O TRADUTOR COM QUALIFICACOES E IDIOMAS EM UMA UNICA TRANSACAO
     def create(
         self,
         name: str,
         email: str,
         phone: str,
         qualifications: list[TechnicalQualification],
-        pairs_input: list[LanguagePairInput],
+        languages_input: list[TranslatorLanguageInput],
     ) -> Translator:
         translator = Translator(name=name, email=email, phone=phone)
         translator.qualifications = qualifications
+        translator.languages = [
+            TranslatorLanguage(
+                language_id=language_input.language_id,
+                proficiency_level=language_input.proficiency_level,
+            )
+            for language_input in languages_input
+        ]
 
         self.db.add(translator)
-        self.db.flush()
-
-        for pair in pairs_input:
-            self.db.add(
-                TranslatorLanguagePair(
-                    translator_id=translator.id,
-                    language_pair_id=pair.language_pair_id,
-                    proficiency_level=pair.proficiency_level,
-                )
-            )
-
         self.db.commit()
         return self.get_by_id(translator.id) or translator
 
-    # ATUALIZA TRADUTOR SUBSTITUINDO QUALIFICACOES E PARES DE IDIOMA
+    # ATUALIZA TRADUTOR SUBSTITUINDO QUALIFICACOES E IDIOMAS
     def update(
         self,
         translator: Translator,
@@ -102,27 +91,25 @@ class TranslatorRepository:
         email: str,
         phone: str,
         qualifications: list[TechnicalQualification],
-        pairs_input: list[LanguagePairInput],
+        languages_input: list[TranslatorLanguageInput],
     ) -> Translator:
         translator.name = name
         translator.email = email
         translator.phone = phone
         translator.qualifications = qualifications
-
-        # REMOVE PARES ANTIGOS E INSERE OS NOVOS
-        self.db.query(TranslatorLanguagePair).filter(
-            TranslatorLanguagePair.translator_id == translator.id
-        ).delete()
-
-        for pair in pairs_input:
-            self.db.add(
-                TranslatorLanguagePair(
-                    translator_id=translator.id,
-                    language_pair_id=pair.language_pair_id,
-                    proficiency_level=pair.proficiency_level,
-                )
+        translator.languages = [
+            TranslatorLanguage(
+                language_id=language_input.language_id,
+                proficiency_level=language_input.proficiency_level,
             )
+            for language_input in languages_input
+        ]
 
+        self.db.commit()
+        return self.get_by_id(translator.id) or translator
+
+    def update_status(self, translator: Translator, is_active: bool) -> Translator:
+        translator.is_active = is_active
         self.db.commit()
         return self.get_by_id(translator.id) or translator
 

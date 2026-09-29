@@ -1,9 +1,10 @@
 import * as DocumentPicker from 'expo-document-picker';
+import { Platform } from 'react-native';
 import type { NativeFile } from '../types/file';
 
 export async function pickDocument(): Promise<NativeFile | null> {
 	const result = await DocumentPicker.getDocumentAsync({
-		copyToCacheDirectory: true,
+		copyToCacheDirectory: Platform.OS !== 'android',
 	});
 
 	if (result.canceled || !result.assets?.[0]) return null;
