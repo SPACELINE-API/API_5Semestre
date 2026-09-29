@@ -1,8 +1,9 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { ClipboardList, Plus, Pencil } from 'lucide-react-native';
+import { ClipboardList, ExternalLink, Plus, Pencil } from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { StatusBadge } from './StatusBadge';
-import { FilePreview } from '../../../shared/components/FilePreview';
+import { openDocument } from '../../../shared/components/FilePreview';
+import { getFileName } from '../../../shared/utils/file';
 import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
 import { formatDate, formatPrice } from '../utils/format';
 
@@ -116,7 +117,19 @@ function MobileItemCard({
 
 				<View className="flex-row items-center justify-between gap-4 border-t border-gray-100 pt-3">
 					{item.file_url ? (
-						<FilePreview fileUrl={item.file_url} openInNewPage compact />
+						<TouchableOpacity
+							accessibilityRole="link"
+							onPress={() => openDocument(item.file_url!)}
+							className="min-w-0 max-w-[70%] flex-row items-center gap-1.5"
+						>
+							<Text
+								className="min-w-0 flex-shrink font-inter-medium text-blue-700 text-xs"
+								numberOfLines={1}
+							>
+								{getFileName(item.file_url)}
+							</Text>
+							<ExternalLink size={12} color="#1d4ed8" />
+						</TouchableOpacity>
 					) : (
 						<Text className="font-inter text-gray-400 text-xs">
 							Nenhum documento
@@ -251,9 +264,21 @@ export function ItemsTable({
 								</Text>
 							</View>
 
-							<View className="md:w-[14%]">
+							<View className="min-w-0 md:w-[14%]">
 								{item.file_url ? (
-									<FilePreview fileUrl={item.file_url} openInNewPage compact />
+									<TouchableOpacity
+										accessibilityRole="link"
+										onPress={() => openDocument(item.file_url!)}
+										className="min-w-0 max-w-full flex-row items-center gap-1.5"
+									>
+										<Text
+											className="min-w-0 flex-shrink font-inter-medium text-blue-700 text-xs"
+											numberOfLines={1}
+										>
+											{getFileName(item.file_url)}
+										</Text>
+										<ExternalLink size={12} color="#1d4ed8" />
+									</TouchableOpacity>
 								) : (
 									<Text className="font-inter text-gray-400 text-xs">
 										Nenhum

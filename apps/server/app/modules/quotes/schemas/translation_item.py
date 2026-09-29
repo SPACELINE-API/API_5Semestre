@@ -14,6 +14,8 @@ class QuoteTranslationItemCreate(BaseModel):
 
 
 class QuoteTranslationItemUpdate(BaseModel):
+    source_language: str | None = None
+    target_language: str | None = None
     document_type: str | None = None
     file_url: str | None = None
     estimated_value: Decimal | None = None

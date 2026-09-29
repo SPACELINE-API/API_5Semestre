@@ -9,14 +9,20 @@ test.describe('New Quote Flow', () => {
 		const title = page.getByText('Novo orçamento');
 		await expect(title).toBeVisible();
 
-		const sourceLanguageLabel = page.getByText('Idioma origem', { exact: true });
+		const sourceLanguageLabel = page.getByText('Idioma origem', {
+			exact: true,
+		});
 		await expect(sourceLanguageLabel).toBeVisible();
 
-		const targetLanguageLabel = page.getByText('Idioma destino', { exact: true });
+		const targetLanguageLabel = page.getByText('Idioma destino', {
+			exact: true,
+		});
 		await expect(targetLanguageLabel).toBeVisible();
 
 		await expect(page.getByText('Arquivo', { exact: true })).toBeVisible();
 
-		await expect(page.getByText('Criar orçamento', { exact: true })).toBeVisible();
+		await expect(
+			page.getByText('Criar orçamento', { exact: true }),
+		).toBeVisible();
 	});
 });

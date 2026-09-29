@@ -176,7 +176,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 						/>
 
 						{view === 'detalhes' && (
-							<View>
+							<View key="view-detalhes">
 								<ServiceOrderDetailTabs
 									selected={detailTab}
 									onSelect={setDetailTab}
@@ -322,7 +322,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 						)}
 
 						{view === 'workflow' && (
-							<View className="gap-5 py-7">
+							<View key="view-workflow" className="gap-5 py-7">
 								{serviceOrder.items.map((item) => (
 									<WorkflowItemCard
 										key={item.id}

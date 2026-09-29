@@ -32,6 +32,16 @@ function getNativeDocumentUrl(fileUrl: string) {
 	}
 }
 
+export function openDocument(fileUrl: string) {
+	if (Platform.OS === 'web') {
+		const viewer = window.open('about:blank', '_blank');
+		if (viewer) viewer.location.href = fileUrl;
+		return;
+	}
+
+	void Linking.openURL(getNativeDocumentUrl(fileUrl));
+}
+
 export function FilePreview({
 	fileUrl,
 	height = 320,
@@ -62,10 +72,7 @@ export function FilePreview({
 	if (openInNewPage) {
 		return (
 			<TouchableOpacity
-				onPress={() => {
-					const viewer = window.open('about:blank', '_blank');
-					if (viewer) viewer.location.href = fileUrl;
-				}}
+				onPress={() => openDocument(fileUrl)}
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityLabel="Abrir documento"

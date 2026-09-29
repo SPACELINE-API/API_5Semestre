@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
-import { FileText, Trash2, Upload } from 'lucide-react-native';
+import { ExternalLink, FileText, Trash2, Upload } from 'lucide-react-native';
 import type {
 	ServiceOrderFile,
 	ServiceOrderFileDirection,
@@ -8,7 +8,8 @@ import type {
 } from '../types/serviceOrder';
 import type { UploadableFile } from '../../../shared/types/file';
 import { pickDocument } from '../../../shared/utils/pickDocument';
-import { FilePreview } from '../../../shared/components/FilePreview';
+import { openDocument } from '../../../shared/components/FilePreview';
+import { getFileName } from '../../../shared/utils/file';
 import { formatDate } from '../utils/format';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 
@@ -90,36 +91,41 @@ function FileGroupList({
 			)}
 
 			{files.map((file) => (
-				<View key={file.id}>
-					<View className="flex-row items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5">
-						<View className="flex-1 flex-row items-center gap-2">
-							<FileText size={16} color="#1C6FB0" />
-							<Text
-								className="flex-1 font-inter font-medium text-blue-600 text-sm"
-								numberOfLines={1}
-							>
-								{file.label}
-							</Text>
-						</View>
+				<View
+					key={file.id}
+					className="flex-row items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5"
+				>
+					<TouchableOpacity
+						accessibilityRole="link"
+						onPress={() => openDocument(file.fileUrl)}
+						className="min-w-0 max-w-[70%] flex-1 flex-row items-center gap-2"
+					>
+						<FileText size={16} color="#1C6FB0" />
+						<Text
+							className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-sm"
+							numberOfLines={1}
+						>
+							{getFileName(file.fileUrl)}
+						</Text>
+						<ExternalLink size={13} color="#1d4ed8" />
+					</TouchableOpacity>
 
-						<View className="flex-row items-center gap-2">
-							{file.uploadedAt && (
-								<Text className="font-inter text-gray-400 text-xs">
-									{formatDate(file.uploadedAt)}
-								</Text>
-							)}
-							<TouchableOpacity
-								onPress={() => onDelete(file.deletionTarget)}
-								disabled={deletingId === file.deletionTarget.id}
-								accessibilityRole="button"
-								accessibilityLabel={`Excluir ${file.label}`}
-								className="rounded-md p-2"
-							>
-								<Trash2 size={16} color="#B91C1C" />
-							</TouchableOpacity>
-						</View>
+					<View className="flex-row items-center gap-2">
+						{file.uploadedAt && (
+							<Text className="font-inter text-gray-400 text-xs">
+								{formatDate(file.uploadedAt)}
+							</Text>
+						)}
+						<TouchableOpacity
+							onPress={() => onDelete(file.deletionTarget)}
+							disabled={deletingId === file.deletionTarget.id}
+							accessibilityRole="button"
+							accessibilityLabel={`Excluir ${file.label}`}
+							className="rounded-md p-2"
+						>
+							<Trash2 size={16} color="#B91C1C" />
+						</TouchableOpacity>
 					</View>
-					<FilePreview fileUrl={file.fileUrl} openInNewPage />
 				</View>
 			))}
 		</View>
@@ -145,9 +151,14 @@ export function ServiceOrderFilesTab({
 			files.filter((file) => file.direction === 'entrada'),
 		),
 	];
-	const saidaFiles = serviceOrderFilesToDisplayFiles(
-		files.filter((file) => file.direction === 'saida'),
-	);
+	const saidaFilesList = files.filter((file) => file.direction === 'saida');
+	const saidaFiles = serviceOrderFilesToDisplayFiles(saidaFilesList);
+
+	const hasItems = items.length > 0;
+	const canUploadDelivery =
+		hasItems && items.every((item) => Boolean(item.translator_id));
+	const deliveredCount = Math.min(saidaFilesList.length, items.length);
+	const deliveryProgress = hasItems ? deliveredCount / items.length : 0;
 
 	async function uploadFile(
 		file: UploadableFile,
@@ -170,22 +181,27 @@ export function ServiceOrderFilesTab({
 		await uploadFile(file, direction);
 	}
 
-	function renderUploadButton(direction: ServiceOrderFileDirection) {
+	function renderUploadButton(
+		direction: ServiceOrderFileDirection,
+		disabled = false,
+	) {
 		const isThisUploading = isUploading === direction;
+		const isDisabled = isThisUploading || disabled;
 
 		return (
 			<View style={{ position: 'relative' }}>
 				<TouchableOpacity
 					onPress={
-						Platform.OS === 'web'
+						Platform.OS === 'web' || isDisabled
 							? undefined
 							: () => handlePickNativeFile(direction)
 					}
-					disabled={isThisUploading}
+					disabled={isDisabled}
 					activeOpacity={0.7}
 					accessibilityRole="button"
 					accessibilityLabel={`Enviar arquivo de ${direction === 'entrada' ? 'partida' : 'chegada'}`}
-					className={`flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 ${isThisUploading ? 'opacity-60' : ''}`}
+					accessibilityState={{ disabled: isDisabled }}
+					className={`flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 ${isDisabled ? 'opacity-60' : ''}`}
 				>
 					<Upload size={14} color="#353535" />
 					<Text className="font-inter font-semibold text-gray-800 text-xs">
@@ -193,7 +209,7 @@ export function ServiceOrderFilesTab({
 					</Text>
 				</TouchableOpacity>
 
-				{Platform.OS === 'web' && (
+				{Platform.OS === 'web' && !isDisabled && (
 					<input
 						type="file"
 						aria-label={`Selecionar arquivo de ${direction === 'entrada' ? 'partida' : 'chegada'}`}
@@ -291,8 +307,39 @@ export function ServiceOrderFilesTab({
 						Arquivos de chegada
 					</Text>
 
-					{renderUploadButton('saida')}
+					{renderUploadButton('saida', !canUploadDelivery)}
 				</View>
+
+				{!canUploadDelivery && (
+					<Text className="font-inter text-xs text-amber-700">
+						{hasItems
+							? 'Aguardando aceite de tradutor em todos os itens para liberar o envio de arquivos de entrega.'
+							: 'Esta ordem de serviço não possui itens.'}
+					</Text>
+				)}
+
+				{hasItems && (
+					<View className="gap-1.5">
+						<View className="flex-row items-center justify-between">
+							<Text className="font-inter font-medium text-gray-500 text-xs">
+								Entregas
+							</Text>
+							<Text className="font-inter font-semibold text-gray-700 text-xs">
+								{deliveredCount} de {items.length} itens entregues
+							</Text>
+						</View>
+						<View className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+							<View
+								className={`h-2 rounded-full ${
+									deliveredCount >= items.length
+										? 'bg-green-600'
+										: 'bg-blue-500'
+								}`}
+								style={{ width: `${Math.round(deliveryProgress * 100)}%` }}
+							/>
+						</View>
+					</View>
+				)}
 
 				<FileGroupList
 					title="Entregues ao cliente"

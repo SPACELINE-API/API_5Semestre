@@ -62,3 +62,5 @@ class Request(Base):
     company: Mapped["Company | None"] = relationship("Company")
     contact: Mapped["Contact | None"] = relationship("Contact")
     document: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    document_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    document_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)

@@ -27,11 +27,7 @@ function InfoField({ label, value }: { label: string; value?: string | null }) {
 	);
 }
 
-export function RequestSummarySections({
-	request,
-}: {
-	request: RequestItem;
-}) {
+export function RequestSummarySections({ request }: { request: RequestItem }) {
 	return (
 		<>
 			<View className="bg-white rounded-lg border border-gray-200 p-4 md:p-6 mb-6">

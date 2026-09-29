@@ -170,6 +170,21 @@ class ServiceOrderService:
     ) -> ServiceOrderFileResponse:
         service_order = self._get_service_order_or_404(service_order_id)
 
+        if direction == "saida":
+            if not service_order.items:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Esta ordem de serviço não possui itens.",
+                )
+            if any(item.translator_id is None for item in service_order.items):
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "Só é possível enviar arquivos de entrega quando todos os "
+                        "itens tiverem um tradutor com convite aceito."
+                    ),
+                )
+
         file_url = upload_service_order_file(filename, file_data, content_type)
 
         service_order_file = ServiceOrderFile(
@@ -179,6 +194,21 @@ class ServiceOrderService:
             direction=direction,
         )
         self.db.add(service_order_file)
+
+        if direction == "saida":
+            existing_saida_count = (
+                self.db.query(ServiceOrderFile)
+                .filter(
+                    ServiceOrderFile.service_order_id == service_order.id,
+                    ServiceOrderFile.direction == "saida",
+                )
+                .count()
+            )
+            if existing_saida_count + 1 >= len(service_order.items):
+                for item in service_order.items:
+                    if item.status != STATUS_CONCLUIDA:
+                        item.status = STATUS_CONCLUIDA
+
         self.db.commit()
         self.db.refresh(service_order_file)
 

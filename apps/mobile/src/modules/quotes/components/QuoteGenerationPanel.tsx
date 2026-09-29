@@ -37,7 +37,9 @@ export function QuoteGenerationPanel({
 			{error ? (
 				<View className="mb-6 flex-row items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
 					<CircleAlert size={19} color="#dc2626" />
-					<Text className="flex-1 font-inter text-sm text-red-800">{error}</Text>
+					<Text className="flex-1 font-inter text-sm text-red-800">
+						{error}
+					</Text>
 				</View>
 			) : null}
 

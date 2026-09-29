@@ -1,5 +1,11 @@
 import { RefreshCw, Trash2 } from 'lucide-react-native';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+	Platform,
+	ScrollView,
+	Text,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import { StatusBadge } from './StatusBadge';
 import { formatDate } from '../utils/format';
 import type { ServiceOrder } from '../types/serviceOrder';
@@ -76,7 +82,9 @@ export function ServiceOrderDetailsHeader({
 				>
 					<Trash2 size={16} color="#791F1F" />
 				</TouchableOpacity>
-				<View className="flex-row gap-2 rounded-lg bg-gray-100 p-1">
+				<View
+					className={`flex-row gap-2 rounded-lg bg-gray-100 p-1 ${Platform.OS === 'web' ? '' : 'hidden'}`}
+				>
 					{viewOptions.map((option) => {
 						const selected = option.key === view;
 						return (

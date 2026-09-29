@@ -36,7 +36,9 @@ export function RequestDecisionPanel({
 			{error ? (
 				<View className="mt-4 flex-row items-start gap-2 rounded-lg bg-red-50 p-3">
 					<CircleAlert size={18} color="#dc2626" />
-					<Text className="flex-1 font-inter text-sm text-red-800">{error}</Text>
+					<Text className="flex-1 font-inter text-sm text-red-800">
+						{error}
+					</Text>
 				</View>
 			) : null}
 

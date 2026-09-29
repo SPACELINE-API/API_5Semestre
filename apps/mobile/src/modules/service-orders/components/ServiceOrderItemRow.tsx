@@ -1,8 +1,9 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { UserPlus } from 'lucide-react-native';
+import { ExternalLink, UserPlus } from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { InviteStatusBadge } from './InviteStatusBadge';
-import { FilePreview } from '../../../shared/components/FilePreview';
+import { openDocument } from '../../../shared/components/FilePreview';
+import { getFileName } from '../../../shared/utils/file';
 import { formatDate, formatPrice } from '../utils/format';
 import { useItemInvites } from '../hooks/useItemInvites';
 
@@ -64,7 +65,19 @@ export function ServiceOrderItemRow({
 				<View className="gap-0.5">
 					<Text className="font-inter text-gray-400 text-xs">Documento</Text>
 					{item.file_url ? (
-						<FilePreview fileUrl={item.file_url} openInNewPage />
+						<TouchableOpacity
+							accessibilityRole="link"
+							onPress={() => openDocument(item.file_url!)}
+							className="flex-row items-center gap-1.5 self-start"
+						>
+							<Text
+								className="font-inter-medium text-blue-700 text-sm"
+								numberOfLines={1}
+							>
+								{getFileName(item.file_url)}
+							</Text>
+							<ExternalLink size={13} color="#1d4ed8" />
+						</TouchableOpacity>
 					) : (
 						<Text className="font-inter font-medium text-gray-400 text-sm">
 							Nenhum documento anexado

@@ -16,6 +16,8 @@ class RequestCreate(BaseModel):
     translation_language: str = Field(..., max_length=50)
     customer_need: str = Field(..., max_length=100)
     document: bytes | None = None
+    document_filename: str | None = Field(default=None, max_length=255)
+    document_content_type: str | None = Field(default=None, max_length=100)
 
 
 class RequestStatusUpdate(BaseModel):
@@ -46,3 +48,5 @@ class RequestResponse(BaseModel):
     reproved_by_email: str | None = None
     reproval_reason: str | None = None
     document: bytes | None = None
+    document_filename: str | None = None
+    document_content_type: str | None = None
