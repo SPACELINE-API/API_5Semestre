@@ -57,6 +57,7 @@ export async function fetchRequests(): Promise<RequestItem[]> {
 		console.error('Error loading requests:', error);
 		throw new Error(
 			'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
+			{ cause: error },
 		);
 	}
 
