@@ -274,9 +274,14 @@ export default function FormsRequest() {
 					</TouchableOpacity>
 
 					{document ? (
-						<View className="flex flex-row justify-between bg-white border border-[#c7dced] rounded-xl p-4 mt-6 cursor-pointer">
-							<Text>{document.name}</Text>
-							<TouchableOpacity onPress={() => setDocument(null)}>
+						<View className="mt-6 w-full flex-row items-center gap-3 rounded-xl border border-[#c7dced] bg-white p-4">
+							<Text className="min-w-0 flex-1 text-sm text-[#12233c]" numberOfLines={2} ellipsizeMode="middle">
+								{document.name}
+							</Text>
+							<TouchableOpacity
+								className="shrink-0"
+								onPress={() => setDocument(null)}
+							>
 								<Trash color={'red'} />
 							</TouchableOpacity>
 						</View>
@@ -290,7 +295,7 @@ export default function FormsRequest() {
 				<Text className="mb-2 mt-4 text-sm text-red-600">{error}</Text>
 			) : null}
 
-			<View className="mt-8 w-full flex-col gap-3 sm:w-auto sm:self-end">
+			<View className="mt-8 w-full flex-col gap-3 sm:w-auto sm:flex-row sm:self-end">
 				<TouchableOpacity
 					onPress={handleSubmit}
 					disabled={submitting}

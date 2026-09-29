@@ -24,15 +24,12 @@ import { GenerateOrderModal } from '../components/GenerateOrderModal';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
-import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
 import { deleteServiceOrder } from '../services/serviceOrderService';
 import { exportServiceOrdersAsJson } from '../utils/export';
 
 export function ServiceOrdersPage() {
 	const router = useRouter();
 	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
-	const isDesktop = useIsDesktop();
-
 	const { serviceOrders, isLoading, error, create, removeMany } =
 		useServiceOrders();
 	const { companies } = useCompanies();
@@ -168,7 +165,7 @@ export function ServiceOrdersPage() {
 			>
 				<View className="gap-6">
 					<View>
-						<View className="flex-row items-start justify-between gap-4 md:items-center">
+						<View className="flex-row flex-wrap items-start justify-between gap-4 md:items-center">
 							<View className="flex-1">
 								<Text className="font-inter font-bold text-gray-950 text-2xl">
 									Ordens de Serviço
@@ -185,19 +182,12 @@ export function ServiceOrdersPage() {
 								activeOpacity={0.8}
 								accessibilityRole="button"
 								accessibilityLabel="Gerar ordem de serviço a partir de um orçamento"
-								className={
-									isDesktop
-										? 'h-10 flex-row items-center justify-center gap-2 self-start rounded-lg bg-blue-300 px-4'
-										: 'h-11 w-11 items-center justify-center self-start rounded-full bg-blue-300'
-								}
+								className="shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3"
 							>
-								<Plus size={isDesktop ? 16 : 20} color="#042C53" />
-
-								{isDesktop && (
-									<Text className="font-inter font-semibold text-blue-900 text-sm">
-										Gerar ordem de serviço
-									</Text>
-								)}
+								<Plus size={18} color="#ffffff" />
+								<Text className="font-inter-medium text-sm text-white">
+									Gerar ordem de serviço
+								</Text>
 							</TouchableOpacity>
 						</View>
 					</View>

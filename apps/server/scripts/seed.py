@@ -15,8 +15,11 @@ seed_quotes = import_module("app.modules.seed.seed_quotes").seed_quotes
 seed_translators = import_module("app.modules.seed.seed_translators").seed_translators
 seed_service_orders = import_module("app.modules.seed.seed_service_orders").seed_service_orders
 seed_invites = import_module("app.modules.seed.seed_invites").seed_invites
+apply_migrations = import_module("scripts.apply_migrations").apply_migrations
 
 if __name__ == "__main__":
+    apply_migrations()
+
     users = seed_users()
     companies = seed_companies()
     contacts = seed_contacts()
