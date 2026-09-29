@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import {
+	isValidCnpj,
 	isValidCnpjShape,
 	isValidEmail,
 	isValidPhone,
@@ -11,7 +12,15 @@ test.describe('isValidCnpjShape', () => {
 	});
 
 	test('accepts a raw 14-character alphanumeric CNPJ with numeric check digits', () => {
-		expect(isValidCnpjShape('ABCDEFGH000123')).toBe(true);
+		expect(isValidCnpjShape('00000000E08G12')).toBe(true);
+	});
+
+	test('validates the check digits of the official alphanumeric CNPJ example', () => {
+		expect(isValidCnpj('00.000.000/E08G-12')).toBe(true);
+	});
+
+	test('rejects an alphanumeric CNPJ with incorrect check digits', () => {
+		expect(isValidCnpj('00.000.000/E08G-13')).toBe(false);
 	});
 
 	test('rejects a CNPJ whose check digits are not numeric', () => {

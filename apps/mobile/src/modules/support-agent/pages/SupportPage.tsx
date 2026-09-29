@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
 	AlertCircle,
 	Clock,
@@ -7,7 +7,15 @@ import {
 	Headphones,
 	Settings,
 } from 'lucide-react-native';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import {
+	Platform,
+	ScrollView,
+	Text,
+	TextInput,
+	View,
+	useWindowDimensions,
+} from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { ChatInputBar } from '../components/ChatInputBar';
 import { ChatMessageBubble } from '../components/ChatMessageBubble';
 import { QuickReplyButton } from '../components/QuickReplyButton';
@@ -30,6 +38,11 @@ const SCROLL_CLASSNAME =
 	'hover:[&::-webkit-scrollbar-thumb]:bg-[#2d83cd]';
 
 export function SupportPage() {
+	const { width } = useWindowDimensions();
+	const isMobileLayout = width < 768;
+	const [webViewportHeight, setWebViewportHeight] = useState<number | null>(
+		null,
+	);
 	const inputRef = useRef<TextInput>(null);
 	const scrollRef = useRef<ScrollView>(null);
 	const previousStatusRef = useRef<'idle' | 'loading' | 'error'>('idle');
@@ -47,11 +60,54 @@ export function SupportPage() {
 		maxLength,
 	} = useSupportChat();
 
-	useEffect(() => {
-		inputRef.current?.focus();
-	}, []);
+	const isTouchDevice =
+		Platform.OS !== 'web' ||
+		(typeof window !== 'undefined' &&
+			window.matchMedia?.('(pointer: coarse)').matches === true);
 
 	useEffect(() => {
+		if (
+			Platform.OS !== 'web' ||
+			!isMobileLayout ||
+			typeof window === 'undefined'
+		) {
+			setWebViewportHeight(null);
+			return;
+		}
+
+		const viewport = window.visualViewport;
+
+		const updateHeight = () => {
+			const page = document.getElementById('support-agent-page');
+			const pageTop = page?.getBoundingClientRect().top ?? 0;
+			const viewportTop = viewport?.offsetTop ?? 0;
+			setWebViewportHeight(
+				Math.max(
+					0,
+					(viewport?.height ?? window.innerHeight) -
+						Math.max(0, pageTop - viewportTop),
+				),
+			);
+		};
+
+		updateHeight();
+		viewport?.addEventListener('resize', updateHeight);
+		viewport?.addEventListener('scroll', updateHeight);
+		window.addEventListener('resize', updateHeight);
+		return () => {
+			viewport?.removeEventListener('resize', updateHeight);
+			viewport?.removeEventListener('scroll', updateHeight);
+			window.removeEventListener('resize', updateHeight);
+		};
+	}, [isMobileLayout]);
+
+	useEffect(() => {
+		if (!isTouchDevice) inputRef.current?.focus();
+	}, [isTouchDevice]);
+
+	useEffect(() => {
+		if (typeof document === 'undefined' || isTouchDevice) return;
+
 		function handleGlobalKeyDown(event: KeyboardEvent) {
 			if (document.activeElement === inputRef.current) return;
 
@@ -70,16 +126,16 @@ export function SupportPage() {
 
 		document.addEventListener('keydown', handleGlobalKeyDown);
 		return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-	}, [setDraft]);
+	}, [isTouchDevice, setDraft]);
 
 	useEffect(() => {
 		const wasLoading = previousStatusRef.current === 'loading';
 		const finishedLoading = wasLoading && status !== 'loading';
-		if (finishedLoading) {
+		if (finishedLoading && !isTouchDevice) {
 			inputRef.current?.focus();
 		}
 		previousStatusRef.current = status;
-	}, [status]);
+	}, [isTouchDevice, status]);
 
 	function handleSend() {
 		sendQuestion();
@@ -89,9 +145,17 @@ export function SupportPage() {
 		sendQuestion(label);
 	}
 
-	return (
-		<View className="flex-1 bg-[#eef6fd] px-4 py-4 md:px-8 md:py-8">
-			<View className="mb-4 flex-row items-center gap-3 md:mb-6 md:gap-4">
+	const pageStyle =
+		Platform.OS === 'web' && isMobileLayout && webViewportHeight !== null
+			? { height: webViewportHeight, flex: 0, minHeight: 0 }
+			: undefined;
+	const pageContent = (
+		<View
+			nativeID="support-agent-page"
+			style={pageStyle}
+			className="flex-1 min-h-0 bg-[#eef6fd] px-3 py-2 md:px-8 md:py-8"
+		>
+			<View className="mb-2 flex-row items-center gap-3 md:mb-6 md:gap-4">
 				<View className="h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#d9ecfb] md:h-14 md:w-14">
 					<Headphones color="#2478c2" size={22} />
 				</View>
@@ -106,7 +170,7 @@ export function SupportPage() {
 				</View>
 			</View>
 
-			<View className="flex-1 rounded-3xl bg-white p-4 shadow-xl shadow-[#173a68]/10 md:p-6">
+			<View className="min-h-0 flex-1 rounded-3xl bg-white p-3 shadow-xl shadow-[#173a68]/10 md:p-6">
 				<ScrollView
 					ref={scrollRef}
 					className={SCROLL_CLASSNAME}
@@ -170,7 +234,7 @@ export function SupportPage() {
 					) : null}
 				</ScrollView>
 
-				<View className="mt-4">
+				<View className="mt-2 md:mt-4">
 					<ChatInputBar
 						ref={inputRef}
 						value={draft}
@@ -193,4 +257,14 @@ export function SupportPage() {
 			</View>
 		</View>
 	);
+
+	if (Platform.OS !== 'web' && isMobileLayout) {
+		return (
+			<KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+				{pageContent}
+			</KeyboardAvoidingView>
+		);
+	}
+
+	return pageContent;
 }

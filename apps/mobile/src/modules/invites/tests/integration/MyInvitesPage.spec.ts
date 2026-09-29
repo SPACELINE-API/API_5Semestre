@@ -31,7 +31,7 @@ test.describe('My invites list', () => {
 
 		await expect(page.getByText('Meus Convites')).toBeVisible();
 		await expect(
-			page.getByText('Convite recebido em 02/01/2026'),
+			page.getByText('Convite recebido em 01/01/2026', { exact: true }),
 		).toBeVisible();
 	});
 });

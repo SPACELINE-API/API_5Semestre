@@ -68,11 +68,13 @@ export default function AppLayout() {
 
 	return (
 		<SafeAreaProvider>
-			<AppShell
-				isMobileNavOpen={isMobileNavOpen}
-				onCloseMobileNav={() => setIsMobileNavOpen(false)}
-				onOpenMobileNav={() => setIsMobileNavOpen(true)}
-			/>
+			<KeyboardProvider>
+				<AppShell
+					isMobileNavOpen={isMobileNavOpen}
+					onCloseMobileNav={() => setIsMobileNavOpen(false)}
+					onOpenMobileNav={() => setIsMobileNavOpen(true)}
+				/>
+			</KeyboardProvider>
 		</SafeAreaProvider>
 	);
 }

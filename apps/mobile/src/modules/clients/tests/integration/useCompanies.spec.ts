@@ -43,7 +43,9 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 		await loginAs(page);
 		await page.goto('/clientes');
 
-		await expect(page.getByText('Rezende Advogados')).toBeVisible();
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
 		await expect(page.getByText('Global Traducoes')).toBeVisible();
 	});
 
@@ -100,14 +102,16 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 
 		await loginAs(page);
 		await page.goto('/clientes');
-		await expect(page.getByText('Rezende Advogados')).toBeVisible();
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
 
 		await page.getByText('Novo cliente').click();
 		await page
 			.getByPlaceholder('Ex: Rezende Advogados Ltda')
 			.fill(COMPANY_B.legal_name);
 		await page
-			.getByPlaceholder('Ex: Rezende Advogados')
+			.getByPlaceholder('Ex: Rezende Advogados', { exact: true })
 			.fill(COMPANY_B.trade_name);
 		await page.getByPlaceholder('00.000.000/0000-00').fill(COMPANY_B.cnpj);
 		await page.getByPlaceholder('Ex: Jurídico').fill(COMPANY_B.industry);
@@ -125,8 +129,9 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 		await page.getByPlaceholder('SP').fill(COMPANY_B.state);
 		await page.getByText('Salvar').click();
 
-		const rows = page.getByText(/Traducoes|Advogados/);
-		await expect(rows.first()).toHaveText('Global Traducoes');
+		await expect(
+			page.getByText('Global Traducoes', { exact: true }),
+		).toBeVisible();
 		expect(getCallCount).toBe(1);
 	});
 
@@ -156,13 +161,18 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 
 		await loginAs(page);
 		await page.goto('/clientes');
-		await expect(page.getByText('Rezende Advogados')).toBeVisible();
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
 
 		await page.getByLabel('Selecionar Rezende Advogados').click();
-		await page.getByRole('button', { name: 'Excluir' }).first().click();
-		await page.getByRole('button', { name: 'Excluir' }).last().click();
+		await page.getByText('Excluir', { exact: true }).click();
+		await expect(page.getByText('Excluir empresas selecionadas')).toBeVisible();
+		await page.getByText('Excluir', { exact: true }).last().click();
 
-		await expect(page.getByText('Rezende Advogados')).toHaveCount(0);
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toHaveCount(0);
 		await expect(page.getByText('Global Traducoes')).toBeVisible();
 		expect(getCallCount).toBe(1);
 	});

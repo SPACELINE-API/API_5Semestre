@@ -7,11 +7,7 @@ import {
 	normalizeZipCode,
 } from '../services/cepService';
 import { FormField } from './FormField';
-import {
-	isValidCnpjShape,
-	isValidEmail,
-	isValidPhone,
-} from '../utils/validation';
+import { isValidCnpj, isValidEmail, isValidPhone } from '../utils/validation';
 import { maskCnpj, maskPhone } from '../utils/mask';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
@@ -20,6 +16,7 @@ type CompanyFormModalProps = {
 	onClose: () => void;
 	onSubmit: (data: CompanyCreateInput) => Promise<void>;
 	toast?: ToastData | null;
+	initialValues?: Partial<CompanyCreateInput>;
 };
 
 const EMPTY_FORM: CompanyCreateInput = {
@@ -93,11 +90,7 @@ function validateForm(form: CompanyCreateInput): FormErrors {
 		}
 	}
 
-	if (
-		form.cnpj &&
-		form.cnpj.trim().length > 0 &&
-		!isValidCnpjShape(form.cnpj)
-	) {
+	if (form.cnpj && form.cnpj.trim().length > 0 && !isValidCnpj(form.cnpj)) {
 		errors.cnpj = 'CNPJ inválido.';
 	}
 
@@ -125,6 +118,7 @@ export function CompanyFormModal({
 	onClose,
 	onSubmit,
 	toast,
+	initialValues,
 }: CompanyFormModalProps) {
 	const [form, setForm] = useState<CompanyCreateInput>(EMPTY_FORM);
 	const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
@@ -133,6 +127,13 @@ export function CompanyFormModal({
 	const [error, setError] = useState<string | null>(null);
 	const [step, setStep] = useState(0);
 	const isLastStep = step === STEPS.length - 1;
+
+	useEffect(() => {
+		if (visible) {
+			setForm({ ...EMPTY_FORM, ...initialValues });
+		}
+		// initialValues is only meant to seed the form when it opens, not on every change
+	}, [visible]);
 
 	useEffect(() => {
 		const normalized = normalizeZipCode(form.zip_code);

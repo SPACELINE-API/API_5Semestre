@@ -38,8 +38,8 @@ export default function ViewRequestPage() {
 	}, [loadRequests]);
 
 	return (
-		<ScrollView className="flex-1 bg-gray-50">
-			<View className="p-4 md:p-8">
+		<ScrollView className="flex-1 bg-white">
+			<View className="w-full max-w-6xl self-center p-4 md:p-8">
 				<Text className="font-poppins-bold text-2xl text-gray-900">
 					Requisições
 				</Text>
@@ -77,7 +77,7 @@ export default function ViewRequestPage() {
 						</TouchableOpacity>
 					</View>
 				) : requests.length > 0 ? (
-					<View className="mt-8 flex-row flex-wrap gap-4">
+					<View className="mt-8 w-full flex-row flex-wrap gap-5">
 						{requests.map((request) => (
 							<CardRequest key={request.id} {...request} />
 						))}

@@ -7,11 +7,7 @@ import {
 	normalizeZipCode,
 } from '../services/cepService';
 import { FormField } from './FormField';
-import {
-	isValidCnpjShape,
-	isValidEmail,
-	isValidPhone,
-} from '../utils/validation';
+import { isValidCnpj, isValidEmail, isValidPhone } from '../utils/validation';
 import { maskCnpj, maskPhone } from '../utils/mask';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
@@ -69,11 +65,7 @@ function validateForm(form: CompanyUpdateInput): FormErrors {
 		}
 	}
 
-	if (
-		form.cnpj &&
-		form.cnpj.trim().length > 0 &&
-		!isValidCnpjShape(form.cnpj)
-	) {
+	if (form.cnpj && form.cnpj.trim().length > 0 && !isValidCnpj(form.cnpj)) {
 		errors.cnpj = 'CNPJ inválido.';
 	}
 

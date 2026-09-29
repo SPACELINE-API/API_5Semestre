@@ -261,36 +261,7 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 				</ScrollView>
 
 				<View className="relative flex-col gap-1 pt-4 mt-2 border-t border-gray-100">
-					<View className="relative">
-						{showExpanded && adminExpanded && (
-							<View className="absolute left-full ml-2 w-48 bg-white border border-gray-100 rounded-xl p-1.5 shadow-lg z-50">
-								<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
-									<ClientesIcon size={16} color="#6b7280" strokeWidth={1.8} />
-									<Text className="font-inter text-[13px] text-gray-600">
-										Usuários da plataforma
-									</Text>
-								</TouchableOpacity>
-
-								<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
-									<PermissoesIcon size={16} color="#6b7280" strokeWidth={1.8} />
-									<Text className="font-inter text-[13px] text-gray-600">
-										Perfis de acesso
-									</Text>
-								</TouchableOpacity>
-
-								<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50">
-									<IntegracoesIcon
-										size={16}
-										color="#6b7280"
-										strokeWidth={1.8}
-									/>
-									<Text className="font-inter text-[13px] text-gray-600">
-										Integrações
-									</Text>
-								</TouchableOpacity>
-							</View>
-						)}
-
+					<View>
 						<TouchableOpacity
 							onPress={() => {
 								if (!showExpanded) {
@@ -310,10 +281,46 @@ export function SideBar({ mobileOpen = false, onCloseMobile }: SideBarProps) {
 									<Text className="font-inter font-medium text-gray-700 text-sm flex-1">
 										Administração
 									</Text>
-									<ChevronRight size={16} color="#9ca3af" strokeWidth={2} />
+									<ChevronRight
+										size={16}
+										color="#9ca3af"
+										strokeWidth={2}
+										style={{
+											transform: [{ rotate: adminExpanded ? '90deg' : '0deg' }],
+										}}
+									/>
 								</>
 							)}
 						</TouchableOpacity>
+
+						{showExpanded && adminExpanded && (
+							<View className="mt-1 gap-0.5 rounded-xl border border-gray-100 bg-gray-50/60 p-1.5">
+								<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-white">
+									<ClientesIcon size={16} color="#6b7280" strokeWidth={1.8} />
+									<Text className="font-inter text-[13px] text-gray-600">
+										Usuários da plataforma
+									</Text>
+								</TouchableOpacity>
+
+								<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-white">
+									<PermissoesIcon size={16} color="#6b7280" strokeWidth={1.8} />
+									<Text className="font-inter text-[13px] text-gray-600">
+										Perfis de acesso
+									</Text>
+								</TouchableOpacity>
+
+								<TouchableOpacity className="flex-row items-center gap-2 px-3 py-2 rounded-lg hover:bg-white">
+									<IntegracoesIcon
+										size={16}
+										color="#6b7280"
+										strokeWidth={1.8}
+									/>
+									<Text className="font-inter text-[13px] text-gray-600">
+										Integrações
+									</Text>
+								</TouchableOpacity>
+							</View>
+						)}
 					</View>
 
 					<NavItem

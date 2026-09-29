@@ -52,9 +52,15 @@ class Request(Base):
 
     reproved_at: Mapped[datetime | None]
 
+    reproved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+
+    reproved_by_email: Mapped[str | None] = mapped_column(String(255))
+
     reproval_reason: Mapped[str | None] = mapped_column(String(500))
 
     quote: Mapped["Quote | None"] = relationship("Quote", back_populates="request", uselist=False)
     company: Mapped["Company | None"] = relationship("Company")
     contact: Mapped["Contact | None"] = relationship("Contact")
     document: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    document_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    document_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)

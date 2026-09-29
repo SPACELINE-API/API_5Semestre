@@ -5,6 +5,7 @@ import {
 	TextInput,
 	TouchableOpacity,
 	ScrollView,
+	useWindowDimensions,
 } from 'react-native';
 import { Search, Check, Send } from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
@@ -26,6 +27,7 @@ export function TranslatorsInviteTab({
 	refreshToken,
 	onSendInvites,
 }: TranslatorsInviteTabProps) {
+	const { width } = useWindowDimensions();
 	const [selectedItemId, setSelectedItemId] = useState(
 		items.find((item) => !item.translator_id)?.id ?? items[0]?.id ?? '',
 	);
@@ -167,9 +169,13 @@ export function TranslatorsInviteTab({
 					value={search}
 					onChangeText={setSearch}
 					editable={!isItemAssigned}
-					placeholder="Buscar tradutor por nome ou email"
+					placeholder={
+						width < 768
+							? 'Buscar tradutor'
+							: 'Buscar tradutor por nome ou email'
+					}
 					placeholderTextColor="#9CA3AF"
-					className="flex-1 font-inter text-sm text-gray-900 outline-none"
+					className="flex-1 font-inter text-sm text-gray-900 outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 					accessibilityLabel="Buscar tradutor"
 				/>
 			</View>

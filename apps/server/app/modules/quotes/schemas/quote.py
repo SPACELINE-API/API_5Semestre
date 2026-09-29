@@ -13,6 +13,19 @@ class QuoteCreate(BaseModel):
     contact_id: uuid.UUID | None = None
 
 
+class QuoteUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    company_id: uuid.UUID | None = None
+    contact_id: uuid.UUID | None = None
+    customer_name: str | None = Field(default=None, max_length=255)
+    enterprise: str | None = Field(default=None, max_length=155)
+    email: str | None = Field(default=None, max_length=155)
+    original_language: str | None = Field(default=None, max_length=50)
+    translation_language: str | None = Field(default=None, max_length=50)
+    customer_need: str | None = Field(default=None, max_length=100)
+
+
 class QuoteStatusUpdate(BaseModel):
     status: str = Field(pattern="^(approved|reproved)$")
     reproval_reason: str | None = Field(default=None, max_length=500)

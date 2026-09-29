@@ -94,6 +94,24 @@ def add_service_order_file(
     )
 
 
+@router.delete("/{service_order_id}/files/{file_id}", status_code=204)
+def delete_service_order_file(
+    service_order_id: uuid.UUID,
+    file_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    ServiceOrderService(db).delete_file(service_order_id, file_id)
+
+
+@router.delete("/{service_order_id}/items/{item_id}/file", status_code=204)
+def delete_service_order_item_file(
+    service_order_id: uuid.UUID,
+    item_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    ServiceOrderService(db).delete_item_file(service_order_id, item_id)
+
+
 @router.post(
     "/{service_order_id}/items",
     response_model=ServiceOrderItemResponse,

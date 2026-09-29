@@ -6,7 +6,7 @@ test.describe('autenticação mobile unificada', () => {
 	}) => {
 		await page.goto('/login');
 
-		await expect(page.getByRole('button', { name: 'ENTRAR' })).toBeVisible();
+		await expect(page.getByText('ENTRAR', { exact: true })).toBeVisible();
 		await expect(page.getByText('Permitir cookies no site')).not.toBeVisible();
 	});
 
@@ -29,7 +29,7 @@ test.describe('autenticação mobile unificada', () => {
 		await page
 			.getByPlaceholder('Digite seu e-mail')
 			.fill('recuperacao@exemplo.com');
-		await page.getByRole('button', { name: 'ENVIAR LINK' }).click();
+		await page.getByText('ENVIAR LINK', { exact: true }).click();
 		await expect(
 			page.getByText('E-mail enviado para o destinatário.'),
 		).toBeVisible();
@@ -49,7 +49,7 @@ test.describe('autenticação mobile unificada', () => {
 		await page.goto('/login#access_token=mobile-token&type=recovery');
 		await page.getByPlaceholder('Digite sua nova senha').fill('nova-senha');
 		await page.getByPlaceholder('Digite a senha novamente').fill('nova-senha');
-		await page.getByRole('button', { name: 'ATUALIZAR SENHA' }).click();
+		await page.getByText('ATUALIZAR SENHA', { exact: true }).click();
 		await expect(page.getByText('Senha atualizada com sucesso.')).toBeVisible();
 		expect(requestBody.access_token).toBe('mobile-token');
 	});
