@@ -39,9 +39,11 @@ tradutores, cotações, ordens de serviço e alocações.
 
 **Aplicativo:** React Native, Expo e Expo Router, com NativeWind (Tailwind CSS).
 
-**Backend:** Python, FastAPI, SQLAlchemy e PostgreSQL, com Supabase Auth e Storage.
+**Backend:** Python, FastAPI, SQLAlchemy e PostgreSQL, com Supabase Auth e
+Storage.
 
-**IA e tarefas assíncronas:** Google ADK, Gemini via Google GenAI, LiteLLM e Inngest.
+**IA e tarefas assíncronas:** Google ADK, Gemini via Google GenAI, LiteLLM e
+Inngest.
 
 ---
 
@@ -71,22 +73,23 @@ tradutores, cotações, ordens de serviço e alocações.
 
 ### User Stories
 
-> Os critérios de cada história e as definições de pronto e concluído estão no [documento do backlog](https://docs.google.com/document/d/1y5mgLee0ODzNuNWELqOQ5WxeNwAjjckNg6AiLV85xEY/edit?usp=sharing).
+> Os critérios de cada história e as definições de pronto e concluído estão no
+> [documento do backlog](https://docs.google.com/document/d/1y5mgLee0ODzNuNWELqOQ5WxeNwAjjckNg6AiLV85xEY/edit?usp=sharing).
 
 <details open>
 <summary><strong>Ver as 32 User Stories priorizadas</strong></summary>
 
-| Rank |           US           | Estimativa | Descrição                                                                                                                                                                                                        | Prioridade | Sprint | Epic |
-| :--: | :--------------------: | :--------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------: | :----: | :--: |
-|  1   |  `US1`  |     5      | Como atendente, quero registrar um tradutor informando os idiomas que domina, qual deles é nativo e suas qualificações técnicas, para alimentar o banco de talentos.                                                                    | Altíssima  |   1    | EP.2 |
-|  2   |  `US2`  |     5      | Como administrador, quero restringir o acesso dos tradutores aos arquivos de sua fase específica, garantindo o foco exclusivo em suas atribuições.                                                               | Altíssima  |   1    | EP.3 |
-|  3   |  `US3`  |     5      | Como atendente, quero visualizar as requisições recebidas dos clientes para transformá-las em orçamento.                                                                                                         | Altíssima  |   1    | EP.5 |
-|  4   |  `US4`  |     3      | Como cliente, quero preencher uma pré-solicitação informando idioma e necessidade, sem precisar de login completo, para agilizar o primeiro contato.                                                             | Altíssima  |   1    | EP.4 |
-|  5   |  `US5`  |     5      | Como colaborador da Aliança, quero contar com um agente de suporte que responda perguntas, para tirar dúvidas sobre o sistema.                                                                                   | Altíssima  |   1    | EP.1 |
-|  6   |  `US6`  |     8      | Como administrador, quero cadastrar listas de preços por par de idiomas e definir pesos de ponderação, para calcular automaticamente o valor de cada serviço de tradução.                                        | Altíssima  |   1    | EP.1 |
-|  7   |  `US7`  |     5      | Como atendente, quero cadastrar uma empresa cliente com nome e status ativo ou inativo para iniciar o relacionamento comercial.                                                                                  |    Alta    |   1    | EP.1 |
-|  8   |  `US8`  |     5      | Como atendente, quero cadastrar contatos dentro de uma empresa cliente, com e-mail, telefone e departamento, para saber com quem falar.                                                                          |    Alta    |   1    | EP.4 |
-|  9   |  `US9`  |     5      | Como colaborador da Alliança, quero que o agente de suporte consulte meus dados reais ao responder, para receber informações atualizadas e específicas do meu caso.                                              |    Alta    |   1    | EP.1 |
+| Rank |   US   | Estimativa | Descrição                                                                                                                                                                                                        | Prioridade | Sprint | Epic |
+| :--: | :----: | :--------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------: | :----: | :--: |
+|  1   | `US1`  |     5      | Como atendente, quero registrar um tradutor informando os idiomas que domina, qual deles é nativo e suas qualificações técnicas, para alimentar o banco de talentos.                                             | Altíssima  |   1    | EP.2 |
+|  2   | `US2`  |     5      | Como administrador, quero restringir o acesso dos tradutores aos arquivos de sua fase específica, garantindo o foco exclusivo em suas atribuições.                                                               | Altíssima  |   1    | EP.3 |
+|  3   | `US3`  |     5      | Como atendente, quero visualizar as requisições recebidas dos clientes para transformá-las em orçamento.                                                                                                         | Altíssima  |   1    | EP.5 |
+|  4   | `US4`  |     3      | Como cliente, quero preencher uma pré-solicitação informando idioma e necessidade, sem precisar de login completo, para agilizar o primeiro contato.                                                             | Altíssima  |   1    | EP.4 |
+|  5   | `US5`  |     5      | Como colaborador da Aliança, quero contar com um agente de suporte que responda perguntas, para tirar dúvidas sobre o sistema.                                                                                   | Altíssima  |   1    | EP.1 |
+|  6   | `US6`  |     8      | Como administrador, quero cadastrar listas de preços por par de idiomas e definir pesos de ponderação, para calcular automaticamente o valor de cada serviço de tradução.                                        | Altíssima  |   1    | EP.1 |
+|  7   | `US7`  |     5      | Como atendente, quero cadastrar uma empresa cliente com nome e status ativo ou inativo para iniciar o relacionamento comercial.                                                                                  |    Alta    |   1    | EP.1 |
+|  8   | `US8`  |     5      | Como atendente, quero cadastrar contatos dentro de uma empresa cliente, com e-mail, telefone e departamento, para saber com quem falar.                                                                          |    Alta    |   1    | EP.4 |
+|  9   | `US9`  |     5      | Como colaborador da Alliança, quero que o agente de suporte consulte meus dados reais ao responder, para receber informações atualizadas e específicas do meu caso.                                              |    Alta    |   1    | EP.1 |
 |  10  | `US10` |     3      | Como atendente, quero pesquisar clientes com filtros de nome, status e produto para localizar rapidamente um cliente na base.                                                                                    |    Alta    |   1    | EP.2 |
 |  11  | `US11` |     3      | Como atendente, quero marcar um recurso como inativo para removê-lo temporariamente das buscas de alocação.                                                                                                      |    Alta    |   1    | EP.2 |
 |  12  | `US12` |     3      | Como atendente, quero pesquisar recursos ativos filtrando por idioma, especialidade e disponibilidade para encontrar o profissional certo.                                                                       |    Alta    |   1    | EP.3 |
@@ -121,6 +124,7 @@ tradutores, cotações, ordens de serviço e alocações.
 
 - [Backlog, critérios de aceite, DoR e DoD](https://docs.google.com/document/d/1y5mgLee0ODzNuNWELqOQ5WxeNwAjjckNg6AiLV85xEY/edit?usp=sharing)
 - [Manual de execução local na Wiki](https://github.com/SPACELINE-API/API_5Semestre/wiki/Manual-de-execucao-local)
+
 ---
 
 ## Calendário de Entregas
@@ -172,7 +176,9 @@ Nesta sprint, foi planejada a construção da base inicial do sistema:
 
 ### Objetivos da Sprint
 
-Escopo previsto nos épicos EP.6 e EP.7: painel inicial com atalhos por perfil, notificações, autenticação, permissões e configurações de e-mail (SMTP) por usuário.
+Escopo previsto nos épicos EP.6 e EP.7: painel inicial com atalhos por perfil,
+notificações, autenticação, permissões e configurações de e-mail (SMTP) por
+usuário.
 
 </details>
 
@@ -181,7 +187,8 @@ Escopo previsto nos épicos EP.6 e EP.7: painel inicial com atalhos por perfil, 
 
 ### Objetivos da Sprint
 
-Escopo previsto no épico EP.8: acompanhar projetos concluídos e organizar o faturamento, incluindo faturas de venda e de compra.
+Escopo previsto no épico EP.8: acompanhar projetos concluídos e organizar o
+faturamento, incluindo faturas de venda e de compra.
 
 </details>
 
@@ -191,7 +198,8 @@ Escopo previsto no épico EP.8: acompanhar projetos concluídos e organizar o fa
 
 <a id="execucao"></a>
 
-Consulte o [Manual de execução local na Wiki](https://github.com/SPACELINE-API/API_5Semestre/wiki/Manual-de-execucao-local).
+Consulte o
+[Manual de execução local na Wiki](https://github.com/SPACELINE-API/API_5Semestre/wiki/Manual-de-execucao-local).
 
 ---
 
