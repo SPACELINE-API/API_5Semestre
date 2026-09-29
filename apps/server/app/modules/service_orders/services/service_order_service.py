@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.modules.clients.models.company import Company
 from app.modules.quotes.models.quote import Quote
+from app.modules.quotes.models.translation_item import QuoteTranslationItem
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
 from app.modules.service_orders.models.service_order_item import (
@@ -24,7 +25,10 @@ from app.modules.service_orders.schemas.service_order import (
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
-from app.modules.service_orders.services.storage import upload_service_order_file
+from app.modules.service_orders.services.storage import (
+    delete_service_order_file,
+    upload_service_order_file,
+)
 
 _AGGREGATE_STATUS_ORDER = [
     STATUS_PENDENTE,
@@ -179,6 +183,57 @@ class ServiceOrderService:
         self.db.refresh(service_order_file)
 
         return ServiceOrderFileResponse.model_validate(service_order_file)
+
+    def delete_file(self, service_order_id: uuid.UUID, file_id: uuid.UUID) -> None:
+        self._get_service_order_or_404(service_order_id)
+        service_order_file = (
+            self.db.query(ServiceOrderFile)
+            .filter(
+                ServiceOrderFile.id == file_id,
+                ServiceOrderFile.service_order_id == service_order_id,
+            )
+            .first()
+        )
+        if not service_order_file:
+            raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+
+        file_url = service_order_file.file_url
+        self.db.delete(service_order_file)
+        self.db.flush()
+        if not self._is_file_url_referenced(file_url):
+            delete_service_order_file(file_url)
+        self.db.commit()
+
+    def delete_item_file(self, service_order_id: uuid.UUID, item_id: uuid.UUID) -> None:
+        self._get_service_order_or_404(service_order_id)
+        item = (
+            self.db.query(ServiceOrderItem)
+            .filter(
+                ServiceOrderItem.id == item_id,
+                ServiceOrderItem.service_order_id == service_order_id,
+            )
+            .first()
+        )
+        if not item or not item.file_url:
+            raise HTTPException(status_code=404, detail="Documento do item não encontrado")
+
+        file_url = item.file_url
+        item.file_url = None
+        self.db.flush()
+        if not self._is_file_url_referenced(file_url):
+            delete_service_order_file(file_url)
+        self.db.commit()
+
+    def _is_file_url_referenced(self, file_url: str) -> bool:
+        return bool(
+            self.db.query(ServiceOrderItem.id).filter(ServiceOrderItem.file_url == file_url).first()
+            or self.db.query(QuoteTranslationItem.id)
+            .filter(QuoteTranslationItem.file_url == file_url)
+            .first()
+            or self.db.query(ServiceOrderFile.id)
+            .filter(ServiceOrderFile.file_url == file_url)
+            .first()
+        )
 
     def delete_service_order(self, service_order_id: uuid.UUID) -> None:
         service_order = self._get_service_order_or_404(service_order_id)

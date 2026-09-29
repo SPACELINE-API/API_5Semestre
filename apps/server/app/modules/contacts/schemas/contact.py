@@ -2,14 +2,14 @@ import re
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class ContactBase(BaseModel):
-    name: str
-    email: EmailStr
+    name: str = Field(max_length=150)
+    email: EmailStr = Field(max_length=255)
     phone: str
-    department: str
+    department: str = Field(max_length=100)
     company_id: uuid.UUID
 
     @field_validator("phone")
@@ -26,10 +26,10 @@ class ContactCreate(ContactBase):
 
 
 class ContactUpdate(BaseModel):
-    name: str | None = None
-    email: EmailStr | None = None
+    name: str | None = Field(default=None, max_length=150)
+    email: EmailStr | None = Field(default=None, max_length=255)
     phone: str | None = None
-    department: str | None = None
+    department: str | None = Field(default=None, max_length=100)
     company_id: uuid.UUID | None = None
 
     @field_validator("phone")

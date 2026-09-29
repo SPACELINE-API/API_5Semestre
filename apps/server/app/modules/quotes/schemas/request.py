@@ -43,5 +43,6 @@ class RequestResponse(BaseModel):
     request_date: date
     approved_at: datetime | None = None
     reproved_at: datetime | None = None
+    reproved_by_email: str | None = None
     reproval_reason: str | None = None
     document: bytes | None = None

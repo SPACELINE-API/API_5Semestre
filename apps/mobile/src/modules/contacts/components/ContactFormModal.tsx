@@ -36,11 +36,22 @@ type FormErrors = Partial<Record<keyof FormData, string>>;
 
 function validateForm(form: FormData): FormErrors {
 	const errors: FormErrors = {};
+	const limits: Partial<Record<keyof FormData, number>> = {
+		name: 150,
+		department: 100,
+		email: 255,
+	};
 
 	for (const { key, label } of REQUIRED_FIELDS) {
 		const value = form[key];
 		if (!value || value.trim().length === 0) {
 			errors[key] = `${label} é obrigatório.`;
+		}
+	}
+
+	for (const [key, limit] of Object.entries(limits) as [keyof FormData, number][]) {
+		if (form[key].length > limit) {
+			errors[key] = `Máximo de ${limit} caracteres.`;
 		}
 	}
 
@@ -168,6 +179,7 @@ export function ContactFormModal({
 							value={form.name}
 							onChangeText={(value) => setField('name', value)}
 							placeholder="Ex: João da Silva"
+							maxLength={150}
 							error={fieldErrors.name}
 						/>
 						<FormField
@@ -175,6 +187,7 @@ export function ContactFormModal({
 							value={form.department}
 							onChangeText={(value) => setField('department', value)}
 							placeholder="Ex: Financeiro"
+							maxLength={100}
 							error={fieldErrors.department}
 						/>
 						<View className="flex-row gap-4">
@@ -191,6 +204,7 @@ export function ContactFormModal({
 								value={form.email}
 								onChangeText={(value) => setField('email', value)}
 								placeholder="joao@empresa.com"
+							maxLength={255}
 								error={fieldErrors.email}
 							/>
 						</View>

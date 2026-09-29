@@ -245,4 +245,99 @@ test.describe('Service order details', () => {
 		await expect(page.getByText('Item atualizado com sucesso!')).toBeVisible();
 		expect(updateItemMethod).toBe('PATCH');
 	});
+
+	test('confirms document removal and refreshes the files tab', async ({
+		page,
+	}) => {
+		let hasItemFile = true;
+		let hasOrderFile = true;
+		let deleteRequestCount = 0;
+		await page.route('**/api/clients', async (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([COMPANY]),
+			}),
+		);
+		await page.route('**/api/translators', async (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([TRANSLATOR]),
+			}),
+		);
+		await page.route('**/api/contacts', async (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: '[]',
+			}),
+		);
+		await page.route('**/api/service-orders/order-1', async (route) => {
+			const order = {
+				...SERVICE_ORDER,
+				items: [
+					{
+						...SERVICE_ORDER.items[0],
+						file_url: hasItemFile ? 'https://storage.test/item.pdf' : null,
+					},
+				],
+				files: hasOrderFile
+					? [
+							{
+								id: 'file-1',
+								service_order_id: 'order-1',
+								filename: 'entrega.pdf',
+								file_url: 'https://storage.test/output.pdf',
+								direction: 'saida',
+								uploaded_at: '2026-01-02T00:00:00Z',
+							},
+						]
+					: [],
+			};
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(order),
+			});
+		});
+		await page.route(
+			'**/api/service-orders/order-1/items/item-1/file',
+			async (route) => {
+				if (route.request().method() === 'DELETE') {
+					hasItemFile = false;
+					deleteRequestCount += 1;
+					await route.fulfill({ status: 204 });
+					return;
+				}
+				await route.fallback();
+			},
+		);
+		await page.route(
+			'**/api/service-orders/order-1/files/file-1',
+			async (route) => {
+				hasOrderFile = false;
+				deleteRequestCount += 1;
+				await route.fulfill({ status: 204 });
+			},
+		);
+
+		await loginAs(page);
+		await page.goto('/ordens-de-servico/order-1');
+		await page.getByLabel('Ver aba Arquivos').click();
+		await expect(page.getByText('Português → Inglês')).toBeVisible();
+		await page.getByLabel('Excluir Português → Inglês').click();
+		await expect(page.getByText('Excluir documento?')).toBeVisible();
+		await page.getByText('Excluir', { exact: true }).click();
+		await expect(
+			page.getByText('Documento excluído com sucesso!'),
+		).toBeVisible();
+		await expect(page.getByText('Português → Inglês')).toHaveCount(0);
+		expect(deleteRequestCount).toBe(1);
+
+		await page.getByLabel('Excluir entrega.pdf').click();
+		await page.getByText('Excluir', { exact: true }).click();
+		await expect(page.getByText('entrega.pdf')).toHaveCount(0);
+		expect(deleteRequestCount).toBe(2);
+	});
 });

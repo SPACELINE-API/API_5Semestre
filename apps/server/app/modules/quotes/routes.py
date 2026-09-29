@@ -167,6 +167,7 @@ def list_requests(
 def update_request_status(
     request_id: str,
     data: RequestStatusUpdate,
+    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     try:
@@ -175,4 +176,4 @@ def update_request_status(
         raise HTTPException(status_code=422, detail="request_id deve ser um UUID válido.") from None
 
     service = RequestService(db)
-    return service.update_status(parsed_request_id, data)
+    return service.update_status(parsed_request_id, data, current_user)

@@ -33,6 +33,22 @@ export function deleteServiceOrder(id: string): Promise<void> {
 	return apiDelete(`${SERVICE_ORDERS_PATH}/${id}`);
 }
 
+export function deleteServiceOrderFile(
+	serviceOrderId: string,
+	fileId: string,
+): Promise<void> {
+	return apiDelete(`${SERVICE_ORDERS_PATH}/${serviceOrderId}/files/${fileId}`);
+}
+
+export function deleteServiceOrderItemFile(
+	serviceOrderId: string,
+	itemId: string,
+): Promise<void> {
+	return apiDelete(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/items/${itemId}/file`,
+	);
+}
+
 export function generateServiceOrderFromQuote(
 	data: GenerateServiceOrderInput,
 ): Promise<ServiceOrder> {

@@ -4,15 +4,12 @@ import uuid
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 
 from app.modules.clients.models.company import Company
 from app.modules.clients.schemas.company import calculate_cnpj_check_digit
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
-from app.modules.service_orders.models.invite import ServiceOrderItemInvite
-from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import (
     STATUS_CONCLUIDA,
     STATUS_EM_ANALISE,
@@ -32,7 +29,6 @@ from app.modules.service_orders.services.service_order_service import (
     ServiceOrderService,
     compute_aggregate_status,
 )
-from app.shared.database import Base, get_database_url
 
 _FIRST_DV_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
 _SECOND_DV_WEIGHTS = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
@@ -46,32 +42,8 @@ def generate_valid_cnpj() -> str:
 
 
 @pytest.fixture
-def db_session():
-    engine = create_engine(get_database_url())
-    Base.metadata.create_all(bind=engine)
-
-    connection = engine.connect()
-    outer_transaction = connection.begin()
-    session = sessionmaker(bind=connection)()
-    session.begin_nested()
-
-    @event.listens_for(session, "after_transaction_end")
-    def restart_savepoint(session, transaction):
-        if transaction.nested and not transaction._parent.nested:
-            session.begin_nested()
-
-    session.query(ServiceOrderItemInvite).delete()
-    session.query(ServiceOrder).delete()
-    session.query(QuoteTranslationItem).delete()
-    session.query(Quote).delete()
-    session.query(Company).delete()
-
-    yield session
-
-    session.close()
-    if outer_transaction.is_active:
-        outer_transaction.rollback()
-    connection.close()
+def db_session(isolated_db_session):
+    return isolated_db_session
 
 
 def make_company(db_session: Session) -> Company:

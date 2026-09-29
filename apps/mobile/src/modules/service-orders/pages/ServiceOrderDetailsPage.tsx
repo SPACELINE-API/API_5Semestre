@@ -32,6 +32,8 @@ import { EditItemModal } from '../components/EditItemModal';
 import {
 	createServiceOrderItem,
 	deleteServiceOrder,
+	deleteServiceOrderFile,
+	deleteServiceOrderItemFile,
 	sendItemInvites,
 	updateServiceOrder,
 	updateServiceOrderItem,
@@ -285,6 +287,34 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 													);
 												}
 											}}
+											onDelete={async (target) => {
+												try {
+													if (target.kind === 'file') {
+														await deleteServiceOrderFile(
+															serviceOrder.id,
+															target.id,
+														);
+													} else {
+														await deleteServiceOrderItemFile(
+															serviceOrder.id,
+															target.id,
+														);
+													}
+													await refresh();
+													showToast(
+														'Documento excluído com sucesso!',
+														'success',
+													);
+												} catch (submitError) {
+													showToast(
+														submitError instanceof Error
+															? submitError.message
+															: 'Não foi possível excluir o documento.',
+														'error',
+													);
+													throw submitError;
+												}
+											}}
 										/>
 									)}
 								</View>
@@ -342,7 +372,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 						throw submitError;
 					}
 				}}
-				toast={toast}
+				toast={inviteTargetItem ? toast : null}
 			/>
 
 			<AddItemModal

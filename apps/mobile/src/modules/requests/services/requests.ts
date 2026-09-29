@@ -3,6 +3,7 @@ import {
 	MultipartUploadError,
 	uploadFileMultipart,
 } from '../../../shared/utils/uploadFileMultipart';
+import { getSession } from '../../auth/services/auth';
 
 export type RequestStatus = 'pending' | 'approved' | 'reproved';
 
@@ -18,6 +19,7 @@ export type RequestItem = {
 	request_date: string;
 	approved_at?: string | null;
 	reproved_at?: string | null;
+	reproved_by_email?: string | null;
 	reproval_reason?: string | null;
 	document: string | null;
 };
@@ -75,11 +77,17 @@ export async function updateRequestStatus(
 	reprovalReason?: string,
 ): Promise<RequestStatusUpdateResult> {
 	try {
+		const session = getSession();
 		const response = await fetch(
 			`${API_BASE_URL}/api/quotes/requests/${encodeURIComponent(requestId)}/status`,
 			{
 				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
+				headers: {
+					'Content-Type': 'application/json',
+					...(session?.access_token
+						? { Authorization: `Bearer ${session.access_token}` }
+						: {}),
+				},
 				body: JSON.stringify({
 					status,
 					...(status === 'reproved'

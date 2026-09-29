@@ -1,5 +1,6 @@
 import uuid
 from typing import BinaryIO
+from urllib.parse import unquote, urlparse
 
 from fastapi import HTTPException
 
@@ -33,3 +34,32 @@ def upload_service_order_file(filename: str, file_data: BinaryIO, content_type: 
 
     public_url = f"{config.url}/storage/v1/object/public/{bucket}/{file_path}"
     return public_url
+
+
+def delete_service_order_file(file_url: str) -> None:
+    """Delete an object from our bucket; leave external/legacy URLs alone."""
+    config = get_supabase_config()
+    parsed = urlparse(file_url)
+    configured = urlparse(config.url)
+    prefix = "/storage/v1/object/public/service-order-files/"
+    if parsed.netloc != configured.netloc or not parsed.path.startswith(prefix):
+        return
+
+    object_path = unquote(parsed.path[len(prefix) :])
+    if not object_path or ".." in object_path.split("/"):
+        raise HTTPException(status_code=400, detail="URL de arquivo inválida")
+
+    delete_url = f"{config.url}/storage/v1/object/service-order-files"
+    headers = create_supabase_headers(config.service_role_key)
+    with create_supabase_http_client() as client:
+        response = client.request(
+            "DELETE",
+            delete_url,
+            headers=headers,
+            json={"prefixes": [object_path]},
+        )
+        if response.status_code not in (200, 204):
+            raise HTTPException(
+                status_code=502,
+                detail="Não foi possível remover o documento do armazenamento. Tente novamente.",
+            )

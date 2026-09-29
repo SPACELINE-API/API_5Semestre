@@ -62,6 +62,9 @@ test.describe('CompanyFormModal', () => {
 		await openNewCompanyModal(page);
 
 		const cnpjField = page.getByPlaceholder('00.000.000/0000-00');
+		await cnpjField.fill('00000000e08g12');
+		await expect(cnpjField).toHaveValue('00.000.000/E08G-12');
+
 		await cnpjField.fill('11222333000181');
 		await expect(cnpjField).toHaveValue('11.222.333/0001-81');
 
@@ -70,6 +73,41 @@ test.describe('CompanyFormModal', () => {
 		const phoneField = page.getByPlaceholder('(00) 00000-0000');
 		await phoneField.fill('11987654321');
 		await expect(phoneField).toHaveValue('(11) 98765-4321');
+	});
+
+	test('accepts the official alphanumeric CNPJ', async ({
+		page,
+	}) => {
+		await openNewCompanyModal(page);
+		await page
+			.getByPlaceholder('Ex: Rezende Advogados Ltda')
+			.fill('Empresa Nova Ltda');
+		await page
+			.getByPlaceholder('Ex: Rezende Advogados', { exact: true })
+			.fill('Empresa Nova');
+		const cnpjField = page.getByPlaceholder('00.000.000/0000-00');
+		await cnpjField.fill('00000000E08G12');
+		await page.getByPlaceholder('Ex: Jurídico').fill('Juridico');
+		await page.getByText('Avançar').click();
+		await expect(page.getByPlaceholder('(00) 00000-0000')).toBeVisible();
+	});
+
+	test('rejects an alphanumeric CNPJ with an incorrect check digit', async ({
+		page,
+	}) => {
+		await openNewCompanyModal(page);
+		await page
+			.getByPlaceholder('Ex: Rezende Advogados Ltda')
+			.fill('Empresa Nova Ltda');
+		await page
+			.getByPlaceholder('Ex: Rezende Advogados', { exact: true })
+			.fill('Empresa Nova');
+		const cnpjField = page.getByPlaceholder('00.000.000/0000-00');
+		await cnpjField.fill('00000000E08G13');
+		await page.getByPlaceholder('Ex: Jurídico').fill('Juridico');
+		await page.getByText('Avançar').click();
+		await expect(page.getByText('CNPJ inválido.')).toBeVisible();
+		await expect(page.getByPlaceholder('(00) 00000-0000')).toHaveCount(0);
 	});
 
 	test('blocks advancing to the next step when required fields are invalid', async ({

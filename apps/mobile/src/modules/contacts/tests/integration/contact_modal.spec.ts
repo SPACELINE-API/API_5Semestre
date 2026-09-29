@@ -52,6 +52,18 @@ test.describe('Contact Modal Integration', () => {
 		await expect(dialog.getByText('Departamento', { exact: true })).toBeVisible();
 		await expect(dialog.getByText('Telefone', { exact: true })).toBeVisible();
 		await expect(dialog.getByText('Email', { exact: true })).toBeVisible();
+		await expect(dialog.getByPlaceholder('Ex: João da Silva')).toHaveAttribute(
+			'maxLength',
+			'150',
+		);
+		await expect(dialog.getByPlaceholder('Ex: Financeiro')).toHaveAttribute(
+			'maxLength',
+			'100',
+		);
+		await expect(dialog.getByPlaceholder('joao@empresa.com')).toHaveAttribute(
+			'maxLength',
+			'255',
+		);
 
 		const saveBtn = dialog.getByText('Salvar', { exact: true });
 		await expect(saveBtn).toBeVisible();

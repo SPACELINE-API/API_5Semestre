@@ -8,7 +8,7 @@ import {
 } from '../services/cepService';
 import { FormField } from './FormField';
 import {
-	isValidCnpjShape,
+	isValidCnpj,
 	isValidEmail,
 	isValidPhone,
 } from '../utils/validation';
@@ -72,7 +72,7 @@ function validateForm(form: CompanyUpdateInput): FormErrors {
 	if (
 		form.cnpj &&
 		form.cnpj.trim().length > 0 &&
-		!isValidCnpjShape(form.cnpj)
+		!isValidCnpj(form.cnpj)
 	) {
 		errors.cnpj = 'CNPJ inválido.';
 	}
