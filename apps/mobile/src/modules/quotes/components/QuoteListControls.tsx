@@ -5,7 +5,7 @@ import {
 	Search,
 	SlidersHorizontal,
 } from 'lucide-react-native';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import type { QuoteStatusFilter } from '../services/quotesService';
 
 const statusOptions: { value: QuoteStatusFilter; label: string }[] = [
@@ -30,6 +30,7 @@ export function QuoteSearchBar({
 	showFilters: boolean;
 	onToggleFilters: () => void;
 }) {
+	const { width } = useWindowDimensions();
 	const filtersActive = showFilters || statusFilter !== 'all';
 
 	return (
@@ -40,10 +41,14 @@ export function QuoteSearchBar({
 					value={searchInput}
 					onChangeText={onSearchInputChange}
 					onSubmitEditing={onSearch}
-					placeholder="Buscar por orçamento, e-mail, cliente, empresa ou documento"
+					placeholder={
+						width < 768
+							? 'Buscar orçamento, cliente ou documento'
+							: 'Buscar por orçamento, e-mail, cliente, empresa ou documento'
+					}
 					placeholderTextColor="#9CA3AF"
 					returnKeyType="search"
-					className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none"
+					className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 				/>
 			</View>
 

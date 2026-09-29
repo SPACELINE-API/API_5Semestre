@@ -6,6 +6,7 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 	TextInput,
+	useWindowDimensions,
 } from 'react-native';
 import {
 	Plus,
@@ -26,6 +27,7 @@ import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 
 export function TranslatorsPage() {
+	const { width } = useWindowDimensions();
 	const router = useRouter();
 	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
 	const { translators, isLoading, error, create } = useTranslators();
@@ -121,9 +123,11 @@ export function TranslatorsPage() {
 								<TextInput
 									value={search}
 									onChangeText={setSearch}
-									placeholder="Buscar por nome, email..."
+									placeholder={
+										width < 768 ? 'Buscar nome ou e-mail' : 'Buscar por nome, email...'
+									}
 									placeholderTextColor="#9CA3AF"
-									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none"
+									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 								/>
 								{search.length > 0 && (
 									<TouchableOpacity

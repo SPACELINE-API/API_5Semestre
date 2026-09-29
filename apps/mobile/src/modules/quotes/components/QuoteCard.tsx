@@ -241,7 +241,7 @@ function CompanyLinkField({
 								onChangeText={setSearch}
 								placeholder="Buscar empresa"
 								placeholderTextColor="#9CA3AF"
-								className="flex-1 font-inter text-sm text-gray-800"
+								className="flex-1 font-inter text-sm text-gray-800 max-md:min-w-0 max-md:shrink max-md:leading-5"
 							/>
 							<TouchableOpacity
 								accessibilityRole="button"

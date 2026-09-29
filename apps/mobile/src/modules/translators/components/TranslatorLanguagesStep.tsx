@@ -7,6 +7,7 @@ import {
 	TextInput,
 	TouchableOpacity,
 	View,
+	useWindowDimensions,
 } from 'react-native';
 import {
 	Check,
@@ -41,6 +42,12 @@ type Props = {
 		field: keyof TranslatorLanguageFormRow,
 		value: string,
 	) => void;
+	onCreateLanguage: (
+		id: string,
+		name: string,
+	) => Promise<LanguageResponse | null>;
+	createLanguageError?: string;
+	onClearCreateLanguageError: () => void;
 };
 
 export function TranslatorLanguagesStep({
@@ -50,8 +57,19 @@ export function TranslatorLanguagesStep({
 	onAddLanguage,
 	onRemoveLanguage,
 	onUpdateLanguage,
+	onCreateLanguage,
+	createLanguageError,
+	onClearCreateLanguageError,
 }: Props) {
+	const { width } = useWindowDimensions();
 	const [langPicker, setLangPicker] = useState<number | null>(null);
+	const [createLanguageVisible, setCreateLanguageVisible] = useState(false);
+	const [createTargetIndex, setCreateTargetIndex] = useState<number | null>(
+		null,
+	);
+	const [newLanguageId, setNewLanguageId] = useState('');
+	const [newLanguageName, setNewLanguageName] = useState('');
+	const [creatingLanguage, setCreatingLanguage] = useState(false);
 	const [languageSearch, setLanguageSearch] = useState('');
 	const filteredLanguages = useMemo(() => {
 		const query = normalizeSearch(languageSearch.trim());
@@ -64,6 +82,24 @@ export function TranslatorLanguagesStep({
 	const closeLanguagePicker = () => {
 		setLangPicker(null);
 		setLanguageSearch('');
+	};
+	const openCreateLanguage = () => {
+		setCreateTargetIndex(langPicker ?? languages.findIndex((item) => !item.language_id));
+		setNewLanguageId('');
+		setNewLanguageName('');
+		onClearCreateLanguageError();
+		closeLanguagePicker();
+		setCreateLanguageVisible(true);
+	};
+	const saveNewLanguage = async () => {
+		setCreatingLanguage(true);
+		const created = await onCreateLanguage(newLanguageId, newLanguageName);
+		setCreatingLanguage(false);
+		if (!created) return;
+		const targetIndex = createTargetIndex ?? -1;
+		if (targetIndex >= 0) onUpdateLanguage(targetIndex, 'language_id', created.id);
+		setCreateLanguageVisible(false);
+		closeLanguagePicker();
 	};
 
 	return (
@@ -205,12 +241,16 @@ export function TranslatorLanguagesStep({
 								<TextInput
 									value={languageSearch}
 									onChangeText={setLanguageSearch}
-									placeholder="Buscar por idioma ou código"
+									placeholder={
+										width < 768
+											? 'Buscar idioma ou código'
+											: 'Buscar por idioma ou código'
+									}
 									placeholderTextColor="#9CA3AF"
 									autoCapitalize="none"
 									autoCorrect={false}
 									accessibilityLabel="Buscar idioma"
-									className="h-11 flex-1 text-sm text-gray-900 outline-none"
+									className="h-11 flex-1 text-sm text-gray-900 outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 								/>
 							</View>
 							<ScrollView className="px-4" keyboardShouldPersistTaps="handled">
@@ -239,11 +279,84 @@ export function TranslatorLanguagesStep({
 										Nenhum idioma encontrado.
 									</Text>
 								)}
+								<TouchableOpacity
+									className="flex-row items-center justify-center border-t border-gray-200 bg-gray-50 px-3 py-3"
+									onPress={openCreateLanguage}
+								>
+									<Plus size={16} color="#1C6FB0" />
+									<Text className="ml-2 font-inter font-medium text-blue-800 text-sm">
+										Adicionar outro idioma
+									</Text>
+								</TouchableOpacity>
 							</ScrollView>
 						</View>
 					</View>
 				</Modal>
 			)}
+			<Modal
+				visible={createLanguageVisible}
+				transparent
+				animationType="fade"
+				onRequestClose={() => setCreateLanguageVisible(false)}
+			>
+				<View className="flex-1 items-center justify-center bg-black/40 px-4">
+					<View className="w-full max-w-[400px] rounded-xl bg-white p-6">
+						<Text className="mb-4 font-inter font-bold text-gray-900 text-lg">
+							Adicionar idioma
+						</Text>
+						<Text className="mb-1.5 font-inter font-medium text-gray-700 text-xs">
+							Sigla
+						</Text>
+						<TextInput
+							className="mb-4 rounded-md border border-gray-200 bg-white p-3 font-inter text-sm text-gray-800"
+							placeholder="pt-BR"
+							value={newLanguageId}
+							onChangeText={(value) => {
+								setNewLanguageId(value);
+								onClearCreateLanguageError();
+							}}
+							autoCapitalize="none"
+						/>
+						<Text className="mb-1.5 font-inter font-medium text-gray-700 text-xs">
+							Idioma
+						</Text>
+						<TextInput
+							className="mb-4 rounded-md border border-gray-200 bg-white p-3 font-inter text-sm text-gray-800"
+							placeholder="Português"
+							value={newLanguageName}
+							onChangeText={(value) => {
+								setNewLanguageName(value);
+								onClearCreateLanguageError();
+							}}
+						/>
+						{createLanguageError ? (
+							<Text className="mb-3 text-sm text-red-600">
+								{createLanguageError}
+							</Text>
+						) : null}
+						<View className="flex-row justify-end gap-3">
+							<TouchableOpacity
+								className="flex-1 items-center rounded-lg border border-blue-200 px-4 py-2"
+								onPress={() => setCreateLanguageVisible(false)}
+								disabled={creatingLanguage}
+							>
+								<Text className="font-inter-medium text-sm text-blue-700">
+									Cancelar
+								</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								className="flex-1 items-center rounded-lg bg-blue-500 px-4 py-2"
+								onPress={saveNewLanguage}
+								disabled={creatingLanguage}
+							>
+								<Text className="font-inter-medium text-sm text-white">
+									{creatingLanguage ? 'Salvando...' : 'Salvar'}
+								</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</View>
+			</Modal>
 		</>
 	);
 }

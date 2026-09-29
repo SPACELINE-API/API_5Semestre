@@ -6,6 +6,7 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 	TextInput,
+	useWindowDimensions,
 } from 'react-native';
 import {
 	Plus,
@@ -28,6 +29,7 @@ import { deleteServiceOrder } from '../services/serviceOrderService';
 import { exportServiceOrdersAsJson } from '../utils/export';
 
 export function ServiceOrdersPage() {
+	const { width } = useWindowDimensions();
 	const router = useRouter();
 	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
 	const { serviceOrders, isLoading, error, create, removeMany } =
@@ -199,9 +201,11 @@ export function ServiceOrdersPage() {
 							<TextInput
 								value={search}
 								onChangeText={setSearch}
-								placeholder="Buscar por projeto, empresa..."
+								placeholder={
+									width < 768 ? 'Buscar projeto ou empresa' : 'Buscar por projeto, empresa...'
+								}
 								placeholderTextColor="#9CA3AF"
-								className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none"
+								className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 							/>
 
 							{search.length > 0 && (

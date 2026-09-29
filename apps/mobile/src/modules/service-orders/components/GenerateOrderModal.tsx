@@ -7,6 +7,7 @@ import {
 	TouchableOpacity,
 	ScrollView,
 	Platform,
+	useWindowDimensions,
 } from 'react-native';
 import { X, Search, Check, User, FileText } from 'lucide-react-native';
 import type { ReactNode } from 'react';
@@ -135,6 +136,7 @@ export function GenerateOrderModal({
 	onSubmit,
 	toast,
 }: GenerateOrderModalProps) {
+	const { width } = useWindowDimensions();
 	const [form, setForm] = useState<FormState>(EMPTY_FORM);
 	const [error, setError] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<{
@@ -343,9 +345,11 @@ export function GenerateOrderModal({
 											value={companySearch}
 											onChangeText={setCompanySearch}
 											onFocus={() => setIsCompanyPickerOpen(true)}
-											placeholder="Buscar empresa por nome"
+											placeholder={
+												width < 768 ? 'Buscar empresa' : 'Buscar empresa por nome'
+											}
 											placeholderTextColor="#9CA3AF"
-											className="flex-1 font-inter text-sm text-gray-900 outline-none"
+											className="flex-1 font-inter text-sm text-gray-900 outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 											accessibilityLabel="Buscar empresa"
 										/>
 									</View>

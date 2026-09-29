@@ -23,6 +23,16 @@ export function listLanguages(): Promise<LanguageResponse[]> {
 	return apiGet<LanguageResponse[]>('/api/support/languages');
 }
 
+export function createLanguage(
+	id: string,
+	name: string,
+): Promise<LanguageResponse> {
+	return apiPost<LanguageResponse, { id: string; name: string }>(
+		'/api/support/languages',
+		{ id, name },
+	);
+}
+
 export function listTranslators(): Promise<Translator[]> {
 	return apiGet<Translator[]>(BASE);
 }

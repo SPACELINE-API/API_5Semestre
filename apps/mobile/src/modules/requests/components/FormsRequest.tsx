@@ -3,7 +3,7 @@ import { DocumentPickerAsset } from 'expo-document-picker';
 
 import { useRouter } from 'expo-router';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
 	Platform,
 	Text,
@@ -15,6 +15,9 @@ import { FileUp, Trash } from 'lucide-react-native';
 
 import { createRequest } from '../services/requests';
 import { isValidEmail } from '../../clients/utils/validation';
+import { RequestLanguageSelect } from './RequestLanguageSelect';
+import { listLanguages } from '../../translators/services/translatorService';
+import type { LanguageResponse } from '../../translators/types/translator';
 
 export default function FormsRequest() {
 	const [customerName, setCustomerName] = useState('');
@@ -28,10 +31,36 @@ export default function FormsRequest() {
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
 	const [document, setDocument] = useState<DocumentPickerAsset | null>(null);
+	const [availableLanguages, setAvailableLanguages] = useState<
+		LanguageResponse[]
+	>([]);
+	const [loadingLanguages, setLoadingLanguages] = useState(true);
+	const [languageLoadError, setLanguageLoadError] = useState('');
 
 	const router = useRouter();
 
 	const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
+
+	useEffect(() => {
+		let isCurrent = true;
+
+		listLanguages()
+			.then((languages) => {
+				if (isCurrent) setAvailableLanguages(languages);
+			})
+			.catch(() => {
+				if (isCurrent) {
+					setLanguageLoadError('Não foi possível carregar os idiomas.');
+				}
+			})
+			.finally(() => {
+				if (isCurrent) setLoadingLanguages(false);
+			});
+
+		return () => {
+			isCurrent = false;
+		};
+	}, []);
 
 	async function handleSubmit() {
 		setError('');
@@ -227,34 +256,26 @@ export default function FormsRequest() {
 						/>
 					</View>
 
-					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
-						<Text className="mb-1 text-sm font-bold text-[#101b35]">
-							Idioma original
-							<Text className="text-red-500">*</Text>
-						</Text>
-						<TextInput
-							value={originalLanguage}
-							onChangeText={setOriginalLanguage}
-							placeholder="Ex: Português"
-							placeholderTextColor="#94a3b8"
-							className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
-						/>
-					</View>
+					<RequestLanguageSelect
+						label="Idioma original"
+						value={originalLanguage}
+						languages={availableLanguages}
+						loading={loadingLanguages}
+						onChange={setOriginalLanguage}
+					/>
 
-					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
-						<Text className="mb-1 text-sm font-bold text-[#101b35]">
-							Idioma de tradução
-							<Text className="text-red-500">*</Text>
-						</Text>
-						<TextInput
-							value={translationLanguage}
-							onChangeText={setTranslationLanguage}
-							placeholder="Ex: Inglês"
-							placeholderTextColor="#94a3b8"
-							className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
-						/>
-					</View>
+					<RequestLanguageSelect
+						label="Idioma de tradução"
+						value={translationLanguage}
+						languages={availableLanguages}
+						loading={loadingLanguages}
+						onChange={setTranslationLanguage}
+					/>
 				</View>
+
+				{languageLoadError ? (
+					<Text className="text-sm text-red-600">{languageLoadError}</Text>
+				) : null}
 			</View>
 
 			<View className="mt-6 gap-3">

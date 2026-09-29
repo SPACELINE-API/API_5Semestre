@@ -10,6 +10,7 @@ import type { QualificationResponse } from '../types/translator';
 import {
 	listQualifications,
 	listLanguages,
+	createLanguage,
 } from '../services/translatorService';
 import { FormField } from '../../clients/components/FormField';
 import { TranslatorLanguagesStep } from './TranslatorLanguagesStep';
@@ -81,6 +82,9 @@ export function TranslatorFormModal({
 		QualificationResponse[]
 	>([]);
 	const [apiLanguages, setApiLanguages] = useState<LanguageResponse[]>([]);
+	const [languageCreateError, setLanguageCreateError] = useState<
+		string | undefined
+	>();
 
 	useEffect(() => {
 		if (visible) {
@@ -178,6 +182,37 @@ export function TranslatorFormModal({
 		);
 		if (fieldErrors.languages) {
 			setFieldErrors((prev) => ({ ...prev, languages: undefined }));
+		}
+	}
+
+	async function handleCreateLanguage(id: string, name: string) {
+		const normalizedId = id.trim();
+		const normalizedName = name.trim();
+		if (!normalizedId || !normalizedName) {
+			setLanguageCreateError('Informe a sigla e o nome do idioma.');
+			return null;
+		}
+		if (
+			apiLanguages.some(
+				(language) =>
+					language.id.toLowerCase() === normalizedId.toLowerCase(),
+			)
+		) {
+			setLanguageCreateError('Já existe um idioma com essa sigla.');
+			return null;
+		}
+		try {
+			const created = await createLanguage(normalizedId, normalizedName);
+			setApiLanguages((current) => [...current, created]);
+			setLanguageCreateError(undefined);
+			return created;
+		} catch (error) {
+			setLanguageCreateError(
+				error instanceof Error
+					? error.message
+					: 'Não foi possível cadastrar o idioma.',
+			);
+			return null;
 		}
 	}
 
@@ -333,6 +368,11 @@ export function TranslatorFormModal({
 								onAddLanguage={addLanguage}
 								onRemoveLanguage={removeLanguage}
 								onUpdateLanguage={updateLanguage}
+								onCreateLanguage={handleCreateLanguage}
+								createLanguageError={languageCreateError}
+								onClearCreateLanguageError={() =>
+									setLanguageCreateError(undefined)
+								}
 							/>
 						)}
 
