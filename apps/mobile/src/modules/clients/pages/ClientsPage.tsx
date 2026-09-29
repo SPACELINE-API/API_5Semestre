@@ -7,6 +7,7 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 	TextInput,
+	useWindowDimensions,
 } from 'react-native';
 
 import {
@@ -34,15 +35,13 @@ import { CompanyFormModal } from '../components/CompanyFormModal';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
-import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
 import { deleteCompany } from '../services/companyService';
 import { exportCompaniesAsJson } from '../utils/export';
 
 export function ClientsPage() {
+	const { width } = useWindowDimensions();
 	const router = useRouter();
 	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
-	const isDesktop = useIsDesktop();
-
 	const { companies, isLoading, error, create, removeMany } = useCompanies();
 
 	const [search, setSearch] = useState('');
@@ -181,7 +180,7 @@ export function ClientsPage() {
 			>
 				<View className="gap-6">
 					<View className="border-b border-gray-200 pb-6">
-						<View className="flex-row items-start justify-between gap-4 md:items-center">
+						<View className="flex-row flex-wrap items-start justify-between gap-4 md:items-center">
 							<View className="flex-1">
 								<Text className="font-inter font-bold text-gray-950 text-2xl">
 									Clientes
@@ -216,19 +215,12 @@ export function ClientsPage() {
 								activeOpacity={0.8}
 								accessibilityRole="button"
 								accessibilityLabel="Novo cliente"
-								className={
-									isDesktop
-										? 'h-10 flex-row items-center justify-center gap-2 self-start rounded-lg bg-blue-300 px-4'
-										: 'h-11 w-11 items-center justify-center self-start rounded-full bg-blue-300'
-								}
+								className="shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3"
 							>
-								<Plus size={isDesktop ? 16 : 20} color="#042C53" />
-
-								{isDesktop && (
-									<Text className="font-inter font-semibold text-blue-900 text-sm">
-										Novo cliente
-									</Text>
-								)}
+								<Plus size={18} color="#ffffff" />
+								<Text className="font-inter-medium text-sm text-white">
+									Novo cliente
+								</Text>
 							</TouchableOpacity>
 						</View>
 					</View>
@@ -241,9 +233,13 @@ export function ClientsPage() {
 								<TextInput
 									value={search}
 									onChangeText={setSearch}
-									placeholder="Buscar por nome, CNPJ..."
+									placeholder={
+										width < 768
+											? 'Buscar nome ou CNPJ'
+											: 'Buscar por nome, CNPJ...'
+									}
 									placeholderTextColor="#9CA3AF"
-									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none"
+									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 								/>
 
 								{search.length > 0 && (

@@ -44,6 +44,7 @@ test.describe('Invite details page', () => {
 	test('accepts an invite and redirects to the invites list', async ({
 		page,
 	}) => {
+		let acceptRequestSeen = false;
 		await page.route('**/api/service-orders/invites/me', async (route) => {
 			await route.fulfill({
 				status: 200,
@@ -61,6 +62,7 @@ test.describe('Invite details page', () => {
 		await page.route(
 			'**/api/service-orders/invites/invite-1/accept',
 			async (route) => {
+				acceptRequestSeen = route.request().method() === 'POST';
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -80,13 +82,14 @@ test.describe('Invite details page', () => {
 
 		await page.getByLabel('Aceitar convite').click();
 
-		await expect(page.getByText('Convite aceito com sucesso!')).toBeVisible();
 		await expect(page).toHaveURL(/\/convites$/);
+		expect(acceptRequestSeen).toBe(true);
 	});
 
 	test('declines an invite and redirects to the invites list', async ({
 		page,
 	}) => {
+		let declineRequestSeen = false;
 		await page.route('**/api/service-orders/invites/me', async (route) => {
 			await route.fulfill({
 				status: 200,
@@ -104,6 +107,7 @@ test.describe('Invite details page', () => {
 		await page.route(
 			'**/api/service-orders/invites/invite-1/decline',
 			async (route) => {
+				declineRequestSeen = route.request().method() === 'POST';
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -121,8 +125,8 @@ test.describe('Invite details page', () => {
 
 		await page.getByLabel('Recusar convite').click();
 
-		await expect(page.getByText('Convite recusado.')).toBeVisible();
 		await expect(page).toHaveURL(/\/convites$/);
+		expect(declineRequestSeen).toBe(true);
 	});
 
 	test('disables actions when the invite was already responded', async ({

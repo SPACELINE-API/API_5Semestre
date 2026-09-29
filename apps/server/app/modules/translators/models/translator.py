@@ -9,8 +9,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.shared.database import Base
 
 if TYPE_CHECKING:
-    from app.modules.translators.models.language_pair import TranslatorLanguagePair
     from app.modules.translators.models.qualification import TechnicalQualification
+    from app.modules.translators.models.translator_language import TranslatorLanguage
 
 
 # ENTIDADE PRINCIPAL DO TRADUTOR NO BANCO DE TALENTOS
@@ -52,9 +52,9 @@ class Translator(Base):
         secondary="translator_qualifications",
         back_populates="translators",
     )
-    # RELACIONAMENTO COM MULTIPLOS PARES DE IDIOMA E PROFICIENCIA
-    language_pairs: Mapped[list["TranslatorLanguagePair"]] = relationship(
-        "TranslatorLanguagePair",
+    # RELACIONAMENTO COM OS IDIOMAS FALADOS E A PROFICIENCIA EM CADA UM
+    languages: Mapped[list["TranslatorLanguage"]] = relationship(
+        "TranslatorLanguage",
         back_populates="translator",
         cascade="all, delete-orphan",
     )

@@ -51,7 +51,7 @@ class QuoteRepository:
         )
         return quotes, total
 
-    def create_from_request(self, request: Request) -> Quote:
+    def create_from_request(self, request: Request, document_file_url: str | None = None) -> Quote:
         quote = Quote(
             request_id=request.id,
             company_id=request.company_id,
@@ -64,6 +64,15 @@ class QuoteRepository:
             translation_language=request.translation_language,
             customer_need=request.customer_need,
         )
+        if document_file_url is not None:
+            quote.items.append(
+                QuoteTranslationItem(
+                    source_language=request.original_language,
+                    target_language=request.translation_language,
+                    document_type=request.customer_need,
+                    file_url=document_file_url,
+                )
+            )
         self.db.add(quote)
         self.db.commit()
         self.db.refresh(quote)

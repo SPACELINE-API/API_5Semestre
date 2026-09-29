@@ -1,10 +1,7 @@
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { ChevronRight, UserRound } from 'lucide-react-native';
 import type { Translator } from '../types/translator';
-import {
-	PROFICIENCY_LABELS,
-	formatLanguagePairCode,
-} from '../types/translator';
+import { PROFICIENCY_LABELS } from '../types/translator';
 
 type Props = {
 	translators: Translator[];
@@ -32,7 +29,7 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 					Contato
 				</Text>
 				<Text className="w-[30%] font-inter font-medium text-[11px] uppercase tracking-wide text-gray-400">
-					Pares de Idioma
+					Idiomas
 				</Text>
 				<Text className="w-[12%] font-inter font-medium text-[11px] uppercase tracking-wide text-gray-400">
 					Qualificações
@@ -70,23 +67,41 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 								>
 									{t.name}
 								</Text>
-								{/* PARES RESUMIDOS NO MOBILE */}
-								{t.language_pairs.length > 0 && (
+								<View
+									className={`mt-1 flex-row items-center gap-1 rounded-full px-2 py-0.5 self-start md:hidden ${
+										t.is_active ? 'bg-green-50' : 'bg-gray-100'
+									}`}
+								>
+									<View
+										className={`h-1.5 w-1.5 rounded-full ${
+											t.is_active ? 'bg-green-500' : 'bg-gray-400'
+										}`}
+									/>
+									<Text
+										className={`font-inter font-medium text-[10px] ${
+											t.is_active ? 'text-green-800' : 'text-gray-500'
+										}`}
+									>
+										{t.is_active ? 'Ativo' : 'Inativo'}
+									</Text>
+								</View>
+								{/* IDIOMAS RESUMIDOS NO MOBILE */}
+								{t.languages.length > 0 && (
 									<View className="mt-1 flex-row flex-wrap gap-1 md:hidden">
-										{t.language_pairs.slice(0, 2).map((p) => (
+										{t.languages.slice(0, 2).map((language) => (
 											<View
-												key={p.id}
+												key={language.id}
 												className="rounded bg-blue-50 px-1.5 py-0.5"
 											>
 												<Text className="font-inter text-blue-700 text-[10px]">
-													{formatLanguagePairCode(p)} •{' '}
-													{PROFICIENCY_LABELS[p.proficiency_level]}
+													{language.language_name} •{' '}
+													{PROFICIENCY_LABELS[language.proficiency_level]}
 												</Text>
 											</View>
 										))}
-										{t.language_pairs.length > 2 && (
+										{t.languages.length > 2 && (
 											<Text className="font-inter text-gray-400 text-[10px]">
-												+{t.language_pairs.length - 2}
+												+{t.languages.length - 2}
 											</Text>
 										)}
 									</View>
@@ -110,29 +125,29 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 							</Text>
 						</View>
 
-						{/* PARES DE IDIOMA */}
+						{/* IDIOMAS */}
 						<View className="hidden w-[30%] min-w-0 flex-none flex-row flex-wrap gap-1 pr-3 md:flex">
-							{t.language_pairs.length === 0 ? (
+							{t.languages.length === 0 ? (
 								<Text className="font-inter text-gray-400 text-xs">—</Text>
 							) : (
 								<>
-									{t.language_pairs.slice(0, 3).map((p) => (
+									{t.languages.slice(0, 3).map((language) => (
 										<View
-											key={p.id}
+											key={language.id}
 											className="rounded-full bg-blue-50 px-2 py-0.5"
 										>
 											<Text className="font-inter text-blue-800 text-[11px]">
-												{formatLanguagePairCode(p)}
+												{language.language_name}
 												{'  '}
 												<Text className="text-blue-500 text-[10px]">
-													{PROFICIENCY_LABELS[p.proficiency_level]}
+													{PROFICIENCY_LABELS[language.proficiency_level]}
 												</Text>
 											</Text>
 										</View>
 									))}
-									{t.language_pairs.length > 3 && (
+									{t.languages.length > 3 && (
 										<Text className="self-center font-inter text-gray-400 text-[11px]">
-											+{t.language_pairs.length - 3}
+											+{t.languages.length - 3}
 										</Text>
 									)}
 								</>

@@ -1,3 +1,4 @@
+import io
 import uuid
 from datetime import UTC, datetime
 
@@ -10,7 +11,8 @@ from app.modules.contacts.models.contact import Contact
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.repositories.quote_repository import QuoteRepository
 from app.modules.quotes.repositories.request_repository import RequestRepository
-from app.modules.quotes.schemas.quote import QuoteCreate, QuoteStatusUpdate
+from app.modules.quotes.schemas.quote import QuoteCreate, QuoteStatusUpdate, QuoteUpdate
+from app.modules.quotes.services.storage import upload_quote_document
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 
@@ -29,6 +31,23 @@ class QuoteService:
             contact_id=quote_data.contact_id,
         )
         self.db.add(quote)
+        self.db.commit()
+        self.db.refresh(quote)
+        return quote
+
+    def update_quote(self, quote_id: uuid.UUID, data: QuoteUpdate) -> Quote:
+        quote = self.db.query(Quote).filter(Quote.id == quote_id).first()
+        if quote is None:
+            raise HTTPException(status_code=404, detail="Orçamento não encontrado.")
+
+        update_data = data.model_dump(exclude_unset=True)
+        company_id = update_data.get("company_id", quote.company_id)
+        contact_id = update_data.get("contact_id", quote.contact_id)
+        self._validate_customer_links(company_id, contact_id)
+
+        for field, value in update_data.items():
+            setattr(quote, field, value)
+
         self.db.commit()
         self.db.refresh(quote)
         return quote
@@ -187,8 +206,16 @@ class QuoteService:
                 detail="A requisição possui dados obrigatórios inválidos.",
             )
 
+        document_file_url = None
+        if request.document:
+            document_file_url = upload_quote_document(
+                filename=request.document_filename or "documento",
+                file_data=io.BytesIO(request.document),
+                content_type=request.document_content_type or "application/octet-stream",
+            )
+
         try:
-            return self.quote_repository.create_from_request(request)
+            return self.quote_repository.create_from_request(request, document_file_url)
         except Exception:
             self.db.rollback()
             raise HTTPException(

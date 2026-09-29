@@ -13,17 +13,21 @@ import {
 	Mail,
 	Phone,
 	AlertCircle,
+	Pencil,
 	Trash2,
 } from 'lucide-react-native';
 import {
 	getTranslator,
 	deleteTranslator,
+	updateTranslator,
+	setTranslatorActive,
 } from '../../modules/translators/services/translatorService';
-import {
-	PROFICIENCY_LABELS,
-	formatLanguagePairDisplay,
+import { PROFICIENCY_LABELS } from '../../modules/translators/types/translator';
+import type {
+	Translator,
+	TranslatorUpdateInput,
 } from '../../modules/translators/types/translator';
-import type { Translator } from '../../modules/translators/types/translator';
+import { TranslatorEditModal } from '../../modules/translators/components/TranslatorEditModal';
 import { Toast } from '../../shared/components/Toast';
 import { useToast } from '../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog';
@@ -36,6 +40,7 @@ export default function TranslatorDetailsScreen() {
 	const [error, setError] = useState(null as string | null);
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 	const { toast, showToast } = useToast();
 
 	useEffect(() => {
@@ -58,6 +63,20 @@ export default function TranslatorDetailsScreen() {
 			setIsDeleting(false);
 			setIsDeleteConfirmVisible(false);
 		}
+	}
+
+	async function handleSaveEdit(
+		data: TranslatorUpdateInput & { is_active: boolean },
+	) {
+		if (!translator) return;
+
+		const { is_active, ...updateData } = data;
+		let updated = await updateTranslator(translator.id, updateData);
+		if (is_active !== translator.is_active) {
+			updated = await setTranslatorActive(translator.id, is_active);
+		}
+		setTranslator(updated);
+		showToast('Tradutor atualizado com sucesso.', 'success');
 	}
 
 	if (isLoading) {
@@ -142,6 +161,17 @@ export default function TranslatorDetailsScreen() {
 					</TouchableOpacity>
 				</View>
 
+				<TouchableOpacity
+					onPress={() => setIsEditModalVisible(true)}
+					activeOpacity={0.7}
+					className="mb-6 flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2"
+				>
+					<Pencil size={14} color="#353535" />
+					<Text className="font-inter font-semibold text-gray-800 text-xs">
+						Editar
+					</Text>
+				</TouchableOpacity>
+
 				<View className="mb-4 gap-3 rounded-xl border border-gray-100 p-4">
 					<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
 						Contato
@@ -162,27 +192,27 @@ export default function TranslatorDetailsScreen() {
 
 				<View className="mb-4 gap-3 rounded-xl border border-gray-100 p-4">
 					<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
-						Pares de Idioma
+						Idiomas falados
 					</Text>
-					{translator.language_pairs.length === 0 ? (
+					{translator.languages.length === 0 ? (
 						<Text className="font-inter text-gray-400 text-sm">
-							Nenhum par de idioma cadastrado.
+							Nenhum idioma cadastrado.
 						</Text>
 					) : (
-						translator.language_pairs.map((p) => (
+						translator.languages.map((language) => (
 							<View
-								key={p.id}
+								key={language.id}
 								className="flex-row items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2.5"
 							>
 								<Text
 									className="flex-1 font-inter font-medium text-gray-800 text-sm"
 									numberOfLines={2}
 								>
-									{formatLanguagePairDisplay(p)}
+									{language.language_name}
 								</Text>
 								<View className="shrink-0 rounded-full bg-blue-100 px-2.5 py-0.5">
 									<Text className="font-inter font-medium text-blue-800 text-xs">
-										{PROFICIENCY_LABELS[p.proficiency_level]}
+										{PROFICIENCY_LABELS[language.proficiency_level]}
 									</Text>
 								</View>
 							</View>
@@ -228,6 +258,13 @@ export default function TranslatorDetailsScreen() {
 				isLoading={isDeleting}
 				onConfirm={handleDelete}
 				onCancel={() => setIsDeleteConfirmVisible(false)}
+			/>
+
+			<TranslatorEditModal
+				visible={isEditModalVisible}
+				translator={translator}
+				onClose={() => setIsEditModalVisible(false)}
+				onSubmit={handleSaveEdit}
 			/>
 
 			<Toast toast={isDeleteConfirmVisible ? null : toast} />
