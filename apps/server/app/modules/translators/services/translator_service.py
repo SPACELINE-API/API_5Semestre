@@ -92,9 +92,7 @@ class TranslatorService:
             languages_input=data.languages,
         )
 
-    def update_status(
-        self, translator_id: uuid.UUID, data: TranslatorStatusUpdate
-    ) -> Translator:
+    def update_status(self, translator_id: uuid.UUID, data: TranslatorStatusUpdate) -> Translator:
         translator = self._get_translator_or_404(translator_id)
         return self.repo.update_status(translator, data.is_active)
 

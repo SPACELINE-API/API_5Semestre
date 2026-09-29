@@ -58,3 +58,4 @@ playwright-report/
 
 # Local Playwright audit traces
 apps/mobile/.audit-results/
+apps/mobile/.expo-css-check/
