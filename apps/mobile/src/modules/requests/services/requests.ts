@@ -50,11 +50,18 @@ export type CreateRequestResult =
 const API_BASE_URL = env.apiUrl;
 
 export async function fetchRequests(): Promise<RequestItem[]> {
-	const response = await fetch(`${API_BASE_URL}/api/quotes/requests`);
-	if (!response.ok) {
+	let response: Response;
+	try {
+		response = await fetch(`${API_BASE_URL}/api/quotes/requests`);
+	} catch (error) {
+		console.error('Error loading requests:', error);
 		throw new Error(
-			`Não foi possível carregar as solicitações (${response.status}).`,
+			'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
 		);
+	}
+
+	if (!response.ok) {
+		throw new Error('Não foi possível carregar as solicitações. Tente novamente.');
 	}
 	return (await response.json()) as RequestItem[];
 }

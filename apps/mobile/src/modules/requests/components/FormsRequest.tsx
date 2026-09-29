@@ -188,9 +188,9 @@ export default function FormsRequest() {
 							className="h-11 w-full rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
 						/>
 
-						{emailError && (
+						{emailError ? (
 							<Text className="mt-1 text-sm text-red-600">{emailError}</Text>
-						)}
+						) : null}
 					</View>
 
 					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
