@@ -1,6 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+	type ComponentProps,
+	type ComponentType,
+} from 'react';
 import {
 	ActivityIndicator,
+	Platform,
 	ScrollView,
 	Text,
 	TextInput,
@@ -8,6 +16,7 @@ import {
 	View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import {
 	ArrowLeft,
 	CheckCircle2,
@@ -22,6 +31,7 @@ import {
 import type { RequestItem } from '../../requests/services/requests';
 import { generateQuoteFromRequest } from '../services/quotesService';
 import type { QuoteFromRequestResponse } from '../services/quotesService';
+import { FilePreview } from '../../../shared/components/FilePreview';
 
 type RequiredRequestField = {
 	key: keyof Pick<
@@ -97,6 +107,9 @@ function getStatusUpdateError(status: number, detail?: string) {
 }
 
 export default function GenerateQuoteFromRequestPage() {
+	const KeyboardContainer = (
+		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
+	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const { requestId: rawRequestId } = useLocalSearchParams<{
 		requestId: string | string[];
 	}>();
@@ -203,9 +216,12 @@ export default function GenerateQuoteFromRequestPage() {
 				: { container: 'bg-orange-100', text: 'text-orange-800' };
 
 	return (
-		<ScrollView
+		<KeyboardContainer
 			className="flex-1 bg-gray-50"
 			contentContainerClassName="p-4 md:p-8 flex-grow"
+			{...(Platform.OS === 'web'
+				? {}
+				: { bottomOffset: 20, keyboardShouldPersistTaps: 'handled' })}
 		>
 			<View className="w-full max-w-5xl self-center">
 				<TouchableOpacity
@@ -331,18 +347,19 @@ export default function GenerateQuoteFromRequestPage() {
 									/>
 								)}
 							</View>
-						</View>
-						{request.status === 'reproved' && request.reproval_reason ? (
-							<View className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
-								<Text className="font-inter-semibold text-sm text-red-900">
-									Motivo da reprovação
+							<View className="mt-5 gap-2">
+								<Text className="font-inter-medium text-xs text-gray-500">
+									Documento anexado
 								</Text>
-								<Text className="mt-1 font-inter text-sm text-red-800">
-									{request.reproval_reason}
-								</Text>
+								{request.document ? (
+									<FilePreview fileUrl={request.document} openInNewPage />
+								) : (
+									<Text className="font-inter text-sm text-gray-500">
+										Nenhum documento anexado.
+									</Text>
+								)}
 							</View>
-						) : null}
-
+						</View>
 						<View className="bg-white rounded-lg border border-gray-200 p-4 md:p-6 mb-6">
 							<Text className="font-inter-bold text-sm text-gray-900 mb-5">
 								Dados do serviço solicitado
@@ -460,15 +477,6 @@ export default function GenerateQuoteFromRequestPage() {
 							</View>
 						)}
 
-						{!generatedQuote && request.status === 'reproved' && (
-							<View className="flex-row items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-								<CircleAlert size={19} color="#dc2626" />
-								<Text className="flex-1 font-inter text-sm text-red-800">
-									Esta solicitação foi reprovada e não pode gerar um orçamento.
-								</Text>
-							</View>
-						)}
-
 						{!generatedQuote && isApproved && (
 							<>
 								{missingFields.length > 0 && (
@@ -522,9 +530,28 @@ export default function GenerateQuoteFromRequestPage() {
 								</View>
 							</>
 						)}
+
+						{request.status === 'reproved' ? (
+							<View className="mt-2 flex-row items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+								<CircleAlert size={19} color="#dc2626" />
+								<View className="flex-1">
+									<Text className="font-inter-semibold text-sm text-red-900">
+										Solicitação reprovada
+									</Text>
+									{request.reproval_reason ? (
+										<Text className="mt-1 font-inter text-sm text-red-800">
+											Motivo: {request.reproval_reason}
+										</Text>
+									) : null}
+									<Text className="mt-1 font-inter text-sm text-red-800">
+										Esta solicitação não pode gerar um orçamento.
+									</Text>
+								</View>
+							</View>
+						) : null}
 					</>
 				) : null}
 			</View>
-		</ScrollView>
+		</KeyboardContainer>
 	);
 }
