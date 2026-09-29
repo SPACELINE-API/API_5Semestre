@@ -24,13 +24,19 @@ function parseUploadError(body: string, status: number) {
 function normalizeUploadError(error: unknown): Error {
 	const message = error instanceof Error ? error.message : String(error);
 
-	if (/file does not exist|does not exist|not found|permission denied|ioexception/i.test(message)) {
+	if (
+		/file does not exist|does not exist|not found|permission denied|ioexception/i.test(
+			message,
+		)
+	) {
 		return new Error(
 			'Não foi possível acessar o arquivo selecionado. Escolha o arquivo novamente e tente de novo.',
 		);
 	}
 
-	return new Error('Não foi possível enviar o arquivo. Verifique sua conexão e tente novamente.');
+	return new Error(
+		'Não foi possível enviar o arquivo. Verifique sua conexão e tente novamente.',
+	);
 }
 
 export async function uploadFileMultipart<TResponse>(

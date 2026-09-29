@@ -78,7 +78,9 @@ test.describe('Service orders list', () => {
 		await expect(
 			page.getByText('Tradução de contratos comerciais'),
 		).toBeVisible();
-		await expect(page.getByText('Rezende Advogados', { exact: true }).last()).toBeVisible();
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }).last(),
+		).toBeVisible();
 	});
 
 	test('shows an error message when the initial load fails', async ({
@@ -119,17 +121,14 @@ test.describe('Service orders list', () => {
 				body: JSON.stringify([COMPANY]),
 			});
 		});
-		await page.route(
-			'**/generate-from-quote**',
-			async (route) => {
-				requestBody = route.request().postDataJSON() as Record<string, unknown>;
-				await route.fulfill({
-					status: 201,
-					contentType: 'application/json',
-					body: JSON.stringify(SERVICE_ORDER),
-				});
-			},
-		);
+		await page.route('**/generate-from-quote**', async (route) => {
+			requestBody = route.request().postDataJSON() as Record<string, unknown>;
+			await route.fulfill({
+				status: 201,
+				contentType: 'application/json',
+				body: JSON.stringify(SERVICE_ORDER),
+			});
+		});
 		await page.route('**/api/service-orders', async (route) => {
 			if (route.request().method() === 'GET') {
 				await route.fulfill({

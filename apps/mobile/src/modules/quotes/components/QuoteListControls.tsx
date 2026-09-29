@@ -5,7 +5,13 @@ import {
 	Search,
 	SlidersHorizontal,
 } from 'lucide-react-native';
-import { Text, TextInput, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import {
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+	useWindowDimensions,
+} from 'react-native';
 import type { QuoteStatusFilter } from '../services/quotesService';
 
 const statusOptions: { value: QuoteStatusFilter; label: string }[] = [

@@ -43,7 +43,9 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 		await loginAs(page);
 		await page.goto('/clientes');
 
-		await expect(page.getByText('Rezende Advogados', { exact: true })).toBeVisible();
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
 		await expect(page.getByText('Global Traducoes')).toBeVisible();
 	});
 
@@ -100,7 +102,9 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 
 		await loginAs(page);
 		await page.goto('/clientes');
-		await expect(page.getByText('Rezende Advogados', { exact: true })).toBeVisible();
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
 
 		await page.getByText('Novo cliente').click();
 		await page
@@ -125,7 +129,9 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 		await page.getByPlaceholder('SP').fill(COMPANY_B.state);
 		await page.getByText('Salvar').click();
 
-		await expect(page.getByText('Global Traducoes', { exact: true })).toBeVisible();
+		await expect(
+			page.getByText('Global Traducoes', { exact: true }),
+		).toBeVisible();
 		expect(getCallCount).toBe(1);
 	});
 
@@ -155,14 +161,18 @@ test.describe('Clients list (hook + service + apiClient integration)', () => {
 
 		await loginAs(page);
 		await page.goto('/clientes');
-		await expect(page.getByText('Rezende Advogados', { exact: true })).toBeVisible();
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toBeVisible();
 
 		await page.getByLabel('Selecionar Rezende Advogados').click();
 		await page.getByText('Excluir', { exact: true }).click();
 		await expect(page.getByText('Excluir empresas selecionadas')).toBeVisible();
 		await page.getByText('Excluir', { exact: true }).last().click();
 
-		await expect(page.getByText('Rezende Advogados', { exact: true })).toHaveCount(0);
+		await expect(
+			page.getByText('Rezende Advogados', { exact: true }),
+		).toHaveCount(0);
 		await expect(page.getByText('Global Traducoes')).toBeVisible();
 		expect(getCallCount).toBe(1);
 	});

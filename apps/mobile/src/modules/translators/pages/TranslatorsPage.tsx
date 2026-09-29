@@ -124,7 +124,9 @@ export function TranslatorsPage() {
 									value={search}
 									onChangeText={setSearch}
 									placeholder={
-										width < 768 ? 'Buscar nome ou e-mail' : 'Buscar por nome, email...'
+										width < 768
+											? 'Buscar nome ou e-mail'
+											: 'Buscar por nome, email...'
 									}
 									placeholderTextColor="#9CA3AF"
 									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"

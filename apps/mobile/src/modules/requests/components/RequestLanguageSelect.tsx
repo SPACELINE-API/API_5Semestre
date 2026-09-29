@@ -70,7 +70,9 @@ export function RequestLanguageSelect({
 			>
 				{selectedLanguage ? (
 					<View className="flex-row items-center gap-2">
-						<Text className="text-base">{getLanguageFlag(selectedLanguage)}</Text>
+						<Text className="text-base">
+							{getLanguageFlag(selectedLanguage)}
+						</Text>
 						<Text className="text-sm text-[#12233c]">
 							{selectedLanguage.name}
 						</Text>
@@ -113,7 +115,9 @@ export function RequestLanguageSelect({
 								value={search}
 								onChangeText={setSearch}
 								placeholder={
-									width < 768 ? 'Buscar idioma ou código' : 'Buscar por idioma ou código'
+									width < 768
+										? 'Buscar idioma ou código'
+										: 'Buscar por idioma ou código'
 								}
 								placeholderTextColor="#9CA3AF"
 								autoCapitalize="none"

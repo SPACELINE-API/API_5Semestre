@@ -40,7 +40,9 @@ const SCROLL_CLASSNAME =
 export function SupportPage() {
 	const { width } = useWindowDimensions();
 	const isMobileLayout = width < 768;
-	const [webViewportHeight, setWebViewportHeight] = useState<number | null>(null);
+	const [webViewportHeight, setWebViewportHeight] = useState<number | null>(
+		null,
+	);
 	const inputRef = useRef<TextInput>(null);
 	const scrollRef = useRef<ScrollView>(null);
 	const previousStatusRef = useRef<'idle' | 'loading' | 'error'>('idle');
@@ -64,7 +66,11 @@ export function SupportPage() {
 			window.matchMedia?.('(pointer: coarse)').matches === true);
 
 	useEffect(() => {
-		if (Platform.OS !== 'web' || !isMobileLayout || typeof window === 'undefined') {
+		if (
+			Platform.OS !== 'web' ||
+			!isMobileLayout ||
+			typeof window === 'undefined'
+		) {
 			setWebViewportHeight(null);
 			return;
 		}

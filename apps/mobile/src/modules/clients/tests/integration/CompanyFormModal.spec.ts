@@ -75,9 +75,7 @@ test.describe('CompanyFormModal', () => {
 		await expect(phoneField).toHaveValue('(11) 98765-4321');
 	});
 
-	test('accepts the official alphanumeric CNPJ', async ({
-		page,
-	}) => {
+	test('accepts the official alphanumeric CNPJ', async ({ page }) => {
 		await openNewCompanyModal(page);
 		await page
 			.getByPlaceholder('Ex: Rezende Advogados Ltda')

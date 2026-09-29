@@ -61,7 +61,9 @@ export async function fetchRequests(): Promise<RequestItem[]> {
 	}
 
 	if (!response.ok) {
-		throw new Error('Não foi possível carregar as solicitações. Tente novamente.');
+		throw new Error(
+			'Não foi possível carregar as solicitações. Tente novamente.',
+		);
 	}
 	return (await response.json()) as RequestItem[];
 }
@@ -137,21 +139,21 @@ export async function createRequest(
 			const hasWebFile =
 				payload.document.file != null &&
 				(typeof document !== 'undefined' ||
-					(typeof Blob !== 'undefined' && payload.document.file instanceof Blob));
+					(typeof Blob !== 'undefined' &&
+						payload.document.file instanceof Blob));
 			if (typeof document !== 'undefined' && !payload.document.file) {
 				throw new Error(
 					'Não foi possível acessar o arquivo selecionado. Escolha-o novamente.',
 				);
 			}
 
-			const documentFile =
-				hasWebFile
-					? (payload.document.file as File)
-					: {
-							uri: payload.document.uri,
-							name: payload.document.name,
-							type: payload.document.type ?? 'application/octet-stream',
-						};
+			const documentFile = hasWebFile
+				? (payload.document.file as File)
+				: {
+						uri: payload.document.uri,
+						name: payload.document.name,
+						type: payload.document.type ?? 'application/octet-stream',
+					};
 			const data = await uploadFileMultipart<RequestItem>(
 				`${API_BASE_URL}/api/quotes/requests`,
 				documentFile,
@@ -164,7 +166,9 @@ export async function createRequest(
 		}
 
 		const formData = new FormData();
-		Object.entries(fields).forEach(([name, value]) => formData.append(name, value));
+		Object.entries(fields).forEach(([name, value]) =>
+			formData.append(name, value),
+		);
 
 		const response = await fetch(`${API_BASE_URL}/api/quotes/requests`, {
 			method: 'POST',

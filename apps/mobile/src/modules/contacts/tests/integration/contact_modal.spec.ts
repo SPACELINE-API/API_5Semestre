@@ -49,7 +49,9 @@ test.describe('Contact Modal Integration', () => {
 
 		const dialog = page.getByRole('dialog');
 		await expect(dialog.getByText('Nome', { exact: true })).toBeVisible();
-		await expect(dialog.getByText('Departamento', { exact: true })).toBeVisible();
+		await expect(
+			dialog.getByText('Departamento', { exact: true }),
+		).toBeVisible();
 		await expect(dialog.getByText('Telefone', { exact: true })).toBeVisible();
 		await expect(dialog.getByText('Email', { exact: true })).toBeVisible();
 		await expect(dialog.getByPlaceholder('Ex: João da Silva')).toHaveAttribute(

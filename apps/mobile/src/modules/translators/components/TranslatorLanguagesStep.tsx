@@ -84,7 +84,9 @@ export function TranslatorLanguagesStep({
 		setLanguageSearch('');
 	};
 	const openCreateLanguage = () => {
-		setCreateTargetIndex(langPicker ?? languages.findIndex((item) => !item.language_id));
+		setCreateTargetIndex(
+			langPicker ?? languages.findIndex((item) => !item.language_id),
+		);
 		setNewLanguageId('');
 		setNewLanguageName('');
 		onClearCreateLanguageError();
@@ -97,7 +99,8 @@ export function TranslatorLanguagesStep({
 		setCreatingLanguage(false);
 		if (!created) return;
 		const targetIndex = createTargetIndex ?? -1;
-		if (targetIndex >= 0) onUpdateLanguage(targetIndex, 'language_id', created.id);
+		if (targetIndex >= 0)
+			onUpdateLanguage(targetIndex, 'language_id', created.id);
 		setCreateLanguageVisible(false);
 		closeLanguagePicker();
 	};

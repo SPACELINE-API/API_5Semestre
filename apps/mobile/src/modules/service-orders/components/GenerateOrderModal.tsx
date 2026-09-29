@@ -346,7 +346,9 @@ export function GenerateOrderModal({
 											onChangeText={setCompanySearch}
 											onFocus={() => setIsCompanyPickerOpen(true)}
 											placeholder={
-												width < 768 ? 'Buscar empresa' : 'Buscar empresa por nome'
+												width < 768
+													? 'Buscar empresa'
+													: 'Buscar empresa por nome'
 											}
 											placeholderTextColor="#9CA3AF"
 											className="flex-1 font-inter text-sm text-gray-900 outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"

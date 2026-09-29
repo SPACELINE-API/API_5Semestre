@@ -194,8 +194,7 @@ export function TranslatorFormModal({
 		}
 		if (
 			apiLanguages.some(
-				(language) =>
-					language.id.toLowerCase() === normalizedId.toLowerCase(),
+				(language) => language.id.toLowerCase() === normalizedId.toLowerCase(),
 			)
 		) {
 			setLanguageCreateError('Já existe um idioma com essa sigla.');

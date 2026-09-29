@@ -170,7 +170,9 @@ export function TranslatorsInviteTab({
 					onChangeText={setSearch}
 					editable={!isItemAssigned}
 					placeholder={
-						width < 768 ? 'Buscar tradutor' : 'Buscar tradutor por nome ou email'
+						width < 768
+							? 'Buscar tradutor'
+							: 'Buscar tradutor por nome ou email'
 					}
 					placeholderTextColor="#9CA3AF"
 					className="flex-1 font-inter text-sm text-gray-900 outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"

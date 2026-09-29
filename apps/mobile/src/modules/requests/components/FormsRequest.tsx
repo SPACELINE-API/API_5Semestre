@@ -296,7 +296,11 @@ export default function FormsRequest() {
 
 					{document ? (
 						<View className="mt-6 w-full flex-row items-center gap-3 rounded-xl border border-[#c7dced] bg-white p-4">
-							<Text className="min-w-0 flex-1 text-sm text-[#12233c]" numberOfLines={2} ellipsizeMode="middle">
+							<Text
+								className="min-w-0 flex-1 text-sm text-[#12233c]"
+								numberOfLines={2}
+								ellipsizeMode="middle"
+							>
 								{document.name}
 							</Text>
 							<TouchableOpacity

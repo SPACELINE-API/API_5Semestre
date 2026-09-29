@@ -13,16 +13,21 @@ import {
 	Mail,
 	Phone,
 	AlertCircle,
-	Power,
+	Pencil,
 	Trash2,
 } from 'lucide-react-native';
 import {
 	getTranslator,
 	deleteTranslator,
+	updateTranslator,
 	setTranslatorActive,
 } from '../../modules/translators/services/translatorService';
 import { PROFICIENCY_LABELS } from '../../modules/translators/types/translator';
-import type { Translator } from '../../modules/translators/types/translator';
+import type {
+	Translator,
+	TranslatorUpdateInput,
+} from '../../modules/translators/types/translator';
+import { TranslatorEditModal } from '../../modules/translators/components/TranslatorEditModal';
 import { Toast } from '../../shared/components/Toast';
 import { useToast } from '../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog';
@@ -35,8 +40,7 @@ export default function TranslatorDetailsScreen() {
 	const [error, setError] = useState(null as string | null);
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
-	const [isStatusConfirmVisible, setIsStatusConfirmVisible] = useState(false);
-	const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+	const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 	const { toast, showToast } = useToast();
 
 	useEffect(() => {
@@ -61,26 +65,18 @@ export default function TranslatorDetailsScreen() {
 		}
 	}
 
-	async function handleToggleStatus() {
+	async function handleSaveEdit(
+		data: TranslatorUpdateInput & { is_active: boolean },
+	) {
 		if (!translator) return;
 
-		setIsUpdatingStatus(true);
-		try {
-			const updated = await setTranslatorActive(
-				translator.id,
-				!translator.is_active,
-			);
-			setTranslator(updated);
-			showToast(
-				updated.is_active ? 'Tradutor ativado.' : 'Tradutor desativado.',
-				'success',
-			);
-		} catch {
-			showToast('Não foi possível atualizar o status do tradutor.', 'error');
-		} finally {
-			setIsUpdatingStatus(false);
-			setIsStatusConfirmVisible(false);
+		const { is_active, ...updateData } = data;
+		let updated = await updateTranslator(translator.id, updateData);
+		if (is_active !== translator.is_active) {
+			updated = await setTranslatorActive(translator.id, is_active);
 		}
+		setTranslator(updated);
+		showToast('Tradutor atualizado com sucesso.', 'success');
 	}
 
 	if (isLoading) {
@@ -166,18 +162,13 @@ export default function TranslatorDetailsScreen() {
 				</View>
 
 				<TouchableOpacity
-					onPress={() => setIsStatusConfirmVisible(true)}
+					onPress={() => setIsEditModalVisible(true)}
 					activeOpacity={0.7}
-					className={`mb-6 flex-row items-center gap-2 self-start rounded-lg border px-4 py-2.5 ${translator.is_active ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}`}
+					className="mb-6 flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2"
 				>
-					<Power
-						size={16}
-						color={translator.is_active ? '#B91C1C' : '#15803D'}
-					/>
-					<Text
-						className={`font-inter font-medium text-sm ${translator.is_active ? 'text-red-800' : 'text-green-800'}`}
-					>
-						{translator.is_active ? 'Desativar tradutor' : 'Ativar tradutor'}
+					<Pencil size={14} color="#353535" />
+					<Text className="font-inter font-semibold text-gray-800 text-xs">
+						Editar
 					</Text>
 				</TouchableOpacity>
 
@@ -255,21 +246,6 @@ export default function TranslatorDetailsScreen() {
 			</ScrollView>
 
 			<ConfirmDialog
-				visible={isStatusConfirmVisible}
-				title={translator.is_active ? 'Desativar tradutor' : 'Ativar tradutor'}
-				message={
-					translator.is_active
-						? `Tem certeza que deseja desativar ${translator.name}?`
-						: `Tem certeza que deseja ativar ${translator.name}?`
-				}
-				confirmLabel={translator.is_active ? 'Desativar' : 'Ativar'}
-				destructive={translator.is_active}
-				isLoading={isUpdatingStatus}
-				onConfirm={handleToggleStatus}
-				onCancel={() => setIsStatusConfirmVisible(false)}
-			/>
-
-			<ConfirmDialog
 				visible={isDeleteConfirmVisible}
 				title="Excluir tradutor"
 				message={
@@ -284,11 +260,14 @@ export default function TranslatorDetailsScreen() {
 				onCancel={() => setIsDeleteConfirmVisible(false)}
 			/>
 
-			<Toast
-				toast={
-					isDeleteConfirmVisible || isStatusConfirmVisible ? null : toast
-				}
+			<TranslatorEditModal
+				visible={isEditModalVisible}
+				translator={translator}
+				onClose={() => setIsEditModalVisible(false)}
+				onSubmit={handleSaveEdit}
 			/>
+
+			<Toast toast={isDeleteConfirmVisible ? null : toast} />
 		</View>
 	);
 }

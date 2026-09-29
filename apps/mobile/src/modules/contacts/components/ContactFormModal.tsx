@@ -49,7 +49,10 @@ function validateForm(form: FormData): FormErrors {
 		}
 	}
 
-	for (const [key, limit] of Object.entries(limits) as [keyof FormData, number][]) {
+	for (const [key, limit] of Object.entries(limits) as [
+		keyof FormData,
+		number,
+	][]) {
 		if (form[key].length > limit) {
 			errors[key] = `Máximo de ${limit} caracteres.`;
 		}
@@ -204,7 +207,7 @@ export function ContactFormModal({
 								value={form.email}
 								onChangeText={(value) => setField('email', value)}
 								placeholder="joao@empresa.com"
-							maxLength={255}
+								maxLength={255}
 								error={fieldErrors.email}
 							/>
 						</View>

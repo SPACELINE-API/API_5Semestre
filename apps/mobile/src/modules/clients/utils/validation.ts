@@ -8,9 +8,10 @@ export function isValidCnpjShape(value: string): boolean {
 }
 
 function calculateCnpjCheckDigit(value: string): number {
-	const weights = value.length === 12
-		? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-		: [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+	const weights =
+		value.length === 12
+			? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+			: [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 	const sum = [...value].reduce(
 		(total, character, index) =>
 			total + (character.charCodeAt(0) - 48) * weights[index],
