@@ -92,9 +92,7 @@ def test_generate_quote_rejects_duplicate(mock_db_session):
     mock_db_session.commit.assert_not_called()
 
 
-def test_generate_quote_transfers_request_document_to_new_item(
-    mock_db_session, monkeypatch
-):
+def test_generate_quote_transfers_request_document_to_new_item(mock_db_session, monkeypatch):
     request = approved_request()
     request.document = b"conteudo-do-arquivo"
     request.document_filename = "diploma.pdf"

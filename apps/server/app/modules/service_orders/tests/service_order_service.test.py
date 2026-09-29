@@ -15,6 +15,7 @@ from app.modules.service_orders.models.service_order_item import (
     STATUS_EM_ANALISE,
     STATUS_EM_ANDAMENTO,
     STATUS_PENDENTE,
+    ServiceOrderItem,
 )
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
@@ -29,7 +30,6 @@ from app.modules.service_orders.services.service_order_service import (
     ServiceOrderService,
     compute_aggregate_status,
 )
-from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 from app.modules.translators.models.translator import Translator
 
 _FIRST_DV_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
@@ -370,9 +370,7 @@ def test_add_file_saida_marks_items_concluded_when_all_delivered(
     db_session.commit()
     db_session.refresh(translator)
 
-    db_session.query(ServiceOrderItem).filter(
-        ServiceOrderItem.service_order_id == order.id
-    ).update(
+    db_session.query(ServiceOrderItem).filter(ServiceOrderItem.service_order_id == order.id).update(
         {"translator_id": translator.id, "status": STATUS_EM_ANDAMENTO},
         synchronize_session=False,
     )
