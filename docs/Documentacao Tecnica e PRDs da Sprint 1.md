@@ -7,13 +7,13 @@
 
 ## Documentos
 
-- [CI - GitHub Actions](<CI - GitHub Actions.md>)
-- [Guia de Models e Migrations no Backend](<Guia de Models e Migrations no Backend com SQLAlchemy e Alembic.md>)
-- [PRD EP.1 - Cadastro de Clientes e Contatos](<PRD EP.1 - Cadastro de Clientes e Contatos.md>)
-- [PRD EP.2 - Cadastro de Recursos e Tradutores](<PRD EP.2 - Cadastro de Recursos e Tradutores.md>)
-- [PRD EP.3 - Workflow de Ordem de Serviço e Alocação](<PRD EP.3 - Workflow de Ordem de Servico e Alocacao.md>)
-- [PRD EP.4 - Agente de Suporte](<PRD EP.4 - Agente de Suporte.md>)
-- [PRD EP.5 - Gestão de Orçamentos](<PRD EP.5 - Gestao de Orcamentos.md>)
+- [CI - GitHub Actions](<pdf/CI - GitHub Actions.pdf>)
+- [Guia de Models e Migrations no Backend](<pdf/Guia de Models e Migrations no Backend com SQLAlchemy e Alembic.pdf>)
+- [PRD EP.1 - Cadastro de Clientes e Contatos](<pdf/PRD EP.1 - Cadastro de Clientes e Contatos.pdf>)
+- [PRD EP.2 - Cadastro de Recursos e Tradutores](<pdf/PRD EP.2 - Cadastro de Recursos e Tradutores.pdf>)
+- [PRD EP.3 - Workflow de Ordem de Serviço e Alocação](<pdf/PRD EP.3 - Workflow de Ordem de Servico e Alocacao.pdf>)
+- [PRD EP.4 - Agente de Suporte](<pdf/PRD EP.4 - Agente de Suporte.pdf>)
+- [PRD EP.5 - Gestão de Orçamentos](<pdf/PRD EP.5 - Gestao de Orcamentos.pdf>)
 
 Os guias técnicos descrevem o funcionamento atual do repositório. Os PRDs
 registram as histórias, regras e critérios de aceite da Sprint 1.

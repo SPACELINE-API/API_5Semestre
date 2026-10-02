@@ -80,7 +80,7 @@ suas URLs ficam nos registros correspondentes.
 As mudanças de estrutura do banco são versionadas como migrations SQL. Alembic
 compara os modelos com o banco para gerar as alterações; a aplicação executa as
 migrations pendentes. Veja o
-[guia de migrations](<./Guia de Models e Migrations no Backend com SQLAlchemy e Alembic.md>).
+[guia de migrations](<./pdf/Guia de Models e Migrations no Backend com SQLAlchemy e Alembic.pdf>).
 
 ## Fluxos entre módulos
 
@@ -133,4 +133,4 @@ pnpm dev
 
 Também é possível iniciar separadamente o aplicativo ou a API. O backend usa
 pytest, Ruff e mypy; o aplicativo usa TypeScript, ESLint e Playwright. A CI e
-seus critérios estão descritos no [guia de CI](<./CI - GitHub Actions.md>).
+seus critérios estão descritos no [guia de CI](<./pdf/CI - GitHub Actions.pdf>).
