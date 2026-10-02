@@ -1,132 +1,136 @@
-# Arquitetura do Sistema
+# Arquitetura do sistema
 
-## Visão Geral
+## Estilo arquitetural
 
-Este documento descreve a arquitetura do projeto Spaceline, um sistema voltado
-para a gestão operacional de serviços de tradução, abrangendo desde o cadastro
-de clientes e recursos (tradutores), até o fluxo de orçamentos, ordens de
-serviço, alocação de tarefas, suporte via agente inteligente e faturamento.
+O sistema é um **monolito modular**. O backend é uma única aplicação FastAPI,
+organizada em módulos de domínio que compartilham o mesmo processo, configuração
+e banco relacional. Os módulos separam responsabilidades por área do negócio;
+eles não são serviços independentes implantados separadamente.
 
-O projeto adota uma arquitetura de monolito Modular gerenciado via `pnpm`,
-dividindo as responsabilidades em duas aplicações principais: Backend
-(`apps/server`) e Frontend multiplataforma (`apps/mobile`).
+O repositório reúne essa API e um aplicativo multiplataforma. O aplicativo usa
+Expo, React Native e TypeScript e pode ser executado em dispositivos móveis e na
+web. A API concentra regras de negócio e acesso aos dados; o aplicativo consome
+essas capacidades por HTTP.
 
----
+```mermaid
+flowchart LR
+    Client["Aplicativo Expo<br/>Web e mobile"] -->|HTTP /api| API["Monolito modular<br/>FastAPI"]
+    API -->|SQLAlchemy e psycopg| DB[("PostgreSQL")]
+    API -->|Autenticação e validação de token| Auth["Supabase Auth"]
+    API -->|Arquivos| Storage["Supabase Storage"]
+    API -->|Eventos de suporte| Inngest["Inngest"]
+    Inngest -->|Aciona processamento| API
+    API --> Agent["Agente de suporte<br/>Google ADK"]
+    Agent -->|Consultas do agente| DB
+```
 
-## Estrutura do monolito
+## Aplicativo multiplataforma
 
-A raiz do projeto contém as configurações globais de integração e padronização:
+O mesmo aplicativo atende navegador e dispositivos móveis com React Native. O
+Expo fornece o ambiente de execução, o Expo Router organiza a navegação e
+NativeWind aplica os estilos. As telas e serviços são agrupados por domínio; há
+componentes, autenticação e comunicação HTTP compartilhados entre as áreas.
 
-- `pnpm-workspace.yaml`: Gerenciamento dos múltiplos pacotes (workspaces).
-- `.husky/` e `commitlint.config.js`: Padronização e validação de commits.
-- `docker-compose.yml`: Orquestração da infraestrutura local de desenvolvimento.
+As áreas do aplicativo são: autenticação, usuários, clientes, contatos,
+solicitações, orçamentos, recursos, tradutores, ordens de serviço, alocações,
+convites, painel, início, suporte e agente de suporte. A presença de uma área no
+aplicativo não significa que todas as operações correspondentes já estejam
+disponíveis na API.
 
----
+## Backend: monolito modular
 
-## Backend (`apps/server`)
+As rotas da API são publicadas sob `/api`. Em geral, cada domínio separa o
+recebimento das requisições, a validação dos dados, as regras de negócio, o
+acesso ao banco e os modelos persistidos. Os módulos mais completos também
+mantêm testes próprios. Nem todo domínio possui todas essas camadas ou o mesmo
+nível de operações expostas.
 
-O backend é desenvolvido em **Python** e adota uma arquitetura modular orientada
-a domínios de negócio. Cada módulo encapsula suas próprias regras, modelos e
-rotas, promovendo baixo acoplamento e alta coesão estrutural e de dados.
+| Módulo                | Responsabilidade principal                                                                                                       |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Autenticação          | Login, recuperação de senha, validação de sessão e acesso ao provedor de autenticação.                                           |
+| Usuários              | Dados e identidade dos usuários do sistema. O grupo de rotas não expõe operações próprias.                                       |
+| Clientes              | Cadastro e consulta de empresas clientes.                                                                                        |
+| Contatos              | Cadastro e manutenção de contatos vinculados às empresas.                                                                        |
+| Recursos              | Grupo de rotas reservado, sem operações ou modelos de domínio implementados atualmente.                                          |
+| Tradutores            | Cadastro e manutenção de tradutores, qualificações, especialidades e pares de idiomas.                                           |
+| Orçamentos            | Solicitações de tradução, documentos, itens e geração de orçamento a partir de uma solicitação aprovada.                         |
+| Ordens de serviço     | Projetos de tradução, itens, arquivos e convites enviados a tradutores. Também permite criar uma ordem a partir de um orçamento. |
+| Alocações             | Grupo de rotas reservado, sem operações ou modelos de domínio implementados atualmente.                                          |
+| Parâmetros do sistema | Catálogo de idiomas disponibilizado à aplicação sob a área de suporte.                                                           |
+| Agente de suporte     | Responde perguntas diretamente ou por processamento assíncrono; suas ferramentas consultam dados do sistema.                     |
 
-### Estrutura de Diretórios
+Além desses domínios, há suporte para carga de dados locais de desenvolvimento.
+Isso é uma ferramenta de ambiente, não um domínio de negócio da API.
 
-Os domínios estão localizados em `apps/server/app/modules/`. O fluxo de
-requisição segue uma arquitetura em camadas padrão:
+## Persistência e serviços externos
 
-1. **Routes (`routes.py`)**: Camada de exposição da API. Responsável por receber
-   as requisições HTTP e roteá-las.
-2. **Schemas (`schemas/`)**: Contratos de entrada e saída (DTOs) para validação
-   de dados.
-3. **Services (`services/`)**: Camada onde residem as regras de negócio puras
-   estipuladas no backlog (ex: cálculos de preços, validações de transição de
-   status).
-4. **Repositories (`repositories/`)**: Camada de abstração de acesso a dados.
-   Isola o serviço do ORM e das consultas diretas ao banco.
-5. **Models (`models/`)**: Representação das entidades do domínio e mapeamento
-   objeto-relacional.
-6. **Tests (`tests/`)**: Testes isolados por domínio.
+O PostgreSQL armazena os dados relacionais. O backend abre sessões com
+SQLAlchemy e acessa o banco diretamente usando psycopg. As tabelas incluem
+empresas, contatos, usuários, solicitações, orçamentos, itens de tradução,
+ordens de serviço, arquivos associados, tradutores e convites.
 
-### Principais Módulos de Domínio
+No ambiente local, Docker Compose inicia o PostgreSQL e serviços compatíveis com
+Supabase, incluindo autenticação, REST, armazenamento de arquivos e gateway. O
+login passa pela API e pelo Supabase Auth; as credenciais de sessão retornadas
+são enviadas pelo aplicativo nas chamadas autenticadas. O documento enviado
+junto a uma solicitação é armazenado como dado binário no PostgreSQL. Arquivos
+de itens de orçamento e de ordens de serviço são enviados ao Supabase Storage;
+suas URLs ficam nos registros correspondentes.
 
-- **auth**: Responsável exclusivamente pela autenticação, controle e expiração
-  de sessões (incluindo logout automático por inatividade) e validação de tokens
-  de segurança.
-- **users**: Focado no gerenciamento das contas de usuários do sistema,
-  associação de perfis de acesso (atendimento, projetos, financeiro, recursos
-  externos) e definição de suas respectivas permissões.
-- **clients**: Concentra as regras de negócio e persistência das empresas
-  clientes, mantendo o controle de status (ativo/inativo) e dados básicos para
-  relacionamento comercial.
-- **contacts**: Entidade dependente vinculada aos clientes. Gerencia os pontos
-  de contato dentro de uma empresa, validando dados como e-mail, telefone e
-  departamento.
-- **translators**: Módulo dedicado às especificidades dos profissionais de
-  tradução (banco de talentos). Controla os pares de idiomas, qualificações
-  técnicas, especialidades e disponibilidade.
-- **quotes**: Gerencia a transformação de requisições em propostas comerciais
-  (orçamentos). Lida com a precificação, adição de itens, definição de idiomas
-  de origem/destino e fluxo de aprovação.
-- **service_orders**: Domínio central da execução do trabalho. Herda os dados
-  dos orçamentos aprovados e gerencia as fases, status e evolução do fluxo
-  operacional do projeto de tradução.
-- **allocations**: Responsável pelo motor de distribuição de trabalho. Gerencia
-  o envio de propostas de tarefas para múltiplos tradutores simultaneamente,
-  vinculando a ordem de serviço ao primeiro recurso que realizar o aceite dentro
-  do prazo.
-- **support**: Módulo de integração com o agente de suporte inteligente. Lida
-  com a consulta de dados de contexto baseada em permissões e aciona rotinas
-  para execução de ações automatizadas no sistema.
-- **resources**: Abstração genérica para gestão de recursos não-humanos ou
-  artefatos do sistema, centralizando o armazenamento, upload e controle de
-  acesso restrito aos documentos confidenciais transacionados nas fases do
-  projeto.
+As mudanças de estrutura do banco são versionadas como migrations SQL. Alembic
+compara os modelos com o banco para gerar as alterações; a aplicação executa as
+migrations pendentes. Veja o
+[guia de migrations](<./pdf/Guia de Models e Migrations no Backend com SQLAlchemy e Alembic.pdf>).
 
----
+## Fluxos entre módulos
 
-## Frontend (`apps/mobile`)
+### Solicitação e orçamento
 
-O frontend é uma aplicação Single Page Application (SPA) desenvolvida com
-**React**, **TypeScript** e **Vite**.
+Uma solicitação de tradução pode ser recebida sem que o solicitante tenha uma
+conta interna. Ela registra os dados de contato, o par de idiomas, a necessidade
+e, quando enviado, o documento. Após a aprovação da solicitação, o módulo de
+orçamentos cria um orçamento com os dados reaproveitados e permite associar
+itens de tradução.
 
-### Stack Tecnológica
+### Orçamento e ordem de serviço
 
-- **Linguagem/Framework**: React + TypeScript.
-- **Build Tool**: Vite.
-- **Roteamento**: TanStack Router (`routeTree.gen.ts`, `router.tsx`), oferecendo
-  rotas tipadas de forma segura.
-- **Gerenciamento de Estado de Servidor**: TanStack Query (`queryClient.ts`).
-- **Estilização**: Tailwind CSS (`global.css`).
-- **Testes**: Playwright configurado (`playwright.config.ts`) para testes
-  End-to-End (E2E).
+O módulo de ordens de serviço tem uma operação que recebe um orçamento e cria o
+projeto copiando seus itens de tradução. No estado atual do backend, essa
+operação está separada da decisão de aprovar o orçamento e não verifica por si
+só se o status do orçamento é aprovado. A criação exclusivamente após a
+aprovação não é aplicada por essa operação no backend atual.
 
-### Estrutura de Diretórios
+### Ordem de serviço e alocação de tradutores
 
-A estrutura do frontend reflete a organização modular do backend, localizada em
-`apps/mobile/src/modules/`. Cada módulo de feature contém:
+Uma ordem de serviço contém itens de tradução e pode receber convites para
+tradutores. O tradutor consulta os convites associados à própria sessão e pode
+aceitar ou recusar. Quando um convite é aceito, o item começa a ser executado e
+os demais convites pendentes para aquele item são expirados.
 
-- **components/**: Componentes visuais específicos da feature.
-- **hooks/**: Lógicas customizadas e consumo de estado via TanStack Query.
-- **pages/**: Telas mapeadas nas rotas do TanStack Router.
-- **services/**: Chamadas e integração via cliente HTTP.
-- **types/**: Definições de tipagem TypeScript do domínio.
+### Agente de suporte
 
-Além dos módulos de negócio, existe o diretório `shared/` (`shared/components`,
-`shared/services`, `shared/types`, `shared/styles`) destinado ao
-reaproveitamento de código global na aplicação, incluindo o cliente base da API
-(`apiClient.ts`).
+O suporte oferece um caminho de resposta direta e outro assíncrono, coordenado
+por Inngest. O agente usa Google ADK e ferramentas que consultam dados do banco.
+As rotas atuais do agente não declaram uma dependência de autenticação; as
+consultas do agente, portanto, não recebem a identidade autenticada do
+solicitante.
 
----
+## Limites e pontos de atenção
 
-## Decisões Arquiteturais e Padrões
+- O aplicativo já possui áreas para recursos, alocações e usuários, mas os
+  respectivos grupos de rotas do backend ainda não oferecem operações próprias.
+- A geração de ordem de serviço a partir de orçamento não aplica atualmente a
+  condição de status aprovado no backend.
+- A maioria dos módulos compartilha o mesmo banco; separação por domínio no
+  código não equivale a isolamento de dados ou implantação independente.
 
-1. **Separação de Preocupações (SoC)**: A estrutura em módulos/features evita o
-   crescimento desordenado e facilita a manutenção e escalabilidade de domínios
-   específicos.
-2. **Design Orientado a Domínio (Camadas)**: A clara separação no Backend entre
-   rotas, regras de negócio (Services) e persistência (Repositories) garante que
-   as US (User Stories) do backlog sejam implementadas e testadas de forma
-   isolada, evitando acoplamento de contexto.
-3. **Segurança de Tipos End-to-End**: A adoção de TypeScript no frontend em
-   conjunto com ferramentas tipadas (TanStack Router) reduz inconsistências na
-   comunicação de dados internos e na integração visual.
+## Execução local e qualidade
+
+```bash
+docker compose up -d
+pnpm dev
+```
+
+Também é possível iniciar separadamente o aplicativo ou a API. O backend usa
+pytest, Ruff e mypy; o aplicativo usa TypeScript, ESLint e Playwright. A CI e
+seus critérios estão descritos no [guia de CI](<./pdf/CI - GitHub Actions.pdf>).
