@@ -76,7 +76,11 @@ test.describe('Requests Service Unit Tests', () => {
 				original_language: 'Português',
 				translation_language: 'Inglês',
 				customer_need: 'Diploma',
-				document: { uri: 'file:///tmp/diploma.pdf', name: 'diploma.pdf' },
+				document: {
+					uri: 'file:///tmp/diploma.pdf',
+					name: 'diploma.pdf',
+					file: new Blob(['document'], { type: 'application/pdf' }),
+				},
 			});
 
 			expect(result.success).toBe(true);

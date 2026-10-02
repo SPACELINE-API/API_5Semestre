@@ -1,5 +1,4 @@
 import { clearSession, getSession } from '../../modules/auth/services/auth';
-import { router } from 'expo-router';
 import {
 	ApiError,
 	apiUrl,
@@ -26,6 +25,7 @@ async function authenticatedRequest<TResponse>(
 	} catch (error) {
 		if (error instanceof ApiError && error.status === 401) {
 			clearSession();
+			const { router } = await import('expo-router');
 			router.replace('/login' as never);
 		}
 		throw error;

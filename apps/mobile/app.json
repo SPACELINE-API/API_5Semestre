@@ -11,10 +11,16 @@
 			"softwareKeyboardLayoutMode": "resize"
 		},
 		"web": {
+			"bundler": "metro",
 			"output": "static"
 		},
 		"plugins": [
-			"expo-router",
+			[
+				"expo-router",
+				{
+					"root": "./src/app"
+				}
+			],
 			"expo-splash-screen",
 			"@react-native-community/datetimepicker"
 		],

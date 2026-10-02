@@ -59,47 +59,60 @@ export default function CardRequest({
 				: 'Revisar solicitação';
 
 	return (
-		<View className="w-80 bg-white border border-gray-200 rounded-lg p-4">
-			<View className="flex-row items-start justify-between gap-2 mb-3">
-				<View className="flex-1">
-					<Text className="font-bold text-gray-900 text-sm">
+		<View className="min-w-[300px] flex-1 basis-[320px] gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+			<View className="flex-row items-start justify-between gap-2">
+				<View className="min-w-0 flex-1">
+					<Text
+						className="font-inter font-bold text-gray-900 text-base"
+						numberOfLines={2}
+					>
 						{customer_name}
 					</Text>
-					<Text className="text-gray-400 text-xs mt-0.5">{enterprise}</Text>
+					<Text className="mt-0.5 font-inter text-gray-400 text-sm">
+						{enterprise}
+					</Text>
 				</View>
-				<View className={`rounded-md px-2 py-1 ${statusStyle.container}`}>
-					<Text className={`text-[10px] font-inter-medium ${statusStyle.text}`}>
+				<View className={`rounded-md px-2.5 py-1 ${statusStyle.container}`}>
+					<Text className={`font-inter-medium text-xs ${statusStyle.text}`}>
 						{statusLabel}
 					</Text>
 				</View>
 			</View>
 
-			<View className="flex-row justify-between mb-1">
-				<Text className="text-gray-400 text-xs">Documento</Text>
-				<Text className="text-gray-800 text-xs">{customer_need}</Text>
-			</View>
+			<View className="gap-2 border-t border-gray-100 pt-4">
+				<View className="flex-row flex-wrap justify-between gap-x-2">
+					<Text className="font-inter text-gray-400 text-sm">Documento</Text>
+					<Text className="min-w-0 flex-1 text-right font-inter-medium text-gray-800 text-sm">
+						{customer_need}
+					</Text>
+				</View>
 
-			<View className="flex-row justify-between mb-1">
-				<Text className="text-gray-400 text-xs">Idioma</Text>
-				<Text className="text-gray-800 text-xs">
-					{original_language} → {translation_language}
-				</Text>
-			</View>
+				<View className="flex-row flex-wrap justify-between gap-x-2">
+					<Text className="font-inter text-gray-400 text-sm">Idioma</Text>
+					<Text className="min-w-0 flex-1 text-right font-inter-medium text-gray-800 text-sm">
+						{original_language} → {translation_language}
+					</Text>
+				</View>
 
-			<View className="flex-row justify-between mb-1">
-				<Text className="text-gray-400 text-xs">Data da solicitação</Text>
-				<Text className="text-gray-800 text-xs">
-					{formatRequestDate(request_date)}
-				</Text>
+				<View className="flex-row flex-wrap justify-between gap-x-2">
+					<Text className="font-inter text-gray-400 text-sm">
+						Data da solicitação
+					</Text>
+					<Text className="min-w-0 flex-1 text-right font-inter-medium text-gray-800 text-sm">
+						{formatRequestDate(request_date)}
+					</Text>
+				</View>
 			</View>
 
 			<TouchableOpacity
 				accessibilityRole="button"
 				accessibilityLabel={`${actionLabel} de ${customer_name}`}
 				onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
-				className={`rounded-md py-2 items-center hover:bg-blue-500 mt-4 ${status === 'reproved' ? 'bg-gray-500' : 'bg-blue-500'}`}
+				className={`w-full items-center rounded-lg py-2.5 ${status === 'reproved' ? 'bg-gray-500' : 'bg-blue-600 hover:bg-blue-700'}`}
 			>
-				<Text className="text-white text-xs font-medium">{actionLabel}</Text>
+				<Text className="font-inter-semibold text-sm text-white">
+					{actionLabel}
+				</Text>
 			</TouchableOpacity>
 		</View>
 	);

@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.modules.translators.schemas.translator import (
-    DictionaryLanguagePairResponse,
     QualificationResponse,
     TranslatorCreate,
     TranslatorResponse,
+    TranslatorStatusUpdate,
     TranslatorUpdate,
 )
 from app.modules.translators.services.translator_service import TranslatorService
@@ -24,11 +24,6 @@ def list_qualifications(db: DbSession):
     return TranslatorService(db).list_qualifications()
 
 
-@router.get("/metadata/language-pairs", response_model=list[DictionaryLanguagePairResponse])
-def list_language_pairs(db: DbSession):
-    return TranslatorService(db).list_language_pairs()
-
-
 @router.post("", response_model=TranslatorResponse, status_code=201)
 def create_translator(
     data: TranslatorCreate,
@@ -42,6 +37,15 @@ def list_translators(
     db: DbSession,
 ):
     return TranslatorService(db).list_all()
+
+
+@router.patch("/{translator_id}/status", response_model=TranslatorResponse)
+def update_translator_status(
+    translator_id: uuid.UUID,
+    data: TranslatorStatusUpdate,
+    db: DbSession,
+):
+    return TranslatorService(db).update_status(translator_id, data)
 
 
 @router.get("/{translator_id}", response_model=TranslatorResponse)

@@ -62,6 +62,10 @@ def test_is_valid_cnpj_accepts_alphanumeric_cnpj() -> None:
     assert is_valid_cnpj(cnpj) is True
 
 
+def test_is_valid_cnpj_accepts_first_official_alphanumeric_cnpj() -> None:
+    assert is_valid_cnpj("00.000.000/E08G-12") is True
+
+
 def test_is_valid_cnpj_rejects_wrong_check_digits() -> None:
     base = random_numeric_base()
     valid_cnpj = build_cnpj(base)

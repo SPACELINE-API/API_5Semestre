@@ -26,6 +26,9 @@ class TranslationItemService:
             quote_id=quote_id,
             source_language=item_data.source_language,
             target_language=item_data.target_language,
+            document_type=item_data.document_type,
+            file_url=item_data.file_url,
+            estimated_value=item_data.estimated_value,
         )
         self.db.add(item)
         self.db.commit()
@@ -66,3 +69,18 @@ class TranslationItemService:
         self.db.commit()
         self.db.refresh(item)
         return item
+
+    def delete_item(self, quote_id: uuid.UUID, item_id: uuid.UUID) -> None:
+        item = (
+            self.db.query(QuoteTranslationItem)
+            .filter(
+                QuoteTranslationItem.id == item_id,
+                QuoteTranslationItem.quote_id == quote_id,
+            )
+            .first()
+        )
+        if item is None:
+            raise HTTPException(status_code=404, detail="Item do orçamento não encontrado.")
+
+        self.db.delete(item)
+        self.db.commit()

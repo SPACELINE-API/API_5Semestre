@@ -3,11 +3,12 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.modules.translators.models.translator_language import ProficiencyLevel
 
-# PAYLOAD DO PAR DE IDIOMA NO CADASTRO OU ATUALIZACAO DO TRADUTOR
-class LanguagePairInput(BaseModel):
-    language_pair_id: uuid.UUID
-    proficiency_level: str
+
+class TranslatorLanguageInput(BaseModel):
+    language_id: str = Field(..., max_length=20)
+    proficiency_level: ProficiencyLevel
 
 
 # PAYLOAD DE CRIACAO E ATUALIZACAO DO TRADUTOR
@@ -16,40 +17,34 @@ class TranslatorCreate(BaseModel):
     email: str = Field(..., max_length=255, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     phone: str = Field(..., max_length=30)
     qualification_ids: list[uuid.UUID] = Field(default_factory=list)
-    language_pairs: list[LanguagePairInput] = Field(..., min_length=1)
+    languages: list[TranslatorLanguageInput] = Field(..., min_length=1)
 
-    @field_validator("language_pairs")
+    @field_validator("languages")
     @classmethod
-    def no_duplicate_pairs(cls, pairs: list[LanguagePairInput]) -> list[LanguagePairInput]:
-        # VALIDA DUPLICIDADE DE PARES NO PAYLOAD
-        ids = [p.language_pair_id for p in pairs]
+    def no_duplicate_languages(
+        cls, languages: list[TranslatorLanguageInput]
+    ) -> list[TranslatorLanguageInput]:
+        ids = [language.language_id for language in languages]
         if len(ids) != len(set(ids)):
-            raise ValueError("PARES DE IDIOMA DUPLICADOS NO PAYLOAD")
-        return pairs
+            raise ValueError("IDIOMAS DUPLICADOS NO PAYLOAD")
+        return languages
 
 
 # ALIAS PARA ATUALIZACAO (MESMAS REGRAS)
 TranslatorUpdate = TranslatorCreate
 
 
-# RESPOSTA DE UM PAR DE IDIOMA ASSOCIADO AO TRADUTOR
-class LanguagePairResponse(BaseModel):
+class TranslatorStatusUpdate(BaseModel):
+    is_active: bool
+
+
+class TranslatorLanguageResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    language_pair_id: uuid.UUID
+    language_id: str
+    language_name: str
     proficiency_level: str
-    source_language: str | None = None
-    target_language: str | None = None
-
-
-# RESPOSTA DE UM PAR DE IDIOMA NO DICIONARIO/METADATA
-class DictionaryLanguagePairResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: uuid.UUID
-    source_language: str
-    target_language: str
 
 
 # RESPOSTA DE UMA QUALIFICACAO TECNICA
@@ -73,4 +68,4 @@ class TranslatorResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     qualifications: list[QualificationResponse] = []
-    language_pairs: list[LanguagePairResponse] = []
+    languages: list[TranslatorLanguageResponse] = []

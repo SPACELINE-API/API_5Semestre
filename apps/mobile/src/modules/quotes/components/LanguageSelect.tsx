@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
 	View,
 	Text,
@@ -7,8 +7,6 @@ import {
 	ScrollView,
 	TextInput,
 	Pressable,
-	Platform,
-	StyleSheet,
 } from 'react-native';
 import { ChevronDown } from 'lucide-react-native';
 import {
@@ -31,6 +29,13 @@ export function LanguageSelect({
 	const [languages, setLanguages] = useState<Language[]>([]);
 	const [isOpen, setIsOpen] = useState(false);
 	const [isModalVisible, setIsModalVisible] = useState(false);
+	const triggerRef = useRef<View>(null);
+	const [anchor, setAnchor] = useState<{
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+	} | null>(null);
 
 	const [newLangId, setNewLangId] = useState('');
 	const [newLangName, setNewLangName] = useState('');
@@ -63,11 +68,19 @@ export function LanguageSelect({
 
 	const selectedLanguage = languages.find((l) => l.id === value);
 
+	const openDropdown = () => {
+		triggerRef.current?.measureInWindow((x, y, width, height) => {
+			setAnchor({ x, y, width, height });
+			setIsOpen(true);
+		});
+	};
+
 	return (
 		<View className="relative z-50">
 			<TouchableOpacity
+				ref={triggerRef}
 				className="border border-gray-200 rounded-md p-3 bg-white flex-row justify-between items-center"
-				onPress={() => setIsOpen(!isOpen)}
+				onPress={openDropdown}
 			>
 				<Text
 					className={`text-sm font-inter ${selectedLanguage ? 'text-gray-900' : 'text-gray-400'}`}
@@ -79,34 +92,24 @@ export function LanguageSelect({
 				<ChevronDown size={16} color="#9ca3af" />
 			</TouchableOpacity>
 
-			{isOpen && (
-				<>
-					{Platform.OS === 'web' ? (
-						<Pressable
-							style={{
-								position: 'fixed' as never,
-								top: 0,
-								left: 0,
-								right: 0,
-								bottom: 0,
-								zIndex: 40,
-							}}
-							onPress={() => setIsOpen(false)}
-						/>
-					) : (
-						<Modal visible={true} transparent animationType="none">
-							<Pressable
-								style={StyleSheet.absoluteFill}
-								onPress={() => setIsOpen(false)}
-							/>
-						</Modal>
-					)}
+			<Modal
+				visible={isOpen && !!anchor}
+				transparent
+				animationType="none"
+				onRequestClose={() => setIsOpen(false)}
+			>
+				<Pressable
+					className="absolute inset-0"
+					onPress={() => setIsOpen(false)}
+				/>
 
+				{anchor && (
 					<View
-						className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+						className="absolute bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
 						style={{
-							zIndex: 9999,
-							elevation: 9999,
+							top: anchor.y + anchor.height + 4,
+							left: anchor.x,
+							width: anchor.width,
 							maxHeight: 192,
 							backgroundColor: 'white',
 						}}
@@ -141,8 +144,8 @@ export function LanguageSelect({
 							</TouchableOpacity>
 						</ScrollView>
 					</View>
-				</>
-			)}
+				)}
+			</Modal>
 
 			<Modal visible={isModalVisible} transparent animationType="fade">
 				<View className="flex-1 bg-black/50 justify-center items-center p-4">

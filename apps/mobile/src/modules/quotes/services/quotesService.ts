@@ -1,5 +1,9 @@
 import { env } from '../../../shared/env';
-import { apiPatchAuth } from '../../../shared/services/apiClient';
+import {
+	apiDelete,
+	apiPatch,
+	apiPatchAuth,
+} from '../../../shared/services/apiClient';
 
 const API_BASE_URL = env.apiUrl;
 
@@ -156,6 +160,86 @@ export async function listQuotes(params: {
 	}
 }
 
+export type QuoteUpdateInput = Partial<{
+	company_id: string | null;
+	contact_id: string | null;
+	customer_name: string;
+	enterprise: string;
+	email: string;
+	original_language: string;
+	translation_language: string;
+	customer_need: string;
+}>;
+
+export type QuoteEditResult =
+	| { success: true; data: ManagedQuote }
+	| { success: false; status: number; detail?: string };
+
+export async function updateQuote(
+	quoteId: string,
+	data: QuoteUpdateInput,
+): Promise<QuoteEditResult> {
+	try {
+		const result = await apiPatch<ManagedQuote, QuoteUpdateInput>(
+			`/api/quotes/${encodeURIComponent(quoteId)}`,
+			data,
+		);
+		return { success: true, data: result };
+	} catch (error) {
+		const apiError = error as { status?: number; message?: string };
+		return {
+			success: false,
+			status: apiError.status ?? 0,
+			detail: apiError.message,
+		};
+	}
+}
+
+export type QuoteTranslationItemUpdateInput = Partial<{
+	source_language: string;
+	target_language: string;
+	document_type: string | null;
+	file_url: string | null;
+	estimated_value: number | null;
+}>;
+
+export type QuoteItemEditResult =
+	| { success: true; data: QuoteManagerItem }
+	| { success: false; status: number; detail?: string };
+
+export async function updateQuoteItem(
+	quoteId: string,
+	itemId: string,
+	data: QuoteTranslationItemUpdateInput,
+): Promise<QuoteItemEditResult> {
+	try {
+		const result = await apiPatch<
+			QuoteManagerItem,
+			QuoteTranslationItemUpdateInput
+		>(
+			`/api/quotes/${encodeURIComponent(quoteId)}/translation-items/${encodeURIComponent(itemId)}`,
+			data,
+		);
+		return { success: true, data: result };
+	} catch (error) {
+		const apiError = error as { status?: number; message?: string };
+		return {
+			success: false,
+			status: apiError.status ?? 0,
+			detail: apiError.message,
+		};
+	}
+}
+
+export async function deleteQuoteItem(
+	quoteId: string,
+	itemId: string,
+): Promise<void> {
+	return apiDelete(
+		`/api/quotes/${encodeURIComponent(quoteId)}/translation-items/${encodeURIComponent(itemId)}`,
+	);
+}
+
 export type QuoteTranslationItemCreate = {
 	source_language: string;
 	target_language: string;
@@ -213,7 +297,7 @@ export async function updateQuoteStatus(
 export async function createQuoteItem(
 	quoteId: string,
 	itemData: QuoteTranslationItemCreate,
-): Promise<unknown> {
+): Promise<QuoteItemEditResult> {
 	try {
 		const response = await fetch(
 			`${API_BASE_URL}/api/quotes/${quoteId}/translation-items`,
@@ -225,13 +309,19 @@ export async function createQuoteItem(
 		);
 
 		if (!response.ok) {
-			throw new Error(`Failed to create quote item: ${response.status}`);
+			const payload = await response.json().catch(() => null);
+			return {
+				success: false,
+				status: response.status,
+				detail:
+					typeof payload?.detail === 'string' ? payload.detail : undefined,
+			};
 		}
 
-		return await response.json();
+		return { success: true, data: await response.json() };
 	} catch (error) {
 		console.error('Error creating quote item:', error);
-		return null;
+		return { success: false, status: 0 };
 	}
 }
 

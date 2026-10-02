@@ -1,8 +1,10 @@
+import uuid
 from datetime import date
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
 from app.modules.contacts.models.contact import Contact
 from app.modules.quotes.models.request import StatusEnum
@@ -52,7 +54,12 @@ class RequestService:
                     detail="O contato informado não pertence à empresa selecionada.",
                 )
 
-    def update_status(self, request_id, data: RequestStatusUpdate):
+    def update_status(
+        self,
+        request_id,
+        data: RequestStatusUpdate,
+        current_user: SupabaseAuthenticatedUser,
+    ):
         request = self.repo.get_by_id(request_id)
         if request is None:
             raise HTTPException(
@@ -73,4 +80,10 @@ class RequestService:
                 detail="O motivo é obrigatório ao reprovar uma requisição.",
             )
 
-        return self.repo.update_status(request, data.status, data.reproval_reason)
+        return self.repo.update_status(
+            request,
+            data.status,
+            data.reproval_reason,
+            uuid.UUID(current_user.id) if data.status == StatusEnum.REPROVED else None,
+            current_user.email if data.status == StatusEnum.REPROVED else None,
+        )

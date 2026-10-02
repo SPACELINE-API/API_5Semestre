@@ -9,8 +9,10 @@ from app.modules.quotes.schemas.quote import (
     QuoteCreate,
     QuoteFromRequestResponse,
     QuoteListResponse,
+    QuoteManagerResponse,
     QuoteResponse,
     QuoteStatusUpdate,
+    QuoteUpdate,
 )
 from app.modules.quotes.schemas.request import RequestCreate, RequestResponse, RequestStatusUpdate
 from app.modules.quotes.schemas.translation_item import (
@@ -65,6 +67,16 @@ def list_quotes(
         search=search,
         status_filter=status_filter,
     )
+
+
+@router.patch("/{quote_id}", response_model=QuoteManagerResponse)
+def update_quote(
+    quote_id: uuid.UUID,
+    data: QuoteUpdate,
+    db: Session = Depends(get_db),
+):
+    service = QuoteService(db)
+    return service.update_quote(quote_id, data)
 
 
 @router.patch("/{quote_id}/status", response_model=QuoteResponse)
@@ -126,6 +138,16 @@ def update_translation_item(
     return service.update_item(quote_id, item_id, item_data)
 
 
+@router.delete("/{quote_id}/translation-items/{item_id}", status_code=204)
+def delete_translation_item(
+    quote_id: uuid.UUID,
+    item_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    service = TranslationItemService(db)
+    service.delete_item(quote_id, item_id)
+
+
 @router.post("/requests", response_model=RequestResponse, status_code=201)
 async def create_request(
     customer_name: str = Form(..., max_length=255),
@@ -150,6 +172,8 @@ async def create_request(
         translation_language=translation_language,
         customer_need=customer_need,
         document=document_bytes,
+        document_filename=document.filename if document else None,
+        document_content_type=document.content_type if document else None,
     )
     service = RequestService(db)
     return service.create(request_data)
@@ -167,6 +191,7 @@ def list_requests(
 def update_request_status(
     request_id: str,
     data: RequestStatusUpdate,
+    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     try:
@@ -175,4 +200,4 @@ def update_request_status(
         raise HTTPException(status_code=422, detail="request_id deve ser um UUID válido.") from None
 
     service = RequestService(db)
-    return service.update_status(parsed_request_id, data)
+    return service.update_status(parsed_request_id, data, current_user)

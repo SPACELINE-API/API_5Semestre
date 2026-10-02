@@ -11,22 +11,20 @@ PACT_DIR = Path(__file__).parents[4]
 MOCK_TRANSLATOR_ID = "123e4567-e89b-12d3-a456-426614174000"
 NON_EXISTENT_TRANSLATOR_ID = "999e4567-e89b-12d3-a456-426614174999"
 MOCK_QUALIFICATION_ID = "c731d4d4-9569-4db2-9d7f-1569db5f270e"
-MOCK_LANGUAGE_PAIR_ID = "eb162eb3-b88c-42f6-89d7-3da5112f7d31"
-MOCK_TRANSLATOR_PAIR_ID = "123e4567-e89b-12d3-a456-426614174001"
+MOCK_TRANSLATOR_LANGUAGE_ID = "123e4567-e89b-12d3-a456-426614174001"
+MOCK_TRANSLATOR_EN_LANGUAGE_ID = "123e4567-e89b-12d3-a456-426614174002"
 # IDIOMAS FICTICIOS PARA OS CONTRATOS
 MOCK_SOURCE_LANGUAGE = "pt-BR"
-MOCK_TARGET_LANGUAGE = "en"
+MOCK_TARGET_LANGUAGE = "en-US"
 
 
-# CONTRATO DE CRIACAO DE TRADUTOR COM QUALIFICACOES E PARES DE IDIOMA
+# CONTRATO DE CRIACAO DE TRADUTOR COM QUALIFICACOES E IDIOMAS
 def test_create_translator_success_contract() -> None:
     pact = Pact("web", "server").with_specification("V4")
 
     (
-        pact.upon_receiving(
-            "a request to create a translator with qualifications and language pairs"
-        )
-        .given("qualifications and language pairs exist in database")
+        pact.upon_receiving("a request to create a translator with qualifications and languages")
+        .given("qualifications and languages exist in database")
         .with_request("POST", "/api/translators")
         .with_headers({"Content-Type": "application/json"})
         .with_body(
@@ -35,11 +33,15 @@ def test_create_translator_success_contract() -> None:
                 "email": "maria.silva@exemplo.com",
                 "phone": "11988887777",
                 "qualification_ids": [MOCK_QUALIFICATION_ID],
-                "language_pairs": [
+                "languages": [
                     {
-                        "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
+                        "language_id": MOCK_SOURCE_LANGUAGE,
                         "proficiency_level": "fluent",
-                    }
+                    },
+                    {
+                        "language_id": MOCK_TARGET_LANGUAGE,
+                        "proficiency_level": "native",
+                    },
                 ],
             }
         )
@@ -61,14 +63,19 @@ def test_create_translator_success_contract() -> None:
                         "description": "Contratos e peças",
                     }
                 ],
-                "language_pairs": [
+                "languages": [
                     {
-                        "id": MOCK_TRANSLATOR_PAIR_ID,
-                        "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
+                        "id": MOCK_TRANSLATOR_LANGUAGE_ID,
+                        "language_id": MOCK_SOURCE_LANGUAGE,
+                        "language_name": "Português (Brasil)",
                         "proficiency_level": "fluent",
-                        "source_language": MOCK_SOURCE_LANGUAGE,
-                        "target_language": MOCK_TARGET_LANGUAGE,
-                    }
+                    },
+                    {
+                        "id": MOCK_TRANSLATOR_EN_LANGUAGE_ID,
+                        "language_id": MOCK_TARGET_LANGUAGE,
+                        "language_name": "Inglês (EUA)",
+                        "proficiency_level": "native",
+                    },
                 ],
             }
         )
@@ -77,14 +84,12 @@ def test_create_translator_success_contract() -> None:
     write_pact(pact, PACT_DIR)
 
 
-# CONTRATO DE ATUALIZACAO DE TRADUTOR COM QUALIFICACOES E PARES DE IDIOMA
+# CONTRATO DE ATUALIZACAO DE TRADUTOR COM QUALIFICACOES E IDIOMAS
 def test_update_translator_success_contract() -> None:
     pact = Pact("web", "server").with_specification("V4")
 
     (
-        pact.upon_receiving(
-            "a request to update a translator with qualifications and language pairs"
-        )
+        pact.upon_receiving("a request to update a translator with qualifications and languages")
         .given("a translator exists")
         .with_request("PUT", f"/api/translators/{MOCK_TRANSLATOR_ID}")
         .with_headers({"Content-Type": "application/json"})
@@ -94,11 +99,15 @@ def test_update_translator_success_contract() -> None:
                 "email": "maria.silva@exemplo.com",
                 "phone": "11999990000",
                 "qualification_ids": [MOCK_QUALIFICATION_ID],
-                "language_pairs": [
+                "languages": [
                     {
-                        "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
+                        "language_id": MOCK_SOURCE_LANGUAGE,
                         "proficiency_level": "native",
-                    }
+                    },
+                    {
+                        "language_id": MOCK_TARGET_LANGUAGE,
+                        "proficiency_level": "fluent",
+                    },
                 ],
             }
         )
@@ -120,14 +129,19 @@ def test_update_translator_success_contract() -> None:
                         "description": "Contratos e peças",
                     }
                 ],
-                "language_pairs": [
+                "languages": [
                     {
-                        "id": MOCK_TRANSLATOR_PAIR_ID,
-                        "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
+                        "id": MOCK_TRANSLATOR_LANGUAGE_ID,
+                        "language_id": MOCK_SOURCE_LANGUAGE,
+                        "language_name": "Português (Brasil)",
                         "proficiency_level": "native",
-                        "source_language": MOCK_SOURCE_LANGUAGE,
-                        "target_language": MOCK_TARGET_LANGUAGE,
-                    }
+                    },
+                    {
+                        "id": MOCK_TRANSLATOR_EN_LANGUAGE_ID,
+                        "language_id": MOCK_TARGET_LANGUAGE,
+                        "language_name": "Inglês (EUA)",
+                        "proficiency_level": "fluent",
+                    },
                 ],
             }
         )
@@ -142,7 +156,7 @@ def test_get_translator_success_contract() -> None:
 
     (
         pact.upon_receiving("a request to get a translator by id with relationships")
-        .given("a translator exists with qualifications and language pairs")
+        .given("a translator exists with qualifications and languages")
         .with_request("GET", f"/api/translators/{MOCK_TRANSLATOR_ID}")
         .will_respond_with(200)
         .with_headers({"Content-Type": "application/json"})
@@ -162,14 +176,19 @@ def test_get_translator_success_contract() -> None:
                         "description": "Contratos e peças",
                     }
                 ],
-                "language_pairs": [
+                "languages": [
                     {
-                        "id": MOCK_TRANSLATOR_PAIR_ID,
-                        "language_pair_id": MOCK_LANGUAGE_PAIR_ID,
+                        "id": MOCK_TRANSLATOR_LANGUAGE_ID,
+                        "language_id": MOCK_SOURCE_LANGUAGE,
+                        "language_name": "Português (Brasil)",
                         "proficiency_level": "fluent",
-                        "source_language": MOCK_SOURCE_LANGUAGE,
-                        "target_language": MOCK_TARGET_LANGUAGE,
-                    }
+                    },
+                    {
+                        "id": MOCK_TRANSLATOR_EN_LANGUAGE_ID,
+                        "language_id": MOCK_TARGET_LANGUAGE,
+                        "language_name": "Inglês (EUA)",
+                        "proficiency_level": "native",
+                    },
                 ],
             }
         )
@@ -199,7 +218,7 @@ def test_list_translators_success_contract() -> None:
                     "created_at": "2026-09-15T10:00:00Z",
                     "updated_at": "2026-09-15T10:00:00Z",
                     "qualifications": [],
-                    "language_pairs": [],
+                    "languages": [],
                 }
             ]
         )

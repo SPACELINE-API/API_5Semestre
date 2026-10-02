@@ -634,27 +634,31 @@
       "type": "Synchronous/HTTP"
     },
     {
-      "description": "a request to create a translator with qualifications and language pairs",
+      "description": "a request to create a translator with qualifications and languages",
       "pending": false,
       "providerStates": [
         {
-          "name": "qualifications and language pairs exist in database"
+          "name": "qualifications and languages exist in database"
         }
       ],
       "request": {
         "body": {
           "content": {
             "email": "maria.silva@exemplo.com",
-            "language_pairs": [
-              {
-                "language_pair_id": "eb162eb3-b88c-42f6-89d7-3da5112f7d31",
-                "proficiency_level": "fluent"
-              }
-            ],
             "name": "Maria Silva",
             "phone": "11988887777",
             "qualification_ids": [
               "c731d4d4-9569-4db2-9d7f-1569db5f270e"
+            ],
+            "languages": [
+              {
+                "language_id": "pt-BR",
+                "proficiency_level": "fluent"
+              },
+              {
+                "language_id": "en-US",
+                "proficiency_level": "native"
+              }
             ]
           },
           "contentType": "application/json",
@@ -675,15 +679,6 @@
             "email": "maria.silva@exemplo.com",
             "id": "123e4567-e89b-12d3-a456-426614174000",
             "is_active": true,
-            "language_pairs": [
-              {
-                "id": "123e4567-e89b-12d3-a456-426614174001",
-                "language_pair_id": "eb162eb3-b88c-42f6-89d7-3da5112f7d31",
-                "proficiency_level": "fluent",
-                "source_language": "pt-BR",
-                "target_language": "en-US"
-              }
-            ],
             "name": "Maria Silva",
             "phone": "11988887777",
             "qualifications": [
@@ -693,7 +688,21 @@
                 "name": "Tradução Jurídica"
               }
             ],
-            "updated_at": "2026-09-15T10:00:00Z"
+            "updated_at": "2026-09-15T10:00:00Z",
+            "languages": [
+              {
+                "id": "123e4567-e89b-12d3-a456-426614174001",
+                "language_id": "pt-BR",
+                "language_name": "Português (Brasil)",
+                "proficiency_level": "fluent"
+              },
+              {
+                "id": "123e4567-e89b-12d3-a456-426614174002",
+                "language_id": "en-US",
+                "language_name": "Inglês (EUA)",
+                "proficiency_level": "native"
+              }
+            ]
           },
           "contentType": "application/json",
           "encoded": false
@@ -708,7 +717,7 @@
       "type": "Synchronous/HTTP"
     },
     {
-      "description": "a request to update a translator with qualifications and language pairs",
+      "description": "a request to update a translator with qualifications and languages",
       "pending": false,
       "providerStates": [
         {
@@ -719,16 +728,20 @@
         "body": {
           "content": {
             "email": "maria.silva@exemplo.com",
-            "language_pairs": [
-              {
-                "language_pair_id": "eb162eb3-b88c-42f6-89d7-3da5112f7d31",
-                "proficiency_level": "native"
-              }
-            ],
             "name": "Maria Silva Atualizada",
             "phone": "11999990000",
             "qualification_ids": [
               "c731d4d4-9569-4db2-9d7f-1569db5f270e"
+            ],
+            "languages": [
+              {
+                "language_id": "pt-BR",
+                "proficiency_level": "native"
+              },
+              {
+                "language_id": "en-US",
+                "proficiency_level": "fluent"
+              }
             ]
           },
           "contentType": "application/json",
@@ -749,15 +762,6 @@
             "email": "maria.silva@exemplo.com",
             "id": "123e4567-e89b-12d3-a456-426614174000",
             "is_active": true,
-            "language_pairs": [
-              {
-                "id": "123e4567-e89b-12d3-a456-426614174001",
-                "language_pair_id": "eb162eb3-b88c-42f6-89d7-3da5112f7d31",
-                "proficiency_level": "native",
-                "source_language": "pt-BR",
-                "target_language": "en-US"
-              }
-            ],
             "name": "Maria Silva Atualizada",
             "phone": "11999990000",
             "qualifications": [
@@ -767,7 +771,21 @@
                 "name": "Tradução Jurídica"
               }
             ],
-            "updated_at": "2026-09-15T10:30:00Z"
+            "updated_at": "2026-09-15T10:30:00Z",
+            "languages": [
+              {
+                "id": "123e4567-e89b-12d3-a456-426614174001",
+                "language_id": "pt-BR",
+                "language_name": "Português (Brasil)",
+                "proficiency_level": "native"
+              },
+              {
+                "id": "123e4567-e89b-12d3-a456-426614174002",
+                "language_id": "en-US",
+                "language_name": "Inglês (EUA)",
+                "proficiency_level": "fluent"
+              }
+            ]
           },
           "contentType": "application/json",
           "encoded": false
@@ -786,7 +804,7 @@
       "pending": false,
       "providerStates": [
         {
-          "name": "a translator exists with qualifications and language pairs"
+          "name": "a translator exists with qualifications and languages"
         }
       ],
       "request": {
@@ -800,15 +818,6 @@
             "email": "maria.silva@exemplo.com",
             "id": "123e4567-e89b-12d3-a456-426614174000",
             "is_active": true,
-            "language_pairs": [
-              {
-                "id": "123e4567-e89b-12d3-a456-426614174001",
-                "language_pair_id": "eb162eb3-b88c-42f6-89d7-3da5112f7d31",
-                "proficiency_level": "fluent",
-                "source_language": "pt-BR",
-                "target_language": "en-US"
-              }
-            ],
             "name": "Maria Silva",
             "phone": "11988887777",
             "qualifications": [
@@ -818,7 +827,21 @@
                 "name": "Tradução Jurídica"
               }
             ],
-            "updated_at": "2026-09-15T10:00:00Z"
+            "updated_at": "2026-09-15T10:00:00Z",
+            "languages": [
+              {
+                "id": "123e4567-e89b-12d3-a456-426614174001",
+                "language_id": "pt-BR",
+                "language_name": "Português (Brasil)",
+                "proficiency_level": "fluent"
+              },
+              {
+                "id": "123e4567-e89b-12d3-a456-426614174002",
+                "language_id": "en-US",
+                "language_name": "Inglês (EUA)",
+                "proficiency_level": "native"
+              }
+            ]
           },
           "contentType": "application/json",
           "encoded": false
@@ -852,11 +875,11 @@
               "email": "maria.silva@exemplo.com",
               "id": "123e4567-e89b-12d3-a456-426614174000",
               "is_active": true,
-              "language_pairs": [],
               "name": "Maria Silva",
               "phone": "11988887777",
               "qualifications": [],
-              "updated_at": "2026-09-15T10:00:00Z"
+              "updated_at": "2026-09-15T10:00:00Z",
+              "languages": []
             }
           ],
           "contentType": "application/json",

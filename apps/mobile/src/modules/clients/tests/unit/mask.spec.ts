@@ -16,8 +16,12 @@ test.describe('maskCnpj', () => {
 		expect(maskCnpj('11.222.333/0001-81')).toBe('11.222.333/0001-81');
 	});
 
-	test('uppercases letters for the alphanumeric CNPJ format', () => {
-		expect(maskCnpj('12abc34500018a')).toBe('12.ABC.345/0001-8A');
+	test('uppercases letters in the 12 alphanumeric positions', () => {
+		expect(maskCnpj('00000000e08g12')).toBe('00.000.000/E08G-12');
+	});
+
+	test('does not allow letters in the numeric check digit positions', () => {
+		expect(maskCnpj('00000000e08gA2')).toBe('00.000.000/E08G-2');
 	});
 
 	test('truncates input longer than 14 characters', () => {
