@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String, func
@@ -12,6 +13,7 @@ if TYPE_CHECKING:
     from app.modules.clients.models.company import Company
     from app.modules.contacts.models.contact import Contact
     from app.modules.quotes.models.request import Request
+    from app.modules.quotes.models.additional_service import AdditionalService
     from app.modules.quotes.models.translation_item import QuoteTranslationItem
     from app.modules.service_orders.models.service_order import ServiceOrder
 
@@ -65,6 +67,11 @@ class Quote(Base):
         back_populates="quote",
         cascade="all, delete-orphan",
     )
+    additional_services: Mapped[list["AdditionalService"]] = relationship(
+        "AdditionalService",
+        back_populates="quote",
+        cascade="all, delete-orphan",
+    )
 
     request: Mapped["Request"] = relationship("Request", back_populates="quote")
     company: Mapped["Company | None"] = relationship("Company")
@@ -78,3 +85,14 @@ class Quote(Base):
         if self.status != "approved" or not self.service_orders:
             return None
         return self.service_orders[0].id
+
+    @property
+    def total_value(self) -> Decimal:
+        translation_total = sum(
+            (item.estimated_value or Decimal("0.00") for item in self.items),
+            Decimal("0.00"),
+        )
+        additional_total = sum(
+            (item.price for item in self.additional_services), Decimal("0.00")
+        )
+        return translation_total + additional_total
