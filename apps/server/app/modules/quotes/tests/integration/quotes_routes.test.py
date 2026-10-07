@@ -17,9 +17,7 @@ def db_client(client: TestClient, isolated_db_session: Session):
     app.dependency_overrides.pop(get_db, None)
 
 
-def test_create_quote_endpoint_persists_quote(
-    db_client: TestClient, isolated_db_session: Session
-):
+def test_create_quote_endpoint_persists_quote(db_client: TestClient, isolated_db_session: Session):
     response = db_client.post("/api/quotes", json={})
 
     assert response.status_code == 201

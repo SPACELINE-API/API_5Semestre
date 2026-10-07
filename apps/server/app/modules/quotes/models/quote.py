@@ -12,8 +12,8 @@ from app.shared.database import Base
 if TYPE_CHECKING:
     from app.modules.clients.models.company import Company
     from app.modules.contacts.models.contact import Contact
-    from app.modules.quotes.models.request import Request
     from app.modules.quotes.models.additional_service import AdditionalService
+    from app.modules.quotes.models.request import Request
     from app.modules.quotes.models.translation_item import QuoteTranslationItem
     from app.modules.service_orders.models.service_order import ServiceOrder
 
@@ -92,7 +92,5 @@ class Quote(Base):
             (item.estimated_value or Decimal("0.00") for item in self.items),
             Decimal("0.00"),
         )
-        additional_total = sum(
-            (item.price for item in self.additional_services), Decimal("0.00")
-        )
+        additional_total = sum((item.price for item in self.additional_services), Decimal("0.00"))
         return translation_total + additional_total
