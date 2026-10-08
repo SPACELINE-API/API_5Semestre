@@ -1,0 +1,32 @@
+@serverUrl = http://localhost:3333
+
+### Health check
+GET {{serverUrl}}/health
+
+### Login como administrador do seed
+# @name loginAdmin
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@spaceline.com.br",
+  "password": "123456"
+}
+
+### Login como operador do seed
+# @name loginOperator
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "operador@spaceline.com.br",
+  "password": "123456"
+}
+
+### Recuperar senha
+POST {{serverUrl}}/api/auth/password-recovery
+Content-Type: application/json
+
+{
+  "email": "admin@spaceline.com.br"
+}
