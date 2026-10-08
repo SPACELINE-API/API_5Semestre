@@ -156,6 +156,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Install Playwright browsers
+        working-directory: apps/mobile
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run mobile tests
+        working-directory: apps/mobile
+        run: pnpm test
+
       - name: Typecheck mobile
         run: pnpm exec tsc --noEmit -p apps/mobile/tsconfig.json
 
@@ -200,3 +208,8 @@ jobs:
             echo "Algum job falhou ou foi cancelado"
             exit 1
           fi
+      - name: Fail when a required job is skipped
+        if: contains(needs.*.result, 'skipped')
+        run: |
+          echo "Algum job obrigatório foi ignorado"
+          exit 1
