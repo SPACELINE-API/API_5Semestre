@@ -39,9 +39,7 @@ class AdditionalService(Base):
         CheckConstraint("price >= 0", name="ck_additional_services_price_non_negative"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     quote_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
