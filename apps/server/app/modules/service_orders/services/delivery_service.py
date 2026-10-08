@@ -10,6 +10,10 @@ from app.modules.contacts.models.contact import Contact
 from app.modules.quotes.models.quote import Quote
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
+from app.modules.service_orders.models.service_order_email_template import (
+    SERVICE_ORDER_EMAIL_TEMPLATE_KEY,
+    ServiceOrderEmailTemplate,
+)
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.modules.service_orders.services.storage import (
@@ -19,25 +23,12 @@ from app.modules.service_orders.services.storage import (
 )
 from app.shared.email.smtp_client import send_email
 
-DELIVERY_TEMPLATE_KEY = "translated_document_delivery"
-
-
-def _render_delivery_email(nome_cliente: str) -> tuple[str, str]:
-    safe_nome_cliente = html.escape(nome_cliente)
-    subject = "Tradução concluída"
-    body = (
-        f"<p>Olá, {safe_nome_cliente}!</p>"
-        "<p>Temos o prazer de informar que a tradução solicitada "
-        "foi concluída com sucesso!</p>"
-        "<p>O documento traduzido está disponível em anexo "
-        "a este e-mail.</p>"
-        "<p>Agradecemos pela confiança em nossos serviços. "
-        "Caso tenha alguma dúvida ou necessite de esclarecimentos, "
-        "nossa equipe permanece à disposição.</p>"
-        "<p>Atenciosamente,<br>"
-        "<strong>Equipe Aliança Traduções</strong></p>"
-    )
-    return subject, body
+def _render_delivery_email(
+    template: ServiceOrderEmailTemplate, customer_name: str
+) -> tuple[str, str]:
+    safe_customer_name = html.escape(customer_name)
+    body = template.body_html.replace("{{nome_cliente}}", safe_customer_name)
+    return template.subject, body
 
 
 class ServiceOrderDeliveryService:
@@ -102,6 +93,12 @@ class ServiceOrderDeliveryService:
             )
         recipient = self._get_recipient(service_order)
         customer_name = self._get_customer_name(service_order)
+        template = self.db.get(ServiceOrderEmailTemplate, SERVICE_ORDER_EMAIL_TEMPLATE_KEY)
+        if template is None:
+            raise HTTPException(
+                status_code=409,
+                detail="Template de envio não encontrado. Execute o seed do backend.",
+            )
         successful_deliveries = []
 
         for document in documents:
@@ -109,7 +106,7 @@ class ServiceOrderDeliveryService:
                 service_order_id=service_order.id,
                 document_file_id=document.id,
                 recipient_email=recipient,
-                template_key=DELIVERY_TEMPLATE_KEY,
+                template_key=template.key,
                 status="pending",
             )
             self.db.add(attempt)
@@ -134,7 +131,7 @@ class ServiceOrderDeliveryService:
                 if document.storage_path is None:
                     document.storage_path = storage_path
                 content = download_service_order_file(storage_path)
-                subject, body = _render_delivery_email(customer_name)
+                subject, body = _render_delivery_email(template, customer_name)
                 content_type = document.content_type or "application/octet-stream"
                 send_email(
                     to=recipient,

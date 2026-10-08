@@ -106,6 +106,21 @@ class ServiceOrderDeliveryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ServiceOrderEmailTemplateResponse(BaseModel):
+    key: str
+    subject: str
+    body_html: str
+    updated_at: datetime
+    available_placeholders: list[str] = Field(default_factory=lambda: ["{{nome_cliente}}"])
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceOrderEmailTemplateUpdate(BaseModel):
+    subject: str = Field(min_length=1, max_length=255)
+    body_html: str = Field(min_length=1)
+
+
 class ServiceOrderResponse(BaseModel):
     id: uuid.UUID
     quote_id: uuid.UUID
