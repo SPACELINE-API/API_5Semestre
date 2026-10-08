@@ -26,12 +26,13 @@ from app.modules.service_orders.schemas.service_order import (
     UpdateServiceOrderRequest,
 )
 from app.modules.service_orders.services import (
+    delivery_service as delivery_service_module,
+)
+from app.modules.service_orders.services import (
     service_order_service as service_order_service_module,
 )
-from app.modules.service_orders.services.service_order_service import (
-    ServiceOrderService,
-    compute_aggregate_status,
-)
+from app.modules.service_orders.services.delivery_service import ServiceOrderDeliveryService
+from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.modules.translators.models.translator import Translator
 
 _FIRST_DV_WEIGHTS = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
@@ -175,30 +176,6 @@ def test_get_service_order_not_found_raises_404(db_session: Session) -> None:
         service.get_service_order(uuid.uuid4())
 
     assert getattr(exc_info.value, "status_code", None) == 404
-
-
-class _FakeItem:
-    def __init__(self, status: str) -> None:
-        self.status = status
-
-
-def test_compute_aggregate_status_pending_when_no_items() -> None:
-    assert compute_aggregate_status([]) == STATUS_PENDENTE
-
-
-def test_compute_aggregate_status_concluded_only_when_all_items_concluded() -> None:
-    items = [_FakeItem(STATUS_CONCLUIDA), _FakeItem(STATUS_CONCLUIDA)]
-    assert compute_aggregate_status(items) == STATUS_CONCLUIDA
-
-
-def test_compute_aggregate_status_reflects_most_advanced_pending_stage() -> None:
-    items = [_FakeItem(STATUS_CONCLUIDA), _FakeItem(STATUS_EM_ANALISE), _FakeItem(STATUS_PENDENTE)]
-    assert compute_aggregate_status(items) == STATUS_EM_ANALISE
-
-
-def test_compute_aggregate_status_em_andamento_mixed_with_pendente() -> None:
-    items = [_FakeItem(STATUS_PENDENTE), _FakeItem(STATUS_EM_ANDAMENTO)]
-    assert compute_aggregate_status(items) == STATUS_EM_ANDAMENTO
 
 
 def test_update_service_order_applies_only_provided_fields(db_session: Session) -> None:
@@ -551,6 +528,109 @@ def test_file_with_delivery_history_cannot_be_deleted(db_session: Session) -> No
         service.delete_file(order.id, document.id)
 
     assert getattr(exc_info.value, "status_code", None) == 409
+    assert db_session.get(ServiceOrderFile, document.id) is not None
+
+
+def test_delivery_sends_document_and_records_success(db_session: Session, monkeypatch) -> None:
+    company = make_company(db_session)
+    service, order = make_order_with_assigned_translator(db_session, company)
+    quote = db_session.get(Quote, order.quote_id)
+    quote.customer_name = "Maria Silva"
+    db_session.commit()
+    monkeypatch.setattr(
+        service_order_service_module,
+        "upload_service_order_file",
+        lambda filename, *_args: (
+            "https://project.supabase.co/storage/v1/object/public/"
+            f"service-order-files/translated/{filename}"
+        ),
+    )
+    service.add_file(
+        order.id,
+        filename="final.pdf",
+        file_data=io.BytesIO(b"translated bytes"),
+        content_type="application/pdf",
+        direction="saida",
+    )
+    monkeypatch.setattr(
+        service_order_service_module, "service_order_file_exists", lambda _path: True
+    )
+    monkeypatch.setattr(
+        delivery_service_module, "service_order_file_exists", lambda _path: True
+    )
+    monkeypatch.setattr(
+        delivery_service_module, "download_service_order_file", lambda _path: b"translated bytes"
+    )
+    sent_emails = []
+    monkeypatch.setattr(
+        delivery_service_module,
+        "send_email",
+        lambda **kwargs: sent_emails.append(kwargs),
+    )
+
+    result = ServiceOrderDeliveryService(db_session).send_translated_documents(order.id)
+
+    assert len(result) == 1
+    assert result[0].status == "sent"
+    assert result[0].recipient_email == company.email
+    assert result[0].template_key == delivery_service_module.DELIVERY_TEMPLATE_KEY
+    assert sent_emails[0]["attachments"] == [
+        ("final.pdf", b"translated bytes", "application/pdf")
+    ]
+    assert sent_emails[0]["subject"] == "Tradução concluída"
+    assert "Olá, Maria Silva!" in sent_emails[0]["html_body"]
+    assert "Temos o prazer de informar que a tradução solicitada" in sent_emails[0]["html_body"]
+    assert (
+        "O documento traduzido está disponível em anexo"
+        in sent_emails[0]["html_body"]
+    )
+    assert "Equipe Aliança Traduções" in sent_emails[0]["html_body"]
+    document = db_session.query(ServiceOrderFile).filter_by(service_order_id=order.id).one()
+    assert document.delivery_status == "sent"
+
+
+def test_delivery_failure_is_recorded_and_keeps_document(db_session: Session, monkeypatch) -> None:
+    company = make_company(db_session)
+    service, order = make_order_with_assigned_translator(db_session, company)
+    monkeypatch.setattr(
+        service_order_service_module,
+        "upload_service_order_file",
+        lambda filename, *_args: (
+            "https://project.supabase.co/storage/v1/object/public/"
+            f"service-order-files/translated/{filename}"
+        ),
+    )
+    service.add_file(
+        order.id,
+        filename="final.pdf",
+        file_data=io.BytesIO(b"translated bytes"),
+        content_type="application/pdf",
+        direction="saida",
+    )
+    monkeypatch.setattr(
+        service_order_service_module, "service_order_file_exists", lambda _path: True
+    )
+    monkeypatch.setattr(
+        delivery_service_module, "service_order_file_exists", lambda _path: True
+    )
+    monkeypatch.setattr(
+        delivery_service_module, "download_service_order_file", lambda _path: b"translated bytes"
+    )
+
+    def fail_sending(**_kwargs):
+        raise RuntimeError("SMTP indisponível")
+
+    monkeypatch.setattr(delivery_service_module, "send_email", fail_sending)
+
+    with pytest.raises(Exception) as error:
+        ServiceOrderDeliveryService(db_session).send_translated_documents(order.id)
+
+    assert getattr(error.value, "status_code", None) == 502
+    attempt = db_session.query(ServiceOrderDelivery).filter_by(service_order_id=order.id).one()
+    document = db_session.query(ServiceOrderFile).filter_by(service_order_id=order.id).one()
+    assert attempt.status == "failed"
+    assert attempt.error_message == "SMTP indisponível"
+    assert document.delivery_status == "failed"
     assert db_session.get(ServiceOrderFile, document.id) is not None
 
 

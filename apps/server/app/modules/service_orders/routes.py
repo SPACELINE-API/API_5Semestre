@@ -14,17 +14,31 @@ from app.modules.service_orders.schemas.invite import (
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
+    ServiceOrderDeliveryResponse,
     ServiceOrderFileResponse,
     ServiceOrderItemResponse,
     ServiceOrderResponse,
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
+from app.modules.service_orders.services.delivery_service import ServiceOrderDeliveryService
 from app.modules.service_orders.services.invite_service import InviteService
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/service-orders", tags=["service-orders"])
+
+
+@router.post(
+    "/{service_order_id}/deliveries",
+    response_model=list[ServiceOrderDeliveryResponse],
+)
+def send_translated_documents(
+    service_order_id: uuid.UUID,
+    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderDeliveryService(db).send_translated_documents(service_order_id)
 
 
 @router.post("/generate-from-quote", response_model=ServiceOrderResponse, status_code=201)

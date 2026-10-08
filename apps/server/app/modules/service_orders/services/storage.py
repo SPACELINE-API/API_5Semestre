@@ -78,8 +78,34 @@ def service_order_file_exists(storage_path: str) -> bool:
     return True
 
 
+def download_service_order_file(storage_path: str) -> bytes:
+    if not storage_path or ".." in storage_path.split("/"):
+        raise HTTPException(status_code=400, detail="Caminho do documento inválido")
+
+    config = get_supabase_config()
+    object_path = quote(storage_path, safe="/")
+    url = f"{config.url}/storage/v1/object/service-order-files/{object_path}"
+    headers = create_supabase_headers(config.service_role_key)
+    try:
+        with create_supabase_http_client() as client:
+            response = client.get(url, headers=headers)
+    except Exception as error:
+        raise HTTPException(
+            status_code=502,
+            detail="Não foi possível recuperar o documento do armazenamento.",
+        ) from error
+
+    if response.status_code == 404:
+        raise HTTPException(status_code=404, detail="Documento não encontrado no Storage.")
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail="Não foi possível recuperar o documento do armazenamento.",
+        )
+    return response.content
+
+
 def delete_service_order_file(file_url: str) -> None:
-    """Delete an object from our bucket; leave external/legacy URLs alone."""
     config = get_supabase_config()
     parsed = urlparse(file_url)
     configured = urlparse(config.url)

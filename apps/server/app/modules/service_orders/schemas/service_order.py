@@ -92,6 +92,20 @@ class ServiceOrderFileResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ServiceOrderDeliveryResponse(BaseModel):
+    id: uuid.UUID
+    service_order_id: uuid.UUID
+    document_file_id: uuid.UUID
+    recipient_email: str | None
+    template_key: str | None
+    status: str
+    error_message: str | None
+    attempted_at: datetime
+    sent_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ServiceOrderResponse(BaseModel):
     id: uuid.UUID
     quote_id: uuid.UUID
