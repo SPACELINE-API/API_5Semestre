@@ -1,11 +1,16 @@
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.modules.auth.models.roles import user_roles
 from app.shared.database import Base
+
+if TYPE_CHECKING:
+    from app.modules.auth.models.roles import Role
 
 
 class User(Base):
@@ -70,3 +75,5 @@ class User(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+
+    roles: Mapped[list["Role"]] = relationship(secondary=user_roles, lazy="selectin")

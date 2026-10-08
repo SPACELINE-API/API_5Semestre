@@ -337,6 +337,489 @@
         "status": 201
       },
       "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "atualizar uma role existente",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "o provedor está com o seed aplicado"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "description": "Atende clientes e acompanha solicitações.",
+            "permission_ids": [
+              "3b6ed817-c31b-4f48-bc32-1e7bdeac9abb",
+              "7f40ba6c-0801-4db4-8d24-8ebe7aaed2a7",
+              "00c33985-66c2-4923-88e4-36829d40ee67",
+              "8dcd3020-8910-4f48-b4d1-f96a78d52988"
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Authorization": [
+            "Bearer access-token"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "PATCH",
+        "path": "/api/roles/9720c0d0-8116-43d3-8136-aa4a69ef70dd"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "description": "Atende clientes e acompanha solicitações.",
+            "id": "9720c0d0-8116-43d3-8136-aa4a69ef70dd",
+            "is_active": true,
+            "name": "Atendimento",
+            "permissions": [
+              {
+                "code": "clients.read",
+                "description": null,
+                "id": "3b6ed817-c31b-4f48-bc32-1e7bdeac9abb"
+              },
+              {
+                "code": "clients.write",
+                "description": null,
+                "id": "7f40ba6c-0801-4db4-8d24-8ebe7aaed2a7"
+              },
+              {
+                "code": "requests.read",
+                "description": null,
+                "id": "00c33985-66c2-4923-88e4-36829d40ee67"
+              },
+              {
+                "code": "requests.write",
+                "description": null,
+                "id": "8dcd3020-8910-4f48-b4d1-f96a78d52988"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "consultar uma role existente",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "o provedor está com o seed aplicado"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer access-token"
+          ]
+        },
+        "method": "GET",
+        "path": "/api/roles/9720c0d0-8116-43d3-8136-aa4a69ef70dd"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "description": "Atende clientes e acompanha solicitações.",
+            "id": "9720c0d0-8116-43d3-8136-aa4a69ef70dd",
+            "is_active": true,
+            "name": "Atendimento",
+            "permissions": [
+              {
+                "code": "clients.read",
+                "description": null,
+                "id": "3b6ed817-c31b-4f48-bc32-1e7bdeac9abb"
+              },
+              {
+                "code": "clients.write",
+                "description": null,
+                "id": "7f40ba6c-0801-4db4-8d24-8ebe7aaed2a7"
+              },
+              {
+                "code": "requests.read",
+                "description": null,
+                "id": "00c33985-66c2-4923-88e4-36829d40ee67"
+              },
+              {
+                "code": "requests.write",
+                "description": null,
+                "id": "8dcd3020-8910-4f48-b4d1-f96a78d52988"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "desativar uma role sem remover associações",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "o provedor está com o seed aplicado"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "is_active": false
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Authorization": [
+            "Bearer access-token"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "PATCH",
+        "path": "/api/roles/9720c0d0-8116-43d3-8136-aa4a69ef70dd/status"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "description": "Atende clientes e acompanha solicitações.",
+            "id": "9720c0d0-8116-43d3-8136-aa4a69ef70dd",
+            "is_active": false,
+            "name": "Atendimento",
+            "permissions": [
+              {
+                "code": "clients.read",
+                "description": null,
+                "id": "3b6ed817-c31b-4f48-bc32-1e7bdeac9abb"
+              },
+              {
+                "code": "clients.write",
+                "description": null,
+                "id": "7f40ba6c-0801-4db4-8d24-8ebe7aaed2a7"
+              },
+              {
+                "code": "requests.read",
+                "description": null,
+                "id": "00c33985-66c2-4923-88e4-36829d40ee67"
+              },
+              {
+                "code": "requests.write",
+                "description": null,
+                "id": "8dcd3020-8910-4f48-b4d1-f96a78d52988"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "listar roles com autenticação válida",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "o provedor está com o seed aplicado"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer access-token"
+          ]
+        },
+        "method": "GET",
+        "path": "/api/roles"
+      },
+      "response": {
+        "body": {
+          "content": [
+            {
+              "description": "Administra usuários, roles e permissões.",
+              "id": "dff837b0-54fc-4a18-b29c-8cce2421cd43",
+              "is_active": true,
+              "name": "Administrador",
+              "permissions": [
+                {
+                  "code": "users.read",
+                  "description": null,
+                  "id": "2e70a854-0f72-406c-a571-1f167e109c81"
+                },
+                {
+                  "code": "users.write",
+                  "description": null,
+                  "id": "ebc1796a-b813-4ac8-96d8-b83e57af2759"
+                },
+                {
+                  "code": "roles.read",
+                  "description": null,
+                  "id": "299b943c-8cab-413d-b618-ee5f914eb057"
+                },
+                {
+                  "code": "roles.write",
+                  "description": null,
+                  "id": "e1a76891-56f9-46d6-ad87-4ddef2296352"
+                }
+              ]
+            },
+            {
+              "description": "Atende clientes e acompanha solicitações.",
+              "id": "9720c0d0-8116-43d3-8136-aa4a69ef70dd",
+              "is_active": true,
+              "name": "Atendimento",
+              "permissions": [
+                {
+                  "code": "clients.read",
+                  "description": null,
+                  "id": "3b6ed817-c31b-4f48-bc32-1e7bdeac9abb"
+                },
+                {
+                  "code": "clients.write",
+                  "description": null,
+                  "id": "7f40ba6c-0801-4db4-8d24-8ebe7aaed2a7"
+                },
+                {
+                  "code": "requests.read",
+                  "description": null,
+                  "id": "00c33985-66c2-4923-88e4-36829d40ee67"
+                },
+                {
+                  "code": "requests.write",
+                  "description": null,
+                  "id": "8dcd3020-8910-4f48-b4d1-f96a78d52988"
+                }
+              ]
+            },
+            {
+              "description": "Acessa informações financeiras autorizadas.",
+              "id": "983bae0c-b4fc-4066-8fca-cf23c8f7090c",
+              "is_active": true,
+              "name": "Financeiro",
+              "permissions": [
+                {
+                  "code": "finance.read",
+                  "description": null,
+                  "id": "dd1e4e95-36d5-47d0-9cc1-5b28d45f462e"
+                },
+                {
+                  "code": "finance.write",
+                  "description": null,
+                  "id": "1aa72d41-a054-41d6-a9b1-66d7fc402cc1"
+                }
+              ]
+            },
+            {
+              "description": "Descrição atualizada",
+              "id": "b5555962-d7b4-4bb7-a191-fce300372952",
+              "is_active": true,
+              "name": "Operação",
+              "permissions": []
+            },
+            {
+              "description": "Gerencia projetos e orçamentos.",
+              "id": "30991b8b-6ff5-4a8a-b609-5f970911493e",
+              "is_active": true,
+              "name": "Projetos",
+              "permissions": [
+                {
+                  "code": "projects.read",
+                  "description": null,
+                  "id": "7d888afa-e0a1-47fe-bf5a-0cb929fa12e0"
+                },
+                {
+                  "code": "projects.write",
+                  "description": null,
+                  "id": "f652952c-ff03-4232-a0f2-e414c6082f13"
+                },
+                {
+                  "code": "quotes.read",
+                  "description": null,
+                  "id": "4059bf4b-fed0-4cbc-86c3-b7290036ad59"
+                },
+                {
+                  "code": "quotes.approve",
+                  "description": null,
+                  "id": "5c865433-fbcb-4ff3-a623-c2efa65415ae"
+                }
+              ]
+            },
+            {
+              "description": "Acessa tarefas e documentos atribuídos.",
+              "id": "f3f9cf4d-0791-465a-824b-1326f4177123",
+              "is_active": true,
+              "name": "Recursos externos",
+              "permissions": [
+                {
+                  "code": "assignments.read",
+                  "description": null,
+                  "id": "42035d53-f11c-46a9-9598-2860e8cf4f3b"
+                },
+                {
+                  "code": "documents.read",
+                  "description": null,
+                  "id": "e83fd0b2-b019-4bfa-accb-9800a8be5d3d"
+                }
+              ]
+            }
+          ],
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "rejeitar role duplicada",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "o provedor está com o seed aplicado"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "description": "Atende clientes e acompanha solicitações.",
+            "name": "Atendimento",
+            "permission_ids": [
+              "3b6ed817-c31b-4f48-bc32-1e7bdeac9abb",
+              "7f40ba6c-0801-4db4-8d24-8ebe7aaed2a7",
+              "00c33985-66c2-4923-88e4-36829d40ee67",
+              "8dcd3020-8910-4f48-b4d1-f96a78d52988"
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Authorization": [
+            "Bearer access-token"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "POST",
+        "path": "/api/roles"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "detail": "Role já cadastrada"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 409
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "restaurar o status original da role",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "o provedor está com o seed aplicado"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "is_active": true
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Authorization": [
+            "Bearer access-token"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "method": "PATCH",
+        "path": "/api/roles/9720c0d0-8116-43d3-8136-aa4a69ef70dd/status"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "description": "Atende clientes e acompanha solicitações.",
+            "id": "9720c0d0-8116-43d3-8136-aa4a69ef70dd",
+            "is_active": true,
+            "name": "Atendimento",
+            "permissions": [
+              {
+                "code": "clients.read",
+                "description": null,
+                "id": "3b6ed817-c31b-4f48-bc32-1e7bdeac9abb"
+              },
+              {
+                "code": "clients.write",
+                "description": null,
+                "id": "7f40ba6c-0801-4db4-8d24-8ebe7aaed2a7"
+              },
+              {
+                "code": "requests.read",
+                "description": null,
+                "id": "00c33985-66c2-4923-88e4-36829d40ee67"
+              },
+              {
+                "code": "requests.write",
+                "description": null,
+                "id": "8dcd3020-8910-4f48-b4d1-f96a78d52988"
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
     }
   ],
   "metadata": {
