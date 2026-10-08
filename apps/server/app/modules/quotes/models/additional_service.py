@@ -31,9 +31,7 @@ class AdditionalService(Base):
             text("lower(trim(description))"),
             unique=True,
         ),
-        CheckConstraint(
-            "length(trim(description)) > 0", name="ck_additional_services_description"
-        ),
+        CheckConstraint("length(trim(description)) > 0", name="ck_additional_services_description"),
         CheckConstraint(
             "status IN ('pending', 'approved', 'reproved')",
             name="ck_additional_services_status",
@@ -41,10 +39,14 @@ class AdditionalService(Base):
         CheckConstraint("price >= 0", name="ck_additional_services_price_non_negative"),
     )
 
+<<<<<<< HEAD
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     created_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+=======
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+>>>>>>> 76bbb374169ccfebc7582898f39317639bb0273a
     quote_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("quotes.id", ondelete="CASCADE"),
