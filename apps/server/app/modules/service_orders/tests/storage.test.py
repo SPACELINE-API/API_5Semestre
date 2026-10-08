@@ -20,6 +20,12 @@ class _Client:
         self.deleted_url = None
         self.deleted_method = None
         self.deleted_json = None
+        self.head_url = None
+
+    def head(self, url, headers):
+        self.head_url = url
+        self.head_headers = headers
+        return self.response
 
     def request(self, method, url, headers, json):
         self.deleted_method = method
@@ -72,8 +78,34 @@ def test_delete_service_order_file_surfaces_storage_errors(monkeypatch):
         storage.delete_service_order_file(
             "https://project.supabase.co/storage/v1/object/public/service-order-files/a.pdf"
         )
-
     assert error.value.status_code == 502
+
+
+def test_extract_service_order_storage_path_decodes_url():
+    assert (
+        storage.get_service_order_storage_path(
+            "https://project.supabase.co/storage/v1/object/public/"
+            "service-order-files/translated/final%20version.pdf"
+        )
+        == "translated/final version.pdf"
+    )
+
+
+def test_service_order_file_exists_checks_supabase_storage(monkeypatch):
+    client = _configure(monkeypatch, _Response(200))
+
+    assert storage.service_order_file_exists("translated/final version.pdf") is True
+
+    assert (
+        client.head_url == "https://project.supabase.co/storage/v1/object/"
+        "service-order-files/translated/final%20version.pdf"
+    )
+
+
+def test_service_order_file_exists_returns_false_for_missing_object(monkeypatch):
+    _configure(monkeypatch, _Response(404))
+
+    assert storage.service_order_file_exists("missing.pdf") is False
 
 
 class _Query:

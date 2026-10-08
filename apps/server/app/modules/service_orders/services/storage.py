@@ -1,6 +1,6 @@
 import uuid
 from typing import BinaryIO
-from urllib.parse import unquote, urlparse
+from urllib.parse import quote, unquote, urlparse
 
 from fastapi import HTTPException
 
@@ -34,6 +34,48 @@ def upload_service_order_file(filename: str, file_data: BinaryIO, content_type: 
 
     public_url = f"{config.url}/storage/v1/object/public/{bucket}/{file_path}"
     return public_url
+
+
+def get_service_order_storage_path(file_url: str) -> str | None:
+    parsed = urlparse(file_url)
+    prefix = "/storage/v1/object/public/service-order-files/"
+    if not parsed.path.startswith(prefix):
+        return None
+
+    object_path = unquote(parsed.path[len(prefix) :])
+    if not object_path or ".." in object_path.split("/"):
+        return None
+
+    return object_path
+
+
+def service_order_file_exists(storage_path: str) -> bool:
+    if not storage_path or ".." in storage_path.split("/"):
+        raise HTTPException(status_code=400, detail="Caminho do documento inválido")
+
+    config = get_supabase_config()
+    object_path = quote(storage_path, safe="/")
+    url = f"{config.url}/storage/v1/object/service-order-files/{object_path}"
+    headers = create_supabase_headers(config.service_role_key)
+
+    try:
+        with create_supabase_http_client() as client:
+            response = client.head(url, headers=headers)
+    except Exception as error:
+        raise HTTPException(
+            status_code=502,
+            detail="Não foi possível verificar o documento no armazenamento.",
+        ) from error
+
+    if response.status_code == 404:
+        return False
+    if response.status_code not in (200, 204):
+        raise HTTPException(
+            status_code=502,
+            detail="Não foi possível verificar o documento no armazenamento.",
+        )
+
+    return True
 
 
 def delete_service_order_file(file_url: str) -> None:

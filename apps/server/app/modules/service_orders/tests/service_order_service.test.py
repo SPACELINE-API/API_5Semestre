@@ -10,6 +10,8 @@ from app.modules.clients.models.company import Company
 from app.modules.clients.schemas.company import calculate_cnpj_check_digit
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
+from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
+from app.modules.service_orders.models.service_order_file import ServiceOrderFile
 from app.modules.service_orders.models.service_order_item import (
     STATUS_CONCLUIDA,
     STATUS_EM_ANALISE,
@@ -85,6 +87,30 @@ def make_quote_with_items(db_session: Session, item_count: int = 2) -> Quote:
     db_session.commit()
     db_session.refresh(quote)
     return quote
+
+
+def make_order_with_assigned_translator(db_session: Session, company: Company):
+    quote = make_quote_with_items(db_session, item_count=1)
+    service = ServiceOrderService(db_session)
+    order = service.generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id,
+            company_id=company.id,
+            project_name="Ordem com tradutor atribuído",
+        )
+    )
+    translator = Translator(
+        name="Tradutor de Entrega",
+        email=f"{uuid.uuid4().hex[:10]}@translators.com",
+        phone="11987654321",
+    )
+    db_session.add(translator)
+    db_session.flush()
+    db_session.query(ServiceOrderItem).filter(ServiceOrderItem.service_order_id == order.id).update(
+        {"translator_id": translator.id}, synchronize_session=False
+    )
+    db_session.commit()
+    return service, order
 
 
 @pytest.fixture
@@ -395,6 +421,137 @@ def test_add_file_saida_marks_items_concluded_when_all_delivered(
     refreshed = service.get_service_order(order.id)
     assert {item.status for item in refreshed.items} == {STATUS_CONCLUIDA}
     assert refreshed.status == STATUS_CONCLUIDA
+
+
+def test_add_saida_file_persists_storage_reference_metadata_and_delivery_status(
+    db_session: Session, monkeypatch
+) -> None:
+    company = make_company(db_session)
+    service, order = make_order_with_assigned_translator(db_session, company)
+    monkeypatch.setattr(
+        service_order_service_module,
+        "upload_service_order_file",
+        lambda *_args: (
+            "https://project.supabase.co/storage/v1/object/public/"
+            "service-order-files/translated/final.pdf"
+        ),
+    )
+
+    response = service.add_file(
+        order.id,
+        filename="final.pdf",
+        file_data=io.BytesIO(b"traducao"),
+        content_type="application/pdf",
+        direction="saida",
+    )
+    document = db_session.get(ServiceOrderFile, response.id)
+
+    assert document is not None
+    assert document.storage_path == "translated/final.pdf"
+    assert document.content_type == "application/pdf"
+    assert document.delivery_status == "pending"
+
+
+def test_delivery_lookup_selects_only_output_files_and_checks_storage(
+    db_session: Session, monkeypatch
+) -> None:
+    company = make_company(db_session)
+    service, order = make_order_with_assigned_translator(db_session, company)
+    monkeypatch.setattr(
+        service_order_service_module,
+        "upload_service_order_file",
+        lambda filename, *_args: (
+            "https://project.supabase.co/storage/v1/object/public/"
+            f"service-order-files/translated/{filename}"
+        ),
+    )
+    service.add_file(
+        order.id,
+        filename="final.pdf",
+        file_data=io.BytesIO(b"traducao"),
+        content_type="application/pdf",
+        direction="saida",
+    )
+    service.add_file(
+        order.id,
+        filename="original.pdf",
+        file_data=io.BytesIO(b"original"),
+        content_type="application/pdf",
+        direction="entrada",
+    )
+    checked_paths = []
+    monkeypatch.setattr(
+        service_order_service_module,
+        "service_order_file_exists",
+        lambda path: checked_paths.append(path) or True,
+    )
+
+    documents = service.get_translated_documents_for_delivery(order.id)
+
+    assert [document.filename for document in documents] == ["final.pdf"]
+    assert checked_paths == ["translated/final.pdf"]
+
+
+def test_delivery_lookup_rejects_missing_storage_object(db_session: Session, monkeypatch) -> None:
+    company = make_company(db_session)
+    service, order = make_order_with_assigned_translator(db_session, company)
+    monkeypatch.setattr(
+        service_order_service_module,
+        "upload_service_order_file",
+        lambda *_args: (
+            "https://project.supabase.co/storage/v1/object/public/"
+            "service-order-files/translated/missing.pdf"
+        ),
+    )
+    service.add_file(
+        order.id,
+        filename="missing.pdf",
+        file_data=io.BytesIO(b"traducao"),
+        content_type="application/pdf",
+        direction="saida",
+    )
+    monkeypatch.setattr(
+        service_order_service_module, "service_order_file_exists", lambda _path: False
+    )
+
+    with pytest.raises(Exception) as exc_info:
+        service.get_translated_documents_for_delivery(order.id)
+
+    assert getattr(exc_info.value, "status_code", None) == 404
+
+
+def test_file_with_delivery_history_cannot_be_deleted(db_session: Session) -> None:
+    company = make_company(db_session)
+    service, order = make_order_with_assigned_translator(db_session, company)
+    document = ServiceOrderFile(
+        service_order_id=order.id,
+        filename="final.pdf",
+        file_url=(
+            "https://project.supabase.co/storage/v1/object/public/"
+            "service-order-files/translated/final.pdf"
+        ),
+        storage_path="translated/final.pdf",
+        content_type="application/pdf",
+        direction="saida",
+        delivery_status="failed",
+    )
+    db_session.add(document)
+    db_session.flush()
+    db_session.add(
+        ServiceOrderDelivery(
+            service_order_id=order.id,
+            document_file_id=document.id,
+            status="failed",
+            error_message="Falha SMTP",
+        )
+    )
+    db_session.commit()
+
+    with pytest.raises(Exception) as exc_info:
+        service.delete_file(order.id, document.id)
+
+    assert getattr(exc_info.value, "status_code", None) == 409
+    assert db_session.get(ServiceOrderFile, document.id) is not None
 
 
 def test_delete_service_order_removes_it(db_session: Session) -> None:

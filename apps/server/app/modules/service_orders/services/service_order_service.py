@@ -8,6 +8,7 @@ from app.modules.clients.models.company import Company
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
 from app.modules.service_orders.models.service_order import ServiceOrder
+from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
 from app.modules.service_orders.models.service_order_item import (
     STATUS_CONCLUIDA,
@@ -27,6 +28,8 @@ from app.modules.service_orders.schemas.service_order import (
 )
 from app.modules.service_orders.services.storage import (
     delete_service_order_file,
+    get_service_order_storage_path,
+    service_order_file_exists,
     upload_service_order_file,
 )
 
@@ -191,7 +194,10 @@ class ServiceOrderService:
             service_order_id=service_order.id,
             filename=filename,
             file_url=file_url,
+            storage_path=get_service_order_storage_path(file_url),
+            content_type=content_type,
             direction=direction,
+            delivery_status="pending" if direction == "saida" else "not_sent",
         )
         self.db.add(service_order_file)
 
@@ -214,6 +220,49 @@ class ServiceOrderService:
 
         return ServiceOrderFileResponse.model_validate(service_order_file)
 
+    def get_translated_documents_for_delivery(
+        self, service_order_id: uuid.UUID
+    ) -> list[ServiceOrderFile]:
+        service_order = self._get_service_order_or_404(service_order_id)
+        documents = (
+            self.db.query(ServiceOrderFile)
+            .filter(
+                ServiceOrderFile.service_order_id == service_order.id,
+                ServiceOrderFile.direction == "saida",
+            )
+            .order_by(ServiceOrderFile.uploaded_at.asc())
+            .all()
+        )
+        if not documents:
+            raise HTTPException(
+                status_code=409,
+                detail="A ordem de serviço ainda não possui documentos traduzidos de saída.",
+            )
+
+        paths_updated = False
+        for document in documents:
+            storage_path = document.storage_path or get_service_order_storage_path(
+                document.file_url
+            )
+            if not storage_path:
+                raise HTTPException(
+                    status_code=409,
+                    detail="O documento de saída não possui um caminho válido no Storage.",
+                )
+            if not service_order_file_exists(storage_path):
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"O documento {document.filename} não foi encontrado no Storage.",
+                )
+            if document.storage_path is None:
+                document.storage_path = storage_path
+                paths_updated = True
+
+        if paths_updated:
+            self.db.commit()
+
+        return documents
+
     def delete_file(self, service_order_id: uuid.UUID, file_id: uuid.UUID) -> None:
         self._get_service_order_or_404(service_order_id)
         service_order_file = (
@@ -226,6 +275,17 @@ class ServiceOrderService:
         )
         if not service_order_file:
             raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+
+        has_delivery_history = (
+            self.db.query(ServiceOrderDelivery.id)
+            .filter(ServiceOrderDelivery.document_file_id == service_order_file.id)
+            .first()
+        )
+        if has_delivery_history:
+            raise HTTPException(
+                status_code=409,
+                detail="Não é possível remover um documento que possui histórico de envio.",
+            )
 
         file_url = service_order_file.file_url
         self.db.delete(service_order_file)
