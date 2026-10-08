@@ -45,3 +45,10 @@ def test_additional_service_has_unique_description_per_quote_index():
     assert unique_index.unique
     assert str(unique_index.expressions[0]) == "additional_services.quote_id"
     assert "lower(trim(description))" in str(unique_index.expressions[1])
+
+
+def test_additional_service_stores_creator_id():
+    columns = AdditionalService.__table__.c
+
+    assert "created_by" in columns
+    assert columns.created_by.nullable
