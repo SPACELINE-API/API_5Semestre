@@ -6,7 +6,7 @@ const INVITE = {
 	service_order_item_id: 'item-1',
 	translator_id: 'translator-1',
 	status: 'pendente',
-	sent_at: '2026-01-02T00:00:00Z',
+	sent_at: '2026-01-01T12:00:00Z',
 	responded_at: null,
 };
 
