@@ -5,7 +5,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 
-from app.modules.auth.dependencies.dependencies import get_current_user
+from app.modules.auth.dependencies.dependencies import get_current_user, require_administrator
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.service_orders.schemas.invite import (
     SendInvitesRequest,
@@ -14,17 +14,47 @@ from app.modules.service_orders.schemas.invite import (
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
+    ServiceOrderDeliveryRequest,
+    ServiceOrderDeliveryResponse,
+    ServiceOrderEmailTemplateResponse,
     ServiceOrderFileResponse,
     ServiceOrderItemResponse,
     ServiceOrderResponse,
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
+from app.modules.service_orders.services.delivery_service import ServiceOrderDeliveryService
+from app.modules.service_orders.services.email_template_service import (
+    ServiceOrderEmailTemplateService,
+)
 from app.modules.service_orders.services.invite_service import InviteService
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/service-orders", tags=["service-orders"])
+
+
+@router.get("/email-template", response_model=ServiceOrderEmailTemplateResponse)
+def get_service_order_email_template(
+    _current_user: SupabaseAuthenticatedUser = Depends(require_administrator),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderEmailTemplateService(db).get_template()
+
+
+@router.post(
+    "/{service_order_id}/deliveries",
+    response_model=list[ServiceOrderDeliveryResponse],
+)
+def send_translated_documents(
+    service_order_id: uuid.UUID,
+    email_override: ServiceOrderDeliveryRequest | None = None,
+    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderDeliveryService(db).send_translated_documents(
+        service_order_id, email_override
+    )
 
 
 @router.post("/generate-from-quote", response_model=ServiceOrderResponse, status_code=201)

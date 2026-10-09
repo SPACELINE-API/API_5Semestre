@@ -4,7 +4,7 @@ test.describe('autenticação mobile unificada', () => {
 	test('exibe o login sem exigir consentimento de cookies', async ({
 		page,
 	}) => {
-		await page.goto('/login');
+		await page.goto('/login', { waitUntil: 'domcontentloaded' });
 
 		await expect(page.getByText('ENTRAR', { exact: true })).toBeVisible();
 		await expect(page.getByText('Permitir cookies no site')).not.toBeVisible();

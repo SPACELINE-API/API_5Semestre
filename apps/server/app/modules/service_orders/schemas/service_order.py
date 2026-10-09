@@ -92,6 +92,35 @@ class ServiceOrderFileResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ServiceOrderDeliveryResponse(BaseModel):
+    id: uuid.UUID
+    service_order_id: uuid.UUID
+    document_file_id: uuid.UUID
+    recipient_email: str | None
+    template_key: str | None
+    status: str
+    error_message: str | None
+    attempted_at: datetime
+    sent_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceOrderEmailTemplateResponse(BaseModel):
+    key: str
+    subject: str
+    body_html: str
+    updated_at: datetime
+    available_placeholders: list[str] = Field(default_factory=lambda: ["{{nome_cliente}}"])
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceOrderDeliveryRequest(BaseModel):
+    subject_override: str | None = Field(default=None, min_length=1, max_length=255)
+    body_html_override: str | None = Field(default=None, min_length=1)
+
+
 class ServiceOrderResponse(BaseModel):
     id: uuid.UUID
     quote_id: uuid.UUID
