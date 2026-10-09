@@ -136,35 +136,54 @@ def test_send_translated_documents_route_requires_authentication(client: TestCli
     assert response.status_code == 401
 
 
-def test_admin_can_edit_delivery_email_template(
-    client: TestClient, isolated_db_session: Session
+def test_admin_can_preview_and_override_email_for_one_delivery_only(
+    client: TestClient, isolated_db_session: Session, monkeypatch
 ) -> None:
-    isolated_db_session.add(
-        ServiceOrderEmailTemplate(
-            key=SERVICE_ORDER_EMAIL_TEMPLATE_KEY,
-            subject="Tradução concluída",
-            body_html="<p>Olá, {{nome_cliente}}!</p>",
-        )
+    order, _document = _create_order_with_output_file(isolated_db_session)
+    template = isolated_db_session.get(ServiceOrderEmailTemplate, SERVICE_ORDER_EMAIL_TEMPLATE_KEY)
+    original_subject = template.subject
+    original_body_html = template.body_html
+    sent_emails = []
+    monkeypatch.setattr(delivery_service_module, "service_order_file_exists", lambda _path: True)
+    monkeypatch.setattr(
+        delivery_service_module,
+        "download_service_order_file",
+        lambda _path: b"document bytes",
     )
-    isolated_db_session.commit()
+    monkeypatch.setattr(
+        delivery_service_module,
+        "send_email",
+        lambda **email: sent_emails.append(email),
+    )
     app.dependency_overrides[get_db] = lambda: isolated_db_session
     app.dependency_overrides[require_administrator] = lambda: SupabaseAuthenticatedUser(
         id=str(uuid.uuid4()), email="admin@example.com"
     )
+    app.dependency_overrides[get_current_user] = lambda: SupabaseAuthenticatedUser(
+        id=str(uuid.uuid4()), email="admin@example.com"
+    )
 
     try:
-        response = client.put(
-            "/api/service-orders/email-template",
+        template_response = client.get("/api/service-orders/email-template")
+        delivery_response = client.post(
+            f"/api/service-orders/{order.id}/deliveries",
             json={
-                "subject": "Atualização de tradução",
-                "body_html": "<p>Olá, {{nome_cliente}}. O arquivo está anexado.</p>",
+                "subject_override": "Mensagem editada só para este envio",
+                "body_html_override": "<p>Olá, {{nome_cliente}}. Mensagem temporária.</p>",
             },
         )
     finally:
         app.dependency_overrides.pop(get_db, None)
         app.dependency_overrides.pop(require_administrator, None)
+        app.dependency_overrides.pop(get_current_user, None)
 
-    assert response.status_code == 200
-    assert response.json()["subject"] == "Atualização de tradução"
-    assert "{{nome_cliente}}" in response.json()["body_html"]
-    assert response.json()["available_placeholders"] == ["{{nome_cliente}}"]
+    assert template_response.status_code == 200
+    assert template_response.json()["subject"] == original_subject
+    assert template_response.json()["body_html"] == original_body_html
+    assert template_response.json()["available_placeholders"] == ["{{nome_cliente}}"]
+    assert delivery_response.status_code == 200
+    assert sent_emails[0]["subject"] == "Mensagem editada só para este envio"
+    assert sent_emails[0]["html_body"] == "<p>Olá, Maria Teste. Mensagem temporária.</p>"
+    isolated_db_session.refresh(template)
+    assert template.subject == original_subject
+    assert template.body_html == original_body_html

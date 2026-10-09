@@ -15,6 +15,7 @@ from app.modules.service_orders.models.service_order_email_template import (
     ServiceOrderEmailTemplate,
 )
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
+from app.modules.service_orders.schemas.service_order import ServiceOrderDeliveryRequest
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.modules.service_orders.services.storage import (
     download_service_order_file,
@@ -23,12 +24,19 @@ from app.modules.service_orders.services.storage import (
 )
 from app.shared.email.smtp_client import send_email
 
+
 def _render_delivery_email(
-    template: ServiceOrderEmailTemplate, customer_name: str
+    template: ServiceOrderEmailTemplate,
+    customer_name: str,
+    request: ServiceOrderDeliveryRequest | None = None,
 ) -> tuple[str, str]:
     safe_customer_name = html.escape(customer_name)
-    body = template.body_html.replace("{{nome_cliente}}", safe_customer_name)
-    return template.subject, body
+    subject = request.subject_override if request and request.subject_override else template.subject
+    body_html = (
+        request.body_html_override if request and request.body_html_override else template.body_html
+    )
+    body = body_html.replace("{{nome_cliente}}", safe_customer_name)
+    return subject.replace("{{nome_cliente}}", customer_name), body
 
 
 class ServiceOrderDeliveryService:
@@ -74,7 +82,11 @@ class ServiceOrderDeliveryService:
         company = self.db.query(Company).filter(Company.id == service_order.company_id).first()
         return company.trade_name if company else "cliente"
 
-    def send_translated_documents(self, service_order_id: uuid.UUID) -> list[ServiceOrderDelivery]:
+    def send_translated_documents(
+        self,
+        service_order_id: uuid.UUID,
+        email_override: ServiceOrderDeliveryRequest | None = None,
+    ) -> list[ServiceOrderDelivery]:
         service_order_service = ServiceOrderService(self.db)
         service_order = service_order_service._get_service_order_or_404(service_order_id)
         documents = (
@@ -131,7 +143,7 @@ class ServiceOrderDeliveryService:
                 if document.storage_path is None:
                     document.storage_path = storage_path
                 content = download_service_order_file(storage_path)
-                subject, body = _render_delivery_email(template, customer_name)
+                subject, body = _render_delivery_email(template, customer_name, email_override)
                 content_type = document.content_type or "application/octet-stream"
                 send_email(
                     to=recipient,

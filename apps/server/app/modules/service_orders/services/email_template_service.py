@@ -5,7 +5,6 @@ from app.modules.service_orders.models.service_order_email_template import (
     SERVICE_ORDER_EMAIL_TEMPLATE_KEY,
     ServiceOrderEmailTemplate,
 )
-from app.modules.service_orders.schemas.service_order import ServiceOrderEmailTemplateUpdate
 
 
 class ServiceOrderEmailTemplateService:
@@ -19,14 +18,4 @@ class ServiceOrderEmailTemplateService:
                 status_code=404,
                 detail="Template de envio não encontrado. Execute o seed do backend.",
             )
-        return template
-
-    def update_template(
-        self, data: ServiceOrderEmailTemplateUpdate
-    ) -> ServiceOrderEmailTemplate:
-        template = self.get_template()
-        template.subject = data.subject
-        template.body_html = data.body_html
-        self.db.commit()
-        self.db.refresh(template)
         return template

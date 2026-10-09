@@ -14,9 +14,9 @@ from app.modules.service_orders.schemas.invite import (
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
+    ServiceOrderDeliveryRequest,
     ServiceOrderDeliveryResponse,
     ServiceOrderEmailTemplateResponse,
-    ServiceOrderEmailTemplateUpdate,
     ServiceOrderFileResponse,
     ServiceOrderItemResponse,
     ServiceOrderResponse,
@@ -42,25 +42,19 @@ def get_service_order_email_template(
     return ServiceOrderEmailTemplateService(db).get_template()
 
 
-@router.put("/email-template", response_model=ServiceOrderEmailTemplateResponse)
-def update_service_order_email_template(
-    data: ServiceOrderEmailTemplateUpdate,
-    _current_user: SupabaseAuthenticatedUser = Depends(require_administrator),
-    db: Session = Depends(get_db),
-):
-    return ServiceOrderEmailTemplateService(db).update_template(data)
-
-
 @router.post(
     "/{service_order_id}/deliveries",
     response_model=list[ServiceOrderDeliveryResponse],
 )
 def send_translated_documents(
     service_order_id: uuid.UUID,
+    email_override: ServiceOrderDeliveryRequest | None = None,
     current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return ServiceOrderDeliveryService(db).send_translated_documents(service_order_id)
+    return ServiceOrderDeliveryService(db).send_translated_documents(
+        service_order_id, email_override
+    )
 
 
 @router.post("/generate-from-quote", response_model=ServiceOrderResponse, status_code=201)

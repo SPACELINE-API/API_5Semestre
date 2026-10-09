@@ -116,9 +116,9 @@ class ServiceOrderEmailTemplateResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ServiceOrderEmailTemplateUpdate(BaseModel):
-    subject: str = Field(min_length=1, max_length=255)
-    body_html: str = Field(min_length=1)
+class ServiceOrderDeliveryRequest(BaseModel):
+    subject_override: str | None = Field(default=None, min_length=1, max_length=255)
+    body_html_override: str | None = Field(default=None, min_length=1)
 
 
 class ServiceOrderResponse(BaseModel):

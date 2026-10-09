@@ -18,7 +18,6 @@ from app.modules.service_orders.models.service_order_email_template import (
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
 from app.modules.service_orders.models.service_order_item import (
     STATUS_CONCLUIDA,
-    STATUS_EM_ANALISE,
     STATUS_EM_ANDAMENTO,
     STATUS_PENDENTE,
     ServiceOrderItem,
@@ -573,9 +572,7 @@ def test_delivery_sends_document_and_records_success(db_session: Session, monkey
     monkeypatch.setattr(
         service_order_service_module, "service_order_file_exists", lambda _path: True
     )
-    monkeypatch.setattr(
-        delivery_service_module, "service_order_file_exists", lambda _path: True
-    )
+    monkeypatch.setattr(delivery_service_module, "service_order_file_exists", lambda _path: True)
     monkeypatch.setattr(
         delivery_service_module, "download_service_order_file", lambda _path: b"translated bytes"
     )
@@ -592,16 +589,11 @@ def test_delivery_sends_document_and_records_success(db_session: Session, monkey
     assert result[0].status == "sent"
     assert result[0].recipient_email == company.email
     assert result[0].template_key == SERVICE_ORDER_EMAIL_TEMPLATE_KEY
-    assert sent_emails[0]["attachments"] == [
-        ("final.pdf", b"translated bytes", "application/pdf")
-    ]
+    assert sent_emails[0]["attachments"] == [("final.pdf", b"translated bytes", "application/pdf")]
     assert sent_emails[0]["subject"] == "Tradução concluída"
     assert "Olá, Maria Silva!" in sent_emails[0]["html_body"]
     assert "Temos o prazer de informar que a tradução solicitada" in sent_emails[0]["html_body"]
-    assert (
-        "O documento traduzido está disponível em anexo"
-        in sent_emails[0]["html_body"]
-    )
+    assert "O documento traduzido está disponível em anexo" in sent_emails[0]["html_body"]
     assert "Equipe Aliança Traduções" in sent_emails[0]["html_body"]
     document = db_session.query(ServiceOrderFile).filter_by(service_order_id=order.id).one()
     assert document.delivery_status == "sent"
@@ -636,9 +628,7 @@ def test_delivery_failure_is_recorded_and_keeps_document(db_session: Session, mo
     monkeypatch.setattr(
         service_order_service_module, "service_order_file_exists", lambda _path: True
     )
-    monkeypatch.setattr(
-        delivery_service_module, "service_order_file_exists", lambda _path: True
-    )
+    monkeypatch.setattr(delivery_service_module, "service_order_file_exists", lambda _path: True)
     monkeypatch.setattr(
         delivery_service_module, "download_service_order_file", lambda _path: b"translated bytes"
     )

@@ -24,9 +24,7 @@ def seed_service_order_email_template(*, db: Session | None = None) -> str:
     should_close_session = db is None
 
     try:
-        template = database_session.get(
-            ServiceOrderEmailTemplate, SERVICE_ORDER_EMAIL_TEMPLATE_KEY
-        )
+        template = database_session.get(ServiceOrderEmailTemplate, SERVICE_ORDER_EMAIL_TEMPLATE_KEY)
         if template is None:
             database_session.add(
                 ServiceOrderEmailTemplate(
@@ -35,7 +33,11 @@ def seed_service_order_email_template(*, db: Session | None = None) -> str:
                     body_html=DEFAULT_BODY_HTML,
                 )
             )
-            database_session.commit()
+        else:
+            template.subject = DEFAULT_SUBJECT
+            template.body_html = DEFAULT_BODY_HTML
+
+        database_session.commit()
         return SERVICE_ORDER_EMAIL_TEMPLATE_KEY
     finally:
         if should_close_session:
