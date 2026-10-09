@@ -149,9 +149,9 @@ class _ReferenceSession:
 @pytest.mark.parametrize(
     "results",
     [
-        [object(), None, None],  
-        [None, object(), None], 
-        [None, None, object()],  
+        [object(), None, None],
+        [None, object(), None],
+        [None, None, object()],
     ],
 )
 def test_shared_document_url_is_kept(results):
