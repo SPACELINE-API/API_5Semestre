@@ -53,7 +53,6 @@ websockets==15.0.1
 yarl==1.24.5
 inngest==0.5.19
 jcs==0.2.1
-litellm==1.63.14
 opentelemetry-api==1.42.1
 opentelemetry-sdk==1.42.1
 opentelemetry-semantic-conventions==0.63b1
@@ -62,3 +61,5 @@ guardrails-ai==0.11.0
 guardrails-ai-prompt-injection-detector==0.0.2
 guardrails-ai-restrict-to-topic==0.1.0
 openai==2.54.0
+litellm==1.104.2
+langchain-core==1.6.9
