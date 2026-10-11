@@ -58,3 +58,7 @@ opentelemetry-api==1.42.1
 opentelemetry-sdk==1.42.1
 opentelemetry-semantic-conventions==0.63b1
 pytest-asyncio==1.3.0
+guardrails-ai==0.11.0
+guardrails-ai-prompt-injection-detector==0.0.2
+guardrails-ai-restrict-to-topic==0.1.0
+openai==2.54.0

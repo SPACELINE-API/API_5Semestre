@@ -11,6 +11,12 @@ from app.modules.support_agents.inngest.schema.agent_schema import (
     SuportePerguntaRequest,
     SuportePerguntaResponse,
 )
+from app.shared.google_adk.guardrail import (
+    GuardrailUnavailable,
+    PromptInjectionBlocked,
+    TopicRestrictionBlocked,
+    acheck_input,
+)
 from app.shared.inngest.client import inngest_client
 from app.shared.inngest.functions import run_support_agent
 
@@ -21,6 +27,30 @@ INNGEST_DEV_URL = os.getenv("INNGEST_BASE_URL", "http://localhost:8288")
 
 class AgenteSuporteClient(Protocol):
     async def __call__(self, texto: str) -> str: ...
+
+
+async def validar_entrada(texto: str) -> None:
+    """Bloqueia prompt injection e assuntos fora do escopo antes do Inngest/agente."""
+    try:
+        await acheck_input(texto)
+    except PromptInjectionBlocked as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mensagem não permitida. Reformule seu pedido sobre o suporte do sistema.",
+        ) from exc
+    except TopicRestrictionBlocked as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Só consigo ajudar com assuntos do suporte: clientes, ordens de serviço, "
+                "tradutores, orçamentos e usuários."
+            ),
+        ) from exc
+    except GuardrailUnavailable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Não foi possível validar sua mensagem agora. Tente novamente em instantes.",
+        ) from exc
 
 
 async def enviar_para_agente(texto: str) -> str:
@@ -34,6 +64,7 @@ def get_agente_suporte() -> AgenteSuporteClient:
 async def enfileirar_teste_agente(
     payload: SuportePerguntaRequest,
 ) -> SuporteAgenteEnfileiradoResponse:
+    await validar_entrada(payload.texto)
     event_name = "support/agent.test"
     try:
         ids = await inngest_client.send(
@@ -52,6 +83,7 @@ async def responder_pergunta_suporte(
     payload: SuportePerguntaRequest,
     agente: AgenteSuporteClient,
 ) -> SuportePerguntaResponse:
+    await validar_entrada(payload.texto)
     try:
         resposta = await agente(payload.texto)
     except Exception as exc:
@@ -64,6 +96,7 @@ async def responder_pergunta_suporte(
 
 
 async def enfileirar_pergunta_chat(payload: SuportePerguntaRequest) -> dict:
+    await validar_entrada(payload.texto)
     event_name = "support/chat.ask"
     try:
         ids = await inngest_client.send(
