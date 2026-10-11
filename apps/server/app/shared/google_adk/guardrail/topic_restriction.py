@@ -1,12 +1,3 @@
-"""Guardrail de escopo (input): só deixa passar assuntos de suporte.
-
-Validator: guardrails-ai-restrict-to-topic (PyPI), em modo "só LLM".
-    python -m pip install guardrails-ai-restrict-to-topic
-
-O LLM é chamado por uma função nossa (litellm), então funciona com Gemini
-ou Ollama, conforme .env (ver llm.py).
-"""
-
 import asyncio
 import json
 import logging
@@ -14,8 +5,8 @@ import re
 import threading
 from functools import lru_cache
 
-from guardrails.validator_base import FailResult
-from guardrails_ai.restricttotopic import RestrictToTopic
+from guardrails.validator_base import FailResult  # type: ignore[import-untyped]
+from guardrails_ai.restricttotopic import RestrictToTopic  # type: ignore[import-untyped]
 from litellm import completion
 
 from .errors import GuardrailUnavailable, TopicRestrictionBlocked

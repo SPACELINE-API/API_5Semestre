@@ -1,10 +1,3 @@
-"""Escolha do LLM usado pelos guardrails (via litellm).
-
-Ordem de decisão:
-1. GUARDRAIL_LLM_MODEL no .env (ex: "gemini/<modelo>" ou "ollama_chat/<modelo>")
-2. Mesmo provedor e modelo do agente (ADK_PROVIDER / ADK_MODEL)
-"""
-
 import os
 
 from app.shared.google_adk.config import (

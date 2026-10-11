@@ -1,22 +1,17 @@
-"""Guardrail de prompt injection (input).
-
-Validator: guardrails-ai-prompt-injection-detector (PyPI)
-    python -m pip install guardrails-ai guardrails-ai-prompt-injection-detector
-"""
-
 import asyncio
 import logging
 from functools import lru_cache
 
-from guardrails import Guard, OnFailAction
-from guardrails_ai.prompt_injection_detector import PromptInjectionDetector
+from guardrails import Guard, OnFailAction  # type: ignore[import-untyped]
+from guardrails_ai.prompt_injection_detector import (  # type: ignore[import-untyped]
+    PromptInjectionDetector,
+)
 
 from .errors import GuardrailUnavailable, PromptInjectionBlocked
 from .llm import get_guardrail_model, setup_llm_env
 
 logger = logging.getLogger(__name__)
 
-# Score (0..1) acima do qual o texto é considerado prompt injection.
 INJECTION_THRESHOLD = 0.8
 
 
