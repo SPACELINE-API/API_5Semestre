@@ -435,7 +435,13 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 				<CompleteServiceOrderModal
 					visible={isCompleteModalVisible}
 					serviceOrder={serviceOrder}
+					customerName={company?.trade_name}
 					onClose={() => setIsCompleteModalVisible(false)}
+					onSent={() => {
+						setIsCompleteModalVisible(false);
+						refresh();
+						showToast('Documentos enviados ao cliente com sucesso!', 'success');
+					}}
 				/>
 			)}
 

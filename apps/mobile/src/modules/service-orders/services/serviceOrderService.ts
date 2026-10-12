@@ -4,6 +4,7 @@ import {
 	apiGetAuth,
 	apiPatch,
 	apiPost,
+	apiPostAuth,
 	apiUrl,
 } from '../../../shared/services/apiClient';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
@@ -34,6 +35,33 @@ export function getServiceOrder(id: string): Promise<ServiceOrder> {
 export function getServiceOrderEmailTemplate(): Promise<ServiceOrderEmailTemplate> {
 	return apiGetAuth<ServiceOrderEmailTemplate>(
 		`${SERVICE_ORDERS_PATH}/email-template`,
+	);
+}
+
+export type ServiceOrderDeliveryInput = {
+	subject_override: string;
+	body_html_override: string;
+};
+
+export type ServiceOrderDelivery = {
+	id: string;
+	service_order_id: string;
+	document_file_id: string;
+	recipient_email: string | null;
+	template_key: string | null;
+	status: string;
+	error_message: string | null;
+	attempted_at: string;
+	sent_at: string | null;
+};
+
+export function sendServiceOrderDeliveries(
+	serviceOrderId: string,
+	data: ServiceOrderDeliveryInput,
+): Promise<ServiceOrderDelivery[]> {
+	return apiPostAuth<ServiceOrderDelivery[], ServiceOrderDeliveryInput>(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/deliveries`,
+		data,
 	);
 }
 

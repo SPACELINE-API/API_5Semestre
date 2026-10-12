@@ -7,19 +7,50 @@ import {
 	TextInput,
 	TouchableOpacity,
 	View,
+	Linking,
 } from 'react-native';
 import { FileText, X } from 'lucide-react-native';
 import type {
 	ServiceOrder,
 	ServiceOrderEmailTemplate,
 } from '../types/serviceOrder';
-import { getServiceOrderEmailTemplate } from '../services/serviceOrderService';
+import {
+	getServiceOrderEmailTemplate,
+	sendServiceOrderDeliveries,
+} from '../services/serviceOrderService';
 
 type CompleteServiceOrderModalProps = {
 	visible: boolean;
 	serviceOrder: ServiceOrder;
+	customerName?: string;
 	onClose: () => void;
+	onSent: () => void;
 };
+
+function escapeHtml(value: string): string {
+	return value
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
+function toEmailHtml(text: string, observation: string): string {
+	const paragraphs = text
+		.trim()
+		.split(/\n\s*\n/)
+		.filter(Boolean)
+		.map(
+			(paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`,
+		);
+	if (observation.trim()) {
+		paragraphs.push(
+			`<p><strong>Observação:</strong> ${escapeHtml(observation.trim()).replace(/\n/g, '<br>')}</p>`,
+		);
+	}
+	return paragraphs.join('');
+}
 
 function toEditableText(bodyHtml: string): string {
 	return bodyHtml
@@ -38,7 +69,9 @@ function toEditableText(bodyHtml: string): string {
 export function CompleteServiceOrderModal({
 	visible,
 	serviceOrder,
+	customerName,
 	onClose,
+	onSent,
 }: CompleteServiceOrderModalProps) {
 	const [template, setTemplate] = useState<ServiceOrderEmailTemplate | null>(
 		null,
@@ -48,6 +81,8 @@ export function CompleteServiceOrderModal({
 	const [observation, setObservation] = useState('');
 	const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
 	const [templateError, setTemplateError] = useState<string | null>(null);
+	const [isSending, setIsSending] = useState(false);
+	const [sendError, setSendError] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (!visible) return;
@@ -58,6 +93,8 @@ export function CompleteServiceOrderModal({
 		setMessage('');
 		setObservation('');
 		setTemplateError(null);
+		setSendError(null);
+		setIsSending(false);
 		setIsLoadingTemplate(true);
 
 		getServiceOrderEmailTemplate()
@@ -65,7 +102,12 @@ export function CompleteServiceOrderModal({
 				if (!isCurrent) return;
 				setTemplate(data);
 				setSubject(data.subject);
-				setMessage(toEditableText(data.body_html));
+				setMessage(
+					toEditableText(data.body_html).replace(
+						/\{\{nome_cliente\}\}/g,
+						customerName?.trim() || '{{nome_cliente}}',
+					),
+				);
 			})
 			.catch((error: unknown) => {
 				if (!isCurrent) return;
@@ -87,6 +129,38 @@ export function CompleteServiceOrderModal({
 	const deliveryFiles = serviceOrder.files.filter(
 		(file) => file.direction === 'saida',
 	);
+	const canSend =
+		!!template &&
+		!isLoadingTemplate &&
+		!isSending &&
+		subject.trim().length > 0 &&
+		message.trim().length > 0;
+
+	async function handleSend() {
+		if (!canSend) return;
+		setIsSending(true);
+		setSendError(null);
+		try {
+			await sendServiceOrderDeliveries(serviceOrder.id, {
+				subject_override: subject.trim(),
+				body_html_override: toEmailHtml(message, observation),
+			});
+			onSent();
+		} catch (error) {
+			setSendError(
+				error instanceof Error
+					? error.message
+					: 'Não foi possível enviar os documentos traduzidos.',
+			);
+		} finally {
+			setIsSending(false);
+		}
+	}
+
+	async function handleOpenDocument(fileUrl: string) {
+		if (!fileUrl) return;
+		await Linking.openURL(fileUrl);
+	}
 
 	return (
 		<Modal
@@ -200,8 +274,12 @@ export function CompleteServiceOrderModal({
 								</Text>
 							) : (
 								deliveryFiles.map((file) => (
-									<View
+									<TouchableOpacity
 										key={file.id}
+										onPress={() => handleOpenDocument(file.file_url)}
+										activeOpacity={0.7}
+										accessibilityRole="link"
+										accessibilityLabel={`Abrir documento ${file.filename}`}
 										className="flex-row items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5"
 									>
 										<View className="h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
@@ -218,7 +296,7 @@ export function CompleteServiceOrderModal({
 												Será anexado ao e-mail
 											</Text>
 										</View>
-									</View>
+									</TouchableOpacity>
 								))
 							)}
 						</View>
@@ -239,6 +317,15 @@ export function CompleteServiceOrderModal({
 								className="min-h-[88px] rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-gray-900 text-sm outline-none"
 							/>
 						</View>
+
+						{sendError && (
+							<Text
+								accessibilityRole="alert"
+								className="rounded-lg bg-red-50 px-3 py-2 font-inter text-red-700 text-sm"
+							>
+								{sendError}
+							</Text>
+						)}
 					</ScrollView>
 
 					<View className="flex-row items-center justify-end gap-3 border-t border-gray-100 px-5 py-4 md:px-6">
@@ -252,13 +339,15 @@ export function CompleteServiceOrderModal({
 							</Text>
 						</TouchableOpacity>
 						<TouchableOpacity
-							disabled
+							onPress={handleSend}
+							disabled={!canSend}
 							accessibilityRole="button"
-							accessibilityState={{ disabled: true }}
-							className="rounded-lg bg-blue-600 px-5 py-2.5 opacity-50"
+							accessibilityState={{ disabled: !canSend, busy: isSending }}
+							className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 ${canSend ? '' : 'opacity-50'}`}
 						>
+							{isSending && <ActivityIndicator size="small" color="#FFFFFF" />}
 							<Text className="font-inter font-semibold text-white text-sm">
-								Enviar
+								{isSending ? 'Enviando...' : 'Enviar'}
 							</Text>
 						</TouchableOpacity>
 					</View>

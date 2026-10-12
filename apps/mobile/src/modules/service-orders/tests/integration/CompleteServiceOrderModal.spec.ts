@@ -95,5 +95,43 @@ test('abre a conclusão e exibe template, documentos traduzidos e observação',
 	await expect(
 		page.getByLabel('Observação opcional para o e-mail'),
 	).toHaveValue('A observação será incluída nesta mensagem.');
-	await expect(page.getByText('Enviar', { exact: true })).toBeDisabled();
+	await expect(page.getByRole('button', { name: 'Enviar' })).toBeEnabled();
+
+	let sentPayload: Record<string, string> | undefined;
+	await page.route(
+		'**/api/service-orders/order-1/deliveries',
+		async (route) => {
+			sentPayload = route.request().postDataJSON() as Record<string, string>;
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([
+					{
+						id: 'delivery-1',
+						service_order_id: 'order-1',
+						document_file_id: 'output-file-1',
+						recipient_email: 'cliente@example.com',
+						template_key: EMAIL_TEMPLATE.key,
+						status: 'sent',
+						error_message: null,
+						attempted_at: '2026-01-03T00:00:00Z',
+						sent_at: '2026-01-03T00:00:00Z',
+					},
+				]),
+			});
+		},
+	);
+
+	await page.getByRole('button', { name: 'Enviar' }).click();
+	await expect.poll(() => sentPayload).toBeDefined();
+	expect(sentPayload?.subject_override).toBe(EMAIL_TEMPLATE.subject);
+	expect(sentPayload?.body_html_override).toContain(
+		'A observação será incluída nesta mensagem.',
+	);
+	expect(sentPayload?.body_html_override).toContain(
+		'<strong>Observação:</strong>',
+	);
+	await expect(
+		page.getByText('Concluir ordem de serviço', { exact: true }),
+	).not.toBeVisible();
 });
