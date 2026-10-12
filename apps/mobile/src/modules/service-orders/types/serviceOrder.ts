@@ -47,6 +47,14 @@ export type ServiceOrderFile = {
 	uploaded_at: string;
 };
 
+export type ServiceOrderEmailTemplate = {
+	key: string;
+	subject: string;
+	body_html: string;
+	updated_at: string;
+	available_placeholders: string[];
+};
+
 export type ServiceOrder = {
 	id: string;
 	quote_id: string;

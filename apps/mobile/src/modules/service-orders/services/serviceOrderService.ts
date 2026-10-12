@@ -1,6 +1,7 @@
 import {
 	apiDelete,
 	apiGet,
+	apiGetAuth,
 	apiPatch,
 	apiPost,
 	apiUrl,
@@ -13,6 +14,7 @@ import type {
 	ServiceOrder,
 	ServiceOrderFile,
 	ServiceOrderFileDirection,
+	ServiceOrderEmailTemplate,
 	ServiceOrderItem,
 	ServiceOrderItemInvite,
 	UpdateServiceOrderInput,
@@ -27,6 +29,12 @@ export function listServiceOrders(): Promise<ServiceOrder[]> {
 
 export function getServiceOrder(id: string): Promise<ServiceOrder> {
 	return apiGet<ServiceOrder>(`${SERVICE_ORDERS_PATH}/${id}`);
+}
+
+export function getServiceOrderEmailTemplate(): Promise<ServiceOrderEmailTemplate> {
+	return apiGetAuth<ServiceOrderEmailTemplate>(
+		`${SERVICE_ORDERS_PATH}/email-template`,
+	);
 }
 
 export function deleteServiceOrder(id: string): Promise<void> {

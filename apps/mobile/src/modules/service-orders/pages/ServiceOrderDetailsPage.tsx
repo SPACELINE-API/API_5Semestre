@@ -43,6 +43,7 @@ import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import type { ServiceOrderItem } from '../types/serviceOrder';
+import { CompleteServiceOrderModal } from '../components/CompleteServiceOrderModal';
 
 type ServiceOrderDetailsPageProps = {
 	id: string;
@@ -65,6 +66,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
 	const [editingItem, setEditingItem] = useState<ServiceOrderItem | null>(null);
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
+	const [isCompleteModalVisible, setIsCompleteModalVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 
 	const { invites: inviteTargetItemInvites } = useItemInvites(
@@ -172,6 +174,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 								setRefreshToken((current) => current + 1);
 							}}
 							onDelete={() => setIsDeleteConfirmVisible(true)}
+							onComplete={() => setIsCompleteModalVisible(true)}
 							onViewChange={setView}
 						/>
 
@@ -427,6 +430,14 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 				onConfirm={handleDelete}
 				onCancel={() => setIsDeleteConfirmVisible(false)}
 			/>
+
+			{serviceOrder && (
+				<CompleteServiceOrderModal
+					visible={isCompleteModalVisible}
+					serviceOrder={serviceOrder}
+					onClose={() => setIsCompleteModalVisible(false)}
+				/>
+			)}
 
 			<Toast
 				toast={
