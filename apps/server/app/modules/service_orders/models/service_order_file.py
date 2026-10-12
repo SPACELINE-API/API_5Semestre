@@ -30,6 +30,12 @@ class ServiceOrderFile(Base):
         nullable=False,
         index=True,
     )
+    service_order_item_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("service_order_items.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
     file_url: Mapped[str] = mapped_column(String(500), nullable=False)
     direction: Mapped[str] = mapped_column(String(20), nullable=False)

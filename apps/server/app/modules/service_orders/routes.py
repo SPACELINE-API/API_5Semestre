@@ -10,6 +10,8 @@ from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.service_orders.schemas.invite import (
     SendInvitesRequest,
     ServiceOrderItemInviteResponse,
+    TranslatorInviteDetailsResponse,
+    TranslatorInviteResponse,
 )
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
@@ -20,11 +22,49 @@ from app.modules.service_orders.schemas.service_order import (
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
+from app.modules.service_orders.schemas.translator_item import TranslatorItemResponse
 from app.modules.service_orders.services.invite_service import InviteService
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
+from app.modules.service_orders.services.translator_item_service import (
+    DELIVERY_MAX_BYTES,
+    TranslatorItemService,
+)
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/service-orders", tags=["service-orders"])
+
+
+@router.get("/items/me", response_model=list[TranslatorItemResponse])
+def list_my_items(
+    db: Session = Depends(get_db),
+    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+):
+    return TranslatorItemService(db).list_items(current_user.email)
+
+
+@router.get("/items/me/{item_id}", response_model=TranslatorItemResponse)
+def get_my_item(
+    item_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+):
+    return TranslatorItemService(db).get_item(item_id, current_user.email)
+
+
+@router.post("/items/me/{item_id}/delivery", response_model=TranslatorItemResponse, status_code=201)
+def deliver_my_item(
+    item_id: uuid.UUID,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+):
+    return TranslatorItemService(db).deliver(
+        item_id,
+        current_user.email,
+        file.filename or "traducao",
+        file.file.read(DELIVERY_MAX_BYTES + 1),
+        file.content_type or "application/octet-stream",
+    )
 
 
 @router.post("/generate-from-quote", response_model=ServiceOrderResponse, status_code=201)
@@ -202,13 +242,23 @@ def list_invites_for_item(
     return service.list_invites_for_item(item_id)
 
 
-@router.get("/invites/me", response_model=list[ServiceOrderItemInviteResponse])
+@router.get("/invites/me", response_model=list[TranslatorInviteResponse])
 def list_my_invites(
     db: Session = Depends(get_db),
     current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
 ):
     service = InviteService(db)
     return service.list_invites_for_translator_email(current_user.email)
+
+
+@router.get("/invites/{invite_id}", response_model=TranslatorInviteDetailsResponse)
+def get_my_invite(
+    invite_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+):
+    service = InviteService(db)
+    return service.get_invite_for_translator(invite_id, current_user.email)
 
 
 @router.post("/invites/{invite_id}/accept", response_model=ServiceOrderItemInviteResponse)

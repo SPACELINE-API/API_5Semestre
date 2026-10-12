@@ -4,7 +4,7 @@ export type LoginResponse = {
 	access_token: string;
 	token_type: string;
 	expires_in: number;
-	user: { id: string; email: string };
+	user: { id: string; email: string; role?: string };
 };
 
 let nativeSession: LoginResponse | null = null;
@@ -67,6 +67,16 @@ export function getSession(): LoginResponse | null {
 	if (value) return decodeCookieValue<LoginResponse>(value);
 	return nativeSession;
 }
+
+export function isTranslatorSession(): boolean {
+	return getSession()?.user.role?.toLowerCase() === 'tradutor';
+}
+
+export const TRANSLATOR_ALLOWED_PREFIXES = [
+	'/convites',
+	'/meus-itens',
+	'/meu-perfil',
+];
 
 export function clearSession() {
 	nativeSession = null;

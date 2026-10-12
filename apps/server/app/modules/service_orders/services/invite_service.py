@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.modules.service_orders.models.invite import (
     INVITE_STATUS_ACEITO,
@@ -105,10 +105,25 @@ class InviteService:
     ) -> list[ServiceOrderItemInvite]:
         return (
             self.db.query(ServiceOrderItemInvite)
+            .options(joinedload(ServiceOrderItemInvite.service_order_item))
             .join(Translator, ServiceOrderItemInvite.translator_id == Translator.id)
             .filter(Translator.email.ilike(translator_email))
+            .order_by(ServiceOrderItemInvite.sent_at.desc())
             .all()
         )
+
+    def get_invite_for_translator(
+        self, invite_id: uuid.UUID, translator_email: str
+    ) -> ServiceOrderItemInvite:
+        invite = self._get_invite_or_404(invite_id)
+
+        if invite.translator.email.lower() != translator_email.lower():
+            raise HTTPException(
+                status_code=403,
+                detail="Este convite não pertence ao usuário autenticado",
+            )
+
+        return invite
 
     def accept_invite(
         self, invite_id: uuid.UUID, current_user_email: str
