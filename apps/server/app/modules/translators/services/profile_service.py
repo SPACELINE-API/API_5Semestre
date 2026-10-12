@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session, joinedload
 from app.modules.translators.models.translator import Translator
 from app.modules.translators.models.translator_language import TranslatorLanguage
 from app.modules.translators.schemas.translator import (
+    QualificationResponse,
+    TranslatorLanguageResponse,
     TranslatorProfileResponse,
     TranslatorProfileUpdate,
 )
@@ -92,6 +94,10 @@ class TranslatorProfileService:
             photo_url=photo_url,
             photo_filename=translator.photo_filename,
             photo_size_bytes=translator.photo_size_bytes,
-            qualifications=translator.qualifications,
-            languages=translator.languages,
+            qualifications=[
+                QualificationResponse.model_validate(item) for item in translator.qualifications
+            ],
+            languages=[
+                TranslatorLanguageResponse.model_validate(item) for item in translator.languages
+            ],
         )
