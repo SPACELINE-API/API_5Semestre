@@ -254,12 +254,6 @@ export function CompleteServiceOrderModal({
 										numberOfLines={8}
 										className="min-h-[180px] rounded-lg border border-gray-300 px-3 py-3 font-inter text-gray-900 text-sm outline-none"
 									/>
-									{template.available_placeholders.length > 0 && (
-										<Text className="font-inter text-gray-400 text-xs">
-											Variável disponível:{' '}
-											{template.available_placeholders.join(', ')}
-										</Text>
-									)}
 								</View>
 							</View>
 						)}
