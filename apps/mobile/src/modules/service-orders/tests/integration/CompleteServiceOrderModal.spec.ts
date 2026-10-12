@@ -135,3 +135,59 @@ test('abre a conclusão e exibe template, documentos traduzidos e observação',
 		page.getByText('Concluir ordem de serviço', { exact: true }),
 	).not.toBeVisible();
 });
+
+test('permite cancelar e mantém o modal aberto quando o envio falha', async ({
+	page,
+}) => {
+	for (const path of ['clients', 'contacts', 'translators']) {
+		await page.route(`**/api/${path}`, (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: '[]',
+			}),
+		);
+	}
+	await page.route('**/api/service-orders/order-1', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify(SERVICE_ORDER),
+		}),
+	);
+	await page.route('**/api/service-orders/email-template', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify(EMAIL_TEMPLATE),
+		}),
+	);
+	await page.route('**/api/service-orders/order-1/deliveries', (route) =>
+		route.fulfill({
+			status: 502,
+			contentType: 'application/json',
+			body: JSON.stringify({ detail: 'Falha ao enviar documento traduzido.' }),
+		}),
+	);
+
+	await loginAs(page);
+	await page.goto('/ordens-de-servico/order-1', {
+		waitUntil: 'domcontentloaded',
+	});
+	await page.getByRole('button', { name: 'Concluir Ordem de Serviço' }).click();
+	await expect(page.getByText('Cancelar', { exact: true })).toBeVisible();
+	await page.getByText('Cancelar', { exact: true }).click();
+	await expect(
+		page.getByText('Concluir ordem de serviço', { exact: true }),
+	).not.toBeVisible();
+
+	await page.getByRole('button', { name: 'Concluir Ordem de Serviço' }).click();
+	await expect(page.getByRole('button', { name: 'Enviar' })).toBeEnabled();
+	await page.getByRole('button', { name: 'Enviar' }).click();
+	await expect(
+		page.getByText('Falha ao enviar documento traduzido.'),
+	).toBeVisible();
+	await expect(
+		page.getByText('Concluir ordem de serviço', { exact: true }),
+	).toBeVisible();
+});

@@ -332,6 +332,8 @@ export function CompleteServiceOrderModal({
 						<TouchableOpacity
 							onPress={onClose}
 							activeOpacity={0.7}
+							accessibilityRole="button"
+							accessibilityLabel="Cancelar envio dos documentos"
 							className="rounded-lg border border-gray-200 px-5 py-2.5 hover:bg-gray-50"
 						>
 							<Text className="font-inter font-medium text-gray-700 text-sm">
