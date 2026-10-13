@@ -8,6 +8,14 @@ const INVITE = {
 	status: 'pendente',
 	sent_at: '2026-01-02T00:00:00Z',
 	responded_at: null,
+	item: {
+		id: 'item-1',
+		source_language: 'Português',
+		target_language: 'Inglês',
+		document_type: 'Contrato',
+		deadline: '2026-11-01T00:00:00Z',
+		status: 'pendente',
+	},
 };
 
 test.describe('My invites list', () => {
@@ -31,7 +39,26 @@ test.describe('My invites list', () => {
 
 		await expect(page.getByText('Meus Convites')).toBeVisible();
 		await expect(
-			page.getByText('Convite recebido em 01/01/2026', { exact: true }),
+			page.getByText('Português → Inglês · Contrato', { exact: true }),
 		).toBeVisible();
+	});
+
+	test('filters the list by search text', async ({ page }) => {
+		await page.route('**/api/service-orders/invites/me', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([INVITE]),
+			});
+		});
+
+		await loginAs(page);
+		await page.goto('/convites');
+
+		await page
+			.getByPlaceholder('Buscar por documento ou idioma')
+			.fill('alemão');
+
+		await expect(page.getByText('Nenhum convite encontrado')).toBeVisible();
 	});
 });
