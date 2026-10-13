@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from sqlalchemy import String, cast, func, or_
 from sqlalchemy.orm import Session, selectinload
@@ -77,3 +78,32 @@ class QuoteRepository:
         self.db.commit()
         self.db.refresh(quote)
         return quote
+
+    def list_proposals(
+        self,
+        *,
+        page: int,
+        page_size: int,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        status: str | None = None,
+    ) -> tuple[list[Quote], int]:
+        query = self.db.query(Quote)
+        if status:
+            query = query.filter(Quote.status == status)
+        if start_date:
+            query = query.filter(func.date(Quote.created_at) >= start_date)
+        if end_date:
+            query = query.filter(func.date(Quote.created_at) <= end_date)
+        total = query.with_entities(func.count(Quote.id)).scalar() or 0
+        quotes = (
+            query.options(
+                selectinload(Quote.items),
+                selectinload(Quote.additional_services),
+            )
+            .order_by(Quote.created_at.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+            .all()
+        )
+        return quotes, total

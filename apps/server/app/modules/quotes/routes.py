@@ -1,11 +1,13 @@
 import uuid
+from datetime import date
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from app.modules.auth.dependencies.dependencies import get_current_user
+from app.modules.auth.dependencies.dependencies import get_current_user, require_permission
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.quotes.schemas.quote import (
+    ProposalListResponse,
     QuoteCreate,
     QuoteFromRequestResponse,
     QuoteListResponse,
@@ -65,6 +67,28 @@ def list_quotes(
         page=page,
         page_size=page_size,
         search=search,
+        status_filter=status_filter,
+    )
+
+
+@router.get("/proposals", response_model=ProposalListResponse)
+def list_proposals(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=10, ge=1, le=100),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
+    status_filter: str | None = Query(
+        default=None, alias="status", pattern="^(pending|approved|reproved)$"
+    ),
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_permission("proposals:read")),
+):
+    service = QuoteService(db)
+    return service.list_proposals(
+        page=page,
+        page_size=page_size,
+        start_date=start_date,
+        end_date=end_date,
         status_filter=status_filter,
     )
 

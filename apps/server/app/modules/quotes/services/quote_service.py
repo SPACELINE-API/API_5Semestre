@@ -1,6 +1,6 @@
 import io
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -64,6 +64,30 @@ class QuoteService:
             page=page,
             page_size=page_size,
             search=search,
+            status=status_filter,
+        )
+        return {
+            "items": quotes,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total + page_size - 1) // page_size,
+        }
+
+    def list_proposals(
+        self,
+        *,
+        page: int,
+        page_size: int,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        status_filter: str | None = None,
+    ) -> dict:
+        quotes, total = self.quote_repository.list_proposals(
+            page=page,
+            page_size=page_size,
+            start_date=start_date,
+            end_date=end_date,
             status=status_filter,
         )
         return {
