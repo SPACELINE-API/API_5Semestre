@@ -51,17 +51,17 @@ class AdditionalServiceService:
         quote_id: uuid.UUID | None = None,
         service_order_id: uuid.UUID | None = None,
     ) -> list[AdditionalService]:
-        if (quote_id is None) == (service_order_id is None):
-            raise ValueError("Informe apenas um entre quote_id e service_order_id")
-
-        if service_order_id is not None:
+        if service_order_id is not None and quote_id is None:
             if self.service_order_repository.get_by_id(service_order_id) is None:
                 raise AdditionalServiceNotFoundError("Ordem de serviço não encontrada")
             return self.repository.list_additional_services_by_service_order(service_order_id)
 
-        if self.quote_repository.get_by_id(quote_id) is None:
-            raise AdditionalServiceNotFoundError("Orçamento não encontrado")
-        return self.repository.list_additional_services_by_quote(quote_id)
+        if quote_id is not None and service_order_id is None:
+            if self.quote_repository.get_by_id(quote_id) is None:
+                raise AdditionalServiceNotFoundError("Orçamento não encontrado")
+            return self.repository.list_additional_services_by_quote(quote_id)
+
+        raise ValueError("Informe apenas um entre quote_id e service_order_id")
 
     def delete_additional_service(self, service_id: uuid.UUID) -> None:
         additional_service = self.get_additional_service(service_id)
@@ -74,7 +74,10 @@ class AdditionalServiceService:
                 raise AdditionalServiceNotFoundError("Ordem de serviço não encontrada")
             return service_order.quote_id
 
-        quote = self.quote_repository.get_by_id(payload.quote_id)
-        if quote is None:
-            raise AdditionalServiceNotFoundError("Orçamento não encontrado")
-        return quote.id
+        if payload.quote_id is not None:
+            quote = self.quote_repository.get_by_id(payload.quote_id)
+            if quote is None:
+                raise AdditionalServiceNotFoundError("Orçamento não encontrado")
+            return quote.id
+
+        raise ValueError("Informe apenas um entre quote_id e service_order_id")
