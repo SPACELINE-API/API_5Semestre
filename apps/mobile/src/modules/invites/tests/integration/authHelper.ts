@@ -3,6 +3,31 @@ import type { Page } from '@playwright/test';
 const SESSION_COOKIE = 'spaceline_session';
 
 export async function loginAs(page: Page) {
+	await page.route('**/api/auth/me', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				user: { id: 'test-user-id', email: 'maria.tradutora@example.com' },
+				roles: [{ id: 'test-admin', name: 'Administrador de teste' }],
+				permissions: [
+					'dashboard.read',
+					'assignments.read',
+					'requests.read',
+					'quotes.read',
+					'service_orders.read',
+					'clients.read',
+					'translators.read',
+					'support.read',
+					'roles.read',
+					'users.read',
+					'settings.read',
+					'projects.read',
+				],
+			}),
+		}),
+	);
+
 	const session = {
 		access_token: 'test-access-token',
 		token_type: 'bearer',
