@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -115,7 +115,7 @@ def test_create_schema_rejects_invalid_fields(description, price):
 
 
 def test_response_schema_reads_model_attributes():
-    now = datetime(2026, 10, 12, 10, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 10, 12, 10, 0, tzinfo=UTC)
     additional_service = AdditionalService(
         id=uuid4(),
         quote_id=uuid4(),

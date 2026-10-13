@@ -1,11 +1,10 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.modules.quotes.schemas.translation_item import QuoteTranslationItemResponse
-
-from decimal import Decimal
 
 
 class QuoteCreate(BaseModel):
