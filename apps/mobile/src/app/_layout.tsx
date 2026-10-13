@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Text } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import {
 	SafeAreaProvider,
@@ -22,7 +22,15 @@ import {
 } from '@expo-google-fonts/poppins';
 
 import '../shared/styles/global.css';
-import { getSession } from '../modules/auth/services/auth';
+import {
+	getSession,
+	loadAuthorizationContext,
+	getAuthorizationContext,
+} from '../modules/auth/services/auth';
+import {
+	canAccess,
+	firstAllowedRoute,
+} from '../modules/auth/services/authorization';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -37,6 +45,10 @@ export default function AppLayout() {
 		'Poppins-Bold': Poppins_700Bold,
 	});
 	const pathname = usePathname();
+	const [authorizationLoaded, setAuthorizationLoaded] = useState(false);
+	const [authorizationError, setAuthorizationError] = useState(false);
+	const [authorizationVersion, setAuthorizationVersion] = useState(0);
+	const session = getSession();
 
 	useEffect(() => {
 		if (typeof document !== 'undefined') {
@@ -52,24 +64,68 @@ export default function AppLayout() {
 		setIsMobileNavOpen(false);
 	}, [pathname]);
 
+	useEffect(() => {
+		let active = true;
+		if (
+			!session ||
+			pathname === '/login' ||
+			pathname === '/solicitar-servico'
+		) {
+			setAuthorizationLoaded(false);
+			setAuthorizationError(false);
+			return () => {
+				active = false;
+			};
+		}
+		setAuthorizationLoaded(false);
+		loadAuthorizationContext()
+			.then(() => {
+				if (active) {
+					setAuthorizationError(false);
+					setAuthorizationLoaded(true);
+					setAuthorizationVersion((version) => version + 1);
+				}
+			})
+			.catch(() => {
+				if (active) {
+					setAuthorizationError(true);
+					setAuthorizationLoaded(true);
+				}
+			});
+		return () => {
+			active = false;
+		};
+	}, [
+		session?.access_token,
+		pathname === '/login' || pathname === '/solicitar-servico',
+	]);
+
 	if (!fontsLoaded && !error) {
 		return null;
 	}
 
 	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
 
-	if (!isPublic && !getSession()) return <Redirect href={'/login' as never} />;
+	if (!isPublic && !session) return <Redirect href={'/login' as never} />;
 	if (isPublic)
 		return (
 			<KeyboardProvider>
 				<Slot />
 			</KeyboardProvider>
 		);
+	if (!authorizationLoaded) return null;
+	if (authorizationError) return <AuthorizationUnavailable />;
+	const authorizationContext = getAuthorizationContext();
+	if (!canAccess(authorizationContext, pathname)) {
+		return <Redirect href={firstAllowedRoute(authorizationContext) as never} />;
+	}
 
 	return (
 		<SafeAreaProvider>
 			<KeyboardProvider>
 				<AppShell
+					authorizationVersion={authorizationVersion}
+					permissions={authorizationContext?.permissions ?? []}
 					isMobileNavOpen={isMobileNavOpen}
 					onCloseMobileNav={() => setIsMobileNavOpen(false)}
 					onOpenMobileNav={() => setIsMobileNavOpen(true)}
@@ -79,7 +135,27 @@ export default function AppLayout() {
 	);
 }
 
+function AuthorizationUnavailable() {
+	return (
+		<View
+			style={{
+				flex: 1,
+				justifyContent: 'center',
+				alignItems: 'center',
+				padding: 24,
+			}}
+		>
+			<Text style={{ fontSize: 16, textAlign: 'center', color: '#374151' }}>
+				Não foi possível carregar suas permissões. Faça login novamente ou tente
+				mais tarde.
+			</Text>
+		</View>
+	);
+}
+
 type AppShellProps = {
+	permissions: string[];
+	authorizationVersion: number;
 	isMobileNavOpen: boolean;
 	onCloseMobileNav: () => void;
 	onOpenMobileNav: () => void;
@@ -87,6 +163,8 @@ type AppShellProps = {
 
 function AppShell({
 	isMobileNavOpen,
+	permissions,
+	authorizationVersion,
 	onCloseMobileNav,
 	onOpenMobileNav,
 }: AppShellProps) {
@@ -94,7 +172,12 @@ function AppShell({
 
 	return (
 		<View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}>
-			<SideBar mobileOpen={isMobileNavOpen} onCloseMobile={onCloseMobileNav} />
+			<SideBar
+				key={authorizationVersion}
+				permissions={permissions}
+				mobileOpen={isMobileNavOpen}
+				onCloseMobile={onCloseMobileNav}
+			/>
 			<View style={{ flex: 1, overflow: 'hidden' }}>
 				<View
 					style={{ paddingTop: insets.top }}

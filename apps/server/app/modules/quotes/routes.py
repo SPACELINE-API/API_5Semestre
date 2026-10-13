@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from app.modules.auth.dependencies.dependencies import get_current_user
+from app.modules.auth.dependencies.dependencies import require_permission
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.quotes.schemas.quote import (
     QuoteCreate,
@@ -27,10 +27,19 @@ from app.modules.quotes.services.translation_item_service import TranslationItem
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
+quotes_read_permission = require_permission("quotes.read")
+quotes_write_permission = require_permission("quotes.write")
+quotes_approve_permission = require_permission("quotes.approve")
+requests_read_permission = require_permission("requests.read")
+requests_write_permission = require_permission("requests.write")
+documents_write_permission = require_permission("documents.write")
 
 
 @router.post("/upload-document", status_code=201)
-def upload_document(file: UploadFile = File(...)):
+def upload_document(
+    file: UploadFile = File(...),
+    _user=Depends(documents_write_permission),
+):
     content_type = file.content_type or "application/octet-stream"
     file_url = upload_quote_document(
         filename=file.filename or "uploaded_file",
@@ -44,6 +53,7 @@ def upload_document(file: UploadFile = File(...)):
 @router.post("", response_model=QuoteResponse, status_code=201)
 def create_quote(
     quote_data: QuoteCreate,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = QuoteService(db)
@@ -58,6 +68,7 @@ def list_quotes(
     status_filter: str | None = Query(
         default=None, alias="status", pattern="^(pending|approved|reproved)$"
     ),
+    _user=Depends(quotes_read_permission),
     db: Session = Depends(get_db),
 ):
     service = QuoteService(db)
@@ -73,6 +84,7 @@ def list_quotes(
 def update_quote(
     quote_id: uuid.UUID,
     data: QuoteUpdate,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = QuoteService(db)
@@ -83,7 +95,7 @@ def update_quote(
 def update_quote_status(
     quote_id: uuid.UUID,
     data: QuoteStatusUpdate,
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(quotes_approve_permission),
     db: Session = Depends(get_db),
 ):
     service = QuoteService(db)
@@ -93,6 +105,7 @@ def update_quote_status(
 @router.post("/from-request/{request_id}", response_model=QuoteFromRequestResponse, status_code=201)
 def generate_quote_from_request(
     request_id: str,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     try:
@@ -110,6 +123,7 @@ def generate_quote_from_request(
 def create_translation_item(
     quote_id: uuid.UUID,
     item_data: QuoteTranslationItemCreate,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = TranslationItemService(db)
@@ -119,6 +133,7 @@ def create_translation_item(
 @router.get("/{quote_id}/translation-items", response_model=list[QuoteTranslationItemResponse])
 def list_translation_items(
     quote_id: uuid.UUID,
+    _user=Depends(quotes_read_permission),
     db: Session = Depends(get_db),
 ):
     service = TranslationItemService(db)
@@ -132,6 +147,7 @@ def update_translation_item(
     quote_id: uuid.UUID,
     item_id: uuid.UUID,
     item_data: QuoteTranslationItemUpdate,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = TranslationItemService(db)
@@ -142,6 +158,7 @@ def update_translation_item(
 def delete_translation_item(
     quote_id: uuid.UUID,
     item_id: uuid.UUID,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = TranslationItemService(db)
@@ -181,6 +198,7 @@ async def create_request(
 
 @router.get("/requests", response_model=list[RequestResponse])
 def list_requests(
+    _user=Depends(requests_read_permission),
     db: Session = Depends(get_db),  # noqa: B008
 ):
     service = RequestService(db)
@@ -191,7 +209,7 @@ def list_requests(
 def update_request_status(
     request_id: str,
     data: RequestStatusUpdate,
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(requests_write_permission),
     db: Session = Depends(get_db),
 ):
     try:

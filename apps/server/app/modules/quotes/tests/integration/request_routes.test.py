@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.modules.auth.dependencies.dependencies import get_current_user
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
+from app.modules.quotes.routes import requests_write_permission
 
 client = TestClient(app)
 
@@ -14,6 +15,10 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def authenticate_status_route_tests():
     app.dependency_overrides[get_current_user] = lambda: SupabaseAuthenticatedUser(
+        id="test-user-id",
+        email="test@example.com",
+    )
+    app.dependency_overrides[requests_write_permission] = lambda: SupabaseAuthenticatedUser(
         id="test-user-id",
         email="test@example.com",
     )

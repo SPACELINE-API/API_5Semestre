@@ -1,0 +1,149 @@
+@serverUrl = http://localhost:3333
+
+### Execute cada login antes dos cenários correspondentes.
+### O REST Client mantém as respostas nomeadas para capturar tokens separados.
+### Pré-requisito: API ativa com migrations e seed aplicados.
+
+### Login administrador
+# @name loginAdmin
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@spaceline.com.br",
+  "password": "123456"
+}
+
+### Capturar token do administrador
+@adminToken = {{loginAdmin.response.body.$.access_token}}
+
+### Admin: conferir permissões efetivas e role
+# Esperado: 200; usuário/role administrador e permissões efetivas no payload.
+GET {{serverUrl}}/api/auth/me
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Admin: listar roles
+# Esperado: 200.
+# @name adminListRoles
+GET {{serverUrl}}/api/roles
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Admin: listar catálogo de permissões
+# Esperado: 200; retorna os códigos resource.action disponíveis para compor roles.
+GET {{serverUrl}}/api/roles/permissions
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Admin: consultar role inexistente
+# Esperado: 404 Not Found com detail "Role não encontrada".
+# O UUID é válido, mas não corresponde a uma role criada.
+GET {{serverUrl}}/api/roles/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Admin: listar clientes
+# Esperado: 200.
+GET {{serverUrl}}/api/clients
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Admin: listar orçamentos
+# Esperado: 200.
+GET {{serverUrl}}/api/quotes
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Admin: listar ordens de serviço
+# Esperado: 200.
+GET {{serverUrl}}/api/service-orders
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Login cliente (role Atendimento)
+# @name loginCliente
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "cliente@spaceline.com.br",
+  "password": "123456"
+}
+
+### Capturar token do Atendimento
+@clienteToken = {{loginCliente.response.body.$.access_token}}
+
+### Cliente: conferir permissões efetivas
+# Esperado: 200; inclui acesso a clients e requests, sem acesso a quotes.
+GET {{serverUrl}}/api/auth/me
+Authorization: Bearer {{clienteToken}}
+Accept: application/json
+
+### Cliente/Atendimento: listar clientes
+# Esperado: 200.
+GET {{serverUrl}}/api/clients
+Authorization: Bearer {{clienteToken}}
+Accept: application/json
+
+### Cliente/Atendimento: listar requisições
+# Esperado: 200.
+GET {{serverUrl}}/api/quotes/requests
+Authorization: Bearer {{clienteToken}}
+Accept: application/json
+
+### Cliente/Atendimento: orçamento negado
+# Esperado: 403 Forbidden.
+GET {{serverUrl}}/api/quotes
+Authorization: Bearer {{clienteToken}}
+Accept: application/json
+
+### Cliente/Atendimento: escrita de orçamento negada
+# Esperado: 403 Forbidden antes de criar qualquer registro.
+POST {{serverUrl}}/api/quotes
+Authorization: Bearer {{clienteToken}}
+Content-Type: application/json
+
+{}
+
+### Cliente/Atendimento: gestão de roles negada
+# Esperado: 403 Forbidden.
+POST {{serverUrl}}/api/roles
+Authorization: Bearer {{clienteToken}}
+Content-Type: application/json
+
+{
+  "name": "REST - não deve ser criada",
+  "permission_ids": []
+}
+
+### Login operador (role Recursos externos)
+# @name loginOperador
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "operador@spaceline.com.br",
+  "password": "123456"
+}
+
+### Capturar token de Recursos externos
+@operadorToken = {{loginOperador.response.body.$.access_token}}
+
+### Operador: conferir permissões efetivas
+# Esperado: 200; inclui assignments.read e não inclui acesso a quotes.
+GET {{serverUrl}}/api/auth/me
+Authorization: Bearer {{operadorToken}}
+Accept: application/json
+
+### Recursos externos: consultar convites atribuídos ao usuário
+# Esperado: 200 com assignments.read.
+GET {{serverUrl}}/api/service-orders/invites/me
+Authorization: Bearer {{operadorToken}}
+Accept: application/json
+
+### Recursos externos: orçamento negado
+# Esperado: 403 Forbidden.
+GET {{serverUrl}}/api/quotes
+Authorization: Bearer {{operadorToken}}
+Accept: application/json

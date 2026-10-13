@@ -4,6 +4,7 @@ import type { Contact } from '../../contacts/types/contact';
 import { CompanyDetailsContactsTab } from './CompanyDetailsContactsTab';
 import { CompanyDetailsInfoTab } from './CompanyDetailsInfoTab';
 import { CompanyDetailsProjectsTab } from './CompanyDetailsProjectsTab';
+import { getAuthorizationContext } from '../../auth/services/auth';
 
 export type CompanyDetailsTab = 'info' | 'clients' | 'projects';
 
@@ -32,6 +33,14 @@ export function CompanyDetailsTabs({
 	onEditContact,
 	onDeleteContact,
 }: CompanyDetailsTabsProps) {
+	const canReadProjects = Boolean(
+		getAuthorizationContext()?.permissions.includes('projects.read'),
+	);
+	const visibleTabs = canReadProjects
+		? TABS
+		: TABS.filter((tab) => tab.key !== 'projects');
+	const visibleActiveTab =
+		activeTab === 'projects' && !canReadProjects ? 'info' : activeTab;
 	return (
 		<>
 			<ScrollView
@@ -40,8 +49,8 @@ export function CompanyDetailsTabs({
 				className="border-b border-gray-200"
 				contentContainerClassName="flex-row gap-7"
 			>
-				{TABS.map((tab) => {
-					const isSelected = tab.key === activeTab;
+				{visibleTabs.map((tab) => {
+					const isSelected = tab.key === visibleActiveTab;
 
 					return (
 						<TouchableOpacity
@@ -67,8 +76,10 @@ export function CompanyDetailsTabs({
 			</ScrollView>
 
 			<View className="py-7">
-				{activeTab === 'info' && <CompanyDetailsInfoTab company={company} />}
-				{activeTab === 'clients' && (
+				{visibleActiveTab === 'info' && (
+					<CompanyDetailsInfoTab company={company} />
+				)}
+				{visibleActiveTab === 'clients' && (
 					<CompanyDetailsContactsTab
 						contacts={contacts}
 						onAdd={onAddContact}
@@ -76,7 +87,9 @@ export function CompanyDetailsTabs({
 						onDelete={onDeleteContact}
 					/>
 				)}
-				{activeTab === 'projects' && <CompanyDetailsProjectsTab />}
+				{visibleActiveTab === 'projects' && canReadProjects && (
+					<CompanyDetailsProjectsTab />
+				)}
 			</View>
 		</>
 	);

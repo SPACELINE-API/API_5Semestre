@@ -1,6 +1,71 @@
 import { expect, test } from '@playwright/test';
 
+const externalSession = encodeURIComponent(
+	JSON.stringify({
+		access_token: 'external-test-token',
+		token_type: 'bearer',
+		expires_in: 3600,
+		user: { id: 'external-user', email: 'externo@example.com' },
+	}),
+);
+
+async function useExternalProfile(
+	page: import('@playwright/test').Page,
+	permissions = ['requests.read', 'documents.read'],
+) {
+	await page.context().addCookies([
+		{
+			name: 'spaceline_session',
+			value: externalSession,
+			url: 'http://127.0.0.1:5183',
+		},
+	]);
+	await page.route('**/api/auth/me', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				user: { id: 'external-user', email: 'externo@example.com' },
+				roles: [{ id: 'external', name: 'Recursos externos' }],
+				permissions,
+			}),
+		}),
+	);
+}
+
 test.describe('autenticação mobile unificada', () => {
+	test('oculta orçamento e bloqueia acesso direto para perfil sem quotes.read', async ({
+		page,
+	}) => {
+		await useExternalProfile(page);
+		await page.goto('/visualizar-requisicoes');
+		await expect(page.getByText('Orçamento', { exact: true })).toHaveCount(0);
+		await expect(
+			page.getByText('Tarefas atribuídas', { exact: true }),
+		).toHaveCount(0);
+		await page.goto('/orcamento/novo-orcamento');
+		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
+	});
+
+	test('protege dashboard, convites e rotas privadas desconhecidas', async ({
+		page,
+	}) => {
+		await useExternalProfile(page, ['dashboard.read', 'assignments.read']);
+		await page.goto('/convites/test-invite');
+		await expect(
+			page.getByText('Tarefas atribuídas', { exact: true }),
+		).toBeVisible();
+		await page.goto('/dashboard');
+		await expect(page).toHaveURL(/\/dashboard$/);
+		await page.goto('/rota-inexistente');
+		await expect(page).toHaveURL(/\/dashboard$/);
+	});
+
+	test('mantém a rota pública de solicitação sem sessão', async ({ page }) => {
+		await page.goto('/solicitar-servico');
+		await expect(page).not.toHaveURL(/\/login/);
+	});
+
 	test('exibe o login sem exigir consentimento de cookies', async ({
 		page,
 	}) => {
