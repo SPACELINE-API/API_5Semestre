@@ -54,7 +54,7 @@ class LoginService:
             access_token=session.access_token,
             token_type=session.token_type,
             expires_in=session.expires_in,
-            user=UserResponse(id=str(user.id), email=user.email),
+            user=UserResponse(id=str(user.id), email=user.email, role=user.role),
         )
 
     def _register_failed_attempt(self, user: User | None) -> None:

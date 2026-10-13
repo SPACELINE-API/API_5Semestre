@@ -7,7 +7,11 @@ export async function loginAs(page: Page) {
 		access_token: 'test-access-token',
 		token_type: 'bearer',
 		expires_in: 3600,
-		user: { id: 'test-user-id', email: 'maria.tradutora@example.com' },
+		user: {
+			id: 'test-user-id',
+			email: 'maria.tradutora@example.com',
+			role: 'tradutor',
+		},
 	};
 
 	await page.goto('/login');

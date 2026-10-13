@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { listMyInvites } from '../services/inviteService';
-import type { ServiceOrderItemInvite } from '../types/invite';
+import type { MyInvite } from '../types/invite';
 
 export function useMyInvites() {
-	const [invites, setInvites] = useState<ServiceOrderItemInvite[]>([]);
+	const [invites, setInvites] = useState<MyInvite[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 

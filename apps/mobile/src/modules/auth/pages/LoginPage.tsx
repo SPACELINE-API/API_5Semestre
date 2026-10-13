@@ -18,6 +18,7 @@ import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import {
+	isTranslatorSession,
 	login,
 	requestPasswordRecovery,
 	resetPassword,
@@ -200,7 +201,9 @@ export function LoginPage() {
 		setLoading(true);
 		try {
 			saveSession(await login(email.trim(), password), remember);
-			router.replace('/dashboard' as never);
+			router.replace(
+				(isTranslatorSession() ? '/convites' : '/dashboard') as never,
+			);
 		} catch (cause) {
 			setError(getLoginError(cause));
 		} finally {

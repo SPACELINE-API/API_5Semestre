@@ -69,3 +69,39 @@ class TranslatorResponse(BaseModel):
     updated_at: datetime
     qualifications: list[QualificationResponse] = []
     languages: list[TranslatorLanguageResponse] = []
+
+
+class TranslatorProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(..., min_length=1, max_length=150)
+    phone: str = Field(..., min_length=1, max_length=30)
+
+    @field_validator("name")
+    @classmethod
+    def normalize_name(cls, value: str) -> str:
+        name = value.strip()
+        if not name:
+            raise ValueError("Informe o nome.")
+        return name
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, value: str) -> str:
+        phone = value.strip()
+        if len([char for char in phone if char.isdigit()]) < 10:
+            raise ValueError("Telefone inválido (mínimo 10 dígitos).")
+        return phone
+
+
+class TranslatorProfileResponse(BaseModel):
+    id: uuid.UUID
+    name: str
+    email: str
+    phone: str
+    is_active: bool
+    photo_url: str | None = None
+    photo_filename: str | None = None
+    photo_size_bytes: int | None = None
+    qualifications: list[QualificationResponse] = []
+    languages: list[TranslatorLanguageResponse] = []

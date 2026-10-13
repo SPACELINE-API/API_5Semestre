@@ -8,7 +8,7 @@ import {
 
 export { apiPost, apiUrl } from './publicApiClient';
 
-function authHeaders(): Record<string, string> {
+export function authHeaders(): Record<string, string> {
 	const session = getSession();
 	return session ? { Authorization: `Bearer ${session.access_token}` } : {};
 }

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
 	View,
 	Text,
@@ -7,16 +7,49 @@ import {
 	ActivityIndicator,
 	FlatList,
 } from 'react-native';
-import { AlertCircle, ChevronRight, Mail } from 'lucide-react-native';
+import { AlertCircle, ChevronRight, Mail, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { getSession } from '../../auth/services/auth';
 import { useMyInvites } from '../hooks/useMyInvites';
 import { InviteStatusBadge } from '../components/InviteStatusBadge';
+import {
+	InviteSearchBar,
+	InviteStatusFilterPanel,
+	type InviteStatusFilter,
+} from '../components/InviteFilters';
 import { formatDate } from '../utils/format';
+import { WORKFLOW_STEPS } from '../../service-orders/utils/workflowSteps';
+
+function stageLabel(status: string) {
+	const index = WORKFLOW_STEPS.findIndex((step) => step.status === status);
+	if (index === -1) return '';
+	return `Etapa ${index + 1} de ${WORKFLOW_STEPS.length} · ${WORKFLOW_STEPS[index].title}`;
+}
+
+function normalize(value: string) {
+	return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
 
 export function MyInvitesPage() {
 	const router = useRouter();
 	const { invites, isLoading, error } = useMyInvites();
+	const [search, setSearch] = useState('');
+	const [statusFilter, setStatusFilter] = useState<InviteStatusFilter>('all');
+	const [showFilters, setShowFilters] = useState(false);
+
+	const filteredInvites = useMemo(() => {
+		const query = normalize(search.trim());
+
+		return invites.filter((invite) => {
+			if (statusFilter !== 'all' && invite.status !== statusFilter)
+				return false;
+			if (!query) return true;
+
+			return normalize(
+				`${invite.item.document_type ?? ''} ${invite.item.source_language} ${invite.item.target_language}`,
+			).includes(query);
+		});
+	}, [invites, search, statusFilter]);
 
 	useEffect(() => {
 		if (!getSession()) {
@@ -47,12 +80,13 @@ export function MyInvitesPage() {
 						</Text>
 
 						<Text className="mt-2 font-inter text-gray-500 text-sm">
-							{invites.length} {invites.length === 1 ? 'convite' : 'convites'}
+							{filteredInvites.length}{' '}
+							{filteredInvites.length === 1 ? 'convite' : 'convites'}
 						</Text>
 					</View>
 
 					{isLoading && (
-						<View className="items-center justify-center border-t border-gray-100 py-16">
+						<View className="items-center justify-center py-16">
 							<ActivityIndicator color="#6B7280" />
 
 							<Text className="mt-3 font-inter text-gray-400 text-sm">
@@ -62,7 +96,7 @@ export function MyInvitesPage() {
 					)}
 
 					{!isLoading && error && (
-						<View className="border-t border-gray-100 py-8">
+						<View className="py-8">
 							<View className="flex-row items-center gap-2">
 								<AlertCircle size={16} color="#DC2626" />
 
@@ -78,9 +112,16 @@ export function MyInvitesPage() {
 					)}
 
 					{!isLoading && !error && (
-						<View className="border-t border-gray-200">
+						<View>
+							<InviteSearchBar
+								search={search}
+								onSearchChange={setSearch}
+								statusFilter={statusFilter}
+								showFilters={showFilters}
+								onToggleFilters={() => setShowFilters((current) => !current)}
+							/>
 							<FlatList
-								data={invites}
+								data={filteredInvites}
 								keyExtractor={(invite) => invite.id}
 								scrollEnabled={false}
 								renderItem={({ item: invite }) => (
@@ -96,12 +137,28 @@ export function MyInvitesPage() {
 										accessibilityLabel={`Ver convite ${invite.id}`}
 										className="flex-row items-center justify-between border-b border-gray-100 px-1 py-4"
 									>
-										<View className="flex-1 gap-1">
+										<View className="flex-1 gap-1.5">
 											<Text className="font-inter font-semibold text-gray-900 text-sm">
-												Convite recebido em {formatDate(invite.sent_at)}
+												{invite.item.source_language} →{' '}
+												{invite.item.target_language}
+												{invite.item.document_type
+													? ` · ${invite.item.document_type}`
+													: ''}
 											</Text>
 
-											<InviteStatusBadge status={invite.status} />
+											<Text className="font-inter text-gray-500 text-xs">
+												Recebido em {formatDate(invite.sent_at)} · Prazo{' '}
+												{formatDate(invite.item.deadline)}
+											</Text>
+
+											<View className="flex-row flex-wrap items-center gap-2">
+												<InviteStatusBadge status={invite.status} />
+												{invite.status === 'aceito' && (
+													<Text className="font-inter text-gray-500 text-xs">
+														{stageLabel(invite.item.status)}
+													</Text>
+												)}
+											</View>
 										</View>
 
 										<ChevronRight size={17} color="#9CA3AF" />
@@ -114,11 +171,15 @@ export function MyInvitesPage() {
 										</View>
 
 										<Text className="font-inter font-medium text-gray-800 text-sm">
-											Nenhum convite recebido
+											{invites.length === 0
+												? 'Nenhum convite recebido'
+												: 'Nenhum convite encontrado'}
 										</Text>
 
 										<Text className="mt-1 font-inter text-gray-400 text-xs">
-											Convites de tradução aparecerão aqui.
+											{invites.length === 0
+												? 'Convites de tradução aparecerão aqui.'
+												: 'Tente alterar a busca ou o filtro de status.'}
 										</Text>
 									</View>
 								}
@@ -127,6 +188,48 @@ export function MyInvitesPage() {
 					)}
 				</View>
 			</ScrollView>
+
+			{showFilters && (
+				<>
+					<TouchableOpacity
+						activeOpacity={1}
+						onPress={() => setShowFilters(false)}
+						className="absolute inset-0 z-10 bg-black/10"
+					/>
+
+					<View className="absolute bottom-0 right-0 top-0 z-20 w-[300px] gap-5 border-l border-gray-200 bg-white p-5 shadow-xl">
+						<View className="flex-row items-center justify-between">
+							<Text className="font-inter font-bold text-gray-900 text-base">
+								Filtros
+							</Text>
+
+							<TouchableOpacity
+								onPress={() => setShowFilters(false)}
+								activeOpacity={0.7}
+							>
+								<X size={18} color="#8A8A8A" />
+							</TouchableOpacity>
+						</View>
+
+						<InviteStatusFilterPanel
+							statusFilter={statusFilter}
+							onStatusFilterChange={setStatusFilter}
+						/>
+
+						{statusFilter !== 'all' && (
+							<TouchableOpacity
+								onPress={() => setStatusFilter('all')}
+								activeOpacity={0.7}
+								className="self-start"
+							>
+								<Text className="font-inter font-semibold text-blue-600 text-sm">
+									Limpar filtros
+								</Text>
+							</TouchableOpacity>
+						)}
+					</View>
+				</>
+			)}
 		</View>
 	);
 }

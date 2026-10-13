@@ -22,7 +22,11 @@ import {
 } from '@expo-google-fonts/poppins';
 
 import '../shared/styles/global.css';
-import { getSession } from '../modules/auth/services/auth';
+import {
+	TRANSLATOR_ALLOWED_PREFIXES,
+	getSession,
+	isTranslatorSession,
+} from '../modules/auth/services/auth';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -59,6 +63,12 @@ export default function AppLayout() {
 	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
 
 	if (!isPublic && !getSession()) return <Redirect href={'/login' as never} />;
+	if (
+		!isPublic &&
+		isTranslatorSession() &&
+		!TRANSLATOR_ALLOWED_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+	)
+		return <Redirect href={'/convites' as never} />;
 	if (isPublic)
 		return (
 			<KeyboardProvider>

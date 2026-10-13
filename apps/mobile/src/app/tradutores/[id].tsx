@@ -22,15 +22,23 @@ import {
 	updateTranslator,
 	setTranslatorActive,
 } from '../../modules/translators/services/translatorService';
-import { PROFICIENCY_LABELS } from '../../modules/translators/types/translator';
 import type {
 	Translator,
 	TranslatorUpdateInput,
 } from '../../modules/translators/types/translator';
 import { TranslatorEditModal } from '../../modules/translators/components/TranslatorEditModal';
+import { LanguagesList } from '../../modules/translators/components/LanguagesList';
+import { TabBar } from '../../shared/components/TabBar';
 import { Toast } from '../../shared/components/Toast';
 import { useToast } from '../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog';
+
+type TranslatorTab = 'info' | 'languages';
+
+const TABS: { key: TranslatorTab; label: string }[] = [
+	{ key: 'info', label: 'Informações' },
+	{ key: 'languages', label: 'Idiomas e fluência' },
+];
 
 export default function TranslatorDetailsScreen() {
 	const router = useRouter();
@@ -42,6 +50,7 @@ export default function TranslatorDetailsScreen() {
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 	const { toast, showToast } = useToast();
+	const [activeTab, setActiveTab] = useState<TranslatorTab>('info');
 
 	useEffect(() => {
 		if (!id) return;
@@ -111,7 +120,7 @@ export default function TranslatorDetailsScreen() {
 		<View className="relative flex-1 bg-white">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
-				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[800px] md:w-full md:self-center"
+				contentContainerClassName="px-5 py-6 md:px-10 md:py-8"
 			>
 				<TouchableOpacity
 					onPress={() => router.back()}
@@ -172,75 +181,57 @@ export default function TranslatorDetailsScreen() {
 					</Text>
 				</TouchableOpacity>
 
-				<View className="mb-4 gap-3 rounded-xl border border-gray-100 p-4">
-					<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
-						Contato
-					</Text>
-					<View className="flex-row items-center gap-3">
-						<Mail size={16} color="#6B7280" />
-						<Text className="font-inter text-gray-700 text-sm">
-							{translator.email}
-						</Text>
-					</View>
-					<View className="flex-row items-center gap-3">
-						<Phone size={16} color="#6B7280" />
-						<Text className="font-inter text-gray-700 text-sm">
-							{translator.phone}
-						</Text>
-					</View>
-				</View>
+				<TabBar tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
 
-				<View className="mb-4 gap-3 rounded-xl border border-gray-100 p-4">
-					<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
-						Idiomas falados
-					</Text>
-					{translator.languages.length === 0 ? (
-						<Text className="font-inter text-gray-400 text-sm">
-							Nenhum idioma cadastrado.
-						</Text>
-					) : (
-						translator.languages.map((language) => (
-							<View
-								key={language.id}
-								className="flex-row items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2.5"
-							>
-								<Text
-									className="flex-1 font-inter font-medium text-gray-800 text-sm"
-									numberOfLines={2}
-								>
-									{language.language_name}
+				<View className="gap-4 py-6">
+					{activeTab === 'info' && (
+						<>
+							<View className="gap-3 rounded-xl border border-gray-100 p-4">
+								<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
+									Contato
 								</Text>
-								<View className="shrink-0 rounded-full bg-blue-100 px-2.5 py-0.5">
-									<Text className="font-inter font-medium text-blue-800 text-xs">
-										{PROFICIENCY_LABELS[language.proficiency_level]}
+								<View className="flex-row items-center gap-3">
+									<Mail size={16} color="#6B7280" />
+									<Text className="font-inter text-gray-700 text-sm">
+										{translator.email}
+									</Text>
+								</View>
+								<View className="flex-row items-center gap-3">
+									<Phone size={16} color="#6B7280" />
+									<Text className="font-inter text-gray-700 text-sm">
+										{translator.phone}
 									</Text>
 								</View>
 							</View>
-						))
-					)}
-				</View>
 
-				<View className="mb-4 gap-3 rounded-xl border border-gray-100 p-4">
-					<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
-						Qualificacoes Tecnicas
-					</Text>
-					{translator.qualifications.length === 0 ? (
-						<Text className="font-inter text-gray-400 text-sm">
-							Nenhuma qualificacao cadastrada.
-						</Text>
-					) : (
-						<View className="flex-row flex-wrap gap-2">
-							{translator.qualifications.map((q) => (
-								<View
-									key={q.id}
-									className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5"
-								>
-									<Text className="font-inter font-medium text-gray-700 text-sm">
-										{q.name}
+							<View className="gap-3 rounded-xl border border-gray-100 p-4">
+								<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
+									Qualificacoes Tecnicas
+								</Text>
+								{translator.qualifications.length === 0 ? (
+									<Text className="font-inter text-gray-400 text-sm">
+										Nenhuma qualificacao cadastrada.
 									</Text>
-								</View>
-							))}
-						</View>
+								) : (
+									<View className="flex-row flex-wrap gap-2">
+										{translator.qualifications.map((q) => (
+											<View
+												key={q.id}
+												className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5"
+											>
+												<Text className="font-inter font-medium text-gray-700 text-sm">
+													{q.name}
+												</Text>
+											</View>
+										))}
+									</View>
+								)}
+							</View>
+						</>
+					)}
+
+					{activeTab === 'languages' && (
+						<LanguagesList languages={translator.languages} />
 					)}
 				</View>
 			</ScrollView>
