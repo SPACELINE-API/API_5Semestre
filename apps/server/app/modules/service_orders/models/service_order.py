@@ -11,7 +11,7 @@ from app.shared.database import Base
 if TYPE_CHECKING:
     from app.modules.service_orders.models.service_order_file import ServiceOrderFile
     from app.modules.service_orders.models.service_order_item import ServiceOrderItem
-
+    from app.modules.quotes.models.additional_service import AdditionalService
 
 class ServiceOrder(Base):
     __tablename__ = "service_orders"
@@ -64,4 +64,10 @@ class ServiceOrder(Base):
         "ServiceOrderFile",
         back_populates="service_order",
         cascade="all, delete-orphan",
+    )
+    additional_services: Mapped[list["AdditionalService"]] = relationship(
+        "AdditionalService",
+        back_populates="service_order",
+        cascade="all",
+        passive_deletes=True,
     )

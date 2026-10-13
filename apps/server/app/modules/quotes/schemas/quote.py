@@ -5,6 +5,8 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.modules.quotes.schemas.translation_item import QuoteTranslationItemResponse
 
+from decimal import Decimal
+
 
 class QuoteCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -66,6 +68,7 @@ class QuoteManagerResponse(BaseModel):
     reproved_by_email: str | None
     reproval_reason: str | None
     service_order_id: uuid.UUID | None = None
+    total_value: Decimal
     customer_name: str | None
     enterprise: str | None
     email: str | None
