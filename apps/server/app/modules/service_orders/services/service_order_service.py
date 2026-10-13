@@ -49,7 +49,7 @@ def compute_aggregate_status(items: list[ServiceOrderItem]) -> str:
     if statuses == {STATUS_CONCLUIDA}:
         return STATUS_CONCLUIDA
 
-    for status in _AGGREGATE_STATUS_ORDER[1:]:
+    for status in _AGGREGATE_STATUS_ORDER:
         if status in statuses:
             return status
 
