@@ -9,9 +9,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.shared.database import Base
 
 if TYPE_CHECKING:
+    from app.modules.quotes.models.additional_service import AdditionalService
     from app.modules.service_orders.models.service_order_file import ServiceOrderFile
     from app.modules.service_orders.models.service_order_item import ServiceOrderItem
-    from app.modules.quotes.models.additional_service import AdditionalService
+
 
 class ServiceOrder(Base):
     __tablename__ = "service_orders"

@@ -211,6 +211,7 @@ def update_request_status(
     service = RequestService(db)
     return service.update_status(parsed_request_id, data, current_user)
 
+
 @router.post("/additional-services", response_model=AdditionalServiceResponse, status_code=201)
 def create_additional_service(
     payload: AdditionalServiceCreate,
@@ -262,4 +263,3 @@ def delete_additional_service(
         service.delete_additional_service(service_id)
     except AdditionalServiceNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    

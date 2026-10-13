@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from uuid import uuid4
 
@@ -60,7 +60,7 @@ def test_repository_lists_additional_services_of_quote_ordered_by_creation(
     quote = Quote()
     isolated_db_session.add(quote)
     isolated_db_session.flush()
-    created_at = datetime(2026, 10, 12, 10, 0, tzinfo=timezone.utc)
+    created_at = datetime(2026, 10, 12, 10, 0, tzinfo=UTC)
     first = AdditionalService(
         quote_id=quote.id,
         description="Tradução de documento secundário",
@@ -78,9 +78,9 @@ def test_repository_lists_additional_services_of_quote_ordered_by_creation(
     isolated_db_session.add_all([second, first])
     isolated_db_session.flush()
 
-    result = AdditionalServiceRepository(
-        isolated_db_session
-    ).list_additional_services_by_quote(quote.id)
+    result = AdditionalServiceRepository(isolated_db_session).list_additional_services_by_quote(
+        quote.id
+    )
 
     assert [item.id for item in result] == [first.id, second.id]
 
@@ -107,9 +107,9 @@ def test_repository_does_not_list_additional_services_of_other_quotes(
     isolated_db_session.add_all([quote, other_quote])
     isolated_db_session.flush()
 
-    result = AdditionalServiceRepository(
-        isolated_db_session
-    ).list_additional_services_by_quote(quote.id)
+    result = AdditionalServiceRepository(isolated_db_session).list_additional_services_by_quote(
+        quote.id
+    )
 
     assert [item.id for item in result] == [quote.additional_services[0].id]
 
@@ -121,9 +121,9 @@ def test_repository_returns_empty_list_for_quote_without_additional_services(
     isolated_db_session.add(quote)
     isolated_db_session.flush()
 
-    result = AdditionalServiceRepository(
-        isolated_db_session
-    ).list_additional_services_by_quote(quote.id)
+    result = AdditionalServiceRepository(isolated_db_session).list_additional_services_by_quote(
+        quote.id
+    )
 
     assert result == []
 
@@ -164,8 +164,6 @@ def test_repository_gets_additional_service_by_id(
 def test_repository_returns_none_for_unknown_additional_service(
     isolated_db_session: Session,
 ):
-    found = AdditionalServiceRepository(isolated_db_session).get_additional_service_by_id(
-        uuid4()
-    )
+    found = AdditionalServiceRepository(isolated_db_session).get_additional_service_by_id(uuid4())
 
     assert found is None

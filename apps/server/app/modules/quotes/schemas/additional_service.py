@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+
 class AdditionalServiceCreate(BaseModel):
     quote_id: uuid.UUID | None = None
     service_order_id: uuid.UUID | None = None
@@ -23,6 +24,7 @@ class AdditionalServiceCreate(BaseModel):
         if (self.quote_id is None) == (self.service_order_id is None):
             raise ValueError("Informe apenas um entre quote_id e service_order_id")
         return self
+
 
 class AdditionalServiceResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
