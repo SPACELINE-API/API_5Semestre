@@ -12,9 +12,7 @@ from app.shared.database import Base
 class AuthorizationAuditLog(Base):
     __tablename__ = "authorization_audit_logs"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     target_type: Mapped[str] = mapped_column(String(32), nullable=False)
     target_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     target_name: Mapped[str] = mapped_column(String(255), nullable=False)

@@ -112,7 +112,9 @@ def _user_roles_snapshot(user: User) -> dict[str, list[str]]:
 
 
 def _user_access_response(user: User) -> UserAccessResponse:
-    active_roles = sorted((role for role in user.roles if role.is_active), key=lambda role: role.name)
+    active_roles = sorted(
+        (role for role in user.roles if role.is_active), key=lambda role: role.name
+    )
     return UserAccessResponse(
         id=user.id,
         email=user.email,

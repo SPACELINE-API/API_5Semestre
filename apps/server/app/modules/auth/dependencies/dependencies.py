@@ -69,8 +69,10 @@ def require_administrator(
     user = db.scalar(
         select(User).options(selectinload(User.roles)).where(User.email == current_user.email)
     )
-    is_administrator = user is not None and user.is_active and any(
-        role.is_active and role.name == "Administrador" for role in user.roles
+    is_administrator = (
+        user is not None
+        and user.is_active
+        and any(role.is_active and role.name == "Administrador" for role in user.roles)
     )
     if not is_administrator:
         raise HTTPException(

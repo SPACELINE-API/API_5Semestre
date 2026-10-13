@@ -12,9 +12,7 @@ settings_write_permission = require_permission("settings.write")
 
 
 @router.get("/languages", response_model=list[LanguageResponse])
-def get_languages(
-    db: Session = Depends(get_db), _user=Depends(settings_read_permission)
-):
+def get_languages(db: Session = Depends(get_db), _user=Depends(settings_read_permission)):
     languages = db.query(Language).order_by(Language.name).all()
     return languages
 

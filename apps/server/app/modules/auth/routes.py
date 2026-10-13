@@ -192,9 +192,7 @@ def list_authorization_audit(
     if target_id is not None:
         statement = statement.where(AuthorizationAuditLog.target_id == target_id)
     return list(
-        db.scalars(
-            statement.order_by(desc(AuthorizationAuditLog.created_at)).limit(limit)
-        ).all()
+        db.scalars(statement.order_by(desc(AuthorizationAuditLog.created_at)).limit(limit)).all()
     )
 
 
