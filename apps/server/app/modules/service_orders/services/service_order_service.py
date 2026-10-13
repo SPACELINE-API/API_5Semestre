@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime
 from typing import BinaryIO
 
 from fastapi import HTTPException
@@ -208,6 +209,7 @@ class ServiceOrderService:
                 for item in service_order.items:
                     if item.status != STATUS_CONCLUIDA:
                         item.status = STATUS_CONCLUIDA
+                        item.completed_at = datetime.now(UTC)
 
         self.db.commit()
         self.db.refresh(service_order_file)

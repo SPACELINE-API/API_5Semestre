@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.modules.reports.permissions import PRODUCTIVITY_READ_PERMISSION
 from app.shared.database import get_session_factory
 
 
@@ -17,7 +18,13 @@ SEED_ROLES = (
     SeedRole(
         name="Administrador",
         description="Administra usuários, roles e permissões.",
-        permissions=("users.read", "users.write", "roles.read", "roles.write"),
+        permissions=(
+            "users.read",
+            "users.write",
+            "roles.read",
+            "roles.write",
+            PRODUCTIVITY_READ_PERMISSION,
+        ),
     ),
     SeedRole(
         name="Atendimento",
@@ -27,7 +34,13 @@ SEED_ROLES = (
     SeedRole(
         name="Projetos",
         description="Gerencia projetos e orçamentos.",
-        permissions=("projects.read", "projects.write", "quotes.read", "quotes.approve"),
+        permissions=(
+            "projects.read",
+            "projects.write",
+            "quotes.read",
+            "quotes.approve",
+            PRODUCTIVITY_READ_PERMISSION,
+        ),
     ),
     SeedRole(
         name="Financeiro",
