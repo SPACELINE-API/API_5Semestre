@@ -13,11 +13,14 @@ from app.modules.service_orders.repositories.service_order_repository import (
     ServiceOrderRepository,
 )
 
+
 class AdditionalServiceNotFoundError(Exception):
     pass
 
+
 class AdditionalServiceConflictError(Exception):
     pass
+
 
 class AdditionalServiceService:
     def __init__(self, db: Session):
