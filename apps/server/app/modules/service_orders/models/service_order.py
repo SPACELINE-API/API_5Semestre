@@ -71,7 +71,8 @@ class ServiceOrder(Base):
         "AdditionalService",
         back_populates="service_order",
         cascade="all",
-        passive_deletes=True,
+        passive_deletes=True
+    )
     delivery_attempts: Mapped[list["ServiceOrderDelivery"]] = relationship(
         "ServiceOrderDelivery",
         back_populates="service_order",
