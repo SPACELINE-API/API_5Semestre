@@ -5,7 +5,11 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 
-from app.modules.auth.dependencies.dependencies import get_current_user, require_administrator
+from app.modules.auth.dependencies.dependencies import (
+    get_current_user,
+    require_administrator,
+    require_permission,
+)
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.service_orders.schemas.invite import (
     SendInvitesRequest,
