@@ -138,8 +138,7 @@ export function ServiceOrderFilesTab({
 	onUpload,
 	onDelete,
 }: ServiceOrderFilesTabProps) {
-	const [isUploading, setIsUploading] =
-		useState<ServiceOrderFileDirection | null>(null);
+	const [isUploading, setIsUploading] = useState(false);
 	const [selectionError, setSelectionError] = useState<string | null>(null);
 	const [pendingDeletion, setPendingDeletion] =
 		useState<ServiceOrderFileDeletionTarget | null>(null);
@@ -160,63 +159,58 @@ export function ServiceOrderFilesTab({
 	const deliveredCount = Math.min(saidaFilesList.length, items.length);
 	const deliveryProgress = hasItems ? deliveredCount / items.length : 0;
 
-	async function uploadFile(
-		file: UploadableFile,
-		direction: ServiceOrderFileDirection,
-	) {
-		setIsUploading(direction);
+	async function uploadDeliveryFile(file: UploadableFile) {
+		setIsUploading(true);
 		try {
-			await onUpload(file, direction);
+			await onUpload(file, 'saida');
 		} finally {
-			setIsUploading(null);
+			setIsUploading(false);
 		}
 	}
 
-	async function handleFileSelected(
-		fileList: FileList | null,
-		direction: ServiceOrderFileDirection,
-	) {
-		const file = fileList?.[0];
-		if (!file) return;
-		await uploadFile(file, direction);
+	async function handlePickDeliveryFile() {
+		try {
+			const file = await pickDocument();
+			if (file) await uploadDeliveryFile(file);
+		} catch {
+			setSelectionError(
+				'Não foi possível abrir o arquivo selecionado. Tente escolher outro arquivo.',
+			);
+		}
 	}
 
-	function renderUploadButton(
-		direction: ServiceOrderFileDirection,
-		disabled = false,
-	) {
-		const isThisUploading = isUploading === direction;
-		const isDisabled = isThisUploading || disabled;
-
+	function renderDeliveryUploadButton() {
+		const disabled = isUploading || !canUploadDelivery;
 		return (
 			<View style={{ position: 'relative' }}>
 				<TouchableOpacity
 					onPress={
-						Platform.OS === 'web' || isDisabled
+						Platform.OS === 'web' || disabled
 							? undefined
-							: () => handlePickNativeFile(direction)
+							: () => void handlePickDeliveryFile()
 					}
-					disabled={isDisabled}
+					disabled={disabled}
 					activeOpacity={0.7}
 					accessibilityRole="button"
-					accessibilityLabel={`Enviar arquivo de ${direction === 'entrada' ? 'partida' : 'chegada'}`}
-					accessibilityState={{ disabled: isDisabled }}
-					className={`flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 ${isDisabled ? 'opacity-60' : ''}`}
+					accessibilityLabel="Enviar arquivo de chegada"
+					accessibilityState={{ disabled }}
+					className={`flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 ${disabled ? 'opacity-60' : ''}`}
 				>
 					<Upload size={14} color="#353535" />
 					<Text className="font-inter font-semibold text-gray-800 text-xs">
-						{isThisUploading ? 'Enviando…' : 'Enviar arquivo'}
+						{isUploading ? 'Enviando…' : 'Enviar arquivo'}
 					</Text>
 				</TouchableOpacity>
-
-				{Platform.OS === 'web' && !isDisabled && (
+				{Platform.OS === 'web' && !disabled && (
 					<input
 						type="file"
-						aria-label={`Selecionar arquivo de ${direction === 'entrada' ? 'partida' : 'chegada'}`}
-						disabled={isThisUploading}
+						aria-label="Selecionar arquivo de chegada"
 						style={{
 							position: 'absolute',
-							inset: 0,
+							top: 0,
+							left: 0,
+							right: 0,
+							bottom: 0,
 							width: '100%',
 							height: '100%',
 							opacity: 0,
@@ -224,26 +218,14 @@ export function ServiceOrderFilesTab({
 						}}
 						onChange={(event: { target: HTMLInputElement }) => {
 							const input = event.target;
-							void handleFileSelected(input.files, direction);
+							const file = input.files?.[0];
+							if (file) void uploadDeliveryFile(file);
 							input.value = '';
 						}}
 					/>
 				)}
 			</View>
 		);
-	}
-
-	async function handlePickNativeFile(direction: ServiceOrderFileDirection) {
-		setSelectionError(null);
-		try {
-			const file = await pickDocument();
-			if (!file) return;
-			await uploadFile(file, direction);
-		} catch {
-			setSelectionError(
-				'Não foi possível abrir o arquivo selecionado. Tente escolher outro arquivo.',
-			);
-		}
 	}
 
 	async function confirmDelete() {
@@ -289,8 +271,6 @@ export function ServiceOrderFilesTab({
 					<Text className="font-inter font-semibold text-gray-900 text-sm">
 						Arquivos de partida
 					</Text>
-
-					{renderUploadButton('entrada')}
 				</View>
 
 				<FileGroupList
@@ -306,8 +286,7 @@ export function ServiceOrderFilesTab({
 					<Text className="font-inter font-semibold text-gray-900 text-sm">
 						Arquivos de chegada
 					</Text>
-
-					{renderUploadButton('saida', !canUploadDelivery)}
+					{renderDeliveryUploadButton()}
 				</View>
 
 				{!canUploadDelivery && (
