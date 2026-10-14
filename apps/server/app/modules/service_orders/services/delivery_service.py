@@ -113,6 +113,8 @@ class ServiceOrderDeliveryService:
                 detail="Template de envio não encontrado. Execute o seed do backend.",
             )
         successful_deliveries = []
+        delivery_attempts = []
+        attachments = []
 
         for document in documents:
             attempt = ServiceOrderDelivery(
@@ -124,8 +126,7 @@ class ServiceOrderDeliveryService:
             )
             self.db.add(attempt)
             document.delivery_status = "pending"
-            self.db.commit()
-            self.db.refresh(attempt)
+            delivery_attempts.append((attempt, document))
 
             try:
                 storage_path = document.storage_path or get_service_order_storage_path(
@@ -144,31 +145,48 @@ class ServiceOrderDeliveryService:
                 if document.storage_path is None:
                     document.storage_path = storage_path
                 content = download_service_order_file(storage_path)
-                subject, body = _render_delivery_email(template, customer_name, email_override)
                 content_type = document.content_type or "application/octet-stream"
-                send_email(
-                    to=recipient,
-                    subject=subject,
-                    html_body=body,
-                    attachments=[(document.filename, content, content_type)],
-                )
+                attachments.append((document.filename, content, content_type))
             except Exception as error:
                 detail = error.detail if isinstance(error, HTTPException) else str(error)
-                attempt.status = "failed"
-                attempt.error_message = detail[:4000]
-                document.delivery_status = "failed"
+                for pending_attempt, pending_document in delivery_attempts:
+                    pending_attempt.status = "failed"
+                    pending_attempt.error_message = detail[:4000]
+                    pending_document.delivery_status = "failed"
                 self.db.commit()
                 raise HTTPException(
                     status_code=502,
                     detail="Falha ao enviar documento traduzido; tentativa registrada.",
                 ) from error
 
+        try:
+            subject, body = _render_delivery_email(template, customer_name, email_override)
+            send_email(
+                to=recipient,
+                subject=subject,
+                html_body=body,
+                attachments=attachments,
+            )
+        except Exception as error:
+            detail = error.detail if isinstance(error, HTTPException) else str(error)
+            for attempt, document in delivery_attempts:
+                attempt.status = "failed"
+                attempt.error_message = detail[:4000]
+                document.delivery_status = "failed"
+            self.db.commit()
+            raise HTTPException(
+                status_code=502,
+                detail="Falha ao enviar documentos traduzidos; tentativa registrada.",
+            ) from error
+
+        for attempt, document in delivery_attempts:
             attempt.status = "sent"
             attempt.sent_at = func.now()
             document.delivery_status = "sent"
-            self.db.commit()
-            self.db.refresh(attempt)
             successful_deliveries.append(attempt)
+        self.db.commit()
+        for attempt in successful_deliveries:
+            self.db.refresh(attempt)
 
         for item in service_order.items:
             item.status = STATUS_CONCLUIDA

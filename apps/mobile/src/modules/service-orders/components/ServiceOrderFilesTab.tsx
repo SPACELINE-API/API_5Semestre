@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Platform } from 'react-native';
+import { useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { ExternalLink, FileText, Trash2, Upload } from 'lucide-react-native';
 import type {
 	ServiceOrderFile,
@@ -146,7 +146,6 @@ export function ServiceOrderFilesTab({
 	const [pendingDeletion, setPendingDeletion] =
 		useState<ServiceOrderFileDeletionTarget | null>(null);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
-	const fileInputRef = useRef<HTMLInputElement | null>(null);
 
 	const entradaFiles = [
 		...itemsToDisplayFiles(items),
@@ -198,13 +197,7 @@ export function ServiceOrderFilesTab({
 		return (
 			<View>
 				<TouchableOpacity
-					onPress={
-						Platform.OS === 'web'
-							? () => fileInputRef.current?.click()
-							: disabled
-								? undefined
-								: () => void handlePickDeliveryFile()
-					}
+					onPress={disabled ? undefined : () => void handlePickDeliveryFile()}
 					disabled={disabled}
 					activeOpacity={0.7}
 					accessibilityRole="button"
@@ -217,28 +210,6 @@ export function ServiceOrderFilesTab({
 						{isUploading ? 'Enviando…' : 'Enviar arquivo'}
 					</Text>
 				</TouchableOpacity>
-				{Platform.OS === 'web' && !disabled && (
-					<input
-						ref={fileInputRef}
-						type="file"
-						aria-label="Selecionar arquivo de chegada"
-						style={{ display: 'none' }}
-						onChange={(event: { target: HTMLInputElement }) => {
-							const input = event.target;
-							const file = input.files?.[0];
-							if (file) {
-								void uploadDeliveryFile(file).catch((error) => {
-									setSelectionError(
-										error instanceof Error
-											? error.message
-											: 'Não foi possível enviar o arquivo.',
-									);
-								});
-							}
-							input.value = '';
-						}}
-					/>
-				)}
 			</View>
 		);
 	}

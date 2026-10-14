@@ -573,7 +573,9 @@ def test_delete_delivery_file_reopens_order(db_session: Session, monkeypatch) ->
     assert db_session.get(ServiceOrderFile, document.id) is None
 
 
-def test_delivery_sends_document_and_records_success(db_session: Session, monkeypatch) -> None:
+def test_delivery_sends_all_documents_in_one_email_and_records_success(
+    db_session: Session, monkeypatch
+) -> None:
     company = make_company(db_session)
     service, order = make_order_with_assigned_translator(db_session, company)
     quote = db_session.get(Quote, order.quote_id)
@@ -608,6 +610,13 @@ def test_delivery_sends_document_and_records_success(db_session: Session, monkey
         content_type="application/pdf",
         direction="saida",
     )
+    service.add_file(
+        order.id,
+        filename="final-2.pdf",
+        file_data=io.BytesIO(b"translated bytes 2"),
+        content_type="application/pdf",
+        direction="saida",
+    )
     monkeypatch.setattr(
         service_order_service_module, "service_order_file_exists", lambda _path: True
     )
@@ -624,18 +633,23 @@ def test_delivery_sends_document_and_records_success(db_session: Session, monkey
 
     result = ServiceOrderDeliveryService(db_session).send_translated_documents(order.id)
 
-    assert len(result) == 1
-    assert result[0].status == "sent"
+    assert len(result) == 2
+    assert {attempt.status for attempt in result} == {"sent"}
     assert result[0].recipient_email == company.email
     assert result[0].template_key == SERVICE_ORDER_EMAIL_TEMPLATE_KEY
-    assert sent_emails[0]["attachments"] == [("final.pdf", b"translated bytes", "application/pdf")]
+    assert len(sent_emails) == 1
+    assert sent_emails[0]["attachments"] == [
+        ("final.pdf", b"translated bytes", "application/pdf"),
+        ("final-2.pdf", b"translated bytes", "application/pdf"),
+    ]
     assert sent_emails[0]["subject"] == "Tradução concluída"
     assert "Olá, Maria Silva!" in sent_emails[0]["html_body"]
     assert "Temos o prazer de informar que a tradução solicitada" in sent_emails[0]["html_body"]
     assert "O documento traduzido está disponível em anexo" in sent_emails[0]["html_body"]
     assert "Equipe Aliança Traduções" in sent_emails[0]["html_body"]
-    document = db_session.query(ServiceOrderFile).filter_by(service_order_id=order.id).one()
-    assert document.delivery_status == "sent"
+    documents = db_session.query(ServiceOrderFile).filter_by(service_order_id=order.id).all()
+    assert len(documents) == 2
+    assert {document.delivery_status for document in documents} == {"sent"}
     refreshed_order = ServiceOrderService(db_session).get_service_order(order.id)
     assert {item.status for item in refreshed_order.items} == {STATUS_CONCLUIDA}
 

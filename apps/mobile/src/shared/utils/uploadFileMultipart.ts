@@ -54,7 +54,15 @@ export async function uploadFileMultipart<TResponse>(
 		Object.entries(fields).forEach(([name, value]) =>
 			formData.append(name, value),
 		);
-		formData.append(fileFieldName, file as globalThis.File);
+
+		if (typeof Blob !== 'undefined' && file instanceof Blob) {
+			formData.append(fileFieldName, file as globalThis.File);
+		} else {
+			const nativeFile = file as { uri: string; name: string };
+			const fileResponse = await fetch(nativeFile.uri);
+			const blob = await fileResponse.blob();
+			formData.append(fileFieldName, blob, nativeFile.name);
+		}
 
 		const response = await fetch(url, { method: httpMethod, body: formData });
 		if (!response.ok) {
