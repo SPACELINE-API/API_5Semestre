@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { ExternalLink, FileText, Trash2, Upload } from 'lucide-react-native';
 import type {
@@ -23,7 +23,7 @@ type ServiceOrderFilesTabProps = {
 	onUpload: (
 		file: UploadableFile,
 		direction: ServiceOrderFileDirection,
-	) => Promise<void>;
+	) => Promise<ServiceOrderFile>;
 	onDelete: (target: ServiceOrderFileDeletionTarget) => Promise<void>;
 };
 
@@ -139,10 +139,14 @@ export function ServiceOrderFilesTab({
 	onDelete,
 }: ServiceOrderFilesTabProps) {
 	const [isUploading, setIsUploading] = useState(false);
+	const [uploadedDeliveryFiles, setUploadedDeliveryFiles] = useState<
+		ServiceOrderFile[]
+	>([]);
 	const [selectionError, setSelectionError] = useState<string | null>(null);
 	const [pendingDeletion, setPendingDeletion] =
 		useState<ServiceOrderFileDeletionTarget | null>(null);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
+	const fileInputRef = useRef<HTMLInputElement | null>(null);
 
 	const entradaFiles = [
 		...itemsToDisplayFiles(items),
@@ -150,7 +154,12 @@ export function ServiceOrderFilesTab({
 			files.filter((file) => file.direction === 'entrada'),
 		),
 	];
-	const saidaFilesList = files.filter((file) => file.direction === 'saida');
+	const saidaFilesList = [
+		...files.filter((file) => file.direction === 'saida'),
+		...uploadedDeliveryFiles.filter(
+			(uploadedFile) => !files.some((file) => file.id === uploadedFile.id),
+		),
+	];
 	const saidaFiles = serviceOrderFilesToDisplayFiles(saidaFilesList);
 
 	const hasItems = items.length > 0;
@@ -162,7 +171,12 @@ export function ServiceOrderFilesTab({
 	async function uploadDeliveryFile(file: UploadableFile) {
 		setIsUploading(true);
 		try {
-			await onUpload(file, 'saida');
+			const uploadedFile = await onUpload(file, 'saida');
+			setUploadedDeliveryFiles((current) =>
+				current.some((item) => item.id === uploadedFile.id)
+					? current
+					: [...current, uploadedFile],
+			);
 		} finally {
 			setIsUploading(false);
 		}
@@ -182,12 +196,14 @@ export function ServiceOrderFilesTab({
 	function renderDeliveryUploadButton() {
 		const disabled = isUploading || !canUploadDelivery;
 		return (
-			<View style={{ position: 'relative' }}>
+			<View>
 				<TouchableOpacity
 					onPress={
-						Platform.OS === 'web' || disabled
-							? undefined
-							: () => void handlePickDeliveryFile()
+						Platform.OS === 'web'
+							? () => fileInputRef.current?.click()
+							: disabled
+								? undefined
+								: () => void handlePickDeliveryFile()
 					}
 					disabled={disabled}
 					activeOpacity={0.7}
@@ -203,23 +219,22 @@ export function ServiceOrderFilesTab({
 				</TouchableOpacity>
 				{Platform.OS === 'web' && !disabled && (
 					<input
+						ref={fileInputRef}
 						type="file"
 						aria-label="Selecionar arquivo de chegada"
-						style={{
-							position: 'absolute',
-							top: 0,
-							left: 0,
-							right: 0,
-							bottom: 0,
-							width: '100%',
-							height: '100%',
-							opacity: 0,
-							cursor: 'pointer',
-						}}
+						style={{ display: 'none' }}
 						onChange={(event: { target: HTMLInputElement }) => {
 							const input = event.target;
 							const file = input.files?.[0];
-							if (file) void uploadDeliveryFile(file);
+							if (file) {
+								void uploadDeliveryFile(file).catch((error) => {
+									setSelectionError(
+										error instanceof Error
+											? error.message
+											: 'Não foi possível enviar o arquivo.',
+									);
+								});
+							}
 							input.value = '';
 						}}
 					/>
@@ -233,6 +248,11 @@ export function ServiceOrderFilesTab({
 		setDeletingId(pendingDeletion.id);
 		try {
 			await onDelete(pendingDeletion);
+			if (pendingDeletion.kind === 'file') {
+				setUploadedDeliveryFiles((current) =>
+					current.filter((file) => file.id !== pendingDeletion.id),
+				);
+			}
 			setPendingDeletion(null);
 			setSelectionError(null);
 		} catch (error) {

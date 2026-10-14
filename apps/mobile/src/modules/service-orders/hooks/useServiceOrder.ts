@@ -8,15 +8,17 @@ export function useServiceOrder(id: string) {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
-	const refresh = useCallback(async () => {
+	const refresh = useCallback(async (): Promise<ServiceOrder | null> => {
 		setIsLoading(true);
 		setError(null);
 
 		try {
 			const data = await getServiceOrder(id);
 			setServiceOrder(data);
+			return data;
 		} catch {
 			setError('Não foi possível carregar os dados da ordem de serviço.');
+			return null;
 		} finally {
 			setIsLoading(false);
 		}

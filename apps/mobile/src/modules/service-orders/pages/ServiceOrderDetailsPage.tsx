@@ -53,7 +53,8 @@ type ServiceOrderDetailsPageProps = {
 export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const router = useRouter();
 
-	const { serviceOrder, isLoading, error, refresh } = useServiceOrder(id);
+	const { serviceOrder, isLoading, error, refresh, setServiceOrder } =
+		useServiceOrder(id);
 	const { companies } = useCompanies();
 	const { translators } = useTranslators();
 	const { contacts } = useContacts();
@@ -301,13 +302,15 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											files={serviceOrder.files}
 											onUpload={async (file, direction) => {
 												try {
-													await uploadServiceOrderFile(
+													const uploadedFile = await uploadServiceOrderFile(
 														serviceOrder.id,
 														file,
 														direction,
 													);
-													await refresh();
+													const refreshedOrder = await refresh();
+													if (refreshedOrder) setServiceOrder(refreshedOrder);
 													showToast('Arquivo enviado com sucesso!', 'success');
+													return uploadedFile;
 												} catch (submitError) {
 													showToast(
 														submitError instanceof Error
@@ -315,6 +318,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 															: 'Não foi possível enviar o arquivo.',
 														'error',
 													);
+													throw submitError;
 												}
 											}}
 											onDelete={async (target) => {

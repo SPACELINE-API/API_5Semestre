@@ -15,6 +15,7 @@ from app.modules.service_orders.models.service_order_email_template import (
     ServiceOrderEmailTemplate,
 )
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
+from app.modules.service_orders.models.service_order_item import STATUS_CONCLUIDA
 from app.modules.service_orders.schemas.service_order import ServiceOrderDeliveryRequest
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.modules.service_orders.services.storage import (
@@ -168,5 +169,9 @@ class ServiceOrderDeliveryService:
             self.db.commit()
             self.db.refresh(attempt)
             successful_deliveries.append(attempt)
+
+        for item in service_order.items:
+            item.status = STATUS_CONCLUIDA
+        self.db.commit()
 
         return successful_deliveries
