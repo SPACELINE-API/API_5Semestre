@@ -66,6 +66,11 @@ export function AddItemModal({
 			return;
 		}
 
+		if (!file) {
+			setError('Selecione um arquivo para adicionar o item.');
+			return;
+		}
+
 		setIsSubmitting(true);
 
 		try {
@@ -186,7 +191,7 @@ export function AddItemModal({
 									className="flex-1 font-inter text-sm text-gray-700"
 									numberOfLines={1}
 								>
-									{file ? file.name : 'Selecionar arquivo (opcional)'}
+									{file ? file.name : 'Selecionar arquivo'}
 								</Text>
 							</TouchableOpacity>
 
