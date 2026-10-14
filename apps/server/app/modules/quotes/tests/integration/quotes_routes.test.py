@@ -7,7 +7,38 @@ from sqlalchemy.orm import Session
 from app.main import app
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.request import Request, StatusEnum
+from app.modules.quotes.routes import (
+    documents_write_permission,
+    quotes_approve_permission,
+    quotes_read_permission,
+    quotes_write_permission,
+    requests_read_permission,
+    requests_write_permission,
+)
 from app.shared.database import get_db
+
+
+@pytest.fixture(autouse=True)
+def allow_route_permissions_for_legacy_endpoint_tests():
+    for permission_dependency in (
+        documents_write_permission,
+        quotes_approve_permission,
+        quotes_read_permission,
+        quotes_write_permission,
+        requests_read_permission,
+        requests_write_permission,
+    ):
+        app.dependency_overrides[permission_dependency] = lambda: None
+    yield
+    for permission_dependency in (
+        documents_write_permission,
+        quotes_approve_permission,
+        quotes_read_permission,
+        quotes_write_permission,
+        requests_read_permission,
+        requests_write_permission,
+    ):
+        app.dependency_overrides.pop(permission_dependency, None)
 
 
 @pytest.fixture

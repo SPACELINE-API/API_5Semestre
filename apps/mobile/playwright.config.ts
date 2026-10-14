@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const installedBrowserChannel = process.env.PLAYWRIGHT_CHANNEL;
+
 export default defineConfig({
 	testDir: './src',
 	testMatch: '**/*.spec.ts',
@@ -17,7 +19,13 @@ export default defineConfig({
 	projects: [
 		{
 			name: 'chromium',
-			use: { ...devices['Desktop Chrome'] },
+			use: {
+				...devices['Desktop Chrome'],
+				...(installedBrowserChannel === 'chrome' ||
+				installedBrowserChannel === 'msedge'
+					? { channel: installedBrowserChannel }
+					: {}),
+			},
 		},
 	],
 	webServer: {
