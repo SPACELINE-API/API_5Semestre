@@ -650,6 +650,21 @@ def test_delivery_sends_all_documents_in_one_email_and_records_success(
     documents = db_session.query(ServiceOrderFile).filter_by(service_order_id=order.id).all()
     assert len(documents) == 2
     assert {document.delivery_status for document in documents} == {"sent"}
+
+    service.add_file(
+        order.id,
+        filename="final-3.pdf",
+        file_data=io.BytesIO(b"translated bytes 3"),
+        content_type="application/pdf",
+        direction="saida",
+    )
+    second_result = ServiceOrderDeliveryService(db_session).send_translated_documents(order.id)
+
+    assert len(second_result) == 1
+    assert len(sent_emails) == 2
+    assert sent_emails[1]["attachments"] == [
+        ("final-3.pdf", b"translated bytes", "application/pdf")
+    ]
     refreshed_order = ServiceOrderService(db_session).get_service_order(order.id)
     assert {item.status for item in refreshed_order.items} == {STATUS_CONCLUIDA}
 

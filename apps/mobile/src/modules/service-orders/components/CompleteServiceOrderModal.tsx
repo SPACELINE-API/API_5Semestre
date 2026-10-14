@@ -9,7 +9,7 @@ import {
 	View,
 	Linking,
 } from 'react-native';
-import { FileText, X } from 'lucide-react-native';
+import { Check, FileText, Square, X } from 'lucide-react-native';
 import type {
 	ServiceOrder,
 	ServiceOrderEmailTemplate,
@@ -83,6 +83,17 @@ export function CompleteServiceOrderModal({
 	const [templateError, setTemplateError] = useState<string | null>(null);
 	const [isSending, setIsSending] = useState(false);
 	const [sendError, setSendError] = useState<string | null>(null);
+	const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
+
+	const deliveryFiles = serviceOrder.files.filter(
+		(file) => file.direction === 'saida',
+	);
+	const selectableDeliveryFiles = deliveryFiles.filter(
+		(file) => file.delivery_status !== 'sent',
+	);
+	const allFilesSelected =
+		selectableDeliveryFiles.length > 0 &&
+		selectableDeliveryFiles.every((file) => selectedFileIds.includes(file.id));
 
 	useEffect(() => {
 		if (!visible) return;
@@ -95,6 +106,14 @@ export function CompleteServiceOrderModal({
 		setTemplateError(null);
 		setSendError(null);
 		setIsSending(false);
+		setSelectedFileIds(
+			serviceOrder.files
+				.filter(
+					(file) =>
+						file.direction === 'saida' && file.delivery_status !== 'sent',
+				)
+				.map((file) => file.id),
+		);
 		setIsLoadingTemplate(true);
 
 		getServiceOrderEmailTemplate()
@@ -124,17 +143,23 @@ export function CompleteServiceOrderModal({
 		return () => {
 			isCurrent = false;
 		};
-	}, [visible]);
+	}, [visible, serviceOrder.files, customerName]);
 
-	const deliveryFiles = serviceOrder.files.filter(
-		(file) => file.direction === 'saida',
-	);
 	const canSend =
 		!!template &&
 		!isLoadingTemplate &&
 		!isSending &&
 		subject.trim().length > 0 &&
-		message.trim().length > 0;
+		message.trim().length > 0 &&
+		selectedFileIds.length > 0;
+
+	function toggleFile(fileId: string) {
+		setSelectedFileIds((current) =>
+			current.includes(fileId)
+				? current.filter((id) => id !== fileId)
+				: [...current, fileId],
+		);
+	}
 
 	async function handleSend() {
 		if (!canSend) return;
@@ -142,6 +167,7 @@ export function CompleteServiceOrderModal({
 		setSendError(null);
 		try {
 			await sendServiceOrderDeliveries(serviceOrder.id, {
+				file_ids: selectedFileIds,
 				subject_override: subject.trim(),
 				body_html_override: toEmailHtml(message, observation),
 			});
@@ -259,39 +285,94 @@ export function CompleteServiceOrderModal({
 						)}
 
 						<View className="gap-2">
-							<Text className="font-inter font-semibold text-gray-800 text-xs">
-								Documentos da entrega
-							</Text>
+							<View className="flex-row items-center justify-between gap-3">
+								<Text className="font-inter font-semibold text-gray-800 text-xs">
+									Documentos da entrega
+								</Text>
+								{selectableDeliveryFiles.length > 0 && (
+									<TouchableOpacity
+										onPress={() => {
+											setSelectedFileIds(
+												allFilesSelected
+													? []
+													: selectableDeliveryFiles.map((file) => file.id),
+											);
+										}}
+										accessibilityRole="checkbox"
+										accessibilityState={{ checked: allFilesSelected }}
+										className="flex-row items-center gap-1.5"
+									>
+										{allFilesSelected ? (
+											<Check size={16} color="#2563EB" />
+										) : (
+											<Square size={16} color="#6B7280" />
+										)}
+										<Text className="font-inter text-blue-600 text-xs">
+											Selecionar todos
+										</Text>
+									</TouchableOpacity>
+								)}
+							</View>
 							{deliveryFiles.length === 0 ? (
 								<Text className="rounded-lg bg-gray-50 px-3 py-3 font-inter text-gray-400 text-sm">
 									Nenhum documento traduzido foi enviado para esta ordem.
 								</Text>
 							) : (
-								deliveryFiles.map((file) => (
-									<TouchableOpacity
-										key={file.id}
-										onPress={() => handleOpenDocument(file.file_url)}
-										activeOpacity={0.7}
-										accessibilityRole="link"
-										accessibilityLabel={`Abrir documento ${file.filename}`}
-										className="flex-row items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5"
-									>
-										<View className="h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
-											<FileText size={17} color="#2563EB" />
-										</View>
-										<View className="min-w-0 flex-1">
-											<Text
-												className="font-inter font-medium text-gray-800 text-sm"
-												numberOfLines={1}
+								deliveryFiles.map((file) => {
+									const isSent = file.delivery_status === 'sent';
+									const isSelected = selectedFileIds.includes(file.id);
+									return (
+										<View
+											key={file.id}
+											className="flex-row items-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5"
+										>
+											<TouchableOpacity
+												onPress={() => !isSent && toggleFile(file.id)}
+												disabled={isSent}
+												accessibilityRole="checkbox"
+												accessibilityState={{
+													checked: isSelected,
+													disabled: isSent,
+												}}
+												accessibilityLabel={`Selecionar ${file.filename}`}
+												className="p-1"
 											>
-												{file.filename}
-											</Text>
-											<Text className="mt-0.5 font-inter text-gray-400 text-xs">
-												Será anexado ao e-mail
-											</Text>
+												{isSelected ? (
+													<Check size={18} color="#2563EB" />
+												) : (
+													<Square
+														size={18}
+														color={isSent ? '#D1D5DB' : '#6B7280'}
+													/>
+												)}
+											</TouchableOpacity>
+											<TouchableOpacity
+												onPress={() => handleOpenDocument(file.file_url)}
+												activeOpacity={0.7}
+												accessibilityRole="link"
+												accessibilityLabel={`Abrir documento ${file.filename}`}
+												className="min-w-0 flex-1 flex-row items-center gap-3"
+											>
+												<View className="h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
+													<FileText size={17} color="#2563EB" />
+												</View>
+												<View className="min-w-0 flex-1">
+													<Text
+														className="font-inter font-medium text-gray-800 text-sm"
+														numberOfLines={1}
+													>
+														{file.filename}
+													</Text>
+													<Text className="mt-0.5 font-inter text-gray-400 text-xs">
+														{isSent
+															? 'Já enviado ao cliente'
+															: 'Será anexado ao e-mail'}
+													</Text>
+												</View>
+											</TouchableOpacity>
 										</View>
-									</TouchableOpacity>
-								))
+									);
+								})
 							)}
 						</View>
 

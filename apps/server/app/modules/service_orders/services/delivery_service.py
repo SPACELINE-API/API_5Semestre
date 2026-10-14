@@ -15,7 +15,10 @@ from app.modules.service_orders.models.service_order_email_template import (
     ServiceOrderEmailTemplate,
 )
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
-from app.modules.service_orders.models.service_order_item import STATUS_CONCLUIDA
+from app.modules.service_orders.models.service_order_item import (
+    STATUS_CONCLUIDA,
+    STATUS_EM_ANALISE,
+)
 from app.modules.service_orders.schemas.service_order import ServiceOrderDeliveryRequest
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.modules.service_orders.services.storage import (
@@ -90,7 +93,7 @@ class ServiceOrderDeliveryService:
     ) -> list[ServiceOrderDelivery]:
         service_order_service = ServiceOrderService(self.db)
         service_order = service_order_service._get_service_order_or_404(service_order_id)
-        documents = (
+        all_documents = (
             self.db.query(ServiceOrderFile)
             .filter(
                 ServiceOrderFile.service_order_id == service_order.id,
@@ -99,10 +102,36 @@ class ServiceOrderDeliveryService:
             .order_by(ServiceOrderFile.uploaded_at.asc())
             .all()
         )
+        if email_override and email_override.file_ids is not None:
+            requested_ids = list(dict.fromkeys(email_override.file_ids))
+            if not requested_ids:
+                raise HTTPException(status_code=409, detail="Selecione ao menos um documento.")
+
+            documents_by_id = {document.id: document for document in all_documents}
+            missing_ids = set(requested_ids) - documents_by_id.keys()
+            if missing_ids:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Um ou mais documentos não pertencem a esta ordem de serviço.",
+                )
+
+            documents = [documents_by_id[file_id] for file_id in requested_ids]
+            if any(document.delivery_status == "sent" for document in documents):
+                raise HTTPException(
+                    status_code=409,
+                    detail="Um ou mais documentos selecionados já foram enviados.",
+                )
+        else:
+            documents = [
+                document
+                for document in all_documents
+                if document.delivery_status in ("not_sent", "pending", "failed")
+            ]
+
         if not documents:
             raise HTTPException(
                 status_code=409,
-                detail="A ordem de serviço ainda não possui documentos traduzidos de saída.",
+                detail="A ordem de serviço não possui documentos pendentes para envio.",
             )
         recipient = self._get_recipient(service_order)
         customer_name = self._get_customer_name(service_order)
@@ -188,8 +217,18 @@ class ServiceOrderDeliveryService:
         for attempt in successful_deliveries:
             self.db.refresh(attempt)
 
+        has_pending_documents = (
+            self.db.query(ServiceOrderFile.id)
+            .filter(
+                ServiceOrderFile.service_order_id == service_order.id,
+                ServiceOrderFile.direction == "saida",
+                ServiceOrderFile.delivery_status != "sent",
+            )
+            .first()
+            is not None
+        )
         for item in service_order.items:
-            item.status = STATUS_CONCLUIDA
+            item.status = STATUS_EM_ANALISE if has_pending_documents else STATUS_CONCLUIDA
         self.db.commit()
 
         return successful_deliveries

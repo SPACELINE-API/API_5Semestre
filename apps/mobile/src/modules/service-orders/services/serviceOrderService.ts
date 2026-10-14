@@ -39,6 +39,7 @@ export function getServiceOrderEmailTemplate(): Promise<ServiceOrderEmailTemplat
 }
 
 export type ServiceOrderDeliveryInput = {
+	file_ids: string[];
 	subject_override: string;
 	body_html_override: string;
 };

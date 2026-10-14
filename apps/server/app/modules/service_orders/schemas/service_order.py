@@ -87,6 +87,7 @@ class ServiceOrderFileResponse(BaseModel):
     filename: str
     file_url: str
     direction: str
+    delivery_status: str
     uploaded_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -117,6 +118,7 @@ class ServiceOrderEmailTemplateResponse(BaseModel):
 
 
 class ServiceOrderDeliveryRequest(BaseModel):
+    file_ids: list[uuid.UUID] | None = None
     subject_override: str | None = Field(default=None, min_length=1, max_length=255)
     body_html_override: str | None = Field(default=None, min_length=1)
 

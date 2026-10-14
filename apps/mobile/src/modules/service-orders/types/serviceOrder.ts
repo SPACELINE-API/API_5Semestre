@@ -44,6 +44,7 @@ export type ServiceOrderFile = {
 	filename: string;
 	file_url: string;
 	direction: ServiceOrderFileDirection;
+	delivery_status: 'not_sent' | 'pending' | 'sent' | 'failed';
 	uploaded_at: string;
 };
 
