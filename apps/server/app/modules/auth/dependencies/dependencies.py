@@ -1,3 +1,5 @@
+from functools import cache
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
@@ -44,6 +46,7 @@ def get_current_user(
         ) from error
 
 
+@cache
 def require_permission(permission_code: str):
     def dependency(
         current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
