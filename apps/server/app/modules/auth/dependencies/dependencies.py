@@ -52,7 +52,7 @@ def require_permission(permission_code: str):
         user = db.scalar(
             select(User).options(selectinload(User.roles)).where(User.email == current_user.email)
         )
-        if user is None or not has_permission(user.roles, permission_code):
+        if user is None or not user.is_active or not has_permission(user.roles, permission_code):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Usuário sem permissão para esta operação",
@@ -69,8 +69,10 @@ def require_administrator(
     user = db.scalar(
         select(User).options(selectinload(User.roles)).where(User.email == current_user.email)
     )
-    is_administrator = user is not None and any(
-        role.is_active and role.name == "Administrador" for role in user.roles
+    is_administrator = (
+        user is not None
+        and user.is_active
+        and any(role.is_active and role.name == "Administrador" for role in user.roles)
     )
     if not is_administrator:
         raise HTTPException(

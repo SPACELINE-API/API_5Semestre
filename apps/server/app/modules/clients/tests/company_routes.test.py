@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.main import app
+from app.modules.clients.routes import clients_read_permission, clients_write_permission
 from app.modules.clients.schemas.company import calculate_cnpj_check_digit
 from app.shared.database import get_db
 
@@ -28,6 +29,8 @@ def db_session(isolated_db_session):
 @pytest.fixture
 def client(db_session: Session):
     app.dependency_overrides[get_db] = lambda: db_session
+    app.dependency_overrides[clients_read_permission] = lambda: None
+    app.dependency_overrides[clients_write_permission] = lambda: None
     yield TestClient(app)
     app.dependency_overrides.clear()
 
