@@ -85,6 +85,13 @@ export function deleteServiceOrderItemFile(
 	);
 }
 
+export function deleteServiceOrderItem(
+	serviceOrderId: string,
+	itemId: string,
+): Promise<void> {
+	return apiDelete(`${SERVICE_ORDERS_PATH}/${serviceOrderId}/items/${itemId}`);
+}
+
 export function generateServiceOrderFromQuote(
 	data: GenerateServiceOrderInput,
 ): Promise<ServiceOrder> {

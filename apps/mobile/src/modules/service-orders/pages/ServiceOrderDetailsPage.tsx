@@ -33,6 +33,7 @@ import {
 	createServiceOrderItem,
 	deleteServiceOrder,
 	deleteServiceOrderFile,
+	deleteServiceOrderItem,
 	deleteServiceOrderItemFile,
 	sendItemInvites,
 	updateServiceOrder,
@@ -65,9 +66,13 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const [refreshToken, setRefreshToken] = useState(0);
 	const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
 	const [editingItem, setEditingItem] = useState<ServiceOrderItem | null>(null);
+	const [deletingItem, setDeletingItem] = useState<ServiceOrderItem | null>(
+		null,
+	);
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 	const [isCompleteModalVisible, setIsCompleteModalVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [isDeletingItem, setIsDeletingItem] = useState(false);
 
 	const { invites: inviteTargetItemInvites } = useItemInvites(
 		inviteTargetItem?.id ?? '',
@@ -109,6 +114,27 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 			);
 			setIsDeleting(false);
 			setIsDeleteConfirmVisible(false);
+		}
+	}
+
+	async function handleDeleteItem() {
+		if (!serviceOrder || !deletingItem) return;
+
+		setIsDeletingItem(true);
+		try {
+			await deleteServiceOrderItem(serviceOrder.id, deletingItem.id);
+			setDeletingItem(null);
+			await refresh();
+			showToast('Item excluído com sucesso!', 'success');
+		} catch (deleteError) {
+			showToast(
+				deleteError instanceof Error
+					? deleteError.message
+					: 'Não foi possível excluir o item.',
+				'error',
+			);
+		} finally {
+			setIsDeletingItem(false);
 		}
 	}
 
@@ -265,6 +291,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											translatorsById={translatorsById}
 											onAddItem={() => setIsAddItemModalVisible(true)}
 											onEditItem={setEditingItem}
+											onDeleteItem={setDeletingItem}
 										/>
 									)}
 
@@ -421,6 +448,17 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 			/>
 
 			<ConfirmDialog
+				visible={deletingItem !== null}
+				title="Excluir item"
+				message={`Tem certeza que deseja excluir o item ${deletingItem?.source_language ?? ''} → ${deletingItem?.target_language ?? ''}? Essa ação não pode ser desfeita.`}
+				confirmLabel="Excluir"
+				destructive
+				isLoading={isDeletingItem}
+				onConfirm={handleDeleteItem}
+				onCancel={() => setDeletingItem(null)}
+			/>
+
+			<ConfirmDialog
 				visible={isDeleteConfirmVisible}
 				title="Excluir ordem de serviço"
 				message={`Tem certeza que deseja excluir "${serviceOrder?.project_name}"? Essa ação não pode ser desfeita.`}
@@ -450,7 +488,8 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 					inviteTargetItem ||
 					isAddItemModalVisible ||
 					editingItem ||
-					isDeleteConfirmVisible
+					isDeleteConfirmVisible ||
+					deletingItem
 						? null
 						: toast
 				}

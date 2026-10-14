@@ -314,6 +314,26 @@ class ServiceOrderService:
             delete_service_order_file(file_url)
         self.db.commit()
 
+    def delete_item(self, service_order_id: uuid.UUID, item_id: uuid.UUID) -> None:
+        self._get_service_order_or_404(service_order_id)
+        item = (
+            self.db.query(ServiceOrderItem)
+            .filter(
+                ServiceOrderItem.id == item_id,
+                ServiceOrderItem.service_order_id == service_order_id,
+            )
+            .first()
+        )
+        if not item:
+            raise HTTPException(status_code=404, detail="Item da ordem de serviço não encontrado")
+
+        file_url = item.file_url
+        self.db.delete(item)
+        self.db.flush()
+        if file_url and not self._is_file_url_referenced(file_url):
+            delete_service_order_file(file_url)
+        self.db.commit()
+
     def _is_file_url_referenced(self, file_url: str) -> bool:
         return bool(
             self.db.query(ServiceOrderItem.id).filter(ServiceOrderItem.file_url == file_url).first()
