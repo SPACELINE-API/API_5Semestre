@@ -177,9 +177,7 @@ def test_create_additional_service_service_order_not_found_contract() -> None:
     pact = Pact("web", "server").with_specification("V4")
 
     (
-        pact.upon_receiving(
-            "a request to create an additional service for a missing service order"
-        )
+        pact.upon_receiving("a request to create an additional service for a missing service order")
         .given("the user has quotes.write permission and the service order does not exist")
         .with_request("POST", BASE_PATH)
         .with_headers(JSON_AUTH_HEADERS)
@@ -212,9 +210,7 @@ def test_create_additional_service_duplicate_description_contract() -> None:
         .with_body(VALID_QUOTE_PAYLOAD)
         .will_respond_with(409)
         .with_headers({"Content-Type": "application/json"})
-        .with_body(
-            {"detail": "Já existe um serviço adicional com essa descrição neste orçamento"}
-        )
+        .with_body({"detail": "Já existe um serviço adicional com essa descrição neste orçamento"})
     )
 
     pact.write_file(PACT_DIR)
