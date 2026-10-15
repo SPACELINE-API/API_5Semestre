@@ -49,7 +49,7 @@ def compute_aggregate_status(items: list[ServiceOrderItem]) -> str:
     if statuses == {STATUS_CONCLUIDA}:
         return STATUS_CONCLUIDA
 
-    for status in _AGGREGATE_STATUS_ORDER[1:]:
+    for status in _AGGREGATE_STATUS_ORDER:
         if status in statuses:
             return status
 
@@ -202,18 +202,8 @@ class ServiceOrderService:
         self.db.add(service_order_file)
 
         if direction == "saida":
-            existing_saida_count = (
-                self.db.query(ServiceOrderFile)
-                .filter(
-                    ServiceOrderFile.service_order_id == service_order.id,
-                    ServiceOrderFile.direction == "saida",
-                )
-                .count()
-            )
-            if existing_saida_count + 1 >= len(service_order.items):
-                for item in service_order.items:
-                    if item.status != STATUS_CONCLUIDA:
-                        item.status = STATUS_CONCLUIDA
+            for item in service_order.items:
+                item.status = STATUS_EM_ANALISE
 
         self.db.commit()
         self.db.refresh(service_order_file)
@@ -264,7 +254,7 @@ class ServiceOrderService:
         return documents
 
     def delete_file(self, service_order_id: uuid.UUID, file_id: uuid.UUID) -> None:
-        self._get_service_order_or_404(service_order_id)
+        service_order = self._get_service_order_or_404(service_order_id)
         service_order_file = (
             self.db.query(ServiceOrderFile)
             .filter(
@@ -288,10 +278,14 @@ class ServiceOrderService:
             )
 
         file_url = service_order_file.file_url
+        is_delivery_file = service_order_file.direction == "saida"
         self.db.delete(service_order_file)
         self.db.flush()
         if not self._is_file_url_referenced(file_url):
             delete_service_order_file(file_url)
+        if is_delivery_file:
+            for item in service_order.items:
+                item.status = STATUS_EM_ANDAMENTO
         self.db.commit()
 
     def delete_item_file(self, service_order_id: uuid.UUID, item_id: uuid.UUID) -> None:
@@ -311,6 +305,26 @@ class ServiceOrderService:
         item.file_url = None
         self.db.flush()
         if not self._is_file_url_referenced(file_url):
+            delete_service_order_file(file_url)
+        self.db.commit()
+
+    def delete_item(self, service_order_id: uuid.UUID, item_id: uuid.UUID) -> None:
+        self._get_service_order_or_404(service_order_id)
+        item = (
+            self.db.query(ServiceOrderItem)
+            .filter(
+                ServiceOrderItem.id == item_id,
+                ServiceOrderItem.service_order_id == service_order_id,
+            )
+            .first()
+        )
+        if not item:
+            raise HTTPException(status_code=404, detail="Item da ordem de serviço não encontrado")
+
+        file_url = item.file_url
+        self.db.delete(item)
+        self.db.flush()
+        if file_url and not self._is_file_url_referenced(file_url):
             delete_service_order_file(file_url)
         self.db.commit()
 

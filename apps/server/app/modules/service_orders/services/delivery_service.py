@@ -15,6 +15,10 @@ from app.modules.service_orders.models.service_order_email_template import (
     ServiceOrderEmailTemplate,
 )
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
+from app.modules.service_orders.models.service_order_item import (
+    STATUS_CONCLUIDA,
+    STATUS_EM_ANALISE,
+)
 from app.modules.service_orders.schemas.service_order import ServiceOrderDeliveryRequest
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.modules.service_orders.services.storage import (
@@ -89,7 +93,7 @@ class ServiceOrderDeliveryService:
     ) -> list[ServiceOrderDelivery]:
         service_order_service = ServiceOrderService(self.db)
         service_order = service_order_service._get_service_order_or_404(service_order_id)
-        documents = (
+        all_documents = (
             self.db.query(ServiceOrderFile)
             .filter(
                 ServiceOrderFile.service_order_id == service_order.id,
@@ -98,10 +102,36 @@ class ServiceOrderDeliveryService:
             .order_by(ServiceOrderFile.uploaded_at.asc())
             .all()
         )
+        if email_override and email_override.file_ids is not None:
+            requested_ids = list(dict.fromkeys(email_override.file_ids))
+            if not requested_ids:
+                raise HTTPException(status_code=409, detail="Selecione ao menos um documento.")
+
+            documents_by_id = {document.id: document for document in all_documents}
+            missing_ids = set(requested_ids) - documents_by_id.keys()
+            if missing_ids:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Um ou mais documentos não pertencem a esta ordem de serviço.",
+                )
+
+            documents = [documents_by_id[file_id] for file_id in requested_ids]
+            if any(document.delivery_status == "sent" for document in documents):
+                raise HTTPException(
+                    status_code=409,
+                    detail="Um ou mais documentos selecionados já foram enviados.",
+                )
+        else:
+            documents = [
+                document
+                for document in all_documents
+                if document.delivery_status in ("not_sent", "pending", "failed")
+            ]
+
         if not documents:
             raise HTTPException(
                 status_code=409,
-                detail="A ordem de serviço ainda não possui documentos traduzidos de saída.",
+                detail="A ordem de serviço não possui documentos pendentes para envio.",
             )
         recipient = self._get_recipient(service_order)
         customer_name = self._get_customer_name(service_order)
@@ -112,6 +142,8 @@ class ServiceOrderDeliveryService:
                 detail="Template de envio não encontrado. Execute o seed do backend.",
             )
         successful_deliveries = []
+        delivery_attempts = []
+        attachments = []
 
         for document in documents:
             attempt = ServiceOrderDelivery(
@@ -123,8 +155,7 @@ class ServiceOrderDeliveryService:
             )
             self.db.add(attempt)
             document.delivery_status = "pending"
-            self.db.commit()
-            self.db.refresh(attempt)
+            delivery_attempts.append((attempt, document))
 
             try:
                 storage_path = document.storage_path or get_service_order_storage_path(
@@ -143,30 +174,61 @@ class ServiceOrderDeliveryService:
                 if document.storage_path is None:
                     document.storage_path = storage_path
                 content = download_service_order_file(storage_path)
-                subject, body = _render_delivery_email(template, customer_name, email_override)
                 content_type = document.content_type or "application/octet-stream"
-                send_email(
-                    to=recipient,
-                    subject=subject,
-                    html_body=body,
-                    attachments=[(document.filename, content, content_type)],
-                )
+                attachments.append((document.filename, content, content_type))
             except Exception as error:
                 detail = error.detail if isinstance(error, HTTPException) else str(error)
-                attempt.status = "failed"
-                attempt.error_message = detail[:4000]
-                document.delivery_status = "failed"
+                for pending_attempt, pending_document in delivery_attempts:
+                    pending_attempt.status = "failed"
+                    pending_attempt.error_message = detail[:4000]
+                    pending_document.delivery_status = "failed"
                 self.db.commit()
                 raise HTTPException(
                     status_code=502,
                     detail="Falha ao enviar documento traduzido; tentativa registrada.",
                 ) from error
 
+        try:
+            subject, body = _render_delivery_email(template, customer_name, email_override)
+            send_email(
+                to=recipient,
+                subject=subject,
+                html_body=body,
+                attachments=attachments,
+            )
+        except Exception as error:
+            detail = error.detail if isinstance(error, HTTPException) else str(error)
+            for attempt, document in delivery_attempts:
+                attempt.status = "failed"
+                attempt.error_message = detail[:4000]
+                document.delivery_status = "failed"
+            self.db.commit()
+            raise HTTPException(
+                status_code=502,
+                detail="Falha ao enviar documentos traduzidos; tentativa registrada.",
+            ) from error
+
+        for attempt, document in delivery_attempts:
             attempt.status = "sent"
             attempt.sent_at = func.now()
             document.delivery_status = "sent"
-            self.db.commit()
-            self.db.refresh(attempt)
             successful_deliveries.append(attempt)
+        self.db.commit()
+        for attempt in successful_deliveries:
+            self.db.refresh(attempt)
+
+        has_pending_documents = (
+            self.db.query(ServiceOrderFile.id)
+            .filter(
+                ServiceOrderFile.service_order_id == service_order.id,
+                ServiceOrderFile.direction == "saida",
+                ServiceOrderFile.delivery_status != "sent",
+            )
+            .first()
+            is not None
+        )
+        for item in service_order.items:
+            item.status = STATUS_EM_ANALISE if has_pending_documents else STATUS_CONCLUIDA
+        self.db.commit()
 
         return successful_deliveries

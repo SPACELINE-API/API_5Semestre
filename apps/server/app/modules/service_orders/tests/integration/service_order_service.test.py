@@ -18,6 +18,7 @@ from app.modules.service_orders.models.service_order_email_template import (
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
 from app.modules.service_orders.models.service_order_item import (
     STATUS_CONCLUIDA,
+    STATUS_EM_ANALISE,
     STATUS_EM_ANDAMENTO,
     STATUS_PENDENTE,
     ServiceOrderItem,
@@ -353,7 +354,7 @@ def test_add_file_saida_raises_409_when_item_missing_translator(
     assert len(fake_upload) == 0
 
 
-def test_add_file_saida_marks_items_concluded_when_all_delivered(
+def test_add_file_saida_marks_items_in_analysis_before_delivery(
     db_session: Session, fake_upload
 ) -> None:
     company = make_company(db_session)
@@ -399,8 +400,8 @@ def test_add_file_saida_marks_items_concluded_when_all_delivered(
 
     assert result.direction == "saida"
     refreshed = service.get_service_order(order.id)
-    assert {item.status for item in refreshed.items} == {STATUS_CONCLUIDA}
-    assert refreshed.status == STATUS_CONCLUIDA
+    assert {item.status for item in refreshed.items} == {STATUS_EM_ANALISE}
+    assert refreshed.status == STATUS_EM_ANALISE
 
 
 def test_add_saida_file_persists_storage_reference_metadata_and_delivery_status(
@@ -430,6 +431,11 @@ def test_add_saida_file_persists_storage_reference_metadata_and_delivery_status(
     assert document.storage_path == "translated/final.pdf"
     assert document.content_type == "application/pdf"
     assert document.delivery_status == "pending"
+
+    refreshed_order = service.get_service_order(order.id)
+    returned_file = next(file for file in refreshed_order.files if file.id == response.id)
+    assert returned_file.direction == "saida"
+    assert returned_file.file_url == response.file_url
 
 
 def test_delivery_lookup_selects_only_output_files_and_checks_storage(
@@ -534,7 +540,42 @@ def test_file_with_delivery_history_cannot_be_deleted(db_session: Session) -> No
     assert db_session.get(ServiceOrderFile, document.id) is not None
 
 
-def test_delivery_sends_document_and_records_success(db_session: Session, monkeypatch) -> None:
+def test_delete_delivery_file_reopens_order(db_session: Session, monkeypatch) -> None:
+    company = make_company(db_session)
+    service, order = make_order_with_assigned_translator(db_session, company)
+    db_session.query(ServiceOrderItem).filter(ServiceOrderItem.service_order_id == order.id).update(
+        {"status": STATUS_CONCLUIDA}, synchronize_session=False
+    )
+    document = ServiceOrderFile(
+        service_order_id=order.id,
+        filename="final.pdf",
+        file_url=(
+            "https://project.supabase.co/storage/v1/object/public/"
+            "service-order-files/translated/final.pdf"
+        ),
+        storage_path="translated/final.pdf",
+        content_type="application/pdf",
+        direction="saida",
+        delivery_status="pending",
+    )
+    db_session.add(document)
+    db_session.commit()
+    db_session.refresh(document)
+    monkeypatch.setattr(
+        service_order_service_module, "delete_service_order_file", lambda _url: None
+    )
+
+    service.delete_file(order.id, document.id)
+
+    refreshed_order = service.get_service_order(order.id)
+    assert refreshed_order.status == STATUS_EM_ANDAMENTO
+    assert {item.status for item in refreshed_order.items} == {STATUS_EM_ANDAMENTO}
+    assert db_session.get(ServiceOrderFile, document.id) is None
+
+
+def test_delivery_sends_all_documents_in_one_email_and_records_success(
+    db_session: Session, monkeypatch
+) -> None:
     company = make_company(db_session)
     service, order = make_order_with_assigned_translator(db_session, company)
     quote = db_session.get(Quote, order.quote_id)
@@ -569,6 +610,13 @@ def test_delivery_sends_document_and_records_success(db_session: Session, monkey
         content_type="application/pdf",
         direction="saida",
     )
+    service.add_file(
+        order.id,
+        filename="final-2.pdf",
+        file_data=io.BytesIO(b"translated bytes 2"),
+        content_type="application/pdf",
+        direction="saida",
+    )
     monkeypatch.setattr(
         service_order_service_module, "service_order_file_exists", lambda _path: True
     )
@@ -585,18 +633,40 @@ def test_delivery_sends_document_and_records_success(db_session: Session, monkey
 
     result = ServiceOrderDeliveryService(db_session).send_translated_documents(order.id)
 
-    assert len(result) == 1
-    assert result[0].status == "sent"
+    assert len(result) == 2
+    assert {attempt.status for attempt in result} == {"sent"}
     assert result[0].recipient_email == company.email
     assert result[0].template_key == SERVICE_ORDER_EMAIL_TEMPLATE_KEY
-    assert sent_emails[0]["attachments"] == [("final.pdf", b"translated bytes", "application/pdf")]
+    assert len(sent_emails) == 1
+    assert sent_emails[0]["attachments"] == [
+        ("final.pdf", b"translated bytes", "application/pdf"),
+        ("final-2.pdf", b"translated bytes", "application/pdf"),
+    ]
     assert sent_emails[0]["subject"] == "Tradução concluída"
     assert "Olá, Maria Silva!" in sent_emails[0]["html_body"]
     assert "Temos o prazer de informar que a tradução solicitada" in sent_emails[0]["html_body"]
     assert "O documento traduzido está disponível em anexo" in sent_emails[0]["html_body"]
     assert "Equipe Aliança Traduções" in sent_emails[0]["html_body"]
-    document = db_session.query(ServiceOrderFile).filter_by(service_order_id=order.id).one()
-    assert document.delivery_status == "sent"
+    documents = db_session.query(ServiceOrderFile).filter_by(service_order_id=order.id).all()
+    assert len(documents) == 2
+    assert {document.delivery_status for document in documents} == {"sent"}
+
+    service.add_file(
+        order.id,
+        filename="final-3.pdf",
+        file_data=io.BytesIO(b"translated bytes 3"),
+        content_type="application/pdf",
+        direction="saida",
+    )
+    second_result = ServiceOrderDeliveryService(db_session).send_translated_documents(order.id)
+
+    assert len(second_result) == 1
+    assert len(sent_emails) == 2
+    assert sent_emails[1]["attachments"] == [
+        ("final-3.pdf", b"translated bytes", "application/pdf")
+    ]
+    refreshed_order = ServiceOrderService(db_session).get_service_order(order.id)
+    assert {item.status for item in refreshed_order.items} == {STATUS_CONCLUIDA}
 
 
 def test_delivery_failure_is_recorded_and_keeps_document(db_session: Session, monkeypatch) -> None:
@@ -648,6 +718,8 @@ def test_delivery_failure_is_recorded_and_keeps_document(db_session: Session, mo
     assert attempt.error_message == "SMTP indisponível"
     assert document.delivery_status == "failed"
     assert db_session.get(ServiceOrderFile, document.id) is not None
+    refreshed_order = ServiceOrderService(db_session).get_service_order(order.id)
+    assert {item.status for item in refreshed_order.items} == {STATUS_EM_ANALISE}
 
 
 def test_delete_service_order_removes_it(db_session: Session) -> None:
