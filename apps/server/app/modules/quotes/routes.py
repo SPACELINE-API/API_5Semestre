@@ -5,6 +5,10 @@ from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import require_permission
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
+from app.modules.quotes.schemas.additional_service import (
+    AdditionalServiceCreate,
+    AdditionalServiceResponse,
+)
 from app.modules.quotes.schemas.quote import (
     QuoteCreate,
     QuoteFromRequestResponse,
@@ -19,6 +23,11 @@ from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemCreate,
     QuoteTranslationItemResponse,
     QuoteTranslationItemUpdate,
+)
+from app.modules.quotes.services.additional_service import (
+    AdditionalServiceConflictError,
+    AdditionalServiceNotFoundError,
+    AdditionalServiceService,
 )
 from app.modules.quotes.services.quote_service import QuoteService
 from app.modules.quotes.services.request_service import RequestService
@@ -219,3 +228,60 @@ def update_request_status(
 
     service = RequestService(db)
     return service.update_status(parsed_request_id, data, current_user)
+
+
+@router.post("/additional-services", response_model=AdditionalServiceResponse, status_code=201)
+def create_additional_service(
+    payload: AdditionalServiceCreate,
+    _user=Depends(quotes_write_permission),
+    db: Session = Depends(get_db),
+):
+    service = AdditionalServiceService(db)
+    try:
+        return service.create_additional_service(payload)
+    except AdditionalServiceNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except AdditionalServiceConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.get("/additional-services", response_model=list[AdditionalServiceResponse])
+def list_additional_services(
+    quote_id: uuid.UUID | None = Query(default=None),
+    service_order_id: uuid.UUID | None = Query(default=None),
+    _user=Depends(quotes_read_permission),
+    db: Session = Depends(get_db),
+):
+    service = AdditionalServiceService(db)
+    try:
+        return service.list_additional_services(quote_id, service_order_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except AdditionalServiceNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/additional-services/{service_id}", response_model=AdditionalServiceResponse)
+def get_additional_service(
+    service_id: uuid.UUID,
+    _user=Depends(quotes_read_permission),
+    db: Session = Depends(get_db),
+):
+    service = AdditionalServiceService(db)
+    try:
+        return service.get_additional_service(service_id)
+    except AdditionalServiceNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.delete("/additional-services/{service_id}", status_code=204)
+def delete_additional_service(
+    service_id: uuid.UUID,
+    _user=Depends(quotes_write_permission),
+    db: Session = Depends(get_db),
+):
+    service = AdditionalServiceService(db)
+    try:
+        service.delete_additional_service(service_id)
+    except AdditionalServiceNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
