@@ -233,6 +233,7 @@ def update_request_status(
 @router.post("/additional-services", response_model=AdditionalServiceResponse, status_code=201)
 def create_additional_service(
     payload: AdditionalServiceCreate,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = AdditionalServiceService(db)
@@ -248,6 +249,7 @@ def create_additional_service(
 def list_additional_services(
     quote_id: uuid.UUID | None = Query(default=None),
     service_order_id: uuid.UUID | None = Query(default=None),
+    _user=Depends(quotes_read_permission),
     db: Session = Depends(get_db),
 ):
     service = AdditionalServiceService(db)
@@ -262,6 +264,7 @@ def list_additional_services(
 @router.get("/additional-services/{service_id}", response_model=AdditionalServiceResponse)
 def get_additional_service(
     service_id: uuid.UUID,
+    _user=Depends(quotes_read_permission),
     db: Session = Depends(get_db),
 ):
     service = AdditionalServiceService(db)
@@ -274,6 +277,7 @@ def get_additional_service(
 @router.delete("/additional-services/{service_id}", status_code=204)
 def delete_additional_service(
     service_id: uuid.UUID,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = AdditionalServiceService(db)
