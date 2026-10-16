@@ -69,14 +69,18 @@ def require_administrator(
     user = db.scalar(
         select(User).options(selectinload(User.roles)).where(User.email == current_user.email)
     )
-    is_administrator = (
+    has_full_access = (
         user is not None
         and user.is_active
-        and any(role.is_active and role.name == "Administrador" for role in user.roles)
+        and any(
+            role.is_active
+            and role.name.strip().casefold() in {"administrador", "admin", "operador"}
+            for role in user.roles
+        )
     )
-    if not is_administrator:
+    if not has_full_access:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Apenas administradores podem alterar roles",
+            detail="Apenas administradores ou operadores podem realizar esta operação",
         )
     return current_user
