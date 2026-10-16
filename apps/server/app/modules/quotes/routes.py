@@ -8,6 +8,7 @@ from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.quotes.schemas.additional_service import (
     AdditionalServiceCreate,
     AdditionalServiceResponse,
+    AdditionalServiceUpdate,
 )
 from app.modules.quotes.schemas.quote import (
     QuoteCreate,
@@ -247,16 +248,13 @@ def create_additional_service(
 
 @router.get("/additional-services", response_model=list[AdditionalServiceResponse])
 def list_additional_services(
-    quote_id: uuid.UUID | None = Query(default=None),
-    service_order_id: uuid.UUID | None = Query(default=None),
+    quote_id: uuid.UUID = Query(),
     _user=Depends(quotes_read_permission),
     db: Session = Depends(get_db),
 ):
     service = AdditionalServiceService(db)
     try:
-        return service.list_additional_services(quote_id, service_order_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return service.list_additional_services(quote_id)
     except AdditionalServiceNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -272,6 +270,22 @@ def get_additional_service(
         return service.get_additional_service(service_id)
     except AdditionalServiceNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.patch("/additional-services/{service_id}", response_model=AdditionalServiceResponse)
+def update_additional_service(
+    service_id: uuid.UUID,
+    payload: AdditionalServiceUpdate,
+    _user=Depends(quotes_write_permission),
+    db: Session = Depends(get_db),
+):
+    service = AdditionalServiceService(db)
+    try:
+        return service.update_additional_service(service_id, payload)
+    except AdditionalServiceNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except AdditionalServiceConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @router.delete("/additional-services/{service_id}", status_code=204)

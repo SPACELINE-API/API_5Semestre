@@ -6,8 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 
 class AdditionalServiceCreate(BaseModel):
-    quote_id: uuid.UUID | None = None
-    service_order_id: uuid.UUID | None = None
+    quote_id: uuid.UUID
     description: str = Field(max_length=255)
     price: Decimal = Field(ge=0, max_digits=10, decimal_places=2)
 
@@ -19,10 +18,30 @@ class AdditionalServiceCreate(BaseModel):
             raise ValueError("A descrição não pode ser vazia")
         return value
 
+
+class AdditionalServiceUpdate(BaseModel):
+    description: str | None = Field(default=None, max_length=255)
+    price: Decimal | None = Field(default=None, ge=0, max_digits=10, decimal_places=2)
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, value: str | None) -> str:
+        value = (value or "").strip()
+        if not value:
+            raise ValueError("A descrição não pode ser vazia")
+        return value
+
+    @field_validator("price")
+    @classmethod
+    def validate_price(cls, value: Decimal | None) -> Decimal:
+        if value is None:
+            raise ValueError("O valor não pode ser vazio")
+        return value
+
     @model_validator(mode="after")
-    def validate_target(self) -> "AdditionalServiceCreate":
-        if (self.quote_id is None) == (self.service_order_id is None):
-            raise ValueError("Informe apenas um entre quote_id e service_order_id")
+    def validate_fields(self) -> "AdditionalServiceUpdate":
+        if not self.model_fields_set:
+            raise ValueError("Informe ao menos um campo para atualizar")
         return self
 
 
@@ -31,7 +50,6 @@ class AdditionalServiceResponse(BaseModel):
 
     id: uuid.UUID
     quote_id: uuid.UUID
-    service_order_id: uuid.UUID | None
     created_by: uuid.UUID | None
     description: str
     price: Decimal

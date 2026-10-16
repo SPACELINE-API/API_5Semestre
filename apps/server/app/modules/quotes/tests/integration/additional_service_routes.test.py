@@ -13,7 +13,7 @@ from app.modules.quotes.repositories.additional_service_repository import (
 )
 
 
-def test_additional_service_created_in_quote_has_no_service_order(
+def test_additional_service_is_persisted_with_its_quote(
     isolated_db_session: Session,
 ):
     quote = Quote()
@@ -31,18 +31,14 @@ def test_additional_service_created_in_quote_has_no_service_order(
     persisted_quote = isolated_db_session.get(Quote, quote.id)
 
     assert persisted_quote is not None
-    assert persisted_quote.additional_services[0].service_order_id is None
+    assert persisted_quote.additional_services[0].quote_id == quote.id
 
 
-def test_additional_service_rejects_unknown_service_order_reference(
+def test_additional_service_rejects_unknown_quote_reference(
     isolated_db_session: Session,
 ):
-    quote = Quote()
-    isolated_db_session.add(quote)
-    isolated_db_session.flush()
     additional_service = AdditionalService(
-        quote_id=quote.id,
-        service_order_id=uuid4(),
+        quote_id=uuid4(),
         description="Tradução de documento secundário",
         price=Decimal("50.00"),
         status="pending",
@@ -128,16 +124,6 @@ def test_repository_returns_empty_list_for_quote_without_additional_services(
     assert result == []
 
 
-def test_repository_returns_empty_list_for_service_order_without_additional_services(
-    isolated_db_session: Session,
-):
-    result = AdditionalServiceRepository(
-        isolated_db_session
-    ).list_additional_services_by_service_order(uuid4())
-
-    assert result == []
-
-
 def test_repository_gets_additional_service_by_id(
     isolated_db_session: Session,
 ):
@@ -167,3 +153,46 @@ def test_repository_returns_none_for_unknown_additional_service(
     found = AdditionalServiceRepository(isolated_db_session).get_additional_service_by_id(uuid4())
 
     assert found is None
+
+
+def test_repository_updates_additional_service(
+    isolated_db_session: Session,
+):
+    quote = Quote()
+    quote.additional_services = [
+        AdditionalService(
+            description="Tradução de documento secundário",
+            price=Decimal("50.00"),
+            status="pending",
+        )
+    ]
+    isolated_db_session.add(quote)
+    isolated_db_session.flush()
+    additional_service = quote.additional_services[0]
+    additional_service.description = "Tradução de documento secundário"
+    additional_service.price = Decimal("80.00")
+
+    AdditionalServiceRepository(isolated_db_session).update_additional_service(additional_service)
+    isolated_db_session.expire_all()
+
+    persisted = isolated_db_session.get(AdditionalService, additional_service.id)
+    assert persisted is not None
+    assert persisted.description == "Tradução de documento secundário"
+    assert persisted.price == Decimal("80.00")
+
+
+def test_repository_rejects_update_to_duplicated_description_in_quote(
+    isolated_db_session: Session,
+):
+    quote = Quote()
+    quote.additional_services = [
+        AdditionalService(description="Tradução de documento secundário", price=Decimal("30.00"), status="pending"),
+        AdditionalService(description="Revisão", price=Decimal("40.00"), status="pending"),
+    ]
+    isolated_db_session.add(quote)
+    isolated_db_session.flush()
+    revision = quote.additional_services[1]
+    revision.description = " refazer tradução "
+
+    with pytest.raises(IntegrityError):
+        AdditionalServiceRepository(isolated_db_session).update_additional_service(revision)
