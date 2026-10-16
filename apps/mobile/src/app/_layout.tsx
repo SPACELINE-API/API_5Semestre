@@ -126,7 +126,9 @@ export default function AppLayout() {
 		return <Redirect href={firstAllowedRoute(authorizationContext) as never} />;
 	}
 	const showAppShell =
-		!isPublic && Boolean(session || authorizationContext) && authorizationLoaded;
+		!isPublic &&
+		Boolean(session || authorizationContext) &&
+		authorizationLoaded;
 
 	return (
 		<SafeAreaProvider>
@@ -205,7 +207,7 @@ function AppShell({
 							className="h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
 						>
 							<Menu size={22} color="#1f2937" strokeWidth={2} />
-					</TouchableOpacity>
+						</TouchableOpacity>
 					</View>
 				) : null}
 
