@@ -48,6 +48,7 @@ SEED_ROLES = (
             "settings.write",
             "finance.read",
             "finance.write",
+            "proposals.read",
         ),
     ),
     SeedRole(
@@ -84,6 +85,7 @@ SEED_ROLES = (
             "documents.read",
             "dashboard.read",
             "documents.write",
+            "proposals.read",
         ),
     ),
     SeedRole(
