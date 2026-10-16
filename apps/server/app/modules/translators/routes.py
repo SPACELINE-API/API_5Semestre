@@ -10,6 +10,7 @@ from app.modules.translators.models.translator_language import ProficiencyLevel
 from app.modules.translators.schemas.certificate import (
     CertificateFileResponse,
     CertificateResponse,
+    CertificateReviewInput,
 )
 from app.modules.translators.schemas.translator import (
     QualificationResponse,
@@ -134,6 +135,44 @@ def get_translator(
     _user=Depends(translators_read_permission),
 ):
     return TranslatorService(db).get(translator_id)
+
+
+@router.get("/{translator_id}/certificates", response_model=list[CertificateResponse])
+def list_translator_certificates(
+    translator_id: uuid.UUID,
+    db: DbSession,
+    _user=Depends(translators_read_permission),
+):
+    return TranslatorCertificateService(db).list_for_translator(translator_id)
+
+
+@router.get(
+    "/{translator_id}/certificates/{certificate_id}/file",
+    response_model=CertificateFileResponse,
+)
+def get_translator_certificate_file(
+    translator_id: uuid.UUID,
+    certificate_id: uuid.UUID,
+    db: DbSession,
+    _user=Depends(translators_read_permission),
+):
+    return TranslatorCertificateService(db).get_file(translator_id, certificate_id)
+
+
+@router.patch(
+    "/{translator_id}/certificates/{certificate_id}/review",
+    response_model=CertificateResponse,
+)
+def review_translator_certificate(
+    translator_id: uuid.UUID,
+    certificate_id: uuid.UUID,
+    data: CertificateReviewInput,
+    db: DbSession,
+    current_user: SupabaseAuthenticatedUser = Depends(translators_write_permission),
+):
+    return TranslatorCertificateService(db).review(
+        translator_id, certificate_id, data, current_user.email
+    )
 
 
 @router.put("/{translator_id}", response_model=TranslatorResponse)

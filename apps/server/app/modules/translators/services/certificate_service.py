@@ -1,23 +1,31 @@
 import hashlib
 import logging
 import uuid
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.modules.auth.models.user import User
 from app.modules.system_parameters.models.language import Language
 from app.modules.translators.models.translator import Translator
 from app.modules.translators.models.translator_certificate import (
     CertificateStatus,
     TranslatorCertificate,
 )
-from app.modules.translators.models.translator_language import ProficiencyLevel
+from app.modules.translators.models.translator_language import (
+    ProficiencyLevel,
+    TranslatorLanguage,
+)
 from app.modules.translators.repositories.certificate_repository import (
     TranslatorCertificateRepository,
 )
+from app.modules.translators.repositories.translator_repository import TranslatorRepository
 from app.modules.translators.schemas.certificate import (
     CertificateFileResponse,
     CertificateResponse,
+    CertificateReviewInput,
 )
 from app.modules.translators.services import storage
 from app.modules.translators.services.file_validation import CERTIFICATE_RULES, validate_upload
@@ -31,6 +39,7 @@ class TranslatorCertificateService:
         self.db = db
         self.repo = TranslatorCertificateRepository(db)
         self.profiles = TranslatorProfileService(db)
+        self.translators = TranslatorRepository(db)
 
     # ENVIA OU SUBSTITUI O CERTIFICADO DE UM IDIOMA DO TRADUTOR AUTENTICADO
     def submit(
@@ -106,6 +115,69 @@ class TranslatorCertificateService:
     def get_my_file(self, email: str, certificate_id: uuid.UUID) -> CertificateFileResponse:
         translator = self.profiles.get_translator(email)
         return self._signed_file(self._get_certificate_or_404(translator.id, certificate_id))
+
+    def list_for_translator(self, translator_id: uuid.UUID) -> list[CertificateResponse]:
+        translator = self._get_translator_or_404(translator_id)
+        return self._to_responses(self.repo.list_by_translator(translator.id))
+
+    def get_file(
+        self, translator_id: uuid.UUID, certificate_id: uuid.UUID
+    ) -> CertificateFileResponse:
+        translator = self._get_translator_or_404(translator_id)
+        return self._signed_file(self._get_certificate_or_404(translator.id, certificate_id))
+
+    # AVALIACAO DO ADMINISTRADOR: AO APROVAR, O IDIOMA PASSA A FAZER PARTE DO PERFIL
+    def review(
+        self,
+        translator_id: uuid.UUID,
+        certificate_id: uuid.UUID,
+        data: CertificateReviewInput,
+        reviewer_email: str,
+    ) -> CertificateResponse:
+        translator = self._get_translator_or_404(translator_id)
+        certificate = self._get_certificate_or_404(translator.id, certificate_id)
+        if certificate.status != CertificateStatus.PENDING:
+            raise HTTPException(
+                status_code=409,
+                detail="Somente certificados em análise podem ser avaliados.",
+            )
+
+        certificate.status = data.status
+        certificate.review_note = data.review_note
+        certificate.reviewed_at = datetime.now(UTC)
+        certificate.reviewed_by_id = self.db.scalar(
+            select(User.id).where(User.email == reviewer_email)
+        )
+
+        already_has_language = any(
+            language.language_id == certificate.language_id for language in translator.languages
+        )
+        if data.status == CertificateStatus.APPROVED and not already_has_language:
+            translator.languages.append(
+                TranslatorLanguage(
+                    language_id=certificate.language_id,
+                    proficiency_level=certificate.proficiency_level,
+                )
+            )
+
+        try:
+            self.db.commit()
+        except Exception as error:
+            self.db.rollback()
+            logger.exception("Falha ao registrar avaliação do certificado %s", certificate_id)
+            raise HTTPException(
+                status_code=500,
+                detail="Não foi possível registrar a avaliação. Tente novamente.",
+            ) from error
+
+        self.db.refresh(certificate)
+        return CertificateResponse.model_validate(certificate)
+
+    def _get_translator_or_404(self, translator_id: uuid.UUID) -> Translator:
+        translator = self.translators.get_by_id(translator_id)
+        if translator is None:
+            raise HTTPException(status_code=404, detail="Tradutor não encontrado.")
+        return translator
 
     def _ensure_language_can_be_certified(self, translator: Translator, language_id: str) -> None:
         if self.db.get(Language, language_id) is None:
