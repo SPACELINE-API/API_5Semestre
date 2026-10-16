@@ -820,6 +820,365 @@
         "status": 200
       },
       "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list commercial proposals",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the user has proposals.read permission and proposals exist"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer valid-token"
+          ]
+        },
+        "method": "GET",
+        "path": "/api/quotes/proposals"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [
+              {
+                "created_at": "2026-09-13T10:00:00Z",
+                "customer_name": "Cliente Teste",
+                "enterprise": "Empresa Teste",
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "status": "pending",
+                "total_value": "0.00",
+                "translation_service": "Português → Inglês"
+              }
+            ],
+            "page": 1,
+            "page_size": 10,
+            "total": 1
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list proposals when none exist",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the user has proposals.read permission and no proposals exist"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer valid-token"
+          ]
+        },
+        "method": "GET",
+        "path": "/api/quotes/proposals"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [],
+            "page": 1,
+            "page_size": 10,
+            "total": 0
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list proposals filtered by date range",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the user has proposals.read permission and proposals exist in range"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer valid-token"
+          ]
+        },
+        "method": "GET",
+        "path": "/api/quotes/proposals",
+        "query": {
+          "end_date": [
+            "2026-12-31"
+          ],
+          "start_date": [
+            "2026-01-01"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [
+              {
+                "created_at": "2026-09-13T10:00:00Z",
+                "customer_name": "Cliente Teste",
+                "enterprise": "Empresa Teste",
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "status": "pending",
+                "total_value": "0.00",
+                "translation_service": "Português → Inglês"
+              }
+            ],
+            "page": 1,
+            "page_size": 10,
+            "total": 1
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list approved proposals",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the user has proposals.read permission and approved proposals exist"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer valid-token"
+          ]
+        },
+        "method": "GET",
+        "path": "/api/quotes/proposals",
+        "query": {
+          "status": [
+            "approved"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [
+              {
+                "created_at": "2026-09-13T10:00:00Z",
+                "customer_name": "Cliente Teste",
+                "enterprise": "Empresa Teste",
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "status": "approved",
+                "total_value": "0.00",
+                "translation_service": "Português → Inglês"
+              }
+            ],
+            "page": 1,
+            "page_size": 10,
+            "total": 1
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list proposals with pagination",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the user has proposals.read permission and multiple proposals exist"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer valid-token"
+          ]
+        },
+        "method": "GET",
+        "path": "/api/quotes/proposals",
+        "query": {
+          "page": [
+            "2"
+          ],
+          "page_size": [
+            "5"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "items": [],
+            "page": 2,
+            "page_size": 5,
+            "total": 10
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list proposals without authentication",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the user is not authenticated"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/quotes/proposals"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 401
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list proposals without permission",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the user does not have proposals.read permission"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer valid-token"
+          ]
+        },
+        "method": "GET",
+        "path": "/api/quotes/proposals"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 403
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list proposals with inverted date range",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the user has proposals.read permission"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer valid-token"
+          ]
+        },
+        "method": "GET",
+        "path": "/api/quotes/proposals",
+        "query": {
+          "end_date": [
+            "2026-01-01"
+          ],
+          "start_date": [
+            "2026-12-31"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "detail": "start_date não pode ser posterior a end_date."
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to list proposals with invalid status",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the user has proposals.read permission"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": [
+            "Bearer valid-token"
+          ]
+        },
+        "method": "GET",
+        "path": "/api/quotes/proposals",
+        "query": {
+          "status": [
+            "invalid_status"
+          ]
+        }
+      },
+      "response": {
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 422
+      },
+      "type": "Synchronous/HTTP"
     }
   ],
   "metadata": {
