@@ -216,6 +216,7 @@ test.describe('Contact Service Unit Tests', () => {
 
 				return {
 					ok: true,
+					status: 204,
 					json: async () => null,
 				} as Response;
 			};
