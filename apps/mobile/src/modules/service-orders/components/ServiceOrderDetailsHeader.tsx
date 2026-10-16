@@ -1,4 +1,4 @@
-import { RefreshCw, Trash2 } from 'lucide-react-native';
+import { CheckCheck, RefreshCw, Trash2 } from 'lucide-react-native';
 import {
 	Platform,
 	ScrollView,
@@ -24,6 +24,7 @@ export function ServiceOrderDetailsHeader({
 	isLoading,
 	onRefresh,
 	onDelete,
+	onComplete,
 	onViewChange,
 }: {
 	serviceOrder: ServiceOrder;
@@ -32,6 +33,7 @@ export function ServiceOrderDetailsHeader({
 	isLoading: boolean;
 	onRefresh: () => void;
 	onDelete: () => void;
+	onComplete: () => void;
 	onViewChange: (view: ServiceOrderView) => void;
 }) {
 	return (
@@ -63,6 +65,18 @@ export function ServiceOrderDetailsHeader({
 			</View>
 
 			<View className="flex-row flex-wrap items-start gap-3 self-start md:flex-nowrap">
+				<TouchableOpacity
+					onPress={onComplete}
+					activeOpacity={0.85}
+					accessibilityRole="button"
+					accessibilityLabel="Concluir Ordem de Serviço"
+					className="flex-row items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5"
+				>
+					<CheckCheck size={16} color="#FFFFFF" />
+					<Text className="font-inter font-semibold text-white text-xs">
+						Concluir Ordem de Serviço
+					</Text>
+				</TouchableOpacity>
 				<TouchableOpacity
 					onPress={onRefresh}
 					disabled={isLoading}

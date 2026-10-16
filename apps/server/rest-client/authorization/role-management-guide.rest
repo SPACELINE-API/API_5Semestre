@@ -1,0 +1,129 @@
+@serverUrl = http://localhost:3333
+
+### Guia do fluxo que o frontend de Administração deve implementar
+### Execute os requests na ordem indicada. Requer migrations e seed aplicados.
+### O usuário autenticado precisa de roles.read, roles.write, users.read e users.write
+### conforme a operação executada.
+
+### 1. Login como administrador
+# @name loginAdmin
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@spaceline.com.br",
+  "password": "123456"
+}
+
+### Capturar token do administrador
+@adminToken = {{loginAdmin.response.body.$.access_token}}
+
+### 2. Consultar catálogo de permissões
+# O frontend deve exibir os códigos (ex.: quotes.read, quotes.write) e guardar os IDs
+# das permissões selecionadas para enviar em permission_ids.
+# @name permissionCatalog
+GET {{serverUrl}}/api/roles/permissions
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 3. Criar IDs de exemplo usando valores copiados do catálogo acima
+# Substitua os valores abaixo pelos UUIDs reais retornados em permissionCatalog.
+@clientsReadPermissionId = COLE_UUID_DE_clients.read
+@clientsWritePermissionId = COLE_UUID_DE_clients.write
+@quotesReadPermissionId = COLE_UUID_DE_quotes.read
+
+### 4. Criar uma role com as permissões selecionadas
+# Esperado: 201; resposta inclui a role e suas permissões.
+# Use um nome novo ao repetir para evitar conflito (409).
+# @name createRole
+POST {{serverUrl}}/api/roles
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Frontend - Atendimento e orçamento",
+  "description": "Role criada para demonstrar seleção de permissões no frontend.",
+  "permission_ids": [
+    "{{clientsReadPermissionId}}",
+    "{{clientsWritePermissionId}}",
+    "{{quotesReadPermissionId}}"
+  ]
+}
+
+### Capturar ID da role criada
+@roleId = {{createRole.response.body.$.id}}
+
+### 5. Consultar uma role e suas permissões atuais
+# @name getRole
+GET {{serverUrl}}/api/roles/{{roleId}}
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 6. Editar nome, descrição ou conjunto de permissões da role
+# permission_ids substitui o conjunto atual de permissões da role.
+# Envie permission_ids: [] para remover todas as permissões.
+PATCH {{serverUrl}}/api/roles/{{roleId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "description": "Permissões revisadas pelo fluxo de Administração.",
+  "permission_ids": [
+    "{{clientsReadPermissionId}}",
+    "{{quotesReadPermissionId}}"
+  ]
+}
+
+### 7. Ativar ou desativar uma role
+# Exemplo mantém a role ativa para que suas permissões sejam efetivas.
+# Envie false para desativá-la; roles inativas não concedem permissões.
+PATCH {{serverUrl}}/api/roles/{{roleId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "is_active": true
+}
+
+### 8. Consultar usuários e roles atribuídas
+# @name listUsers
+GET {{serverUrl}}/api/users
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Informar o UUID do usuário escolhido na resposta de listUsers
+@userId = COLE_UUID_DO_USUARIO
+
+### 9. Consultar detalhes do usuário e permissões efetivas
+# As permissões efetivas são a união das permissões das roles ativas atribuídas.
+GET {{serverUrl}}/api/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 10. Substituir as roles atribuídas ao usuário
+# role_ids representa a lista completa de roles do usuário (não é um append).
+# Informe IDs retornados por GET /api/roles. [] remove todas as roles.
+PUT {{serverUrl}}/api/users/{{userId}}/roles
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "role_ids": [
+    "{{roleId}}"
+  ]
+}
+
+### 11. Conferir as permissões efetivas após a atribuição
+GET {{serverUrl}}/api/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 12. Consultar auditoria de alterações da role
+GET {{serverUrl}}/api/roles/audit?target_type=role&target_id={{roleId}}
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 13. Consultar auditoria de alterações de roles do usuário
+GET {{serverUrl}}/api/users/{{userId}}/authorization-audit
+Authorization: Bearer {{adminToken}}
+Accept: application/json

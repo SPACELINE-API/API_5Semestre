@@ -1,5 +1,11 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { ClipboardList, ExternalLink, Plus, Pencil } from 'lucide-react-native';
+import {
+	ClipboardList,
+	ExternalLink,
+	Plus,
+	Pencil,
+	Trash2,
+} from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { StatusBadge } from './StatusBadge';
 import { openDocument } from '../../../shared/components/FilePreview';
@@ -12,6 +18,7 @@ type ItemsTableProps = {
 	translatorsById: Map<string, Translator>;
 	onAddItem: () => void;
 	onEditItem: (item: ServiceOrderItem) => void;
+	onDeleteItem: (item: ServiceOrderItem) => void;
 };
 
 function HeaderCell({ label, width }: { label: string; width: `${number}%` }) {
@@ -62,10 +69,12 @@ function MobileItemCard({
 	item,
 	translatorName,
 	onEdit,
+	onDelete,
 }: {
 	item: ServiceOrderItem;
 	translatorName: string;
 	onEdit: () => void;
+	onDelete: () => void;
 }) {
 	return (
 		<View className="gap-4 rounded-xl border border-gray-200 bg-white p-4">
@@ -147,6 +156,18 @@ function MobileItemCard({
 							Editar
 						</Text>
 					</TouchableOpacity>
+					<TouchableOpacity
+						onPress={onDelete}
+						activeOpacity={0.7}
+						accessibilityRole="button"
+						accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
+						className="flex-row items-center gap-1 self-start py-1"
+					>
+						<Trash2 size={14} color="#B91C1C" />
+						<Text className="font-inter font-medium text-red-700 text-xs">
+							Excluir
+						</Text>
+					</TouchableOpacity>
 				</View>
 			</View>
 		</View>
@@ -158,6 +179,7 @@ export function ItemsTable({
 	translatorsById,
 	onAddItem,
 	onEditItem,
+	onDeleteItem,
 }: ItemsTableProps) {
 	const isDesktop = useIsDesktop();
 
@@ -193,6 +215,7 @@ export function ItemsTable({
 							item={item}
 							translatorName={translator?.name ?? 'Não atribuído'}
 							onEdit={() => onEditItem(item)}
+							onDelete={() => onDeleteItem(item)}
 						/>
 					);
 				})}
@@ -297,6 +320,18 @@ export function ItemsTable({
 									<Pencil size={14} color="#353535" />
 									<Text className="font-inter font-medium text-gray-700 text-xs">
 										Editar
+									</Text>
+								</TouchableOpacity>
+								<TouchableOpacity
+									onPress={() => onDeleteItem(item)}
+									activeOpacity={0.7}
+									accessibilityRole="button"
+									accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
+									className="flex-row items-center gap-1 self-start"
+								>
+									<Trash2 size={14} color="#B91C1C" />
+									<Text className="font-inter font-medium text-red-700 text-xs">
+										Excluir
 									</Text>
 								</TouchableOpacity>
 							</View>

@@ -5,6 +5,8 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.modules.quotes.schemas.additional_service import AdditionalServiceResponse
+
 SAO_PAULO_TIMEZONE = ZoneInfo("America/Sao_Paulo")
 
 
@@ -87,9 +89,40 @@ class ServiceOrderFileResponse(BaseModel):
     filename: str
     file_url: str
     direction: str
+    delivery_status: str
     uploaded_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceOrderDeliveryResponse(BaseModel):
+    id: uuid.UUID
+    service_order_id: uuid.UUID
+    document_file_id: uuid.UUID
+    recipient_email: str | None
+    template_key: str | None
+    status: str
+    error_message: str | None
+    attempted_at: datetime
+    sent_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceOrderEmailTemplateResponse(BaseModel):
+    key: str
+    subject: str
+    body_html: str
+    updated_at: datetime
+    available_placeholders: list[str] = Field(default_factory=lambda: ["{{nome_cliente}}"])
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceOrderDeliveryRequest(BaseModel):
+    file_ids: list[uuid.UUID] | None = None
+    subject_override: str | None = Field(default=None, min_length=1, max_length=255)
+    body_html_override: str | None = Field(default=None, min_length=1)
 
 
 class ServiceOrderResponse(BaseModel):
@@ -104,6 +137,7 @@ class ServiceOrderResponse(BaseModel):
     external_notes: str | None
     status: str
     items: list[ServiceOrderItemResponse]
+    additional_services: list[AdditionalServiceResponse] = Field(default_factory=list)
     files: list[ServiceOrderFileResponse]
     created_at: datetime
     updated_at: datetime

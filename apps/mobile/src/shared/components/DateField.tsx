@@ -92,7 +92,7 @@ function CalendarPopover({
 
 	return (
 		<div
-			className="absolute left-0 top-full z-50 mt-2 w-[288px] border border-gray-200 bg-white p-3 shadow-xl shadow-slate-900/15"
+			className="absolute left-0 top-full z-50 mt-2 w-[280px] border border-gray-200 bg-white p-2 shadow-xl shadow-slate-900/15"
 			style={{
 				position: 'absolute',
 				top: 'calc(100% + 8px)',
@@ -109,7 +109,7 @@ function CalendarPopover({
 				if (event.key === 'Escape') onClose();
 			}}
 		>
-			<div className="mb-3 flex items-center justify-between">
+			<div className="mb-2 flex items-center justify-between">
 				<p className="font-inter font-semibold text-sm text-gray-900">
 					{formattedMonthLabel}
 				</p>
@@ -119,7 +119,7 @@ function CalendarPopover({
 						aria-label="Mês anterior"
 						disabled={previousMonthDisabled}
 						onClick={() => setVisibleMonth(previousMonth)}
-						className={`flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-700 ${previousMonthDisabled ? 'cursor-not-allowed opacity-35 hover:bg-transparent hover:text-gray-600' : ''}`}
+						className={`flex h-5 w-7 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-700 ${previousMonthDisabled ? 'cursor-not-allowed opacity-35 hover:bg-transparent hover:text-gray-600' : ''}`}
 					>
 						<ChevronLeft size={17} />
 					</button>
@@ -135,18 +135,18 @@ function CalendarPopover({
 								),
 							)
 						}
-						className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-700"
+						className="flex h-5 w-7 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-700"
 					>
 						<ChevronRight size={17} />
 					</button>
 				</div>
 			</div>
 
-			<div className="grid grid-cols-7 gap-y-1 text-center">
+			<div className="grid grid-cols-7 gap-y-0.5 text-center">
 				{weekdayLabels.map((weekday, index) => (
 					<span
 						key={`${weekday}-${index}`}
-						className="flex h-8 items-center justify-center font-inter-medium text-[11px] text-gray-400"
+						className="flex h-5 items-center justify-center font-inter-medium text-[10px] text-gray-400"
 					>
 						{weekday}
 					</span>
@@ -179,7 +179,7 @@ function CalendarPopover({
 							aria-pressed={isSelected}
 							disabled={isDisabled}
 							onClick={() => onSelect(dayValue)}
-							className={`mx-auto flex h-8 w-8 items-center justify-center rounded-lg font-inter text-xs transition-colors ${dayClasses}`}
+							className={`mx-auto flex h-5 w-7 items-center justify-center rounded-lg font-inter text-[11px] transition-colors ${dayClasses}`}
 						>
 							{day.getDate()}
 						</button>
@@ -187,7 +187,7 @@ function CalendarPopover({
 				})}
 			</div>
 
-			<div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-2">
+			<div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-1">
 				<button
 					type="button"
 					onClick={onClear}

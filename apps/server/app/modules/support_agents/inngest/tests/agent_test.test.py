@@ -5,6 +5,10 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.modules.support_agents.inngest.router.support_router import (
+    support_read_permission,
+    support_write_permission,
+)
 from app.modules.support_agents.inngest.services import support_agent_services
 from app.shared.inngest.functions import (
     process_chat_message,
@@ -14,6 +18,14 @@ from app.shared.inngest.functions import (
 )
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def allow_support_permissions():
+    app.dependency_overrides[support_read_permission] = lambda: None
+    app.dependency_overrides[support_write_permission] = lambda: None
+    yield
+    app.dependency_overrides.clear()
 
 
 def test_todas_as_functions_estao_registradas():

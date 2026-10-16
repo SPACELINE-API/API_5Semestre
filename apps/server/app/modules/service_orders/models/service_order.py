@@ -9,6 +9,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.shared.database import Base
 
 if TYPE_CHECKING:
+    from app.modules.quotes.models.additional_service import AdditionalService
+    from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
     from app.modules.service_orders.models.service_order_file import ServiceOrderFile
     from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 
@@ -62,6 +64,14 @@ class ServiceOrder(Base):
     )
     files: Mapped[list["ServiceOrderFile"]] = relationship(
         "ServiceOrderFile",
+        back_populates="service_order",
+        cascade="all, delete-orphan",
+    )
+    additional_services: Mapped[list["AdditionalService"]] = relationship(
+        "AdditionalService", back_populates="service_order", cascade="all", passive_deletes=True
+    )
+    delivery_attempts: Mapped[list["ServiceOrderDelivery"]] = relationship(
+        "ServiceOrderDelivery",
         back_populates="service_order",
         cascade="all, delete-orphan",
     )

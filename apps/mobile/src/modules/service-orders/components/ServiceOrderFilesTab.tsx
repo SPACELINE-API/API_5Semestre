@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { ExternalLink, FileText, Trash2, Upload } from 'lucide-react-native';
 import type {
 	ServiceOrderFile,
@@ -23,7 +23,7 @@ type ServiceOrderFilesTabProps = {
 	onUpload: (
 		file: UploadableFile,
 		direction: ServiceOrderFileDirection,
-	) => Promise<void>;
+	) => Promise<ServiceOrderFile>;
 	onDelete: (target: ServiceOrderFileDeletionTarget) => Promise<void>;
 };
 
@@ -138,8 +138,10 @@ export function ServiceOrderFilesTab({
 	onUpload,
 	onDelete,
 }: ServiceOrderFilesTabProps) {
-	const [isUploading, setIsUploading] =
-		useState<ServiceOrderFileDirection | null>(null);
+	const [isUploading, setIsUploading] = useState(false);
+	const [uploadedDeliveryFiles, setUploadedDeliveryFiles] = useState<
+		ServiceOrderFile[]
+	>([]);
 	const [selectionError, setSelectionError] = useState<string | null>(null);
 	const [pendingDeletion, setPendingDeletion] =
 		useState<ServiceOrderFileDeletionTarget | null>(null);
@@ -151,7 +153,12 @@ export function ServiceOrderFilesTab({
 			files.filter((file) => file.direction === 'entrada'),
 		),
 	];
-	const saidaFilesList = files.filter((file) => file.direction === 'saida');
+	const saidaFilesList = [
+		...files.filter((file) => file.direction === 'saida'),
+		...uploadedDeliveryFiles.filter(
+			(uploadedFile) => !files.some((file) => file.id === uploadedFile.id),
+		),
+	];
 	const saidaFiles = serviceOrderFilesToDisplayFiles(saidaFilesList);
 
 	const hasItems = items.length > 0;
@@ -160,85 +167,24 @@ export function ServiceOrderFilesTab({
 	const deliveredCount = Math.min(saidaFilesList.length, items.length);
 	const deliveryProgress = hasItems ? deliveredCount / items.length : 0;
 
-	async function uploadFile(
-		file: UploadableFile,
-		direction: ServiceOrderFileDirection,
-	) {
-		setIsUploading(direction);
+	async function uploadDeliveryFile(file: UploadableFile) {
+		setIsUploading(true);
 		try {
-			await onUpload(file, direction);
+			const uploadedFile = await onUpload(file, 'saida');
+			setUploadedDeliveryFiles((current) =>
+				current.some((item) => item.id === uploadedFile.id)
+					? current
+					: [...current, uploadedFile],
+			);
 		} finally {
-			setIsUploading(null);
+			setIsUploading(false);
 		}
 	}
 
-	async function handleFileSelected(
-		fileList: FileList | null,
-		direction: ServiceOrderFileDirection,
-	) {
-		const file = fileList?.[0];
-		if (!file) return;
-		await uploadFile(file, direction);
-	}
-
-	function renderUploadButton(
-		direction: ServiceOrderFileDirection,
-		disabled = false,
-	) {
-		const isThisUploading = isUploading === direction;
-		const isDisabled = isThisUploading || disabled;
-
-		return (
-			<View style={{ position: 'relative' }}>
-				<TouchableOpacity
-					onPress={
-						Platform.OS === 'web' || isDisabled
-							? undefined
-							: () => handlePickNativeFile(direction)
-					}
-					disabled={isDisabled}
-					activeOpacity={0.7}
-					accessibilityRole="button"
-					accessibilityLabel={`Enviar arquivo de ${direction === 'entrada' ? 'partida' : 'chegada'}`}
-					accessibilityState={{ disabled: isDisabled }}
-					className={`flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 ${isDisabled ? 'opacity-60' : ''}`}
-				>
-					<Upload size={14} color="#353535" />
-					<Text className="font-inter font-semibold text-gray-800 text-xs">
-						{isThisUploading ? 'Enviando…' : 'Enviar arquivo'}
-					</Text>
-				</TouchableOpacity>
-
-				{Platform.OS === 'web' && !isDisabled && (
-					<input
-						type="file"
-						aria-label={`Selecionar arquivo de ${direction === 'entrada' ? 'partida' : 'chegada'}`}
-						disabled={isThisUploading}
-						style={{
-							position: 'absolute',
-							inset: 0,
-							width: '100%',
-							height: '100%',
-							opacity: 0,
-							cursor: 'pointer',
-						}}
-						onChange={(event: { target: HTMLInputElement }) => {
-							const input = event.target;
-							void handleFileSelected(input.files, direction);
-							input.value = '';
-						}}
-					/>
-				)}
-			</View>
-		);
-	}
-
-	async function handlePickNativeFile(direction: ServiceOrderFileDirection) {
-		setSelectionError(null);
+	async function handlePickDeliveryFile() {
 		try {
 			const file = await pickDocument();
-			if (!file) return;
-			await uploadFile(file, direction);
+			if (file) await uploadDeliveryFile(file);
 		} catch {
 			setSelectionError(
 				'Não foi possível abrir o arquivo selecionado. Tente escolher outro arquivo.',
@@ -246,11 +192,38 @@ export function ServiceOrderFilesTab({
 		}
 	}
 
+	function renderDeliveryUploadButton() {
+		const disabled = isUploading || !canUploadDelivery;
+		return (
+			<View>
+				<TouchableOpacity
+					onPress={disabled ? undefined : () => void handlePickDeliveryFile()}
+					disabled={disabled}
+					activeOpacity={0.7}
+					accessibilityRole="button"
+					accessibilityLabel="Enviar arquivo de chegada"
+					accessibilityState={{ disabled }}
+					className={`flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 ${disabled ? 'opacity-60' : ''}`}
+				>
+					<Upload size={14} color="#353535" />
+					<Text className="font-inter font-semibold text-gray-800 text-xs">
+						{isUploading ? 'Enviando…' : 'Enviar arquivo'}
+					</Text>
+				</TouchableOpacity>
+			</View>
+		);
+	}
+
 	async function confirmDelete() {
 		if (!pendingDeletion) return;
 		setDeletingId(pendingDeletion.id);
 		try {
 			await onDelete(pendingDeletion);
+			if (pendingDeletion.kind === 'file') {
+				setUploadedDeliveryFiles((current) =>
+					current.filter((file) => file.id !== pendingDeletion.id),
+				);
+			}
 			setPendingDeletion(null);
 			setSelectionError(null);
 		} catch (error) {
@@ -289,8 +262,6 @@ export function ServiceOrderFilesTab({
 					<Text className="font-inter font-semibold text-gray-900 text-sm">
 						Arquivos de partida
 					</Text>
-
-					{renderUploadButton('entrada')}
 				</View>
 
 				<FileGroupList
@@ -306,8 +277,7 @@ export function ServiceOrderFilesTab({
 					<Text className="font-inter font-semibold text-gray-900 text-sm">
 						Arquivos de chegada
 					</Text>
-
-					{renderUploadButton('saida', !canUploadDelivery)}
+					{renderDeliveryUploadButton()}
 				</View>
 
 				{!canUploadDelivery && (
