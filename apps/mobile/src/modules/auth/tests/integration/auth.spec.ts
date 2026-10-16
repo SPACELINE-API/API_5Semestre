@@ -34,6 +34,44 @@ async function useExternalProfile(
 }
 
 test.describe('autenticação mobile unificada', () => {
+	test('faz login sem entrar em loop de navegação', async ({ page }) => {
+		const pageErrors: string[] = [];
+		page.on('pageerror', (error) => pageErrors.push(error.message));
+		await page.route('**/api/auth/login', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					access_token: 'login-test-token',
+					token_type: 'bearer',
+					expires_in: 3600,
+					user: { id: 'login-test-user', email: 'user@example.com' },
+				}),
+			}),
+		);
+		await page.route('**/api/auth/me', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					user: { id: 'login-test-user', email: 'user@example.com' },
+					roles: [],
+					permissions: ['dashboard.read'],
+				}),
+			}),
+		);
+
+		await page.goto('/login');
+		await page.getByPlaceholder('seuemail@exemplo.com').fill('user@example.com');
+		await page.getByPlaceholder('••••••••').fill('password');
+		await page.getByText('ENTRAR', { exact: true }).click();
+
+		await expect(page).toHaveURL(/\/dashboard$/);
+		expect(
+			pageErrors.some((error) => error.includes('Maximum update depth exceeded')),
+		).toBe(false);
+	});
+
 	test('oculta orçamento e bloqueia acesso direto para perfil sem quotes.read', async ({
 		page,
 	}) => {

@@ -45,10 +45,16 @@ export default function AppLayout() {
 		'Poppins-Bold': Poppins_700Bold,
 	});
 	const pathname = usePathname();
+	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
 	const [authorizationLoaded, setAuthorizationLoaded] = useState(false);
 	const [authorizationError, setAuthorizationError] = useState(false);
 	const [authorizationVersion, setAuthorizationVersion] = useState(0);
-	const session = getSession();
+	const [sessionState, setSessionState] = useState<{
+		pathname: string;
+		session: ReturnType<typeof getSession>;
+	} | null>(null);
+	const sessionReady = sessionState?.pathname === pathname;
+	const session = sessionReady ? sessionState.session : null;
 
 	useEffect(() => {
 		if (typeof document !== 'undefined') {
@@ -62,6 +68,11 @@ export default function AppLayout() {
 
 	useEffect(() => {
 		setIsMobileNavOpen(false);
+	}, [pathname]);
+
+	useEffect(() => {
+		const currentSession = getSession();
+		setSessionState({ pathname, session: currentSession });
 	}, [pathname]);
 
 	useEffect(() => {
@@ -104,8 +115,7 @@ export default function AppLayout() {
 		return null;
 	}
 
-	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
-
+	if (!isPublic && !sessionReady) return null;
 	if (!isPublic && !session) return <Redirect href={'/login' as never} />;
 	if (isPublic)
 		return (
