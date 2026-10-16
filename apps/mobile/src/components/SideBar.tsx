@@ -8,7 +8,10 @@ import {
 	isTranslatorSession,
 } from '../modules/auth/services/auth';
 import type { LucideIcon } from 'lucide-react-native';
-import { X as CloseIcon } from 'lucide-react-native';
+import {
+	BarChart3 as ProdutividadeIcon,
+	X as CloseIcon,
+} from 'lucide-react-native';
 import {
 	RequisicoesIcon,
 	OrcamentoIcon,
@@ -113,11 +116,13 @@ export function SideBar({
 	const isOrdersActive = pathname.startsWith('/ordens-de-servico');
 	const isSupportAgentActive = pathname.startsWith('/support-agent');
 	const isTradutoresActive = pathname.startsWith('/tradutores');
+	const isProductivityActive = pathname.startsWith('/produtividade');
 	const isKnownRoute =
 		isClientsActive ||
 		isOrdersActive ||
 		isSupportAgentActive ||
-		isTradutoresActive;
+		isTradutoresActive ||
+		isProductivityActive;
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
 	const isMyItemsActive = pathname.startsWith('/meus-itens');
 	const isProfileActive = pathname.startsWith('/meu-perfil');
@@ -298,6 +303,15 @@ export function SideBar({
 										isOpen={showExpanded}
 										active={isTradutoresActive}
 										onPress={() => navigate('/tradutores', 'Tradutores')}
+									/>
+								)}
+								{can('reports.productivity.read') && (
+									<NavItem
+										icon={ProdutividadeIcon}
+										label="Produtividade"
+										isOpen={showExpanded}
+										active={isProductivityActive}
+										onPress={() => navigate('/produtividade', 'Produtividade')}
 									/>
 								)}
 							</View>

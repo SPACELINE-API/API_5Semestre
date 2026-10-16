@@ -10,6 +10,7 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/ordens-de-servico': 'service_orders.read',
 	'/clientes': 'clients.read',
 	'/tradutores': 'translators.read',
+	'/produtividade': 'reports.productivity.read',
 	'/support-agent': 'support.read',
 	'/administracao': 'roles.read',
 	'/usuarios': 'users.read',
@@ -36,10 +37,25 @@ export function canAccess(
 	return Boolean(permission && context?.permissions.includes(permission));
 }
 
+export const LANDING_ROUTES = new Set([
+	'/dashboard',
+	'/convites',
+	'/meus-itens',
+	'/meu-perfil',
+	'/visualizar-requisicoes',
+	'/orcamento',
+	'/ordens-de-servico',
+	'/clientes',
+	'/tradutores',
+	'/produtividade',
+	'/support-agent',
+]);
+
 export function firstAllowedRoute(context: AuthorizationContext | null) {
 	return (
-		Object.entries(ROUTE_PERMISSIONS).find(([, permission]) =>
-			context?.permissions.includes(permission),
+		Object.entries(ROUTE_PERMISSIONS).find(
+			([route, permission]) =>
+				LANDING_ROUTES.has(route) && context?.permissions.includes(permission),
 		)?.[0] ?? '/login'
 	);
 }
