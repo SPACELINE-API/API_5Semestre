@@ -89,7 +89,7 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
 	});
 
-	test('protege dashboard, convites e rotas privadas desconhecidas', async ({
+	test('exibe 404 em rota desconhecida com a sidebar do perfil atual', async ({
 		page,
 	}) => {
 		await useExternalProfile(page, ['dashboard.read', 'assignments.read']);
@@ -99,8 +99,17 @@ test.describe('autenticação mobile unificada', () => {
 		).toBeVisible();
 		await page.goto('/dashboard');
 		await expect(page).toHaveURL(/\/dashboard$/);
+		await expect(
+			page.getByText('Tarefas atribuídas', { exact: true }),
+		).toBeVisible();
+		await expect(page.getByText('Requisições', { exact: true })).toHaveCount(0);
+
 		await page.goto('/rota-inexistente');
-		await expect(page).toHaveURL(/\/dashboard$/);
+		await expect(page.getByText('Página não encontrada')).toBeVisible();
+		await expect(
+			page.getByText('Tarefas atribuídas', { exact: true }),
+		).toBeVisible();
+		await expect(page.getByText('Requisições', { exact: true })).toHaveCount(0);
 	});
 
 	test('mantém a rota pública de solicitação sem sessão', async ({ page }) => {

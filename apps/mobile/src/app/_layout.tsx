@@ -30,6 +30,7 @@ import {
 import {
 	canAccess,
 	firstAllowedRoute,
+	requiredPermission,
 } from '../modules/auth/services/authorization';
 
 SplashScreen.preventAutoHideAsync();
@@ -126,7 +127,10 @@ export default function AppLayout() {
 	if (!authorizationLoaded) return null;
 	if (authorizationError) return <AuthorizationUnavailable />;
 	const authorizationContext = getAuthorizationContext();
-	if (!canAccess(authorizationContext, pathname)) {
+	if (
+		requiredPermission(pathname) &&
+		!canAccess(authorizationContext, pathname)
+	) {
 		return <Redirect href={firstAllowedRoute(authorizationContext) as never} />;
 	}
 
@@ -135,7 +139,6 @@ export default function AppLayout() {
 			<KeyboardProvider>
 				<AppShell
 					authorizationVersion={authorizationVersion}
-					permissions={authorizationContext?.permissions ?? []}
 					isMobileNavOpen={isMobileNavOpen}
 					onCloseMobileNav={() => setIsMobileNavOpen(false)}
 					onOpenMobileNav={() => setIsMobileNavOpen(true)}
@@ -164,7 +167,6 @@ function AuthorizationUnavailable() {
 }
 
 type AppShellProps = {
-	permissions: string[];
 	authorizationVersion: number;
 	isMobileNavOpen: boolean;
 	onCloseMobileNav: () => void;
@@ -173,7 +175,6 @@ type AppShellProps = {
 
 function AppShell({
 	isMobileNavOpen,
-	permissions,
 	authorizationVersion,
 	onCloseMobileNav,
 	onOpenMobileNav,
@@ -184,7 +185,6 @@ function AppShell({
 		<View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}>
 			<SideBar
 				key={authorizationVersion}
-				permissions={permissions}
 				mobileOpen={isMobileNavOpen}
 				onCloseMobile={onCloseMobileNav}
 			/>
