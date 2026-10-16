@@ -8,10 +8,12 @@ from app.modules.quotes.repositories.additional_service_repository import (
     AdditionalServiceRepository,
 )
 from app.modules.quotes.repositories.quote_repository import QuoteRepository
-from app.modules.quotes.schemas.additional_service import AdditionalServiceCreate
-from app.modules.service_orders.repositories.service_order_repository import (
-    ServiceOrderRepository,
+from app.modules.quotes.schemas.additional_service import (
+    AdditionalServiceCreate,
+    AdditionalServiceUpdate,
 )
+
+DUPLICATED_DESCRIPTION_MESSAGE = "Já existe um serviço adicional com essa descrição neste orçamento"
 
 
 class AdditionalServiceNotFoundError(Exception):
@@ -26,22 +28,18 @@ class AdditionalServiceService:
     def __init__(self, db: Session):
         self.repository = AdditionalServiceRepository(db)
         self.quote_repository = QuoteRepository(db)
-        self.service_order_repository = ServiceOrderRepository(db)
 
     def create_additional_service(self, payload: AdditionalServiceCreate) -> AdditionalService:
-        quote_id = self._resolve_quote_id(payload)
+        self._ensure_quote_exists(payload.quote_id)
         additional_service = AdditionalService(
-            quote_id=quote_id,
-            service_order_id=payload.service_order_id,
+            quote_id=payload.quote_id,
             description=payload.description,
             price=payload.price,
         )
         try:
             return self.repository.create_additional_service(additional_service)
         except IntegrityError as exc:
-            raise AdditionalServiceConflictError(
-                "Já existe um serviço adicional com essa descrição neste orçamento"
-            ) from exc
+            raise AdditionalServiceConflictError(DUPLICATED_DESCRIPTION_MESSAGE) from exc
 
     def get_additional_service(self, service_id: uuid.UUID) -> AdditionalService:
         additional_service = self.repository.get_additional_service_by_id(service_id)
@@ -49,38 +47,25 @@ class AdditionalServiceService:
             raise AdditionalServiceNotFoundError("Serviço adicional não encontrado")
         return additional_service
 
-    def list_additional_services(
-        self,
-        quote_id: uuid.UUID | None = None,
-        service_order_id: uuid.UUID | None = None,
-    ) -> list[AdditionalService]:
-        if service_order_id is not None and quote_id is None:
-            if self.service_order_repository.get_by_id(service_order_id) is None:
-                raise AdditionalServiceNotFoundError("Ordem de serviço não encontrada")
-            return self.repository.list_additional_services_by_service_order(service_order_id)
+    def list_additional_services(self, quote_id: uuid.UUID) -> list[AdditionalService]:
+        self._ensure_quote_exists(quote_id)
+        return self.repository.list_additional_services_by_quote(quote_id)
 
-        if quote_id is not None and service_order_id is None:
-            if self.quote_repository.get_by_id(quote_id) is None:
-                raise AdditionalServiceNotFoundError("Orçamento não encontrado")
-            return self.repository.list_additional_services_by_quote(quote_id)
-
-        raise ValueError("Informe apenas um entre quote_id e service_order_id")
+    def update_additional_service(
+        self, service_id: uuid.UUID, payload: AdditionalServiceUpdate
+    ) -> AdditionalService:
+        additional_service = self.get_additional_service(service_id)
+        for field, value in payload.model_dump(exclude_unset=True).items():
+            setattr(additional_service, field, value)
+        try:
+            return self.repository.update_additional_service(additional_service)
+        except IntegrityError as exc:
+            raise AdditionalServiceConflictError(DUPLICATED_DESCRIPTION_MESSAGE) from exc
 
     def delete_additional_service(self, service_id: uuid.UUID) -> None:
         additional_service = self.get_additional_service(service_id)
         self.repository.delete_additional_service(additional_service)
 
-    def _resolve_quote_id(self, payload: AdditionalServiceCreate) -> uuid.UUID:
-        if payload.service_order_id is not None:
-            service_order = self.service_order_repository.get_by_id(payload.service_order_id)
-            if service_order is None:
-                raise AdditionalServiceNotFoundError("Ordem de serviço não encontrada")
-            return service_order.quote_id
-
-        if payload.quote_id is not None:
-            quote = self.quote_repository.get_by_id(payload.quote_id)
-            if quote is None:
-                raise AdditionalServiceNotFoundError("Orçamento não encontrado")
-            return quote.id
-
-        raise ValueError("Informe apenas um entre quote_id e service_order_id")
+    def _ensure_quote_exists(self, quote_id: uuid.UUID) -> None:
+        if self.quote_repository.get_by_id(quote_id) is None:
+            raise AdditionalServiceNotFoundError("Orçamento não encontrado")
