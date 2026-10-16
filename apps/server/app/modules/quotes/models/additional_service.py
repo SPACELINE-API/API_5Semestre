@@ -20,7 +20,6 @@ from app.shared.database import Base
 
 if TYPE_CHECKING:
     from app.modules.quotes.models.quote import Quote
-    from app.modules.service_orders.models.service_order import ServiceOrder
 
 
 class AdditionalService(Base):
@@ -56,14 +55,5 @@ class AdditionalService(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
-    service_order_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("service_orders.id", ondelete="CASCADE"),
-        nullable=True,
-        index=True,
-    )
 
     quote: Mapped["Quote"] = relationship("Quote", back_populates="additional_services")
-    service_order: Mapped["ServiceOrder | None"] = relationship(
-        "ServiceOrder", back_populates="additional_services"
-    )
