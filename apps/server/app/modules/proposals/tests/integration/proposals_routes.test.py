@@ -275,9 +275,7 @@ def test_date_filter_returns_proposals_in_range(api_client) -> None:
     )
     _create_approved_request_with_quote(
         db,
-        created_at=datetime(
-            last_week.year, last_week.month, last_week.day, 12, 0, tzinfo=UTC
-        ),
+        created_at=datetime(last_week.year, last_week.month, last_week.day, 12, 0, tzinfo=UTC),
     )
 
     response = client.get(
@@ -296,9 +294,7 @@ def test_date_filter_boundary_includes_exact_dates(api_client) -> None:
     target_day = date(2025, 6, 15)
     _create_approved_request_with_quote(
         db,
-        created_at=datetime(
-            target_day.year, target_day.month, target_day.day, 0, 0, 0, tzinfo=UTC
-        ),
+        created_at=datetime(target_day.year, target_day.month, target_day.day, 0, 0, 0, tzinfo=UTC),
     )
 
     response = client.get(
@@ -351,9 +347,7 @@ def test_status_filter_combined_with_date(api_client) -> None:
     _create_approved_request_with_quote(
         db,
         quote_status="approved",
-        created_at=datetime(
-            last_week.year, last_week.month, last_week.day, 10, 0, tzinfo=UTC
-        ),
+        created_at=datetime(last_week.year, last_week.month, last_week.day, 10, 0, tzinfo=UTC),
     )
 
     response = client.get(
@@ -398,9 +392,9 @@ def test_pagination_large_volume(api_client) -> None:
     ids_p1 = {item["id"] for item in body1["items"]}
     ids_p2 = {
         item["id"]
-        for item in client.get(
-            "/api/quotes/proposals", params={"page": 2, "page_size": 10}
-        ).json()["items"]
+        for item in client.get("/api/quotes/proposals", params={"page": 2, "page_size": 10}).json()[
+            "items"
+        ]
     }
     ids_p3 = {item["id"] for item in body3["items"]}
     assert not (ids_p1 & ids_p2), "Overlap between page 1 and page 2"
@@ -462,5 +456,13 @@ def test_response_contains_required_fields(api_client) -> None:
     response = client.get("/api/quotes/proposals")
     assert response.status_code == 200
     item = response.json()["items"][0]
-    for field in ("id", "customer_name", "enterprise", "translation_service", "total_value", "status", "created_at"):
+    for field in (
+        "id",
+        "customer_name",
+        "enterprise",
+        "translation_service",
+        "total_value",
+        "status",
+        "created_at",
+    ):
         assert field in item, f"Missing field: {field}"

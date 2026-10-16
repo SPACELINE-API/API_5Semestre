@@ -71,17 +71,13 @@ class ProposalService:
         if end_date is not None:
             base = base.where(func.date(Quote.created_at) <= end_date)
 
-        total: int = self.db.scalar(
-            select(func.count()).select_from(base.subquery())
-        ) or 0
+        total: int = self.db.scalar(select(func.count()).select_from(base.subquery())) or 0
 
         sort_col = _SORTABLE_FIELDS[order_by]
         direction = desc if order_dir == "desc" else asc
         ordered = base.order_by(direction(sort_col), asc(Quote.id))
 
-        quotes = list(
-            self.db.scalars(ordered.offset((page - 1) * page_size).limit(page_size))
-        )
+        quotes = list(self.db.scalars(ordered.offset((page - 1) * page_size).limit(page_size)))
 
         items = [self._to_item(q) for q in quotes]
         return {
