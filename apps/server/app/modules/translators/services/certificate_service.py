@@ -52,10 +52,12 @@ class TranslatorCertificateService:
         declared_type: str | None,
     ) -> CertificateResponse:
         translator = self.profiles.get_translator(email)
+        # GUARDA O ID PARA NAO RECARREGAR O TRADUTOR APOS UM ROLLBACK
+        translator_id = translator.id
         self._ensure_language_can_be_certified(translator, language_id)
         content_type = validate_upload(content, declared_type, CERTIFICATE_RULES)
 
-        certificate = self.repo.get_by_language(translator.id, language_id)
+        certificate = self.repo.get_by_language(translator_id, language_id)
         if certificate is not None and certificate.status == CertificateStatus.APPROVED:
             raise HTTPException(
                 status_code=409,
@@ -63,14 +65,14 @@ class TranslatorCertificateService:
             )
 
         # 1) ARMAZENA O ARQUIVO; SE FALHAR, NADA E GRAVADO NO BANCO
-        new_path = storage.build_object_path(translator.id, filename)
-        self._upload(new_path, content, content_type, translator.id)
+        new_path = storage.build_object_path(translator_id, filename)
+        self._upload(new_path, content, content_type, translator_id)
 
         # 2) GRAVA A REFERENCIA; SE FALHAR, REMOVE O ARQUIVO PARA NAO DEIXAR ASSOCIACAO INCOMPLETA
         previous_path = certificate.storage_path if certificate is not None else None
         if certificate is None:
             certificate = TranslatorCertificate(
-                translator_id=translator.id,
+                translator_id=translator_id,
                 language_id=language_id,
             )
             self.db.add(certificate)
@@ -92,7 +94,7 @@ class TranslatorCertificateService:
             self.db.rollback()
             logger.exception(
                 "Falha ao registrar certificado do tradutor %s (idioma %s)",
-                translator.id,
+                translator_id,
                 language_id,
             )
             self._discard(new_path)
