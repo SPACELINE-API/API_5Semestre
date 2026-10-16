@@ -62,13 +62,17 @@ test.describe('autenticação mobile unificada', () => {
 		);
 
 		await page.goto('/login');
-		await page.getByPlaceholder('seuemail@exemplo.com').fill('user@example.com');
+		await page
+			.getByPlaceholder('seuemail@exemplo.com')
+			.fill('user@example.com');
 		await page.getByPlaceholder('••••••••').fill('password');
 		await page.getByText('ENTRAR', { exact: true }).click();
 
 		await expect(page).toHaveURL(/\/dashboard$/);
 		expect(
-			pageErrors.some((error) => error.includes('Maximum update depth exceeded')),
+			pageErrors.some((error) =>
+				error.includes('Maximum update depth exceeded'),
+			),
 		).toBe(false);
 	});
 
