@@ -51,7 +51,7 @@ SEED_ROLES = (
     SeedRole(
         name="Administrador",
         description="Administra usuários, roles e permissões.",
-        permissions=ADMIN_PERMISSIONS,
+        permissions=(*ADMIN_PERMISSIONS, "proposals.read"),
     ),
     SeedRole(
         name="Atendimento",
@@ -87,6 +87,7 @@ SEED_ROLES = (
             "documents.read",
             "dashboard.read",
             "documents.write",
+            "proposals.read",
         ),
     ),
     SeedRole(

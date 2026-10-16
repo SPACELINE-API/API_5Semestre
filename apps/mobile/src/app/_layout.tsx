@@ -111,6 +111,12 @@ export default function AppLayout() {
 		return null;
 	}
 
+	if (isPublic)
+		return (
+			<KeyboardProvider>
+				<Slot />
+			</KeyboardProvider>
+		);
 	const authorizationContext = getAuthorizationContext();
 	if (!isPublic && hasMounted && !session && !authorizationContext)
 		return <Redirect href={'/login' as never} />;

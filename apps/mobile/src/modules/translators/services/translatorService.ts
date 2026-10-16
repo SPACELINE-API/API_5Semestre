@@ -1,9 +1,9 @@
 import {
-	apiDelete,
-	apiGet,
-	apiPatch,
-	apiPost,
-	apiPut,
+	apiDeleteAuth,
+	apiGetAuth,
+	apiPatchAuth,
+	apiPostAuth,
+	apiPutAuth,
 } from '../../../shared/services/apiClient';
 import type {
 	Translator,
@@ -16,53 +16,56 @@ import type {
 const BASE = '/api/translators';
 
 export function listQualifications(): Promise<QualificationResponse[]> {
-	return apiGet<QualificationResponse[]>(`${BASE}/metadata/qualifications`);
+	return apiGetAuth<QualificationResponse[]>(`${BASE}/metadata/qualifications`);
 }
 
 export function listLanguages(): Promise<LanguageResponse[]> {
-	return apiGet<LanguageResponse[]>('/api/support/languages');
+	return apiGetAuth<LanguageResponse[]>('/api/support/languages');
 }
 
 export function createLanguage(
 	id: string,
 	name: string,
 ): Promise<LanguageResponse> {
-	return apiPost<LanguageResponse, { id: string; name: string }>(
+	return apiPostAuth<LanguageResponse, { id: string; name: string }>(
 		'/api/support/languages',
 		{ id, name },
 	);
 }
 
 export function listTranslators(): Promise<Translator[]> {
-	return apiGet<Translator[]>(BASE);
+	return apiGetAuth<Translator[]>(BASE);
 }
 
 export function createTranslator(
 	data: TranslatorCreateInput,
 ): Promise<Translator> {
-	return apiPost<Translator, TranslatorCreateInput>(BASE, data);
+	return apiPostAuth<Translator, TranslatorCreateInput>(BASE, data);
 }
 
 export function getTranslator(id: string): Promise<Translator> {
-	return apiGet<Translator>(`${BASE}/${id}`);
+	return apiGetAuth<Translator>(`${BASE}/${id}`);
 }
 
 export function updateTranslator(
 	id: string,
 	data: TranslatorUpdateInput,
 ): Promise<Translator> {
-	return apiPut<Translator, TranslatorUpdateInput>(`${BASE}/${id}`, data);
+	return apiPutAuth<Translator, TranslatorUpdateInput>(`${BASE}/${id}`, data);
 }
 
 export function setTranslatorActive(
 	id: string,
 	isActive: boolean,
 ): Promise<Translator> {
-	return apiPatch<Translator, { is_active: boolean }>(`${BASE}/${id}/status`, {
-		is_active: isActive,
-	});
+	return apiPatchAuth<Translator, { is_active: boolean }>(
+		`${BASE}/${id}/status`,
+		{
+			is_active: isActive,
+		},
+	);
 }
 
 export function deleteTranslator(id: string): Promise<void> {
-	return apiDelete(`${BASE}/${id}`);
+	return apiDeleteAuth(`${BASE}/${id}`);
 }
