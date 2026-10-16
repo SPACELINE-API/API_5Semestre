@@ -10,8 +10,10 @@ from sqlalchemy.orm import Session
 
 from app.main import app
 from app.modules.auth.models.user import User
+from app.modules.quotes.models.additional_service import AdditionalService
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.request import Request, StatusEnum
+from app.modules.quotes.models.translation_item import QuoteTranslationItem
 from app.shared.database import get_db
 
 
@@ -19,6 +21,7 @@ def _seed_roles_and_permission(db: Session) -> dict[str, uuid.UUID]:
     role_ids: dict[str, uuid.UUID] = {}
     for role_name, description in (
         ("Administrador", "Administra usuários, roles e permissões."),
+        ("Operador", "Possui as mesmas permissões operacionais do administrador."),
         ("Projetos", "Gerencia projetos e orçamentos."),
         ("Financeiro", "Acessa informações financeiras autorizadas."),
         ("Atendimento", "Atende clientes e acompanha solicitações."),
@@ -221,7 +224,7 @@ def test_authorized_roles_get_200(api_client, role_name: str) -> None:
 
 @pytest.mark.parametrize(
     "role_name",
-    ["Financeiro", "Atendimento", "Recursos externos"],
+    ["Operador", "Financeiro", "Atendimento", "Recursos externos"],
 )
 def test_unauthorized_roles_get_403(api_client, role_name: str) -> None:
     from app.modules.auth.dependencies.dependencies import get_current_user
@@ -466,3 +469,29 @@ def test_response_contains_required_fields(api_client) -> None:
         "created_at",
     ):
         assert field in item, f"Missing field: {field}"
+
+
+def test_total_value_includes_additional_services(api_client) -> None:
+    client, db = _setup_authorized_client(api_client)
+    quote = _create_approved_request_with_quote(db)
+    quote.items.append(
+        QuoteTranslationItem(
+            source_language="pt",
+            target_language="en",
+            estimated_value=120,
+        )
+    )
+    db.add(
+        AdditionalService(
+            quote_id=quote.id,
+            description="Apostila urgente",
+            price=30,
+            status="pending",
+        )
+    )
+    db.flush()
+
+    response = client.get("/api/quotes/proposals")
+
+    assert response.status_code == 200
+    assert response.json()["items"][0]["total_value"] == "150.00"

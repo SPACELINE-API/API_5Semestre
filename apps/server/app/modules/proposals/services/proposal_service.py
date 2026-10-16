@@ -59,7 +59,7 @@ class ProposalService:
             select(Quote)
             .join(Request, Quote.request_id == Request.id)
             .where(Request.status == StatusEnum.APPROVED)
-            .options(selectinload(Quote.items))
+            .options(selectinload(Quote.items), selectinload(Quote.additional_services))
         )
 
         if status_filter:

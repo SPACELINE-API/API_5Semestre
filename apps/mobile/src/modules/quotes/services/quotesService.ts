@@ -1,11 +1,16 @@
 import { env } from '../../../shared/env';
 import {
-	apiDelete,
-	apiPatch,
+	apiDeleteAuth,
 	apiPatchAuth,
 } from '../../../shared/services/apiClient';
+import { getSession } from '../../auth/services/auth';
 
 const API_BASE_URL = env.apiUrl;
+
+function authorizationHeaders(): Record<string, string> {
+	const token = getSession()?.access_token;
+	return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export type QuoteFromRequestResponse = {
 	id: string;
@@ -33,7 +38,7 @@ export async function generateQuoteFromRequest(
 	try {
 		const response = await fetch(
 			`${API_BASE_URL}/api/quotes/from-request/${encodeURIComponent(requestId)}`,
-			{ method: 'POST' },
+			{ method: 'POST', headers: authorizationHeaders() },
 		);
 		const data = await response.json().catch(() => null);
 
@@ -142,7 +147,9 @@ export async function listQuotes(params: {
 	if (params.status !== 'all') query.set('status', params.status);
 	let response: Response;
 	try {
-		response = await fetch(`${API_BASE_URL}/api/quotes?${query.toString()}`);
+		response = await fetch(`${API_BASE_URL}/api/quotes?${query.toString()}`, {
+			headers: authorizationHeaders(),
+		});
 	} catch (error) {
 		console.error('Error loading quotes:', error);
 		throw new Error(quoteLoadErrorMessage(), { cause: error });
@@ -180,7 +187,7 @@ export async function updateQuote(
 	data: QuoteUpdateInput,
 ): Promise<QuoteEditResult> {
 	try {
-		const result = await apiPatch<ManagedQuote, QuoteUpdateInput>(
+		const result = await apiPatchAuth<ManagedQuote, QuoteUpdateInput>(
 			`/api/quotes/${encodeURIComponent(quoteId)}`,
 			data,
 		);
@@ -213,7 +220,7 @@ export async function updateQuoteItem(
 	data: QuoteTranslationItemUpdateInput,
 ): Promise<QuoteItemEditResult> {
 	try {
-		const result = await apiPatch<
+		const result = await apiPatchAuth<
 			QuoteManagerItem,
 			QuoteTranslationItemUpdateInput
 		>(
@@ -235,7 +242,7 @@ export async function deleteQuoteItem(
 	quoteId: string,
 	itemId: string,
 ): Promise<void> {
-	return apiDelete(
+	return apiDeleteAuth(
 		`/api/quotes/${encodeURIComponent(quoteId)}/translation-items/${encodeURIComponent(itemId)}`,
 	);
 }
@@ -252,7 +259,10 @@ export async function createQuote(): Promise<QuoteResponse | null> {
 	try {
 		const response = await fetch(`${API_BASE_URL}/api/quotes`, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: {
+				'Content-Type': 'application/json',
+				...authorizationHeaders(),
+			},
 			body: JSON.stringify({}),
 		});
 
@@ -303,7 +313,10 @@ export async function createQuoteItem(
 			`${API_BASE_URL}/api/quotes/${quoteId}/translation-items`,
 			{
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: {
+					'Content-Type': 'application/json',
+					...authorizationHeaders(),
+				},
 				body: JSON.stringify(itemData),
 			},
 		);
@@ -348,6 +361,7 @@ export async function uploadQuoteDocument(
 
 		const response = await fetch(`${API_BASE_URL}/api/quotes/upload-document`, {
 			method: 'POST',
+			headers: authorizationHeaders(),
 			body: formData,
 		});
 

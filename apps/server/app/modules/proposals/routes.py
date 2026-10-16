@@ -10,7 +10,7 @@ from app.shared.database import get_db
 
 router = APIRouter(prefix="/quotes/proposals", tags=["proposals"])
 
-proposals_read_permission = require_permission("proposals.read")
+proposals_read_permission = require_permission("proposals.read", allow_full_access=False)
 
 
 @router.get("", response_model=ProposalListResponse)
