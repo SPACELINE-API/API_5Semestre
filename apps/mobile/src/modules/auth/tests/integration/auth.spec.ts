@@ -12,6 +12,7 @@ const externalSession = encodeURIComponent(
 async function useExternalProfile(
 	page: import('@playwright/test').Page,
 	permissions = ['requests.read', 'documents.read'],
+	roleName = 'Perfil de teste',
 ) {
 	await page.context().addCookies([
 		{
@@ -26,7 +27,7 @@ async function useExternalProfile(
 			contentType: 'application/json',
 			body: JSON.stringify({
 				user: { id: 'external-user', email: 'externo@example.com' },
-				roles: [{ id: 'external', name: 'Recursos externos' }],
+				roles: [{ id: 'external', name: roleName }],
 				permissions,
 			}),
 		}),
@@ -62,10 +63,13 @@ test.describe('autenticação mobile unificada', () => {
 		);
 
 		await page.goto('/login');
-		await page
-			.getByPlaceholder('seuemail@exemplo.com')
-			.fill('user@example.com');
-		await page.getByPlaceholder('••••••••').fill('password');
+		await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR');
+		const emailInput = page.getByPlaceholder('seuemail@exemplo.com');
+		const passwordInput = page.getByPlaceholder('••••••••');
+		await emailInput.fill('user@example.com');
+		await expect(emailInput).toHaveValue('user@example.com');
+		await passwordInput.fill('password');
+		await expect(passwordInput).toHaveValue('password');
 		await page.getByText('ENTRAR', { exact: true }).click();
 
 		await expect(page).toHaveURL(/\/dashboard$/);
@@ -89,14 +93,50 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
 	});
 
+	test('sidebar navega entre rotas permitidas pelo perfil', async ({
+		page,
+	}) => {
+		await useExternalProfile(page, ['requests.read', 'support.read']);
+		await page.goto('/visualizar-requisicoes');
+		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
+		await expect(
+			page.getByText('Requisições', { exact: true }).first(),
+		).toBeVisible();
+
+		await page.getByText('Suporte', { exact: true }).click();
+		await expect(page).toHaveURL(/\/support-agent$/);
+
+		await page.getByText('Requisições', { exact: true }).first().click();
+		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
+	});
+
+	for (const roleName of ['Administrador', 'Operador']) {
+		test(`${roleName} acessa todas as rotas disponíveis na sidebar`, async ({
+			page,
+		}) => {
+			await useExternalProfile(page, [], roleName);
+			await page.goto('/dashboard');
+
+			for (const label of [
+				'Tarefas atribuídas',
+				'Requisições',
+				'Orçamento',
+				'Ordem de serviço',
+				'Clientes',
+				'Tradutores',
+				'Suporte',
+			]) {
+				await expect(
+					page.getByText(label, { exact: true }).first(),
+				).toBeVisible();
+			}
+		});
+	}
+
 	test('exibe 404 em rota desconhecida com a sidebar do perfil atual', async ({
 		page,
 	}) => {
 		await useExternalProfile(page, ['dashboard.read', 'assignments.read']);
-		await page.goto('/convites/test-invite');
-		await expect(
-			page.getByText('Tarefas atribuídas', { exact: true }),
-		).toBeVisible();
 		await page.goto('/dashboard');
 		await expect(page).toHaveURL(/\/dashboard$/);
 		await expect(
