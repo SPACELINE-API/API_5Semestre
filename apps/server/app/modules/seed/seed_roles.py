@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.modules.reports.permissions import PRODUCTIVITY_READ_PERMISSION
 from app.shared.database import get_session_factory
 
 
@@ -48,6 +49,7 @@ SEED_ROLES = (
             "settings.write",
             "finance.read",
             "finance.write",
+            PRODUCTIVITY_READ_PERMISSION,
         ),
     ),
     SeedRole(
@@ -84,6 +86,7 @@ SEED_ROLES = (
             "documents.read",
             "dashboard.read",
             "documents.write",
+            PRODUCTIVITY_READ_PERMISSION,
         ),
     ),
     SeedRole(

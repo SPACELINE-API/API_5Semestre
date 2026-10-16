@@ -1,35 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from './authHelper';
 
-const SERVICE_ORDER = {
-	id: 'order-1',
-	quote_id: 'quote-1',
-	company_id: 'company-1',
-	project_name: 'Tradução de contratos comerciais',
-	deadline: '2026-12-01T00:00:00Z',
-	status: 'pendente',
-	items: [
-		{
-			id: 'item-1',
-			service_order_id: 'order-1',
-			quote_translation_item_id: 'quote-item-1',
-			translator_id: null,
-			source_language: 'Português',
-			target_language: 'Inglês',
-			document_type: 'Contrato',
-			file_url: null,
-			price: '500.00',
-			deadline: '2026-11-01T00:00:00Z',
-			status: 'pendente',
-			created_at: '2026-01-01T00:00:00Z',
-			updated_at: '2026-01-01T00:00:00Z',
-		},
-	],
-	created_at: '2026-01-01T00:00:00Z',
-	updated_at: '2026-01-01T00:00:00Z',
-};
-
-function pendingInvite() {
+function inviteDetails(overrides: Record<string, unknown> = {}) {
 	return {
 		id: 'invite-1',
 		service_order_item_id: 'item-1',
@@ -37,6 +9,29 @@ function pendingInvite() {
 		status: 'pendente',
 		sent_at: '2026-01-02T00:00:00Z',
 		responded_at: null,
+		item: {
+			id: 'item-1',
+			source_language: 'Português',
+			target_language: 'Inglês',
+			document_type: 'Contrato',
+			deadline: '2026-11-01T00:00:00Z',
+			status: 'pendente',
+			file_url: null,
+			word_count: 1200,
+			price: '500.00',
+		},
+		...overrides,
+	};
+}
+
+function respondedInvite(status: string) {
+	return {
+		id: 'invite-1',
+		service_order_item_id: 'item-1',
+		translator_id: 'translator-1',
+		status,
+		sent_at: '2026-01-02T00:00:00Z',
+		responded_at: '2026-01-03T00:00:00Z',
 	};
 }
 
@@ -49,16 +44,19 @@ test.describe('Invite details page', () => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([pendingInvite()]),
+				body: JSON.stringify([inviteDetails()]),
 			});
 		});
-		await page.route('**/api/service-orders', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify([SERVICE_ORDER]),
-			});
-		});
+		await page.route(
+			'**/api/service-orders/invites/invite-1',
+			async (route) => {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify(inviteDetails()),
+				});
+			},
+		);
 		await page.route(
 			'**/api/service-orders/invites/invite-1/accept',
 			async (route) => {
@@ -66,11 +64,7 @@ test.describe('Invite details page', () => {
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
-					body: JSON.stringify({
-						...pendingInvite(),
-						status: 'aceito',
-						responded_at: '2026-01-03T00:00:00Z',
-					}),
+					body: JSON.stringify(respondedInvite('aceito')),
 				});
 			},
 		);
@@ -94,16 +88,19 @@ test.describe('Invite details page', () => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([pendingInvite()]),
+				body: JSON.stringify([inviteDetails()]),
 			});
 		});
-		await page.route('**/api/service-orders', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify([SERVICE_ORDER]),
-			});
-		});
+		await page.route(
+			'**/api/service-orders/invites/invite-1',
+			async (route) => {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify(inviteDetails()),
+				});
+			},
+		);
 		await page.route(
 			'**/api/service-orders/invites/invite-1/decline',
 			async (route) => {
@@ -111,11 +108,7 @@ test.describe('Invite details page', () => {
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
-					body: JSON.stringify({
-						...pendingInvite(),
-						status: 'recusado',
-						responded_at: '2026-01-03T00:00:00Z',
-					}),
+					body: JSON.stringify(respondedInvite('recusado')),
 				});
 			},
 		);
@@ -136,22 +129,24 @@ test.describe('Invite details page', () => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify([
-					{
-						...pendingInvite(),
-						status: 'expirado',
-						responded_at: '2026-01-03T00:00:00Z',
-					},
-				]),
+				body: JSON.stringify([inviteDetails({ status: 'expirado' })]),
 			});
 		});
-		await page.route('**/api/service-orders', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify([SERVICE_ORDER]),
-			});
-		});
+		await page.route(
+			'**/api/service-orders/invites/invite-1',
+			async (route) => {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify(
+						inviteDetails({
+							status: 'expirado',
+							responded_at: '2026-01-03T00:00:00Z',
+						}),
+					),
+				});
+			},
+		);
 
 		await loginAs(page);
 		await page.goto('/convites/invite-1');

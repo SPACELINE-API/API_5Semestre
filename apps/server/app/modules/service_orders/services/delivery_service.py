@@ -1,5 +1,6 @@
 import html
 import uuid
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlalchemy import func
@@ -228,7 +229,12 @@ class ServiceOrderDeliveryService:
             is not None
         )
         for item in service_order.items:
+            was_completed = item.status == STATUS_CONCLUIDA
             item.status = STATUS_EM_ANALISE if has_pending_documents else STATUS_CONCLUIDA
+            if item.status != STATUS_CONCLUIDA:
+                item.completed_at = None
+            elif not was_completed:
+                item.completed_at = datetime.now(UTC)
         self.db.commit()
 
         return successful_deliveries

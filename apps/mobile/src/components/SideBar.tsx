@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, usePathname, Link } from 'expo-router';
-import { clearSession } from '../modules/auth/services/auth';
+import {
+	clearSession,
+	getSession,
+	isTranslatorSession,
+} from '../modules/auth/services/auth';
 import type { LucideIcon } from 'lucide-react-native';
 import { X as CloseIcon } from 'lucide-react-native';
 import {
@@ -11,6 +15,7 @@ import {
 	OrdemServicoIcon,
 	ClientesIcon,
 	TradutoresIcon,
+	PerfilIcon,
 	SuporteIcon,
 	ConfiguracoesIcon,
 	SairIcon,
@@ -114,8 +119,18 @@ export function SideBar({
 		isSupportAgentActive ||
 		isTradutoresActive;
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
+	const isMyItemsActive = pathname.startsWith('/meus-itens');
+	const isProfileActive = pathname.startsWith('/meu-perfil');
 	const showExpanded = isOpen || mobileOpen;
 	const can = (permission: string) => permissions.includes(permission);
+	const isTranslator = isTranslatorSession();
+	const displayName = isTranslator
+		? (getSession()?.user.email.split('@')[0] ?? 'Tradutor')
+		: 'Marina Duarte';
+	const displayRole = isTranslator ? 'Tradutor' : 'Atendente';
+	const displayInitials = isTranslator
+		? displayName.slice(0, 2).toUpperCase()
+		: 'MD';
 
 	function navigate(path: string, item: string) {
 		setActiveItem(item);
@@ -149,16 +164,16 @@ export function SideBar({
 					<View className="flex-row items-center gap-3">
 						<View className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 bg-blue-500 items-center justify-center shrink-0">
 							<Text className="font-inter font-bold text-white text-sm">
-								MD
+								{displayInitials}
 							</Text>
 						</View>
 						{showExpanded && (
 							<View className="flex-col">
 								<Text className="font-inter font-bold text-gray-900 text-sm leading-tight">
-									Marina Duarte
+									{displayName}
 								</Text>
 								<Text className="font-inter text-gray-500 text-xs mt-0.5">
-									Atendente
+									{displayRole}
 								</Text>
 							</View>
 						)}
@@ -194,6 +209,24 @@ export function SideBar({
 										active={pathname.startsWith('/convites')}
 										onPress={() => navigate('/convites', 'Tarefas atribuídas')}
 									/>
+								)}
+								{isTranslator && can('assignments.read') && (
+									<>
+										<NavItem
+											icon={OrdemServicoIcon}
+											label="Meus itens"
+											isOpen={showExpanded}
+											active={isMyItemsActive}
+											onPress={() => navigate('/meus-itens', 'Meus itens')}
+										/>
+										<NavItem
+											icon={PerfilIcon}
+											label="Meu perfil"
+											isOpen={showExpanded}
+											active={isProfileActive}
+											onPress={() => navigate('/meu-perfil', 'Meu perfil')}
+										/>
+									</>
 								)}
 								{can('requests.read') && (
 									<NavItem

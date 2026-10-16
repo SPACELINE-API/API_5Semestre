@@ -54,7 +54,7 @@ export function FilePreview({
 				onPress={() =>
 					openInNewPage
 						? Linking.openURL(getNativeDocumentUrl(fileUrl))
-						: WebBrowser.openBrowserAsync(fileUrl)
+						: WebBrowser.openBrowserAsync(getNativeDocumentUrl(fileUrl))
 				}
 				activeOpacity={0.7}
 				accessibilityRole="button"

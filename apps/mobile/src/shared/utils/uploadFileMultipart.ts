@@ -45,6 +45,7 @@ export async function uploadFileMultipart<TResponse>(
 	fields: Record<string, string>,
 	httpMethod: 'POST' | 'PATCH' = 'POST',
 	fileFieldName = 'file',
+	headers: Record<string, string> = {},
 ): Promise<TResponse> {
 	if (
 		typeof document !== 'undefined' ||
@@ -64,7 +65,11 @@ export async function uploadFileMultipart<TResponse>(
 			formData.append(fileFieldName, blob, nativeFile.name);
 		}
 
-		const response = await fetch(url, { method: httpMethod, body: formData });
+		const response = await fetch(url, {
+			method: httpMethod,
+			body: formData,
+			headers,
+		});
 		if (!response.ok) {
 			const body = await response.text();
 			throw new MultipartUploadError(
@@ -86,6 +91,7 @@ export async function uploadFileMultipart<TResponse>(
 			mimeType: nativeFile.type,
 			httpMethod,
 			parameters: fields,
+			headers,
 		});
 	} catch (error) {
 		throw normalizeUploadError(error);
