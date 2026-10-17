@@ -135,7 +135,7 @@ test.describe('Serviços adicionais no orçamento', () => {
 		await expect(page.getByText('Revisão técnica')).toBeVisible();
 		await expect(page.getByText('R$ 100,00')).toBeVisible();
 		await expect(page.getByText('R$ 150,00')).toBeVisible();
-		await expect(page.getByText('Concluído')).toBeVisible();
+		await expect(page.getByText('Concluído', { exact: true })).toBeVisible();
 		expect(requestedQuoteId).toBe('quote-1');
 	});
 

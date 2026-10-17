@@ -314,7 +314,7 @@ test.describe('Serviços adicionais na ordem de serviço', () => {
 		await expect(
 			page.getByText('Serviço adicional concluído com sucesso!'),
 		).toBeVisible();
-		await expect(page.getByText('Concluído')).toBeVisible();
+		await expect(page.getByText('Concluído', { exact: true })).toBeVisible();
 		await expect(
 			page.getByLabel(
 				'Marcar serviço adicional Revisão técnica como concluído',
@@ -331,7 +331,7 @@ test.describe('Serviços adicionais na ordem de serviço', () => {
 
 		await openAdditionalServicesTab(page);
 
-		await expect(page.getByText('Concluído')).toBeVisible();
+		await expect(page.getByText('Concluído', { exact: true })).toBeVisible();
 		await expect(
 			page.getByLabel('Editar serviço adicional Diagramação'),
 		).toBeVisible();
