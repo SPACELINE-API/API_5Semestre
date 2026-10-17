@@ -13,6 +13,7 @@ import { useCompanies } from '../../clients/hooks/useCompanies';
 import { useTranslators } from '../hooks/useTranslators';
 import { useContacts } from '../hooks/useContacts';
 import { useItemInvites } from '../hooks/useItemInvites';
+import { useAdditionalServices } from '../hooks/useAdditionalServices';
 import {
 	ServiceOrderDetailsHeader,
 	ServiceOrderDetailTabs,
@@ -45,6 +46,14 @@ import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import type { ServiceOrderItem } from '../types/serviceOrder';
 import { CompleteServiceOrderModal } from '../components/CompleteServiceOrderModal';
+import { AdditionalServicesTab } from '../components/AdditionalServicesTab';
+import { AdditionalServiceFormModal } from '../../quotes/components/AdditionalServiceFormModal';
+import {
+	createAdditionalService,
+	updateAdditionalService,
+	updateAdditionalServiceStatus,
+	type AdditionalService,
+} from '../../quotes/services/additionalService';
 
 type ServiceOrderDetailsPageProps = {
 	id: string;
@@ -66,6 +75,10 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 		useState<ServiceOrderItem | null>(null);
 	const [refreshToken, setRefreshToken] = useState(0);
 	const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
+	const [isAdditionalServiceModalVisible, setIsAdditionalServiceModalVisible] =
+		useState(false);
+	const [editingAdditionalService, setEditingAdditionalService] =
+		useState<AdditionalService | null>(null);
 	const [editingItem, setEditingItem] = useState<ServiceOrderItem | null>(null);
 	const [deletingItem, setDeletingItem] = useState<ServiceOrderItem | null>(
 		null,
@@ -79,6 +92,12 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 		inviteTargetItem?.id ?? '',
 		refreshToken,
 	);
+
+	const {
+		services: additionalServices,
+		isLoading: isLoadingAdditionalServices,
+		error: additionalServicesError,
+	} = useAdditionalServices(serviceOrder?.quote_id ?? '', refreshToken);
 
 	const company = useMemo(
 		() => companies.find((item) => item.id === serviceOrder?.company_id),
@@ -115,6 +134,22 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 			);
 			setIsDeleting(false);
 			setIsDeleteConfirmVisible(false);
+		}
+	}
+
+	async function handleCompleteAdditionalService(service: AdditionalService) {
+		try {
+			await updateAdditionalServiceStatus(service.id, 'approved');
+			showToast('Serviço adicional concluído com sucesso!', 'success');
+			setRefreshToken((current) => current + 1);
+		} catch (completeError) {
+			showToast(
+				completeError instanceof Error
+					? completeError.message
+					: 'Não foi possível concluir o serviço adicional.',
+				'error',
+			);
+			throw completeError;
 		}
 	}
 
@@ -296,6 +331,19 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 										/>
 									)}
 
+									{detailTab === 'adicionais' && (
+										<AdditionalServicesTab
+											services={additionalServices}
+											isLoading={isLoadingAdditionalServices}
+											error={additionalServicesError}
+											onAddService={() =>
+												setIsAdditionalServiceModalVisible(true)
+											}
+											onEditService={setEditingAdditionalService}
+											onCompleteService={handleCompleteAdditionalService}
+										/>
+									)}
+
 									{detailTab === 'arquivos' && (
 										<ServiceOrderFilesTab
 											items={serviceOrder.items}
@@ -431,6 +479,42 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 				}}
 			/>
 
+			<AdditionalServiceFormModal
+				visible={
+					isAdditionalServiceModalVisible || editingAdditionalService !== null
+				}
+				service={editingAdditionalService}
+				onClose={() => {
+					setIsAdditionalServiceModalVisible(false);
+					setEditingAdditionalService(null);
+				}}
+				onSubmit={async (data) => {
+					if (!serviceOrder) return;
+
+					try {
+						if (editingAdditionalService) {
+							await updateAdditionalService(editingAdditionalService.id, data);
+							showToast('Serviço adicional atualizado com sucesso!', 'success');
+						} else {
+							await createAdditionalService({
+								...data,
+								quote_id: serviceOrder.quote_id,
+							});
+							showToast('Serviço adicional cadastrado com sucesso!', 'success');
+						}
+						setRefreshToken((current) => current + 1);
+					} catch (submitError) {
+						showToast(
+							submitError instanceof Error
+								? submitError.message
+								: 'Não foi possível salvar o serviço adicional.',
+							'error',
+						);
+						throw submitError;
+					}
+				}}
+			/>
+
 			<EditItemModal
 				item={editingItem}
 				onClose={() => setEditingItem(null)}
@@ -491,6 +575,8 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 				toast={
 					inviteTargetItem ||
 					isAddItemModalVisible ||
+					isAdditionalServiceModalVisible ||
+					editingAdditionalService ||
 					editingItem ||
 					isDeleteConfirmVisible ||
 					deletingItem

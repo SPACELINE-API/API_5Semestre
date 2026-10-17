@@ -126,7 +126,13 @@ export function ServiceOrderDetailsHeader({
 }
 
 export type ServiceOrderDetailTab =
-	'equipe' | 'cliente' | 'geral' | 'itens' | 'arquivos' | 'tradutores';
+	| 'equipe'
+	| 'cliente'
+	| 'geral'
+	| 'itens'
+	| 'adicionais'
+	| 'arquivos'
+	| 'tradutores';
 
 const detailTabOptions: { key: ServiceOrderDetailTab; label: string }[] = [
 	{ key: 'geral', label: 'Geral' },
@@ -134,6 +140,7 @@ const detailTabOptions: { key: ServiceOrderDetailTab; label: string }[] = [
 	{ key: 'tradutores', label: 'Tradutores' },
 	{ key: 'cliente', label: 'Cliente' },
 	{ key: 'itens', label: 'Itens' },
+	{ key: 'adicionais', label: 'Serviços adicionais' },
 	{ key: 'arquivos', label: 'Arquivos' },
 ];
 
