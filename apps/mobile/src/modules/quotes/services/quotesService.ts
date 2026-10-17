@@ -2,7 +2,7 @@ import { env } from '../../../shared/env';
 import {
 	apiDelete,
 	apiPatch,
-	apiPatchAuth,
+	authHeaders,
 } from '../../../shared/services/apiClient';
 
 const API_BASE_URL = env.apiUrl;
@@ -33,7 +33,10 @@ export async function generateQuoteFromRequest(
 	try {
 		const response = await fetch(
 			`${API_BASE_URL}/api/quotes/from-request/${encodeURIComponent(requestId)}`,
-			{ method: 'POST' },
+			{
+				method: 'POST',
+				headers: authHeaders(),
+			},
 		);
 		const data = await response.json().catch(() => null);
 
@@ -142,7 +145,9 @@ export async function listQuotes(params: {
 	if (params.status !== 'all') query.set('status', params.status);
 	let response: Response;
 	try {
-		response = await fetch(`${API_BASE_URL}/api/quotes?${query.toString()}`);
+		response = await fetch(`${API_BASE_URL}/api/quotes?${query.toString()}`, {
+			headers: authHeaders(),
+		});
 	} catch (error) {
 		console.error('Error loading quotes:', error);
 		throw new Error(quoteLoadErrorMessage(), { cause: error });
@@ -252,7 +257,7 @@ export async function createQuote(): Promise<QuoteResponse | null> {
 	try {
 		const response = await fetch(`${API_BASE_URL}/api/quotes`, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json', ...authHeaders() },
 			body: JSON.stringify({}),
 		});
 
@@ -273,7 +278,7 @@ export async function updateQuoteStatus(
 	reprovalReason?: string,
 ): Promise<QuoteDecisionResult> {
 	try {
-		const data = await apiPatchAuth<
+		const data = await apiPatch<
 			QuoteResponse,
 			{
 				status: 'approved' | 'reproved';
@@ -303,7 +308,7 @@ export async function createQuoteItem(
 			`${API_BASE_URL}/api/quotes/${quoteId}/translation-items`,
 			{
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'application/json', ...authHeaders() },
 				body: JSON.stringify(itemData),
 			},
 		);
@@ -348,6 +353,7 @@ export async function uploadQuoteDocument(
 
 		const response = await fetch(`${API_BASE_URL}/api/quotes/upload-document`, {
 			method: 'POST',
+			headers: authHeaders(),
 			body: formData,
 		});
 

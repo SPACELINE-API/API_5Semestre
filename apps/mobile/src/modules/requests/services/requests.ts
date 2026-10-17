@@ -3,7 +3,7 @@ import {
 	MultipartUploadError,
 	uploadFileMultipart,
 } from '../../../shared/utils/uploadFileMultipart';
-import { getSession } from '../../auth/services/auth';
+import { authHeaders } from '../../../shared/services/apiClient';
 
 export type RequestStatus = 'pending' | 'approved' | 'reproved';
 
@@ -52,7 +52,9 @@ const API_BASE_URL = env.apiUrl;
 export async function fetchRequests(): Promise<RequestItem[]> {
 	let response: Response;
 	try {
-		response = await fetch(`${API_BASE_URL}/api/quotes/requests`);
+		response = await fetch(`${API_BASE_URL}/api/quotes/requests`, {
+			headers: authHeaders(),
+		});
 	} catch (error) {
 		console.error('Error loading requests:', error);
 		throw new Error(
@@ -72,7 +74,9 @@ export async function fetchRequests(): Promise<RequestItem[]> {
 export async function fetchRequestById(
 	requestId: string,
 ): Promise<RequestItem | null> {
-	const response = await fetch(`${API_BASE_URL}/api/quotes/requests`);
+	const response = await fetch(`${API_BASE_URL}/api/quotes/requests`, {
+		headers: authHeaders(),
+	});
 	if (!response.ok) {
 		throw new Error('Não foi possível carregar as requisições.');
 	}
@@ -87,16 +91,13 @@ export async function updateRequestStatus(
 	reprovalReason?: string,
 ): Promise<RequestStatusUpdateResult> {
 	try {
-		const session = getSession();
 		const response = await fetch(
 			`${API_BASE_URL}/api/quotes/requests/${encodeURIComponent(requestId)}/status`,
 			{
 				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json',
-					...(session?.access_token
-						? { Authorization: `Bearer ${session.access_token}` }
-						: {}),
+					...authHeaders(),
 				},
 				body: JSON.stringify({
 					status,
