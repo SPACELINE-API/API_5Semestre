@@ -186,7 +186,9 @@ def test_repository_rejects_update_to_duplicated_description_in_quote(
 ):
     quote = Quote()
     quote.additional_services = [
-        AdditionalService(description="Tradução de documento secundário", price=Decimal("30.00"), status="pending"),
+        AdditionalService(
+            description="Tradução de documento secundário", price=Decimal("30.00"), status="pending"
+        ),
         AdditionalService(description="Revisão", price=Decimal("40.00"), status="pending"),
     ]
     isolated_db_session.add(quote)
