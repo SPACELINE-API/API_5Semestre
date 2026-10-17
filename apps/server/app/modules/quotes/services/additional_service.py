@@ -10,6 +10,7 @@ from app.modules.quotes.repositories.additional_service_repository import (
 from app.modules.quotes.repositories.quote_repository import QuoteRepository
 from app.modules.quotes.schemas.additional_service import (
     AdditionalServiceCreate,
+    AdditionalServiceStatusUpdate,
     AdditionalServiceUpdate,
 )
 
@@ -61,6 +62,13 @@ class AdditionalServiceService:
             return self.repository.update_additional_service(additional_service)
         except IntegrityError as exc:
             raise AdditionalServiceConflictError(DUPLICATED_DESCRIPTION_MESSAGE) from exc
+
+    def update_additional_service_status(
+        self, service_id: uuid.UUID, payload: AdditionalServiceStatusUpdate
+    ) -> AdditionalService:
+        additional_service = self.get_additional_service(service_id)
+        additional_service.status = payload.status
+        return self.repository.update_additional_service(additional_service)
 
     def delete_additional_service(self, service_id: uuid.UUID) -> None:
         additional_service = self.get_additional_service(service_id)

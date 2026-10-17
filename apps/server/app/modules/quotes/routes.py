@@ -8,6 +8,7 @@ from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.quotes.schemas.additional_service import (
     AdditionalServiceCreate,
     AdditionalServiceResponse,
+    AdditionalServiceStatusUpdate,
     AdditionalServiceUpdate,
 )
 from app.modules.quotes.schemas.quote import (
@@ -286,6 +287,20 @@ def update_additional_service(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except AdditionalServiceConflictError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.patch("/additional-services/{service_id}/status", response_model=AdditionalServiceResponse)
+def update_additional_service_status(
+    service_id: uuid.UUID,
+    payload: AdditionalServiceStatusUpdate,
+    _user=Depends(quotes_write_permission),
+    db: Session = Depends(get_db),
+):
+    service = AdditionalServiceService(db)
+    try:
+        return service.update_additional_service_status(service_id, payload)
+    except AdditionalServiceNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.delete("/additional-services/{service_id}", status_code=204)

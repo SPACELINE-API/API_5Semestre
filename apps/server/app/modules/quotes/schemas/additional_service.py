@@ -45,6 +45,10 @@ class AdditionalServiceUpdate(BaseModel):
         return self
 
 
+class AdditionalServiceStatusUpdate(BaseModel):
+    status: str = Field(pattern="^(pending|approved|reproved)$")
+
+
 class AdditionalServiceResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

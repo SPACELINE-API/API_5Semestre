@@ -196,3 +196,47 @@ def test_repository_rejects_update_to_duplicated_description_in_quote(
 
     with pytest.raises(IntegrityError):
         AdditionalServiceRepository(isolated_db_session).update_additional_service(revision)
+
+
+def test_repository_persists_status_update(
+    isolated_db_session: Session,
+):
+    quote = Quote()
+    quote.additional_services = [
+        AdditionalService(
+            description="Tradução de documento secundário",
+            price=Decimal("50.00"),
+            status="pending",
+        )
+    ]
+    isolated_db_session.add(quote)
+    isolated_db_session.flush()
+    additional_service = quote.additional_services[0]
+    additional_service.status = "approved"
+
+    AdditionalServiceRepository(isolated_db_session).update_additional_service(additional_service)
+    isolated_db_session.expire_all()
+
+    persisted = isolated_db_session.get(AdditionalService, additional_service.id)
+    assert persisted is not None
+    assert persisted.status == "approved"
+
+
+def test_database_rejects_unknown_additional_service_status(
+    isolated_db_session: Session,
+):
+    quote = Quote()
+    quote.additional_services = [
+        AdditionalService(
+            description="Tradução de documento secundário",
+            price=Decimal("50.00"),
+            status="pending",
+        )
+    ]
+    isolated_db_session.add(quote)
+    isolated_db_session.flush()
+    quote.additional_services[0].status = "completed"
+
+    with pytest.raises(IntegrityError):
+        with isolated_db_session.begin_nested():
+            isolated_db_session.flush()

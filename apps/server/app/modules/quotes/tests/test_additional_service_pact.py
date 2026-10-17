@@ -20,7 +20,9 @@ VALID_QUOTE_PAYLOAD = {
 
 
 def _additional_service_body(
-    description: str = "Tradução de documento secundário", price: str = "150.00"
+    description: str = "Tradução de documento secundário",
+    price: str = "150.00",
+    status: str = "pending",
 ) -> dict:
     return {
         "id": ADDITIONAL_SERVICE_ID,
@@ -28,7 +30,7 @@ def _additional_service_body(
         "created_by": None,
         "description": description,
         "price": price,
-        "status": "pending",
+        "status": status,
         "created_at": "2026-10-12T10:00:00Z",
         "updated_at": "2026-10-12T10:00:00Z",
     }
@@ -424,6 +426,92 @@ def test_update_additional_service_forbidden_contract() -> None:
         .with_request("PATCH", f"{BASE_PATH}/{ADDITIONAL_SERVICE_ID}")
         .with_headers(JSON_AUTH_HEADERS)
         .with_body({"price": "80.00"})
+        .will_respond_with(403)
+        .with_headers({"Content-Type": "application/json"})
+    )
+
+    pact.write_file(PACT_DIR)
+
+
+def test_update_additional_service_status_success_contract() -> None:
+    pact = Pact("web", "server").with_specification("V4")
+
+    (
+        pact.upon_receiving("a request to mark an additional service as completed")
+        .given("the user has quotes.write permission and a pending additional service exists")
+        .with_request("PATCH", f"{BASE_PATH}/{ADDITIONAL_SERVICE_ID}/status")
+        .with_headers(JSON_AUTH_HEADERS)
+        .with_body({"status": "approved"})
+        .will_respond_with(200)
+        .with_headers({"Content-Type": "application/json"})
+        .with_body(_additional_service_body(status="approved"))
+    )
+
+    pact.write_file(PACT_DIR)
+
+
+def test_update_additional_service_status_invalid_contract() -> None:
+    pact = Pact("web", "server").with_specification("V4")
+
+    (
+        pact.upon_receiving("a request to update an additional service with an invalid status")
+        .given("the user has quotes.write permission and an additional service exists")
+        .with_request("PATCH", f"{BASE_PATH}/{ADDITIONAL_SERVICE_ID}/status")
+        .with_headers(JSON_AUTH_HEADERS)
+        .with_body({"status": "completed"})
+        .will_respond_with(422)
+        .with_headers({"Content-Type": "application/json"})
+    )
+
+    pact.write_file(PACT_DIR)
+
+
+def test_update_additional_service_status_not_found_contract() -> None:
+    pact = Pact("web", "server").with_specification("V4")
+
+    (
+        pact.upon_receiving("a request to update the status of a missing additional service")
+        .given("the user has quotes.write permission and the additional service does not exist")
+        .with_request("PATCH", f"{BASE_PATH}/{NOT_FOUND_ID}/status")
+        .with_headers(JSON_AUTH_HEADERS)
+        .with_body({"status": "approved"})
+        .will_respond_with(404)
+        .with_headers({"Content-Type": "application/json"})
+        .with_body({"detail": "Serviço adicional não encontrado"})
+    )
+
+    pact.write_file(PACT_DIR)
+
+
+def test_update_additional_service_status_unauthenticated_contract() -> None:
+    pact = Pact("web", "server").with_specification("V4")
+
+    (
+        pact.upon_receiving(
+            "a request to update the status of an additional service without authentication"
+        )
+        .given("the user is not authenticated")
+        .with_request("PATCH", f"{BASE_PATH}/{ADDITIONAL_SERVICE_ID}/status")
+        .with_headers({"Content-Type": "application/json"})
+        .with_body({"status": "approved"})
+        .will_respond_with(401)
+        .with_headers({"Content-Type": "application/json"})
+    )
+
+    pact.write_file(PACT_DIR)
+
+
+def test_update_additional_service_status_forbidden_contract() -> None:
+    pact = Pact("web", "server").with_specification("V4")
+
+    (
+        pact.upon_receiving(
+            "a request to update the status of an additional service without permission"
+        )
+        .given("the user does not have quotes.write permission")
+        .with_request("PATCH", f"{BASE_PATH}/{ADDITIONAL_SERVICE_ID}/status")
+        .with_headers(JSON_AUTH_HEADERS)
+        .with_body({"status": "approved"})
         .will_respond_with(403)
         .with_headers({"Content-Type": "application/json"})
     )

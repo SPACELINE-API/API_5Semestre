@@ -11,6 +11,7 @@ from app.modules.quotes.models import AdditionalService
 from app.modules.quotes.schemas.additional_service import (
     AdditionalServiceCreate,
     AdditionalServiceResponse,
+    AdditionalServiceStatusUpdate,
     AdditionalServiceUpdate,
 )
 from app.modules.quotes.services.additional_service import (
@@ -295,3 +296,54 @@ def test_delete_additional_service_fails_when_not_found(service: AdditionalServi
         service.delete_additional_service(uuid4())
 
     service.repository.delete_additional_service.assert_not_called()
+
+
+@pytest.mark.parametrize("status", ["pending", "approved", "reproved"])
+def test_status_schema_accepts_model_statuses(status):
+    assert AdditionalServiceStatusUpdate(status=status).status == status
+
+
+@pytest.mark.parametrize("status", ["completed", "", "APPROVED"])
+def test_status_schema_rejects_unknown_status(status):
+    with pytest.raises(ValidationError):
+        AdditionalServiceStatusUpdate(status=status)
+
+
+def test_status_schema_requires_status():
+    with pytest.raises(ValidationError):
+        AdditionalServiceStatusUpdate()
+
+
+def test_update_additional_service_status_marks_as_completed(
+    service: AdditionalServiceService,
+):
+    additional_service = AdditionalService(
+        quote_id=uuid4(),
+        description="Tradução de documento secundário",
+        price=Decimal("150.00"),
+        status="pending",
+    )
+    service.repository.get_additional_service_by_id.return_value = additional_service
+    service.repository.update_additional_service.side_effect = lambda item: item
+
+    result = service.update_additional_service_status(
+        uuid4(), AdditionalServiceStatusUpdate(status="approved")
+    )
+
+    assert result.status == "approved"
+    assert result.description == "Tradução de documento secundário"
+    assert result.price == Decimal("150.00")
+    service.repository.update_additional_service.assert_called_once_with(additional_service)
+
+
+def test_update_additional_service_status_fails_when_not_found(
+    service: AdditionalServiceService,
+):
+    service.repository.get_additional_service_by_id.return_value = None
+
+    with pytest.raises(AdditionalServiceNotFoundError, match="Serviço adicional não encontrado"):
+        service.update_additional_service_status(
+            uuid4(), AdditionalServiceStatusUpdate(status="approved")
+        )
+
+    service.repository.update_additional_service.assert_not_called()
