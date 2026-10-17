@@ -8,7 +8,7 @@ import {
 
 export { apiPost, apiUrl } from './publicApiClient';
 
-function authHeaders(): Record<string, string> {
+export function authHeaders(): Record<string, string> {
 	const session = getSession();
 	return session ? { Authorization: `Bearer ${session.access_token}` } : {};
 }
@@ -33,17 +33,10 @@ async function authenticatedRequest<TResponse>(
 }
 
 export async function apiGet<TResponse>(path: string): Promise<TResponse> {
-	return request<TResponse>(path);
+	return authenticatedRequest<TResponse>(path);
 }
 
 export function apiPatch<TResponse, TBody>(path: string, body: TBody) {
-	return request<TResponse>(path, {
-		method: 'PATCH',
-		body: JSON.stringify(body),
-	});
-}
-
-export function apiPatchAuth<TResponse, TBody>(path: string, body: TBody) {
 	return authenticatedRequest<TResponse>(path, {
 		method: 'PATCH',
 		body: JSON.stringify(body),
@@ -51,14 +44,17 @@ export function apiPatchAuth<TResponse, TBody>(path: string, body: TBody) {
 }
 
 export function apiPut<TResponse, TBody>(path: string, body: TBody) {
-	return request<TResponse>(path, {
+	return authenticatedRequest<TResponse>(path, {
 		method: 'PUT',
 		body: JSON.stringify(body),
 	});
 }
 
 export async function apiDelete(path: string): Promise<void> {
-	const response = await fetch(`${apiUrl}${path}`, { method: 'DELETE' });
+	const response = await fetch(`${apiUrl}${path}`, {
+		method: 'DELETE',
+		headers: authHeaders(),
+	});
 
 	if (!response.ok) {
 		const payload = await response.json().catch(() => null);
