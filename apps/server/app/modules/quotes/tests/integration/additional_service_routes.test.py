@@ -192,7 +192,7 @@ def test_repository_rejects_update_to_duplicated_description_in_quote(
     isolated_db_session.add(quote)
     isolated_db_session.flush()
     revision = quote.additional_services[1]
-    revision.description = " refazer tradução "
+    revision.description = " tradução de documento secundário "
 
     with pytest.raises(IntegrityError):
         AdditionalServiceRepository(isolated_db_session).update_additional_service(revision)
