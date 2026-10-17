@@ -43,6 +43,24 @@ export function apiPatch<TResponse, TBody>(path: string, body: TBody) {
 	});
 }
 
+export function apiPatchAuth<TResponse, TBody>(path: string, body: TBody) {
+	return authenticatedRequest<TResponse>(path, {
+		method: 'PATCH',
+		body: JSON.stringify(body),
+	});
+}
+
+export function apiPutAuth<TResponse, TBody>(path: string, body: TBody) {
+	return authenticatedRequest<TResponse>(path, {
+		method: 'PUT',
+		body: JSON.stringify(body),
+	});
+}
+
+export function apiDeleteAuth(path: string): Promise<void> {
+	return authenticatedRequest<void>(path, { method: 'DELETE' });
+}
+
 export function apiPut<TResponse, TBody>(path: string, body: TBody) {
 	return authenticatedRequest<TResponse>(path, {
 		method: 'PUT',

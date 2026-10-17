@@ -21,7 +21,7 @@ class SeedUser:
 
 SEED_USERS = [
     SeedUser(email="admin@spaceline.com.br", password="123456", role="admin"),
-    SeedUser(email="operador@spaceline.com.br", password="123456", role="tradutor"),
+    SeedUser(email="operador@spaceline.com.br", password="123456", role="operador"),
     SeedUser(email="cliente@spaceline.com.br", password="123456", role="cliente"),
 ]
 

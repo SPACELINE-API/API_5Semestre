@@ -1,7 +1,7 @@
 import { env } from '../../../shared/env';
 import {
-	apiDelete,
-	apiPatch,
+	apiDeleteAuth,
+	apiPatchAuth,
 	authHeaders,
 } from '../../../shared/services/apiClient';
 
@@ -185,7 +185,7 @@ export async function updateQuote(
 	data: QuoteUpdateInput,
 ): Promise<QuoteEditResult> {
 	try {
-		const result = await apiPatch<ManagedQuote, QuoteUpdateInput>(
+		const result = await apiPatchAuth<ManagedQuote, QuoteUpdateInput>(
 			`/api/quotes/${encodeURIComponent(quoteId)}`,
 			data,
 		);
@@ -218,7 +218,7 @@ export async function updateQuoteItem(
 	data: QuoteTranslationItemUpdateInput,
 ): Promise<QuoteItemEditResult> {
 	try {
-		const result = await apiPatch<
+		const result = await apiPatchAuth<
 			QuoteManagerItem,
 			QuoteTranslationItemUpdateInput
 		>(
@@ -240,7 +240,7 @@ export async function deleteQuoteItem(
 	quoteId: string,
 	itemId: string,
 ): Promise<void> {
-	return apiDelete(
+	return apiDeleteAuth(
 		`/api/quotes/${encodeURIComponent(quoteId)}/translation-items/${encodeURIComponent(itemId)}`,
 	);
 }
@@ -278,7 +278,7 @@ export async function updateQuoteStatus(
 	reprovalReason?: string,
 ): Promise<QuoteDecisionResult> {
 	try {
-		const data = await apiPatch<
+		const data = await apiPatchAuth<
 			QuoteResponse,
 			{
 				status: 'approved' | 'reproved';

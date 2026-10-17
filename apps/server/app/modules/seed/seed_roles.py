@@ -13,42 +13,45 @@ class SeedRole:
     permissions: tuple[str, ...]
 
 
+ADMIN_PERMISSIONS = (
+    "users.read",
+    "users.write",
+    "roles.read",
+    "roles.write",
+    "dashboard.read",
+    "clients.read",
+    "clients.write",
+    "contacts.read",
+    "contacts.write",
+    "requests.read",
+    "requests.write",
+    "quotes.read",
+    "quotes.write",
+    "quotes.approve",
+    "service_orders.read",
+    "service_orders.write",
+    "translators.read",
+    "translators.write",
+    "assignments.read",
+    "assignments.write",
+    "assignments.manage",
+    "assignments.respond",
+    "documents.read",
+    "documents.write",
+    "support.read",
+    "support.write",
+    "settings.read",
+    "settings.write",
+    "finance.read",
+    "finance.write",
+)
+
+
 SEED_ROLES = (
     SeedRole(
         name="Administrador",
         description="Administra usuários, roles e permissões.",
-        permissions=(
-            "users.read",
-            "users.write",
-            "roles.read",
-            "roles.write",
-            "dashboard.read",
-            "clients.read",
-            "clients.write",
-            "contacts.read",
-            "contacts.write",
-            "requests.read",
-            "requests.write",
-            "quotes.read",
-            "quotes.write",
-            "quotes.approve",
-            "service_orders.read",
-            "service_orders.write",
-            "translators.read",
-            "translators.write",
-            "assignments.read",
-            "assignments.write",
-            "assignments.manage",
-            "assignments.respond",
-            "documents.read",
-            "documents.write",
-            "support.read",
-            "support.write",
-            "settings.read",
-            "settings.write",
-            "finance.read",
-            "finance.write",
-        ),
+        permissions=(*ADMIN_PERMISSIONS, "proposals.read"),
     ),
     SeedRole(
         name="Atendimento",
@@ -84,6 +87,7 @@ SEED_ROLES = (
             "documents.read",
             "dashboard.read",
             "documents.write",
+            "proposals.read",
         ),
     ),
     SeedRole(
@@ -107,6 +111,11 @@ SEED_ROLES = (
             "documents.read",
             "dashboard.read",
         ),
+    ),
+    SeedRole(
+        name="Operador",
+        description="Possui as mesmas permissões operacionais do administrador.",
+        permissions=ADMIN_PERMISSIONS,
     ),
 )
 
@@ -171,6 +180,7 @@ def _associate_seed_users(db: Session) -> None:
         ("admin", "Administrador"),
         ("cliente", "Atendimento"),
         ("tradutor", "Recursos externos"),
+        ("operador", "Operador"),
     ):
         db.execute(
             text(
