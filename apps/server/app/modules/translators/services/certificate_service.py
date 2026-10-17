@@ -181,6 +181,11 @@ class TranslatorCertificateService:
             raise HTTPException(status_code=404, detail="Tradutor não encontrado.")
         return translator
 
+    # REMOVE ARQUIVOS DO STORAGE SEM INTERROMPER O FLUXO; FALHAS FICAM REGISTRADAS EM LOG
+    def discard_files(self, object_paths: list[str]) -> None:
+        for object_path in object_paths:
+            self._discard(object_path)
+
     def _ensure_language_can_be_certified(self, translator: Translator, language_id: str) -> None:
         if self.db.get(Language, language_id) is None:
             raise HTTPException(status_code=422, detail="Idioma não encontrado.")

@@ -13,11 +13,13 @@ from app.modules.translators.schemas.translator import (
     TranslatorStatusUpdate,
     TranslatorUpdate,
 )
+from app.modules.translators.services.certificate_service import TranslatorCertificateService
 
 
 class TranslatorService:
     def __init__(self, db: Session):
         self.repo = TranslatorRepository(db)
+        self.certificates = TranslatorCertificateService(db)
 
     def _get_translator_or_404(self, translator_id: uuid.UUID) -> Translator:
         translator = self.repo.get_by_id(translator_id)
@@ -98,4 +100,7 @@ class TranslatorService:
 
     def delete(self, translator_id: uuid.UUID) -> None:
         translator = self._get_translator_or_404(translator_id)
+        certificate_paths = self.certificates.repo.list_storage_paths(translator.id)
         self.repo.delete(translator)
+        # OS ARQUIVOS SO SAEM DO STORAGE DEPOIS QUE O TRADUTOR FOI REMOVIDO DO BANCO
+        self.certificates.discard_files(certificate_paths)

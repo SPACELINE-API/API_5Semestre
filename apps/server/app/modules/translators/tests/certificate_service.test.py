@@ -18,6 +18,7 @@ from app.modules.translators.models.translator_language import (
 from app.modules.translators.schemas.certificate import CertificateReviewInput
 from app.modules.translators.services import storage
 from app.modules.translators.services.certificate_service import TranslatorCertificateService
+from app.modules.translators.services.translator_service import TranslatorService
 
 PDF = b"%PDF-1.7\n" + b"0" * 64 + b"\n%%EOF\n"
 GIF = b"GIF89a" + b"0" * 32
@@ -297,3 +298,14 @@ def test_admin_listing_of_unknown_translator_is_404(db_session, fake_storage):
         TranslatorCertificateService(db_session).list_for_translator(uuid.uuid4())
 
     assert error.value.status_code == 404
+
+
+def test_deleting_translator_removes_certificate_files(db_session, translator, fake_storage):
+    service = TranslatorCertificateService(db_session)
+    submit(service, translator, language_id="es")
+    submit(service, translator, language_id="fr")
+
+    TranslatorService(db_session).delete(translator.id)
+
+    assert sorted(fake_storage.deleted) == sorted(fake_storage.uploaded)
+    assert count_certificates(db_session) == 0

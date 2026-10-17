@@ -1,5 +1,6 @@
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
 from app.modules.translators.models.translator_certificate import TranslatorCertificate
@@ -44,4 +45,14 @@ class TranslatorCertificateRepository:
             .filter(TranslatorCertificate.translator_id == translator_id)
             .order_by(TranslatorCertificate.updated_at.desc())
             .all()
+        )
+
+    # CAMINHOS NO STORAGE DE TODOS OS CERTIFICADOS DO TRADUTOR
+    def list_storage_paths(self, translator_id: uuid.UUID) -> list[str]:
+        return list(
+            self.db.scalars(
+                select(TranslatorCertificate.storage_path).where(
+                    TranslatorCertificate.translator_id == translator_id
+                )
+            )
         )
