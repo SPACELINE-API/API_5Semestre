@@ -8,6 +8,15 @@ from app.shared.google_adk.config import ADK_MODEL, ADK_PROVIDER
 
 from .client import inngest_client
 
+USER_ID_PADRAO = "chat-support"
+
+
+def extrair_user_id(data: dict) -> str:
+    user_id = data.get("user_id")
+    if isinstance(user_id, str) and user_id:
+        return user_id
+    return USER_ID_PADRAO
+
 
 def extract_final_response(events) -> str:
     for event in reversed(events):
@@ -70,9 +79,9 @@ async def process_chat_message(ctx: inngest.Context) -> dict:
     if not isinstance(texto, str):
         raise ValueError("O campo 'texto' deve ser uma string")
 
-    resposta = await ctx.step.run(
-        "run-support-agent", lambda: run_support_agent(texto, "chat-support")
-    )
+    user_id = extrair_user_id(dict(ctx.event.data))
+
+    resposta = await ctx.step.run("run-support-agent", lambda: run_support_agent(texto, user_id))
     return {"resposta": resposta}
 
 
