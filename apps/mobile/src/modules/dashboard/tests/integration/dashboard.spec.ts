@@ -21,7 +21,7 @@ async function setupSession(
 			url: 'http://127.0.0.1:5183',
 		},
 	]);
-	await page.route('**/api/auth/me', (route) =>
+	await page.route(/\/api\/auth\/me/, (route) =>
 		route.fulfill({
 			status: 200,
 			contentType: 'application/json',
@@ -35,6 +35,37 @@ async function setupSession(
 }
 
 test.describe('Painel inicial (Dashboard)', () => {
+	test.beforeEach(async ({ page }) => {
+		await page.route(/\/api\/quotes/, (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ total: 0, items: [] }),
+			}),
+		);
+		await page.route(/\/api\/service-orders/, (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: '[]',
+			}),
+		);
+		await page.route(/\/api\/clients/, (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: '[]',
+			}),
+		);
+		await page.route(/\/api\/translators/, (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: '[]',
+			}),
+		);
+	});
+
 	test('exibe indicador de carregamento enquanto busca dados do painel', async ({
 		page,
 	}) => {
@@ -50,9 +81,22 @@ test.describe('Painel inicial (Dashboard)', () => {
 			fulfillMe = resolve;
 		});
 
-		await page.route('**/api/auth/me', async (route) => {
+		let callCount = 0;
+		await page.route(/\/api\/auth\/me/, async (route) => {
+			callCount++;
+			if (callCount === 1) {
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({
+						user: { id: 'test-user-id', email: 'usuario@example.com' },
+						roles: [{ id: 'role-1', name: 'Usuário' }],
+						permissions: ['dashboard.read', 'requests.read'],
+					}),
+				});
+			}
 			await mePromise;
-			await route.fulfill({
+			return route.fulfill({
 				status: 200,
 				contentType: 'application/json',
 				body: JSON.stringify({
@@ -140,7 +184,20 @@ test.describe('Painel inicial (Dashboard)', () => {
 		]);
 
 		let shouldFail = true;
-		await page.route('**/api/auth/me', (route) => {
+		let callCount = 0;
+		await page.route(/\/api\/auth\/me/, (route) => {
+			callCount++;
+			if (callCount === 1) {
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({
+						user: { id: 'test-user-id', email: 'usuario@example.com' },
+						roles: [{ id: 'role-1', name: 'Usuário' }],
+						permissions: ['dashboard.read', 'requests.read'],
+					}),
+				});
+			}
 			if (shouldFail) {
 				return route.fulfill({
 					status: 500,

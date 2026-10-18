@@ -239,9 +239,7 @@ export async function fetchDashboardMetrics(
 		fetchTasks.push(
 			listServiceOrders()
 				.then((orders) => {
-					const active = orders.filter(
-						(o) => o.status !== 'concluida',
-					).length;
+					const active = orders.filter((o) => o.status !== 'concluida').length;
 					metrics.push({
 						id: 'orders-active',
 						title: 'Ordens de Serviço Ativas',
