@@ -1,16 +1,6 @@
-import { View, Text } from 'react-native';
+import { Redirect } from 'expo-router';
+import { getSession } from '../modules/auth/services/auth';
 
 export default function Index() {
-	return (
-		<View
-			style={{
-				height: '100%',
-				alignItems: 'center',
-				justifyContent: 'center',
-				backgroundColor: '#e2e8f0',
-			}}
-		>
-			<Text style={{ fontSize: 24, fontWeight: 'bold' }}>Home</Text>
-		</View>
-	);
+	return <Redirect href={(getSession() ? '/dashboard' : '/login') as never} />;
 }

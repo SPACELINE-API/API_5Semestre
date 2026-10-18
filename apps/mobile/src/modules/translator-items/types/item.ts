@@ -1,7 +1,13 @@
+export type DeliveredFileReviewStatus =
+	'pending' | 'approved' | 'changes_requested';
+
 export type DeliveredFile = {
 	id: string;
 	filename: string;
 	file_url: string;
+	review_status: DeliveredFileReviewStatus;
+	review_note: string | null;
+	reviewed_at: string | null;
 	uploaded_at: string;
 };
 

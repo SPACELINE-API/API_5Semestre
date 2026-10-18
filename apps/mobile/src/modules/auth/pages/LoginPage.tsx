@@ -18,12 +18,16 @@ import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import {
+	clearSession,
+	getAuthorizationContext,
 	isTranslatorSession,
 	login,
+	loadAuthorizationContext,
 	requestPasswordRecovery,
 	resetPassword,
 	saveSession,
 } from '../services/auth';
+import { isTranslatorProfile } from '../services/authorization';
 import { DecorativeBackground } from '../components/DecorativeBackground';
 import { LoginFields } from '../components/LoginFields';
 import { LoginHero } from '../components/LoginHero';
@@ -200,11 +204,16 @@ export function LoginPage() {
 		}
 		setLoading(true);
 		try {
-			saveSession(await login(email.trim(), password), remember);
+			const session = await login(email.trim(), password);
+			saveSession(session, remember);
+			await loadAuthorizationContext();
 			router.replace(
-				(isTranslatorSession() ? '/convites' : '/dashboard') as never,
+				(isTranslatorSession() || isTranslatorProfile(getAuthorizationContext())
+					? '/convites'
+					: '/dashboard') as never,
 			);
 		} catch (cause) {
+			clearSession();
 			setError(getLoginError(cause));
 		} finally {
 			setLoading(false);

@@ -58,6 +58,17 @@ export function TranslatorsInviteTab({
 		setSelectedTranslatorIds(new Set());
 	}, [selectedItemId]);
 
+	useEffect(() => {
+		const selectedItemStillExists = items.some(
+			(item) => item.id === selectedItemId,
+		);
+		if (selectedItemStillExists) return;
+
+		setSelectedItemId(
+			items.find((item) => !item.translator_id)?.id ?? items[0]?.id ?? '',
+		);
+	}, [items, selectedItemId]);
+
 	const filteredTranslators = useMemo(() => {
 		const query = search.trim().toLowerCase();
 		if (!query) return translators;

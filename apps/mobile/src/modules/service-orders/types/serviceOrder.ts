@@ -38,13 +38,28 @@ export type UpdateServiceOrderItemInput = {
 
 export type ServiceOrderFileDirection = 'entrada' | 'saida';
 
+export type FileReviewStatus = 'pending' | 'approved' | 'changes_requested';
+
 export type ServiceOrderFile = {
 	id: string;
 	service_order_id: string;
+	service_order_item_id: string | null;
 	filename: string;
 	file_url: string;
 	direction: ServiceOrderFileDirection;
+	delivery_status: 'not_sent' | 'pending' | 'sent' | 'failed';
+	review_status: FileReviewStatus;
+	review_note: string | null;
+	reviewed_at: string | null;
 	uploaded_at: string;
+};
+
+export type ServiceOrderEmailTemplate = {
+	key: string;
+	subject: string;
+	body_html: string;
+	updated_at: string;
+	available_placeholders: string[];
 };
 
 export type ServiceOrder = {

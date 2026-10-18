@@ -1,4 +1,5 @@
 import { apiPost } from '../../../shared/services/publicApiClient';
+import { request } from '../../../shared/services/publicApiClient';
 
 export type LoginResponse = {
 	access_token: string;
@@ -7,7 +8,14 @@ export type LoginResponse = {
 	user: { id: string; email: string; role?: string };
 };
 
+export type AuthorizationContext = {
+	user: { id: string; email: string };
+	roles: { id: string; name: string }[];
+	permissions: string[];
+};
+
 let nativeSession: LoginResponse | null = null;
+let authorizationContext: AuthorizationContext | null = null;
 const SESSION_COOKIE = 'spaceline_session';
 
 function isBrowser() {
@@ -55,6 +63,7 @@ export function login(email: string, password: string) {
 
 export function saveSession(session: LoginResponse, remember = false) {
 	nativeSession = session;
+	authorizationContext = null;
 	setCookie(
 		SESSION_COOKIE,
 		encodeCookieValue(session),
@@ -80,7 +89,33 @@ export const TRANSLATOR_ALLOWED_PREFIXES = [
 
 export function clearSession() {
 	nativeSession = null;
+	authorizationContext = null;
 	deleteCookie(SESSION_COOKIE);
+}
+
+export function setAuthorizationContext(context: AuthorizationContext) {
+	authorizationContext = {
+		...context,
+		permissions: Array.isArray(context.permissions) ? context.permissions : [],
+	};
+}
+
+export async function loadAuthorizationContext() {
+	if (authorizationContext) return authorizationContext;
+	const session = getSession();
+	if (!session) throw new Error('Sessão ausente.');
+	const context = await request<AuthorizationContext>('/api/auth/me', {
+		headers: { Authorization: `Bearer ${session.access_token}` },
+	});
+	authorizationContext = {
+		...context,
+		permissions: Array.isArray(context.permissions) ? context.permissions : [],
+	};
+	return authorizationContext;
+}
+
+export function getAuthorizationContext() {
+	return authorizationContext;
 }
 
 export function requestPasswordRecovery(email: string) {

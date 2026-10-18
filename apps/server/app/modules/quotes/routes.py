@@ -3,8 +3,12 @@ import uuid
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from app.modules.auth.dependencies.dependencies import get_current_user
+from app.modules.auth.dependencies.dependencies import require_permission
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
+from app.modules.quotes.schemas.additional_service import (
+    AdditionalServiceCreate,
+    AdditionalServiceResponse,
+)
 from app.modules.quotes.schemas.quote import (
     QuoteCreate,
     QuoteFromRequestResponse,
@@ -20,6 +24,11 @@ from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemResponse,
     QuoteTranslationItemUpdate,
 )
+from app.modules.quotes.services.additional_service import (
+    AdditionalServiceConflictError,
+    AdditionalServiceNotFoundError,
+    AdditionalServiceService,
+)
 from app.modules.quotes.services.quote_service import QuoteService
 from app.modules.quotes.services.request_service import RequestService
 from app.modules.quotes.services.storage import upload_quote_document
@@ -27,10 +36,19 @@ from app.modules.quotes.services.translation_item_service import TranslationItem
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
+quotes_read_permission = require_permission("quotes.read")
+quotes_write_permission = require_permission("quotes.write")
+quotes_approve_permission = require_permission("quotes.approve")
+requests_read_permission = require_permission("requests.read")
+requests_write_permission = require_permission("requests.write")
+documents_write_permission = require_permission("documents.write")
 
 
 @router.post("/upload-document", status_code=201)
-def upload_document(file: UploadFile = File(...)):
+def upload_document(
+    file: UploadFile = File(...),
+    _user=Depends(documents_write_permission),
+):
     content_type = file.content_type or "application/octet-stream"
     file_url = upload_quote_document(
         filename=file.filename or "uploaded_file",
@@ -44,6 +62,7 @@ def upload_document(file: UploadFile = File(...)):
 @router.post("", response_model=QuoteResponse, status_code=201)
 def create_quote(
     quote_data: QuoteCreate,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = QuoteService(db)
@@ -58,6 +77,7 @@ def list_quotes(
     status_filter: str | None = Query(
         default=None, alias="status", pattern="^(pending|approved|reproved)$"
     ),
+    _user=Depends(quotes_read_permission),
     db: Session = Depends(get_db),
 ):
     service = QuoteService(db)
@@ -73,6 +93,7 @@ def list_quotes(
 def update_quote(
     quote_id: uuid.UUID,
     data: QuoteUpdate,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = QuoteService(db)
@@ -83,7 +104,7 @@ def update_quote(
 def update_quote_status(
     quote_id: uuid.UUID,
     data: QuoteStatusUpdate,
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(quotes_approve_permission),
     db: Session = Depends(get_db),
 ):
     service = QuoteService(db)
@@ -93,6 +114,7 @@ def update_quote_status(
 @router.post("/from-request/{request_id}", response_model=QuoteFromRequestResponse, status_code=201)
 def generate_quote_from_request(
     request_id: str,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     try:
@@ -110,6 +132,7 @@ def generate_quote_from_request(
 def create_translation_item(
     quote_id: uuid.UUID,
     item_data: QuoteTranslationItemCreate,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = TranslationItemService(db)
@@ -119,6 +142,7 @@ def create_translation_item(
 @router.get("/{quote_id}/translation-items", response_model=list[QuoteTranslationItemResponse])
 def list_translation_items(
     quote_id: uuid.UUID,
+    _user=Depends(quotes_read_permission),
     db: Session = Depends(get_db),
 ):
     service = TranslationItemService(db)
@@ -132,6 +156,7 @@ def update_translation_item(
     quote_id: uuid.UUID,
     item_id: uuid.UUID,
     item_data: QuoteTranslationItemUpdate,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = TranslationItemService(db)
@@ -142,6 +167,7 @@ def update_translation_item(
 def delete_translation_item(
     quote_id: uuid.UUID,
     item_id: uuid.UUID,
+    _user=Depends(quotes_write_permission),
     db: Session = Depends(get_db),
 ):
     service = TranslationItemService(db)
@@ -181,6 +207,7 @@ async def create_request(
 
 @router.get("/requests", response_model=list[RequestResponse])
 def list_requests(
+    _user=Depends(requests_read_permission),
     db: Session = Depends(get_db),  # noqa: B008
 ):
     service = RequestService(db)
@@ -191,7 +218,7 @@ def list_requests(
 def update_request_status(
     request_id: str,
     data: RequestStatusUpdate,
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(requests_write_permission),
     db: Session = Depends(get_db),
 ):
     try:
@@ -201,3 +228,60 @@ def update_request_status(
 
     service = RequestService(db)
     return service.update_status(parsed_request_id, data, current_user)
+
+
+@router.post("/additional-services", response_model=AdditionalServiceResponse, status_code=201)
+def create_additional_service(
+    payload: AdditionalServiceCreate,
+    _user=Depends(quotes_write_permission),
+    db: Session = Depends(get_db),
+):
+    service = AdditionalServiceService(db)
+    try:
+        return service.create_additional_service(payload)
+    except AdditionalServiceNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except AdditionalServiceConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.get("/additional-services", response_model=list[AdditionalServiceResponse])
+def list_additional_services(
+    quote_id: uuid.UUID | None = Query(default=None),
+    service_order_id: uuid.UUID | None = Query(default=None),
+    _user=Depends(quotes_read_permission),
+    db: Session = Depends(get_db),
+):
+    service = AdditionalServiceService(db)
+    try:
+        return service.list_additional_services(quote_id, service_order_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except AdditionalServiceNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/additional-services/{service_id}", response_model=AdditionalServiceResponse)
+def get_additional_service(
+    service_id: uuid.UUID,
+    _user=Depends(quotes_read_permission),
+    db: Session = Depends(get_db),
+):
+    service = AdditionalServiceService(db)
+    try:
+        return service.get_additional_service(service_id)
+    except AdditionalServiceNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.delete("/additional-services/{service_id}", status_code=204)
+def delete_additional_service(
+    service_id: uuid.UUID,
+    _user=Depends(quotes_write_permission),
+    db: Session = Depends(get_db),
+):
+    service = AdditionalServiceService(db)
+    try:
+        service.delete_additional_service(service_id)
+    except AdditionalServiceNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc

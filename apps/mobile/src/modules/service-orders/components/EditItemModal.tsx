@@ -15,6 +15,7 @@ import type {
 import type { UploadableFile } from '../../../shared/types/file';
 import { pickDocument } from '../../../shared/utils/pickDocument';
 import { FormField } from '../../clients/components/FormField';
+import { LanguageSelect } from '../../quotes/components/LanguageSelect';
 import { DateField } from '../../../shared/components/DateField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 import { formatDateInputValue } from '../utils/format';
@@ -126,18 +127,26 @@ export function EditItemModal({
 						keyboardShouldPersistTaps="handled"
 					>
 						<View className="flex-row gap-3">
-							<FormField
-								label="Idioma de origem"
-								value={sourceLanguage}
-								onChangeText={setSourceLanguage}
-								placeholder="Ex: Português"
-							/>
-							<FormField
-								label="Idioma de destino"
-								value={targetLanguage}
-								onChangeText={setTargetLanguage}
-								placeholder="Ex: Inglês"
-							/>
+							<View className="min-w-0 flex-1">
+								<Text className="mb-1 font-inter font-semibold text-gray-800 text-xs">
+									Idioma de origem
+								</Text>
+								<LanguageSelect
+									value={sourceLanguage}
+									onChange={setSourceLanguage}
+									placeholder="Selecione um idioma"
+								/>
+							</View>
+							<View className="min-w-0 flex-1">
+								<Text className="mb-1 font-inter font-semibold text-gray-800 text-xs">
+									Idioma de destino
+								</Text>
+								<LanguageSelect
+									value={targetLanguage}
+									onChange={setTargetLanguage}
+									placeholder="Selecione um idioma"
+								/>
+							</View>
 						</View>
 
 						<FormField

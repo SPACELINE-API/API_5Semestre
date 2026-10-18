@@ -5,8 +5,15 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 
-from app.modules.auth.dependencies.dependencies import get_current_user
+from app.modules.auth.dependencies.dependencies import (
+    get_current_user,
+    require_administrator,
+    require_permission,
+)
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
+from app.modules.service_orders.models.service_order_email_template import (
+    TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+)
 from app.modules.service_orders.schemas.invite import (
     SendInvitesRequest,
     ServiceOrderItemInviteResponse,
@@ -16,13 +23,22 @@ from app.modules.service_orders.schemas.invite import (
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
+    ServiceOrderDeliveryRequest,
+    ServiceOrderDeliveryResponse,
+    ServiceOrderEmailTemplateResponse,
     ServiceOrderFileResponse,
+    ServiceOrderFileReviewRequest,
     ServiceOrderItemResponse,
     ServiceOrderResponse,
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
 from app.modules.service_orders.schemas.translator_item import TranslatorItemResponse
+from app.modules.service_orders.services.delivery_service import ServiceOrderDeliveryService
+from app.modules.service_orders.services.email_template_service import (
+    ServiceOrderEmailTemplateService,
+)
+from app.modules.service_orders.services.file_review_service import ServiceOrderFileReviewService
 from app.modules.service_orders.services.invite_service import InviteService
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.modules.service_orders.services.translator_item_service import (
@@ -32,6 +48,44 @@ from app.modules.service_orders.services.translator_item_service import (
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/service-orders", tags=["service-orders"])
+service_orders_read_permission = require_permission("service_orders.read")
+service_orders_write_permission = require_permission("service_orders.write")
+documents_write_permission = require_permission("documents.write")
+assignments_read_permission = require_permission("assignments.read")
+assignments_write_permission = require_permission("assignments.write")
+assignments_manage_permission = require_permission("assignments.manage")
+assignments_respond_permission = require_permission("assignments.respond")
+
+
+@router.get("/email-template", response_model=ServiceOrderEmailTemplateResponse)
+def get_service_order_email_template(
+    _current_user: SupabaseAuthenticatedUser = Depends(require_administrator),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderEmailTemplateService(db).get_template()
+
+
+@router.get("/invite-email-template", response_model=ServiceOrderEmailTemplateResponse)
+def get_translator_invite_email_template(
+    _current_user: SupabaseAuthenticatedUser = Depends(require_administrator),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderEmailTemplateService(db).get_template(TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY)
+
+
+@router.post(
+    "/{service_order_id}/deliveries",
+    response_model=list[ServiceOrderDeliveryResponse],
+)
+def send_translated_documents(
+    service_order_id: uuid.UUID,
+    email_override: ServiceOrderDeliveryRequest | None = None,
+    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderDeliveryService(db).send_translated_documents(
+        service_order_id, email_override
+    )
 
 
 @router.get("/items/me", response_model=list[TranslatorItemResponse])
@@ -70,6 +124,7 @@ def deliver_my_item(
 @router.post("/generate-from-quote", response_model=ServiceOrderResponse, status_code=201)
 def generate_from_quote(
     data: GenerateServiceOrderRequest,
+    _user=Depends(service_orders_write_permission),
     db: Session = Depends(get_db),
 ):
     service = ServiceOrderService(db)
@@ -78,6 +133,7 @@ def generate_from_quote(
 
 @router.get("", response_model=list[ServiceOrderResponse])
 def list_service_orders(
+    _user=Depends(service_orders_read_permission),
     db: Session = Depends(get_db),
 ):
     service = ServiceOrderService(db)
@@ -87,6 +143,7 @@ def list_service_orders(
 @router.get("/{service_order_id}", response_model=ServiceOrderResponse)
 def get_service_order(
     service_order_id: uuid.UUID,
+    _user=Depends(service_orders_read_permission),
     db: Session = Depends(get_db),
 ):
     service = ServiceOrderService(db)
@@ -97,6 +154,7 @@ def get_service_order(
 def update_service_order(
     service_order_id: uuid.UUID,
     data: UpdateServiceOrderRequest,
+    _user=Depends(service_orders_write_permission),
     db: Session = Depends(get_db),
 ):
     service = ServiceOrderService(db)
@@ -106,6 +164,7 @@ def update_service_order(
 @router.delete("/{service_order_id}", status_code=204)
 def delete_service_order(
     service_order_id: uuid.UUID,
+    _user=Depends(service_orders_write_permission),
     db: Session = Depends(get_db),
 ):
     service = ServiceOrderService(db)
@@ -121,6 +180,7 @@ def add_service_order_file(
     service_order_id: uuid.UUID,
     direction: str = Form(...),
     file: UploadFile = File(...),
+    _user=Depends(documents_write_permission),
     db: Session = Depends(get_db),
 ):
     service = ServiceOrderService(db)
@@ -134,10 +194,38 @@ def add_service_order_file(
     )
 
 
+@router.post(
+    "/{service_order_id}/files/{file_id}/approve",
+    response_model=ServiceOrderFileResponse,
+)
+def approve_service_order_file(
+    service_order_id: uuid.UUID,
+    file_id: uuid.UUID,
+    _user=Depends(documents_write_permission),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderFileReviewService(db).approve(service_order_id, file_id)
+
+
+@router.post(
+    "/{service_order_id}/files/{file_id}/request-changes",
+    response_model=ServiceOrderFileResponse,
+)
+def request_service_order_file_changes(
+    service_order_id: uuid.UUID,
+    file_id: uuid.UUID,
+    data: ServiceOrderFileReviewRequest,
+    _user=Depends(documents_write_permission),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderFileReviewService(db).request_changes(service_order_id, file_id, data.note)
+
+
 @router.delete("/{service_order_id}/files/{file_id}", status_code=204)
 def delete_service_order_file(
     service_order_id: uuid.UUID,
     file_id: uuid.UUID,
+    _user=Depends(documents_write_permission),
     db: Session = Depends(get_db),
 ):
     ServiceOrderService(db).delete_file(service_order_id, file_id)
@@ -147,9 +235,19 @@ def delete_service_order_file(
 def delete_service_order_item_file(
     service_order_id: uuid.UUID,
     item_id: uuid.UUID,
+    _user=Depends(documents_write_permission),
     db: Session = Depends(get_db),
 ):
     ServiceOrderService(db).delete_item_file(service_order_id, item_id)
+
+
+@router.delete("/{service_order_id}/items/{item_id}", status_code=204)
+def delete_service_order_item(
+    service_order_id: uuid.UUID,
+    item_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    ServiceOrderService(db).delete_item(service_order_id, item_id)
 
 
 @router.post(
@@ -166,6 +264,7 @@ def add_service_order_item(
     price: Decimal | None = Form(None),
     deadline: datetime | None = Form(None),
     file: UploadFile | None = File(None),
+    _user=Depends(service_orders_write_permission),
     db: Session = Depends(get_db),
 ):
     service = ServiceOrderService(db)
@@ -199,6 +298,7 @@ def update_service_order_item(
     price: Decimal | None = Form(None),
     deadline: datetime | None = Form(None),
     file: UploadFile | None = File(None),
+    _user=Depends(service_orders_write_permission),
     db: Session = Depends(get_db),
 ):
     service = ServiceOrderService(db)
@@ -227,6 +327,7 @@ def update_service_order_item(
 def send_invites(
     item_id: uuid.UUID,
     data: SendInvitesRequest,
+    _user=Depends(assignments_write_permission),
     db: Session = Depends(get_db),
 ):
     service = InviteService(db)
@@ -236,6 +337,7 @@ def send_invites(
 @router.get("/items/{item_id}/invites", response_model=list[ServiceOrderItemInviteResponse])
 def list_invites_for_item(
     item_id: uuid.UUID,
+    _user=Depends(assignments_manage_permission),
     db: Session = Depends(get_db),
 ):
     service = InviteService(db)
@@ -245,7 +347,7 @@ def list_invites_for_item(
 @router.get("/invites/me", response_model=list[TranslatorInviteResponse])
 def list_my_invites(
     db: Session = Depends(get_db),
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(assignments_read_permission),
 ):
     service = InviteService(db)
     return service.list_invites_for_translator_email(current_user.email)
@@ -265,7 +367,7 @@ def get_my_invite(
 def accept_invite(
     invite_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(assignments_respond_permission),
 ):
     service = InviteService(db)
     return service.accept_invite(invite_id, current_user.email)
@@ -275,7 +377,7 @@ def accept_invite(
 def decline_invite(
     invite_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(assignments_respond_permission),
 ):
     service = InviteService(db)
     return service.decline_invite(invite_id, current_user.email)

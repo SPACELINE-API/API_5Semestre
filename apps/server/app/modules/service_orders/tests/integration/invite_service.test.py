@@ -17,6 +17,10 @@ from app.modules.service_orders.models.invite import (
     INVITE_STATUS_RECUSADO,
 )
 from app.modules.service_orders.models.service_order import ServiceOrder
+from app.modules.service_orders.models.service_order_email_template import (
+    TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+    ServiceOrderEmailTemplate,
+)
 from app.modules.service_orders.models.service_order_item import (
     STATUS_EM_ANDAMENTO,
     STATUS_PENDENTE,
@@ -27,6 +31,7 @@ from app.modules.service_orders.schemas.invite import (
     TranslatorInviteResponse,
 )
 from app.modules.service_orders.services import invite_service as invite_service_module
+from app.modules.service_orders.services.invite_email import DEFAULT_INVITE_SUBJECT
 from app.modules.service_orders.services.invite_service import InviteService
 from app.modules.translators.models.translator import Translator
 
@@ -132,6 +137,57 @@ def test_send_invites_creates_pending_invites_and_sends_email(
     assert invites[0].status == INVITE_STATUS_PENDENTE
     assert len(sent_emails) == 1
     assert sent_emails[0]["to"] == translator.email
+
+
+def test_send_invites_uses_default_email_when_no_template_is_saved(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+
+    invites = InviteService(db_session).send_invites(item.id, [translator.id])
+
+    email = sent_emails[0]
+    assert email["subject"] == DEFAULT_INVITE_SUBJECT
+    assert translator.name in email["html_body"]
+    assert "pt-BR → en-US" in email["html_body"]
+    assert f"/convites/{invites[0].id}" in email["html_body"]
+    assert "{{" not in email["html_body"]
+
+
+def test_send_invites_uses_the_saved_translator_invite_template(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    db_session.add(
+        ServiceOrderEmailTemplate(
+            key=TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+            subject="Convite para {{nome_tradutor}}",
+            body_html="<p>{{idioma_origem}} para {{idioma_destino}}: {{link_convite}}</p>",
+        )
+    )
+    db_session.commit()
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+
+    invites = InviteService(db_session).send_invites(item.id, [translator.id])
+
+    email = sent_emails[0]
+    assert email["subject"] == f"Convite para {translator.name}"
+    assert email["html_body"].startswith("<p>pt-BR para en-US: ")
+    assert f"/convites/{invites[0].id}" in email["html_body"]
+
+
+def test_send_invites_sends_one_personalized_email_per_translator(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    first = make_translator(db_session)
+    second = make_translator(db_session)
+
+    InviteService(db_session).send_invites(item.id, [first.id, second.id])
+
+    assert {email["to"] for email in sent_emails} == {first.email, second.email}
+    assert len({email["html_body"] for email in sent_emails}) == 2
 
 
 def test_send_invites_raises_409_when_translator_has_pending_invite(

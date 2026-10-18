@@ -15,6 +15,9 @@ seed_qualifications = import_module("app.modules.seed.seed_qualifications").seed
 seed_quotes = import_module("app.modules.seed.seed_quotes").seed_quotes
 seed_translators = import_module("app.modules.seed.seed_translators").seed_translators
 seed_service_orders = import_module("app.modules.seed.seed_service_orders").seed_service_orders
+seed_service_order_email_template = import_module(
+    "app.modules.seed.seed_service_order_email_template"
+).seed_service_order_email_template
 seed_invites = import_module("app.modules.seed.seed_invites").seed_invites
 apply_migrations = import_module("scripts.apply_migrations").apply_migrations
 
@@ -31,6 +34,7 @@ if __name__ == "__main__":
     quotes = seed_quotes()
     translators = seed_translators()
     service_orders = seed_service_orders()
+    email_template = seed_service_order_email_template()
     invites = seed_invites()
     print(
         f"Seeded {len(users)} users, {len(companies)} companies, "
@@ -39,5 +43,5 @@ if __name__ == "__main__":
         f"{len(languages)} languages, "
         f"{len(qualifications)} qualifications, {len(quotes)} quotes, "
         f"{len(translators)} translators, {len(service_orders)} service orders "
-        f"and {len(invites)} invites."
+        f"and {len(invites)} invites. Email template: {email_template}."
     )

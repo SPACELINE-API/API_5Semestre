@@ -26,14 +26,19 @@ import { ClientInfoTab } from '../components/ClientInfoTab';
 import { ItemsTable } from '../components/ItemsTable';
 import { ServiceOrderFilesTab } from '../components/ServiceOrderFilesTab';
 import { TranslatorsInviteTab } from '../components/TranslatorsInviteTab';
+import { ItemReviewTab } from '../components/ItemReviewTab';
+import { pendingReviewDeliveries } from '../utils/fileReview';
 import { InviteTranslatorsModal } from '../components/InviteTranslatorsModal';
 import { AddItemModal } from '../components/AddItemModal';
 import { EditItemModal } from '../components/EditItemModal';
 import {
+	approveServiceOrderFile,
 	createServiceOrderItem,
 	deleteServiceOrder,
 	deleteServiceOrderFile,
+	deleteServiceOrderItem,
 	deleteServiceOrderItemFile,
+	requestServiceOrderFileChanges,
 	sendItemInvites,
 	updateServiceOrder,
 	updateServiceOrderItem,
@@ -43,6 +48,7 @@ import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import type { ServiceOrderItem } from '../types/serviceOrder';
+import { CompleteServiceOrderModal } from '../components/CompleteServiceOrderModal';
 
 type ServiceOrderDetailsPageProps = {
 	id: string;
@@ -51,7 +57,8 @@ type ServiceOrderDetailsPageProps = {
 export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const router = useRouter();
 
-	const { serviceOrder, isLoading, error, refresh } = useServiceOrder(id);
+	const { serviceOrder, isLoading, error, refresh, setServiceOrder } =
+		useServiceOrder(id);
 	const { companies } = useCompanies();
 	const { translators } = useTranslators();
 	const { contacts } = useContacts();
@@ -64,8 +71,13 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const [refreshToken, setRefreshToken] = useState(0);
 	const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
 	const [editingItem, setEditingItem] = useState<ServiceOrderItem | null>(null);
+	const [deletingItem, setDeletingItem] = useState<ServiceOrderItem | null>(
+		null,
+	);
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
+	const [isCompleteModalVisible, setIsCompleteModalVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [isDeletingItem, setIsDeletingItem] = useState(false);
 
 	const { invites: inviteTargetItemInvites } = useItemInvites(
 		inviteTargetItem?.id ?? '',
@@ -107,6 +119,27 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 			);
 			setIsDeleting(false);
 			setIsDeleteConfirmVisible(false);
+		}
+	}
+
+	async function handleDeleteItem() {
+		if (!serviceOrder || !deletingItem) return;
+
+		setIsDeletingItem(true);
+		try {
+			await deleteServiceOrderItem(serviceOrder.id, deletingItem.id);
+			setDeletingItem(null);
+			await refresh();
+			showToast('Item excluído com sucesso!', 'success');
+		} catch (deleteError) {
+			showToast(
+				deleteError instanceof Error
+					? deleteError.message
+					: 'Não foi possível excluir o item.',
+				'error',
+			);
+		} finally {
+			setIsDeletingItem(false);
 		}
 	}
 
@@ -172,6 +205,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 								setRefreshToken((current) => current + 1);
 							}}
 							onDelete={() => setIsDeleteConfirmVisible(true)}
+							onComplete={() => setIsCompleteModalVisible(true)}
 							onViewChange={setView}
 						/>
 
@@ -180,6 +214,9 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 								<ServiceOrderDetailTabs
 									selected={detailTab}
 									onSelect={setDetailTab}
+									reviewCount={
+										pendingReviewDeliveries(serviceOrder.files).length
+									}
 								/>
 
 								<View className="py-7">
@@ -262,6 +299,55 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											translatorsById={translatorsById}
 											onAddItem={() => setIsAddItemModalVisible(true)}
 											onEditItem={setEditingItem}
+											onDeleteItem={setDeletingItem}
+										/>
+									)}
+
+									{detailTab === 'revisao' && (
+										<ItemReviewTab
+											items={serviceOrder.items}
+											files={serviceOrder.files}
+											translatorsById={translatorsById}
+											onApprove={async (file) => {
+												try {
+													await approveServiceOrderFile(
+														serviceOrder.id,
+														file.id,
+													);
+													await refresh();
+													showToast('Entrega aprovada com sucesso!', 'success');
+												} catch (reviewError) {
+													showToast(
+														reviewError instanceof Error
+															? reviewError.message
+															: 'Não foi possível aprovar a entrega.',
+														'error',
+													);
+												}
+											}}
+											onRequestChanges={async (file, note) => {
+												try {
+													await requestServiceOrderFileChanges(
+														serviceOrder.id,
+														file.id,
+														note,
+													);
+													await refresh();
+													showToast(
+														'Ajustes solicitados ao tradutor.',
+														'success',
+													);
+													return true;
+												} catch (reviewError) {
+													showToast(
+														reviewError instanceof Error
+															? reviewError.message
+															: 'Não foi possível enviar o pedido de ajustes.',
+														'error',
+													);
+													return false;
+												}
+											}}
 										/>
 									)}
 
@@ -271,13 +357,15 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											files={serviceOrder.files}
 											onUpload={async (file, direction) => {
 												try {
-													await uploadServiceOrderFile(
+													const uploadedFile = await uploadServiceOrderFile(
 														serviceOrder.id,
 														file,
 														direction,
 													);
-													await refresh();
+													const refreshedOrder = await refresh();
+													if (refreshedOrder) setServiceOrder(refreshedOrder);
 													showToast('Arquivo enviado com sucesso!', 'success');
+													return uploadedFile;
 												} catch (submitError) {
 													showToast(
 														submitError instanceof Error
@@ -285,6 +373,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 															: 'Não foi possível enviar o arquivo.',
 														'error',
 													);
+													throw submitError;
 												}
 											}}
 											onDelete={async (target) => {
@@ -418,6 +507,17 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 			/>
 
 			<ConfirmDialog
+				visible={deletingItem !== null}
+				title="Excluir item"
+				message={`Tem certeza que deseja excluir o item ${deletingItem?.source_language ?? ''} → ${deletingItem?.target_language ?? ''}? Essa ação não pode ser desfeita.`}
+				confirmLabel="Excluir"
+				destructive
+				isLoading={isDeletingItem}
+				onConfirm={handleDeleteItem}
+				onCancel={() => setDeletingItem(null)}
+			/>
+
+			<ConfirmDialog
 				visible={isDeleteConfirmVisible}
 				title="Excluir ordem de serviço"
 				message={`Tem certeza que deseja excluir "${serviceOrder?.project_name}"? Essa ação não pode ser desfeita.`}
@@ -428,12 +528,27 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 				onCancel={() => setIsDeleteConfirmVisible(false)}
 			/>
 
+			{serviceOrder && (
+				<CompleteServiceOrderModal
+					visible={isCompleteModalVisible}
+					serviceOrder={serviceOrder}
+					customerName={company?.trade_name}
+					onClose={() => setIsCompleteModalVisible(false)}
+					onSent={() => {
+						setIsCompleteModalVisible(false);
+						refresh();
+						showToast('Documentos enviados ao cliente com sucesso!', 'success');
+					}}
+				/>
+			)}
+
 			<Toast
 				toast={
 					inviteTargetItem ||
 					isAddItemModalVisible ||
 					editingItem ||
-					isDeleteConfirmVisible
+					isDeleteConfirmVisible ||
+					deletingItem
 						? null
 						: toast
 				}

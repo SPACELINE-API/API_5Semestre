@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from '../../../shared/services/apiClient';
+import { apiGetAuth, apiPostAuth } from '../../../shared/services/apiClient';
 import type {
 	SuportePerguntaRequest,
 	SuportePerguntaResponse,
@@ -7,7 +7,7 @@ import type {
 export const QUESTION_MAX_LENGTH = 500;
 
 export function askSupportAgent(texto: string) {
-	return apiPost<SuportePerguntaResponse, SuportePerguntaRequest>(
+	return apiPostAuth<SuportePerguntaResponse, SuportePerguntaRequest>(
 		'/api/suporte/perguntas',
 		{ texto },
 	);
@@ -16,7 +16,7 @@ export function askSupportAgent(texto: string) {
 type EnfileirarChatResponse = { event_id: string };
 
 export function enviarPerguntaChat(texto: string) {
-	return apiPost<EnfileirarChatResponse, SuportePerguntaRequest>(
+	return apiPostAuth<EnfileirarChatResponse, SuportePerguntaRequest>(
 		'/api/suporte/chat',
 		{ texto },
 	);
@@ -28,5 +28,7 @@ type StatusPerguntaResponse =
 	| { status: 'error'; error: unknown };
 
 export function consultarStatusPergunta(eventId: string) {
-	return apiGet<StatusPerguntaResponse>(`/api/suporte/chat/${eventId}/status`);
+	return apiGetAuth<StatusPerguntaResponse>(
+		`/api/suporte/chat/${eventId}/status`,
+	);
 }

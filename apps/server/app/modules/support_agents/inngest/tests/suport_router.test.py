@@ -3,6 +3,10 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.modules.support_agents.inngest.router.support_router import (
+    support_read_permission,
+    support_write_permission,
+)
 from app.modules.support_agents.inngest.schema.agent_schema import QUESTION_MAX_LENGTH
 from app.modules.support_agents.inngest.services.support_agent_services import get_agente_suporte
 
@@ -13,6 +17,8 @@ URL = "/api/suporte/perguntas"
 
 @pytest.fixture(autouse=True)
 def clear_overrides():
+    app.dependency_overrides[support_read_permission] = lambda: None
+    app.dependency_overrides[support_write_permission] = lambda: None
     yield
     app.dependency_overrides.clear()
 
