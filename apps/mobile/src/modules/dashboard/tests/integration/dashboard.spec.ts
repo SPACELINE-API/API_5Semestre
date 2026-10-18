@@ -237,7 +237,7 @@ test.describe('Painel inicial (Dashboard)', () => {
 		await expect(page.getByText('Requisições').first()).toBeVisible();
 	});
 
-	for (const roleName of ['Administrador', 'Operador']) {
+	for (const roleName of ['Administrador']) {
 		test(`exibe todos os atalhos disponíveis para perfil ${roleName}`, async ({
 			page,
 		}) => {

@@ -160,7 +160,7 @@ export async function fetchDashboardMetrics(
 		);
 	}
 
-	// 2. Requisições (Atendimento, Projetos, Admin, Operador)
+	// 2. Requisições (Atendimento, Projetos, Admin)
 	if (isFull || permissions.includes('requests.read')) {
 		fetchTasks.push(
 			fetchRequests()
@@ -186,7 +186,7 @@ export async function fetchDashboardMetrics(
 		);
 	}
 
-	// 3. Orçamentos (Projetos, Financeiro, Admin, Operador)
+	// 3. Orçamentos (Projetos, Financeiro, Admin)
 	if (isFull || permissions.includes('quotes.read')) {
 		fetchTasks.push(
 			apiGetAuth<{ total: number }>('/api/quotes?status=pending')
@@ -236,7 +236,7 @@ export async function fetchDashboardMetrics(
 		);
 	}
 
-	// 4. Ordens de Serviço (Projetos, Financeiro, Admin, Operador)
+	// 4. Ordens de Serviço (Projetos, Financeiro, Admin)
 	if (isFull || permissions.includes('service_orders.read')) {
 		fetchTasks.push(
 			listServiceOrders()
@@ -262,7 +262,7 @@ export async function fetchDashboardMetrics(
 		);
 	}
 
-	// 5. Clientes (Atendimento, Admin, Operador)
+	// 5. Clientes (Atendimento, Admin)
 	if (isFull || permissions.includes('clients.read')) {
 		fetchTasks.push(
 			listCompanies()
@@ -284,7 +284,7 @@ export async function fetchDashboardMetrics(
 		);
 	}
 
-	// 6. Tradutores (Projetos, Admin, Operador)
+	// 6. Tradutores (Projetos, Admin)
 	if (isFull || permissions.includes('translators.read')) {
 		fetchTasks.push(
 			apiGetAuth<unknown[]>('/api/translators')
