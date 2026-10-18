@@ -23,6 +23,7 @@ from app.modules.translators.repositories.certificate_repository import (
 )
 from app.modules.translators.repositories.translator_repository import TranslatorRepository
 from app.modules.translators.schemas.certificate import (
+    CertifiableLanguageResponse,
     CertificateFileResponse,
     CertificateResponse,
     CertificateReviewInput,
@@ -113,6 +114,13 @@ class TranslatorCertificateService:
     def list_mine(self, email: str) -> list[CertificateResponse]:
         translator = self.profiles.get_translator(email)
         return self._to_responses(self.repo.list_by_translator(translator.id))
+
+    def list_certifiable_languages(self, email: str) -> list[CertifiableLanguageResponse]:
+        translator = self.profiles.get_translator(email)
+        return [
+            CertifiableLanguageResponse.model_validate(language)
+            for language in self.repo.list_certifiable_languages(translator.id)
+        ]
 
     def get_my_file(self, email: str, certificate_id: uuid.UUID) -> CertificateFileResponse:
         translator = self.profiles.get_translator(email)

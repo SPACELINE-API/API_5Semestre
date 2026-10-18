@@ -8,6 +8,7 @@ from app.modules.auth.dependencies.dependencies import require_permission
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.translators.models.translator_language import ProficiencyLevel
 from app.modules.translators.schemas.certificate import (
+    CertifiableLanguageResponse,
     CertificateFileResponse,
     CertificateResponse,
     CertificateReviewInput,
@@ -85,6 +86,11 @@ def submit_my_certificate(
 @router.get("/me/certificates", response_model=list[CertificateResponse])
 def list_my_certificates(db: DbSession, current_user: CurrentUser):
     return TranslatorCertificateService(db).list_mine(current_user.email)
+
+
+@router.get("/me/certificates/languages", response_model=list[CertifiableLanguageResponse])
+def list_my_certifiable_languages(db: DbSession, current_user: CurrentUser):
+    return TranslatorCertificateService(db).list_certifiable_languages(current_user.email)
 
 
 @router.get("/me/certificates/{certificate_id}/file", response_model=CertificateFileResponse)

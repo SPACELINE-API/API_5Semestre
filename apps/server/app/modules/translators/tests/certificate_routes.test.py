@@ -131,3 +131,10 @@ def test_certificate_routes_require_authentication(client: TestClient):
     response = client.get("/api/translators/me/certificates")
 
     assert response.status_code == 401
+
+
+def test_translator_lists_languages_available_for_certificate(client: TestClient, authenticated):
+    response = client.get("/api/translators/me/certificates/languages")
+
+    assert response.status_code == 200
+    assert response.json() == [{"id": "es", "name": "Espanhol"}]

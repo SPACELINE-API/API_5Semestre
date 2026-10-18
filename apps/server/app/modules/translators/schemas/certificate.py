@@ -27,6 +27,14 @@ class CertificateResponse(BaseModel):
     updated_at: datetime
 
 
+# IDIOMA DISPONIVEL PARA ENVIO DE CERTIFICADO
+class CertifiableLanguageResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+
+
 # LINK TEMPORARIO PARA VISUALIZAR O ARQUIVO NO BUCKET PRIVADO
 class CertificateFileResponse(BaseModel):
     url: str

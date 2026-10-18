@@ -3,7 +3,12 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
-from app.modules.translators.models.translator_certificate import TranslatorCertificate
+from app.modules.system_parameters.models.language import Language
+from app.modules.translators.models.translator_certificate import (
+    CertificateStatus,
+    TranslatorCertificate,
+)
+from app.modules.translators.models.translator_language import TranslatorLanguage
 
 
 class TranslatorCertificateRepository:
@@ -54,5 +59,26 @@ class TranslatorCertificateRepository:
                 select(TranslatorCertificate.storage_path).where(
                     TranslatorCertificate.translator_id == translator_id
                 )
+            )
+        )
+
+    # IDIOMAS DO CADASTRO QUE O TRADUTOR AINDA PODE CERTIFICAR:
+    # FORA DO PERFIL E SEM CERTIFICADO APROVADO (PENDENTE OU RECUSADO PODE SER SUBSTITUIDO)
+    def list_certifiable_languages(self, translator_id: uuid.UUID) -> list[Language]:
+        profile_languages = select(TranslatorLanguage.language_id).where(
+            TranslatorLanguage.translator_id == translator_id
+        )
+        approved_languages = select(TranslatorCertificate.language_id).where(
+            TranslatorCertificate.translator_id == translator_id,
+            TranslatorCertificate.status == CertificateStatus.APPROVED,
+        )
+        return list(
+            self.db.scalars(
+                select(Language)
+                .where(
+                    Language.id.not_in(profile_languages),
+                    Language.id.not_in(approved_languages),
+                )
+                .order_by(Language.name)
             )
         )

@@ -309,3 +309,21 @@ def test_deleting_translator_removes_certificate_files(db_session, translator, f
 
     assert sorted(fake_storage.deleted) == sorted(fake_storage.uploaded)
     assert count_certificates(db_session) == 0
+
+
+def test_certifiable_languages_come_from_registered_languages(db_session, translator, fake_storage):
+    db_session.add(Language(id="de", name="Alemão"))
+    db_session.commit()
+    service = TranslatorCertificateService(db_session)
+    approved = submit(service, translator, language_id="es")
+    service.review(
+        translator.id,
+        approved.id,
+        CertificateReviewInput(status=CertificateStatus.APPROVED),
+        "admin@example.com",
+    )
+    submit(service, translator, language_id="fr")
+
+    languages = service.list_certifiable_languages(translator.email)
+
+    assert [(item.id, item.name) for item in languages] == [("de", "Alemão"), ("fr", "Francês")]
