@@ -16,9 +16,11 @@ import {
 	ShieldCheckIcon,
 	ChevronRightIcon,
 	ChevronUpIcon,
+	LayoutDashboard,
 } from 'lucide-react-native';
 
 export {
+	LayoutDashboard as DashboardIcon,
 	Inbox as RequisicoesIcon,
 	FileText as OrcamentoIcon,
 	ClipboardList as OrdemServicoIcon,
