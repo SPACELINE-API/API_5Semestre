@@ -1,8 +1,8 @@
 import {
-	apiDelete,
-	apiGet,
-	apiPatch,
-	apiPost,
+	apiDeleteAuth,
+	apiGetAuth,
+	apiPatchAuth,
+	apiPostAuth,
 } from '../../../shared/services/apiClient';
 import type {
 	Company,
@@ -13,27 +13,27 @@ import type {
 const CLIENTS_PATH = '/api/clients';
 
 export function listCompanies(): Promise<Company[]> {
-	return apiGet<Company[]>(CLIENTS_PATH);
+	return apiGetAuth<Company[]>(CLIENTS_PATH);
 }
 
 export function createCompany(data: CompanyCreateInput): Promise<Company> {
-	return apiPost<Company, CompanyCreateInput>(CLIENTS_PATH, data);
+	return apiPostAuth<Company, CompanyCreateInput>(CLIENTS_PATH, data);
 }
 
 export function getCompany(id: string): Promise<Company> {
-	return apiGet<Company>(`${CLIENTS_PATH}/${id}`);
+	return apiGetAuth<Company>(`${CLIENTS_PATH}/${id}`);
 }
 
 export function updateCompany(
 	id: string,
 	data: Partial<CompanyUpdateInput>,
 ): Promise<Company> {
-	return apiPatch<Company, Partial<CompanyUpdateInput>>(
+	return apiPatchAuth<Company, Partial<CompanyUpdateInput>>(
 		`${CLIENTS_PATH}/${id}`,
 		data,
 	);
 }
 
 export function deleteCompany(id: string): Promise<void> {
-	return apiDelete(`${CLIENTS_PATH}/${id}`);
+	return apiDeleteAuth(`${CLIENTS_PATH}/${id}`);
 }

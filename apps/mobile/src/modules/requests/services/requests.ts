@@ -52,7 +52,13 @@ const API_BASE_URL = env.apiUrl;
 export async function fetchRequests(): Promise<RequestItem[]> {
 	let response: Response;
 	try {
-		response = await fetch(`${API_BASE_URL}/api/quotes/requests`);
+		response = await fetch(`${API_BASE_URL}/api/quotes/requests`, {
+			headers: {
+				...(getSession()?.access_token
+					? { Authorization: `Bearer ${getSession()?.access_token}` }
+					: {}),
+			},
+		});
 	} catch (error) {
 		console.error('Error loading requests:', error);
 		throw new Error(
@@ -72,7 +78,13 @@ export async function fetchRequests(): Promise<RequestItem[]> {
 export async function fetchRequestById(
 	requestId: string,
 ): Promise<RequestItem | null> {
-	const response = await fetch(`${API_BASE_URL}/api/quotes/requests`);
+	const response = await fetch(`${API_BASE_URL}/api/quotes/requests`, {
+		headers: {
+			...(getSession()?.access_token
+				? { Authorization: `Bearer ${getSession()?.access_token}` }
+				: {}),
+		},
+	});
 	if (!response.ok) {
 		throw new Error('Não foi possível carregar as requisições.');
 	}

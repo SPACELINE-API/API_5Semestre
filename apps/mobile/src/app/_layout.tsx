@@ -30,6 +30,7 @@ import {
 import {
 	canAccess,
 	firstAllowedRoute,
+	requiredPermission,
 } from '../modules/auth/services/authorization';
 
 SplashScreen.preventAutoHideAsync();
@@ -45,10 +46,16 @@ export default function AppLayout() {
 		'Poppins-Bold': Poppins_700Bold,
 	});
 	const pathname = usePathname();
+	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
 	const [authorizationLoaded, setAuthorizationLoaded] = useState(false);
 	const [authorizationError, setAuthorizationError] = useState(false);
 	const [authorizationVersion, setAuthorizationVersion] = useState(0);
+	const [hasMounted, setHasMounted] = useState(false);
 	const session = getSession();
+
+	useEffect(() => {
+		setHasMounted(true);
+	}, []);
 
 	useEffect(() => {
 		if (typeof document !== 'undefined') {
@@ -104,21 +111,30 @@ export default function AppLayout() {
 		return null;
 	}
 
-	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
-
-	if (!isPublic && !session) return <Redirect href={'/login' as never} />;
 	if (isPublic)
 		return (
 			<KeyboardProvider>
 				<Slot />
 			</KeyboardProvider>
 		);
-	if (!authorizationLoaded) return null;
-	if (authorizationError) return <AuthorizationUnavailable />;
 	const authorizationContext = getAuthorizationContext();
-	if (!canAccess(authorizationContext, pathname)) {
+	if (!isPublic && hasMounted && !session && !authorizationContext)
+		return <Redirect href={'/login' as never} />;
+	if (!isPublic && !authorizationLoaded && !authorizationContext) return null;
+	if (!isPublic && authorizationLoaded && authorizationError)
+		return <AuthorizationUnavailable />;
+	if (
+		!isPublic &&
+		authorizationLoaded &&
+		requiredPermission(pathname) &&
+		!canAccess(authorizationContext, pathname)
+	) {
 		return <Redirect href={firstAllowedRoute(authorizationContext) as never} />;
 	}
+	const showAppShell =
+		!isPublic &&
+		Boolean(session || authorizationContext) &&
+		authorizationLoaded;
 
 	return (
 		<SafeAreaProvider>
@@ -126,6 +142,7 @@ export default function AppLayout() {
 				<AppShell
 					authorizationVersion={authorizationVersion}
 					permissions={authorizationContext?.permissions ?? []}
+					showNavigation={showAppShell}
 					isMobileNavOpen={isMobileNavOpen}
 					onCloseMobileNav={() => setIsMobileNavOpen(false)}
 					onOpenMobileNav={() => setIsMobileNavOpen(true)}
@@ -155,6 +172,7 @@ function AuthorizationUnavailable() {
 
 type AppShellProps = {
 	permissions: string[];
+	showNavigation: boolean;
 	authorizationVersion: number;
 	isMobileNavOpen: boolean;
 	onCloseMobileNav: () => void;
@@ -164,6 +182,7 @@ type AppShellProps = {
 function AppShell({
 	isMobileNavOpen,
 	permissions,
+	showNavigation,
 	authorizationVersion,
 	onCloseMobileNav,
 	onOpenMobileNav,
@@ -172,27 +191,31 @@ function AppShell({
 
 	return (
 		<View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}>
-			<SideBar
-				key={authorizationVersion}
-				permissions={permissions}
-				mobileOpen={isMobileNavOpen}
-				onCloseMobile={onCloseMobileNav}
-			/>
+			{showNavigation ? (
+				<SideBar
+					key={authorizationVersion}
+					permissions={permissions}
+					mobileOpen={isMobileNavOpen}
+					onCloseMobile={onCloseMobileNav}
+				/>
+			) : null}
 			<View style={{ flex: 1, overflow: 'hidden' }}>
-				<View
-					style={{ paddingTop: insets.top }}
-					className="flex-row items-center gap-3 border-b border-gray-100 bg-white px-4 py-3 md:hidden"
-				>
-					<TouchableOpacity
-						onPress={onOpenMobileNav}
-						activeOpacity={0.7}
-						accessibilityRole="button"
-						accessibilityLabel="Abrir menu"
-						className="h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
+				{showNavigation ? (
+					<View
+						style={{ paddingTop: insets.top }}
+						className="flex-row items-center gap-3 border-b border-gray-100 bg-white px-4 py-3 md:hidden"
 					>
-						<Menu size={22} color="#1f2937" strokeWidth={2} />
-					</TouchableOpacity>
-				</View>
+						<TouchableOpacity
+							onPress={onOpenMobileNav}
+							activeOpacity={0.7}
+							accessibilityRole="button"
+							accessibilityLabel="Abrir menu"
+							className="h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
+						>
+							<Menu size={22} color="#1f2937" strokeWidth={2} />
+						</TouchableOpacity>
+					</View>
+				) : null}
 
 				<Slot />
 			</View>

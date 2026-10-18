@@ -31,7 +31,7 @@ class FakeSupabaseAdminClient:
 def test_seed_users_defines_three_users_with_default_password() -> None:
     assert len(SEED_USERS) == 3
     assert {user.password for user in SEED_USERS} == {"123456"}
-    assert [user.role for user in SEED_USERS] == ["admin", "tradutor", "cliente"]
+    assert [user.role for user in SEED_USERS] == ["admin", "operador", "cliente"]
     assert [user.email for user in SEED_USERS] == [
         "admin@spaceline.com.br",
         "operador@spaceline.com.br",
