@@ -1,0 +1,75 @@
+@serverUrl = http://localhost:3333
+@operatorTranslatorId = a1a2a3a4-0000-4000-8000-000000000001
+
+### Login do tradutor do seed (operador@spaceline.com.br possui perfil de tradutor)
+# @name loginTranslator
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "operador@spaceline.com.br",
+  "password": "123456"
+}
+
+### Login do administrador do seed
+# @name loginAdmin
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@spaceline.com.br",
+  "password": "123456"
+}
+
+### Enviar certificado de um novo idioma de trabalho (PDF, JPG ou PNG até 10 MB)
+### Reenviar para o mesmo idioma substitui o arquivo enquanto o certificado não for aprovado.
+# @name sendCertificate
+POST {{serverUrl}}/api/translators/me/certificates
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+Content-Type: multipart/form-data; boundary=----SpacelineCertificate
+
+------SpacelineCertificate
+Content-Disposition: form-data; name="language_id"
+
+es-ES
+------SpacelineCertificate
+Content-Disposition: form-data; name="proficiency_level"
+
+advanced
+------SpacelineCertificate
+Content-Disposition: form-data; name="file"; filename="certificado-dele.pdf"
+Content-Type: application/pdf
+
+< ./seed-assets/termo-de-confidencialidade.pdf
+------SpacelineCertificate--
+
+### Listar os certificados do tradutor autenticado
+GET {{serverUrl}}/api/translators/me/certificates
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+
+### Gerar link temporário para visualizar o certificado (bucket privado)
+GET {{serverUrl}}/api/translators/me/certificates/{{sendCertificate.response.body.$.id}}/file
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+
+### Administrador: listar certificados de um tradutor
+GET {{serverUrl}}/api/translators/{{operatorTranslatorId}}/certificates
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+
+### Administrador: aprovar certificado (o idioma passa a fazer parte do perfil)
+PATCH {{serverUrl}}/api/translators/{{operatorTranslatorId}}/certificates/{{sendCertificate.response.body.$.id}}/review
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "status": "approved"
+}
+
+### Administrador: recusar certificado (motivo obrigatório)
+PATCH {{serverUrl}}/api/translators/{{operatorTranslatorId}}/certificates/{{sendCertificate.response.body.$.id}}/review
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "status": "rejected",
+  "review_note": "Documento ilegível. Envie uma digitalização legível."
+}
