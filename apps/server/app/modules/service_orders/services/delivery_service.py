@@ -1,5 +1,6 @@
 import html
 import uuid
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlalchemy import func
@@ -237,7 +238,9 @@ class ServiceOrderDeliveryService:
         )
         if not has_pending_documents:
             for item in service_order.items:
-                item.status = STATUS_CONCLUIDA
+                if item.status != STATUS_CONCLUIDA:
+                    item.status = STATUS_CONCLUIDA
+                    item.completed_at = datetime.now(UTC)
         self.db.commit()
 
         return successful_deliveries

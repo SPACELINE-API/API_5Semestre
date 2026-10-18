@@ -14,6 +14,7 @@ import {
 import type { LucideIcon } from 'lucide-react-native';
 import { X as CloseIcon } from 'lucide-react-native';
 import {
+	DashboardIcon,
 	RequisicoesIcon,
 	OrcamentoIcon,
 	OrdemServicoIcon,
@@ -105,6 +106,7 @@ export function SideBar({
 	const insets = useSafeAreaInsets();
 	const [isOpen, setIsOpen] = useState<boolean>(true);
 
+	const isDashboardActive = pathname === '/dashboard' || pathname === '/';
 	const isRequestsActive = pathname.startsWith('/visualizar-requisicoes');
 	const isClientsActive = pathname.startsWith('/clientes');
 	const isOrdersActive = pathname.startsWith('/ordens-de-servico');
@@ -225,6 +227,21 @@ export function SideBar({
 							</View>
 						) : (
 							<>
+								{can('dashboard.read') && (
+									<View>
+										<GroupLabel isOpen={showExpanded}>Principal</GroupLabel>
+										<View className="flex-col gap-1">
+											<NavItem
+												icon={DashboardIcon}
+												label="Dashboard"
+												isOpen={showExpanded}
+												active={isDashboardActive}
+												onPress={() => navigate('/dashboard')}
+											/>
+										</View>
+									</View>
+								)}
+
 								{(can('requests.read') ||
 									can('quotes.read') ||
 									can('service_orders.read')) && (

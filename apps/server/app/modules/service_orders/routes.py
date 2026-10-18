@@ -91,7 +91,7 @@ def send_translated_documents(
 @router.get("/items/me", response_model=list[TranslatorItemResponse])
 def list_my_items(
     db: Session = Depends(get_db),
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(assignments_read_permission),
 ):
     return TranslatorItemService(db).list_items(current_user.email)
 
@@ -100,7 +100,7 @@ def list_my_items(
 def get_my_item(
     item_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(assignments_read_permission),
 ):
     return TranslatorItemService(db).get_item(item_id, current_user.email)
 
@@ -110,7 +110,7 @@ def deliver_my_item(
     item_id: uuid.UUID,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(assignments_respond_permission),
 ):
     return TranslatorItemService(db).deliver(
         item_id,
@@ -357,7 +357,7 @@ def list_my_invites(
 def get_my_invite(
     invite_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
+    current_user: SupabaseAuthenticatedUser = Depends(assignments_read_permission),
 ):
     service = InviteService(db)
     return service.get_invite_for_translator(invite_id, current_user.email)

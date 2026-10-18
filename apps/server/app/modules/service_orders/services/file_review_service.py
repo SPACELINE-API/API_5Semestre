@@ -57,7 +57,9 @@ class ServiceOrderFileReviewService:
         file.review_status = REVIEW_APPROVED
         file.review_note = None
         file.reviewed_at = datetime.now(UTC)
-        item.status = STATUS_CONCLUIDA
+        if item.status != STATUS_CONCLUIDA:
+            item.status = STATUS_CONCLUIDA
+            item.completed_at = datetime.now(UTC)
 
         self.db.commit()
         self.db.refresh(file)
@@ -72,6 +74,7 @@ class ServiceOrderFileReviewService:
         file.review_note = note.strip()
         file.reviewed_at = datetime.now(UTC)
         item.status = STATUS_EM_ANDAMENTO
+        item.completed_at = None
 
         self.db.commit()
         self.db.refresh(file)
