@@ -7,6 +7,7 @@ export type ServiceOrderItemInvite = {
 	status: InviteStatus;
 	sent_at: string;
 	responded_at: string | null;
+	item_status?: string | null;
 };
 
 export type ServiceOrderItemDetails = {

@@ -122,7 +122,9 @@ export async function fetchDashboardMetrics(
 			listMyInvites()
 				.then((invites) => {
 					const pending = invites.filter((i) => i.status === 'pendente').length;
-					const accepted = invites.filter((i) => i.status === 'aceito').length;
+					const accepted = invites.filter(
+						(i) => i.status === 'aceito' && i.item_status !== 'concluida',
+					).length;
 
 					metrics.push({
 						id: 'my-invites-pending',

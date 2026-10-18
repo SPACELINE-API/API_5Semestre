@@ -106,6 +106,44 @@ test.describe('Dashboard Service Unit Tests', () => {
 			}
 		});
 
+		test('desconsidera convites aceitos cujas tarefas já foram concluídas', async () => {
+			const originalFetch = globalThis.fetch;
+
+			globalThis.fetch = async (url) => {
+				const urlStr = String(url);
+				if (urlStr.includes('/api/service-orders/invites/me')) {
+					return {
+						ok: true,
+						status: 200,
+						json: async () => [
+							{ id: 'inv-1', status: 'aceito', item_status: 'em_andamento' },
+							{ id: 'inv-2', status: 'aceito', item_status: 'concluida' },
+							{ id: 'inv-3', status: 'pendente' },
+						],
+					} as Response;
+				}
+				return { ok: true, status: 200, json: async () => [] } as Response;
+			};
+
+			try {
+				const context: AuthorizationContext = {
+					user: { id: 'trans-id', email: 'tradutor@spaceline.com' },
+					roles: [{ id: 'role-ext', name: 'Recursos externos' }],
+					permissions: ['assignments.read'],
+				};
+
+				const metrics = await fetchDashboardMetrics(context);
+				const acceptedMetric = metrics.find(
+					(m) => m.id === 'my-tasks-accepted',
+				);
+
+				expect(acceptedMetric).toBeDefined();
+				expect(acceptedMetric?.value).toBe(1);
+			} finally {
+				globalThis.fetch = originalFetch;
+			}
+		});
+
 		test('lida com falhas em endpoints sem lançar erro', async () => {
 			const originalFetch = globalThis.fetch;
 
