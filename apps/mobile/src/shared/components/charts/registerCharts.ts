@@ -6,8 +6,10 @@ import {
 	TitleComponent,
 	TooltipComponent,
 } from 'echarts/components';
+import { LegacyGridContainLabel } from 'echarts/features';
 
 use([
+	LegacyGridContainLabel,
 	BarChart,
 	LineChart,
 	PieChart,

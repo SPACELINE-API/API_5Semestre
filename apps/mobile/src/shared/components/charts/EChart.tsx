@@ -4,6 +4,7 @@ import { SvgXml } from 'react-native-svg';
 import { init, use } from 'echarts/core';
 import { SVGRenderer } from 'echarts/renderers';
 import './registerCharts';
+import { stripPointerEvents } from './svg';
 import type { ChartOption, EChartProps } from './types';
 
 use([SVGRenderer]);
@@ -16,7 +17,7 @@ function renderSvg(option: ChartOption, width: number, height: number) {
 		height,
 	});
 	chart.setOption({ ...option, animation: false });
-	const svg = chart.renderToSVGString();
+	const svg = stripPointerEvents(chart.renderToSVGString());
 	chart.dispose();
 	return svg;
 }

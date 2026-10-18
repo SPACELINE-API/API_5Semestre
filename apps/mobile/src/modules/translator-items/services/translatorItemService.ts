@@ -1,8 +1,4 @@
-import {
-	apiGetAuth,
-	apiUrl,
-	authHeaders,
-} from '../../../shared/services/apiClient';
+import { apiGetAuth, apiUrl } from '../../../shared/services/apiClient';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
 import { toUploadable } from '../../../shared/utils/toUploadable';
 import type { NativeFile } from '../../../shared/types/file';
@@ -27,7 +23,5 @@ export async function deliverMyItem(
 		await toUploadable(file),
 		{},
 		'POST',
-		'file',
-		authHeaders(),
 	);
 }

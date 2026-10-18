@@ -2,7 +2,6 @@ import {
 	apiGetAuth,
 	apiPatchAuth,
 	apiUrl,
-	authHeaders,
 } from '../../../shared/services/apiClient';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
 import { toUploadable } from '../../../shared/utils/toUploadable';
@@ -35,7 +34,5 @@ export async function uploadMyPhoto(
 		await toUploadable(file),
 		{},
 		'POST',
-		'file',
-		authHeaders(),
 	);
 }

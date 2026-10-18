@@ -18,6 +18,7 @@ from app.modules.service_orders.models.invite import (
 )
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import (
+    STATUS_CONCLUIDA,
     STATUS_EM_ANDAMENTO,
     STATUS_PENDENTE,
     ServiceOrderItem,
@@ -228,6 +229,30 @@ def test_decline_invite_sets_status_recusado(db_session: Session, sent_emails: l
     declined = service.decline_invite(invite.id, translator.email)
 
     assert declined.status == INVITE_STATUS_RECUSADO
+
+
+def test_invite_item_status_reflects_service_order_item_status(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+    service = InviteService(db_session)
+
+    [invite] = service.send_invites(item.id, [translator.id])
+    assert invite.item_status == STATUS_PENDENTE
+
+    service.accept_invite(invite.id, translator.email)
+    db_session.refresh(invite)
+    assert invite.item_status == STATUS_EM_ANDAMENTO
+
+    item.status = STATUS_CONCLUIDA
+    db_session.commit()
+    db_session.refresh(invite)
+    assert invite.item_status == STATUS_CONCLUIDA
+
+    invites = service.list_invites_for_translator_email(translator.email)
+    assert len(invites) == 1
+    assert invites[0].item_status == STATUS_CONCLUIDA
 
 
 def test_translator_invite_details_expose_only_the_invited_item(

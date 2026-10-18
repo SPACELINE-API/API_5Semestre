@@ -75,28 +75,32 @@ export function ProductivityFilters({
 			</View>
 
 			<View className="flex-col gap-3 md:flex-row md:flex-wrap">
-				<View
-					className="md:w-[200px]"
-					style={{ zIndex: openField === 'from' ? 50 : 2 }}
-				>
-					<DateField
-						label="De"
-						value={filters.dateFrom}
-						onChangeText={(value) => onChange({ ...filters, dateFrom: value })}
-						onOpenChange={trackOpen('from')}
-					/>
-				</View>
-				<View
-					className="md:w-[200px]"
-					style={{ zIndex: openField === 'to' ? 50 : 2 }}
-				>
-					<DateField
-						label="Até"
-						value={filters.dateTo}
-						onChangeText={(value) => onChange({ ...filters, dateTo: value })}
-						minDate={filters.dateFrom}
-						onOpenChange={trackOpen('to')}
-					/>
+				<View className="flex-row gap-3 md:w-[420px]">
+					<View
+						className="min-w-0 flex-1 flex-row"
+						style={{ zIndex: openField === 'from' ? 50 : 2 }}
+					>
+						<DateField
+							label="De"
+							value={filters.dateFrom}
+							onChangeText={(value) =>
+								onChange({ ...filters, dateFrom: value })
+							}
+							onOpenChange={trackOpen('from')}
+						/>
+					</View>
+					<View
+						className="min-w-0 flex-1 flex-row"
+						style={{ zIndex: openField === 'to' ? 50 : 2 }}
+					>
+						<DateField
+							label="Até"
+							value={filters.dateTo}
+							onChangeText={(value) => onChange({ ...filters, dateTo: value })}
+							minDate={filters.dateFrom}
+							onOpenChange={trackOpen('to')}
+						/>
+					</View>
 				</View>
 				<View className="md:min-w-[220px] md:flex-1">
 					<SelectField

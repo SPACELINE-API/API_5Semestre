@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
 	Modal,
 	Pressable,
 	ScrollView,
 	Text,
+	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { Check, ChevronDown, X } from 'lucide-react-native';
+import { Check, ChevronDown, Search, X } from 'lucide-react-native';
 
 export type SelectOption = { value: string; label: string };
 
@@ -19,6 +20,10 @@ type SelectFieldProps = {
 	allLabel: string;
 };
 
+function normalize(text: string): string {
+	return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
 export function SelectField({
 	label,
 	value,
@@ -27,11 +32,23 @@ export function SelectField({
 	allLabel,
 }: SelectFieldProps) {
 	const [isOpen, setIsOpen] = useState(false);
+	const [query, setQuery] = useState('');
 	const selected = options.find((option) => option.value === value);
+
+	const visibleOptions = useMemo(() => {
+		const term = normalize(query.trim());
+		if (!term) return [{ value: '', label: allLabel }, ...options];
+		return options.filter((option) => normalize(option.label).includes(term));
+	}, [allLabel, options, query]);
+
+	function close() {
+		setIsOpen(false);
+		setQuery('');
+	}
 
 	function select(next: string) {
 		onChange(next);
-		setIsOpen(false);
+		close();
 	}
 
 	return (
@@ -59,12 +76,12 @@ export function SelectField({
 				visible={isOpen}
 				transparent
 				animationType="fade"
-				onRequestClose={() => setIsOpen(false)}
+				onRequestClose={close}
 			>
 				<View className="flex-1 items-center justify-center px-4">
 					<Pressable
 						className="absolute inset-0 bg-black/40"
-						onPress={() => setIsOpen(false)}
+						onPress={close}
 						accessibilityLabel={`Fechar ${label}`}
 					/>
 					<View className="max-h-[80%] w-full max-w-[400px] overflow-hidden rounded-xl bg-white pb-2">
@@ -72,12 +89,28 @@ export function SelectField({
 							<Text className="font-inter font-bold text-gray-900 text-lg">
 								{label}
 							</Text>
-							<TouchableOpacity onPress={() => setIsOpen(false)}>
+							<TouchableOpacity onPress={close}>
 								<X size={20} color="#5A5A5A" />
 							</TouchableOpacity>
 						</View>
+						<View className="mx-4 mt-3 flex-row items-center gap-2 rounded-lg border border-gray-300 px-3">
+							<Search size={14} color="#9CA3AF" />
+							<TextInput
+								value={query}
+								onChangeText={setQuery}
+								placeholder="Pesquisar"
+								placeholderTextColor="#9CA3AF"
+								accessibilityLabel={`Pesquisar ${label}`}
+								className="h-10 flex-1 font-inter text-gray-900 text-sm"
+							/>
+						</View>
 						<ScrollView className="px-4" keyboardShouldPersistTaps="handled">
-							{[{ value: '', label: allLabel }, ...options].map((option) => {
+							{visibleOptions.length === 0 && (
+								<Text className="py-3 font-inter text-gray-400 text-sm">
+									Nenhum resultado.
+								</Text>
+							)}
+							{visibleOptions.map((option) => {
 								const isSelected = option.value === value;
 
 								return (

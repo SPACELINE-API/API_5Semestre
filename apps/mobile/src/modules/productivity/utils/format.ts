@@ -29,9 +29,13 @@ export function formatIsoDate(value: string): string {
 	return `${day}/${month}/${year}`;
 }
 
+function oneDecimal(value: number): string {
+	return String(Math.round(value * 10) / 10).replace('.', ',');
+}
+
 export function formatCompact(value: number): string {
-	return value.toLocaleString('pt-BR', {
-		notation: 'compact',
-		maximumFractionDigits: 1,
-	});
+	const magnitude = Math.abs(value);
+	if (magnitude >= 1_000_000) return `${oneDecimal(value / 1_000_000)} mi`;
+	if (magnitude >= 1_000) return `${oneDecimal(value / 1_000)} mil`;
+	return oneDecimal(value);
 }

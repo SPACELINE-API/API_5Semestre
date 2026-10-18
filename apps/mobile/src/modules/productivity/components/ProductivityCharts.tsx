@@ -11,6 +11,14 @@ import {
 import { ChartCard } from './ChartCard';
 
 const METRICS: ChartMetric[] = ['documents', 'words', 'value'];
+const ACTIVE_TOGGLE_STYLE = {
+	backgroundColor: '#FFFFFF',
+	shadowColor: '#000000',
+	shadowOffset: { width: 0, height: 1 },
+	shadowOpacity: 0.08,
+	shadowRadius: 2,
+	elevation: 1,
+};
 const ROW_HEIGHT = 40;
 const CHART_PADDING = 56;
 
@@ -36,7 +44,8 @@ function MetricToggle({ metric, onChange }: MetricToggleProps) {
 						activeOpacity={0.7}
 						accessibilityRole="button"
 						accessibilityState={{ selected: isActive }}
-						className={`rounded-md px-3 py-1.5 ${isActive ? 'bg-white shadow-sm' : ''}`}
+						className="rounded-md px-3 py-1.5"
+						style={isActive ? ACTIVE_TOGGLE_STYLE : undefined}
 					>
 						<Text
 							className={`font-inter text-xs ${isActive ? 'font-semibold text-blue-600' : 'text-gray-500'}`}
