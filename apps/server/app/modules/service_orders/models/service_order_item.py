@@ -53,6 +53,7 @@ class ServiceOrderItem(Base):
     price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default=STATUS_PENDENTE)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

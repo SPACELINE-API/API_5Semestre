@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, String, func
+from sqlalchemy import Boolean, DateTime, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -31,6 +31,10 @@ class Translator(Base):
     phone: Mapped[str] = mapped_column(String(30), nullable=False)
     # STATUS ATIVO OU INATIVO
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    photo_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    photo_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    photo_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    photo_size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # DATA E HORA DE CRIACAO DO REGISTRO
     created_at: Mapped[datetime] = mapped_column(

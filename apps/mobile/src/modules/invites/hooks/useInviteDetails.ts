@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { findServiceOrderItem, listMyInvites } from '../services/inviteService';
+import { ApiError } from '../../../shared/services/publicApiClient';
+import { getMyInvite } from '../services/inviteService';
 import type {
 	ServiceOrderItemDetails,
 	ServiceOrderItemInvite,
@@ -16,24 +17,18 @@ export function useInviteDetails(inviteId: string) {
 		setError(null);
 
 		try {
-			const invites = await listMyInvites();
-			const found = invites.find((current) => current.id === inviteId);
-
-			if (!found) {
-				setError('Convite não encontrado.');
-				setInvite(null);
-				setItem(null);
-				return;
-			}
-
-			setInvite(found);
-
-			const itemDetails = await findServiceOrderItem(
-				found.service_order_item_id,
+			const { item: details, ...inviteData } = await getMyInvite(inviteId);
+			setInvite(inviteData);
+			setItem(details);
+		} catch (cause) {
+			setInvite(null);
+			setItem(null);
+			setError(
+				cause instanceof ApiError &&
+					(cause.status === 404 || cause.status === 403)
+					? 'Convite não encontrado.'
+					: 'Não foi possível carregar os dados do convite.',
 			);
-			setItem(itemDetails);
-		} catch {
-			setError('Não foi possível carregar os dados do convite.');
 		} finally {
 			setIsLoading(false);
 		}
