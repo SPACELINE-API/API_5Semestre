@@ -96,6 +96,7 @@ class InviteService:
         self._get_item_or_404(item_id)
         return (
             self.db.query(ServiceOrderItemInvite)
+            .options(joinedload(ServiceOrderItemInvite.service_order_item))
             .filter(ServiceOrderItemInvite.service_order_item_id == item_id)
             .all()
         )
