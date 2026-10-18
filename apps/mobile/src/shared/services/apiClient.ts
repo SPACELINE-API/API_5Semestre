@@ -33,14 +33,11 @@ async function authenticatedRequest<TResponse>(
 }
 
 export async function apiGet<TResponse>(path: string): Promise<TResponse> {
-	return request<TResponse>(path);
+	return authenticatedRequest<TResponse>(path);
 }
 
 export function apiPatch<TResponse, TBody>(path: string, body: TBody) {
-	return request<TResponse>(path, {
-		method: 'PATCH',
-		body: JSON.stringify(body),
-	});
+	return apiPatchAuth<TResponse, TBody>(path, body);
 }
 
 export function apiPatchAuth<TResponse, TBody>(path: string, body: TBody) {
@@ -62,10 +59,7 @@ export function apiDeleteAuth(path: string): Promise<void> {
 }
 
 export function apiPut<TResponse, TBody>(path: string, body: TBody) {
-	return request<TResponse>(path, {
-		method: 'PUT',
-		body: JSON.stringify(body),
-	});
+	return apiPutAuth<TResponse, TBody>(path, body);
 }
 
 export async function apiDelete(path: string): Promise<void> {

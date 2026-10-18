@@ -8,6 +8,7 @@ from app.modules.support_agents.inngest.router.support_router import (
     support_write_permission,
 )
 from app.modules.support_agents.inngest.schema.agent_schema import QUESTION_MAX_LENGTH
+from app.modules.support_agents.inngest.services import support_agent_services
 from app.modules.support_agents.inngest.services.support_agent_services import get_agente_suporte
 
 client = TestClient(app)
@@ -15,16 +16,31 @@ client = TestClient(app)
 URL = "/api/suporte/perguntas"
 
 
+class FakeUser:
+    email = "teste@exemplo.com"
+
+
 @pytest.fixture(autouse=True)
-def clear_overrides():
-    app.dependency_overrides[support_read_permission] = lambda: None
-    app.dependency_overrides[support_write_permission] = lambda: None
+def clear_overrides(monkeypatch):
+    async def mock_permission():
+        return FakeUser()
+
+    async def mock_topic_permission(texto, user_id):
+        return None
+
+    app.dependency_overrides[support_read_permission] = mock_permission
+    app.dependency_overrides[support_write_permission] = mock_permission
+    monkeypatch.setattr(
+        support_agent_services,
+        "validar_permissao_assunto",
+        mock_topic_permission,
+    )
     yield
     app.dependency_overrides.clear()
 
 
 def test_valid_question_returns_200_with_agent_response():
-    async def fake_agent(text: str) -> str:
+    async def fake_agent(text: str, user_id: str | None = None) -> str:
         return "You can create a lead in Contacts > New lead."
 
     app.dependency_overrides[get_agente_suporte] = lambda: fake_agent
@@ -73,7 +89,7 @@ def test_question_above_limit_is_rejected_without_calling_the_agent():
 
 
 def test_unavailable_agent_returns_502_without_exposing_technical_detail():
-    async def fake_agent(text: str) -> str:
+    async def fake_agent(text: str, user_id: str | None = None) -> str:
         raise RuntimeError("provider is down")
 
     app.dependency_overrides[get_agente_suporte] = lambda: fake_agent
