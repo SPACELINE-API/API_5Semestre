@@ -17,6 +17,12 @@ from app.shared.google_adk.guardrail import (
     TopicRestrictionBlocked,
     acheck_input,
 )
+from app.shared.google_adk.tool_catalog.catalogo_leitura import obter_catalogo_leitura
+from app.shared.google_adk.tool_catalog.verificacao_previa import (
+    AssuntoNaoPermitido,
+    UsuarioNaoAutorizado,
+    verificar_assunto,
+)
 from app.shared.inngest.client import inngest_client
 from app.shared.inngest.functions import run_support_agent
 
@@ -26,7 +32,7 @@ INNGEST_DEV_URL = os.getenv("INNGEST_BASE_URL", "http://localhost:8288")
 
 
 class AgenteSuporteClient(Protocol):
-    async def __call__(self, texto: str) -> str: ...
+    async def __call__(self, texto: str, user_id: str | None = None) -> str: ...
 
 
 async def validar_entrada(texto: str) -> None:
@@ -53,8 +59,31 @@ async def validar_entrada(texto: str) -> None:
         ) from exc
 
 
-async def enviar_para_agente(texto: str) -> str:
-    return await run_support_agent(texto, user_id="chat-support")
+async def validar_permissao_assunto(texto: str, user_id: str | None) -> None:
+    if user_id is None:
+        return
+    try:
+        await verificar_assunto(texto, user_id, obter_catalogo_leitura())
+    except AssuntoNaoPermitido as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Você não tem permissão para consultar {', '.join(exc.assuntos)}.",
+        ) from exc
+    except UsuarioNaoAutorizado as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuário sem permissão para esta operação.",
+        ) from exc
+    except Exception as exc:
+        logger.exception("Falha ao validar as permissões do usuário")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Não foi possível validar suas permissões agora. Tente novamente em instantes.",
+        ) from exc
+
+
+async def enviar_para_agente(texto: str, user_id: str | None = None) -> str:
+    return await run_support_agent(texto, user_id=user_id or "chat-support")
 
 
 def get_agente_suporte() -> AgenteSuporteClient:
@@ -82,10 +111,15 @@ async def enfileirar_teste_agente(
 async def responder_pergunta_suporte(
     payload: SuportePerguntaRequest,
     agente: AgenteSuporteClient,
+    user_id: str | None = None,
 ) -> SuportePerguntaResponse:
     await validar_entrada(payload.texto)
+    await validar_permissao_assunto(payload.texto, user_id)
     try:
-        resposta = await agente(payload.texto)
+        if user_id is None:
+            resposta = await agente(payload.texto)
+        else:
+            resposta = await agente(payload.texto, user_id)
     except Exception as exc:
         logger.exception("Falha ao obter resposta do agente de suporte")
         raise HTTPException(
@@ -95,13 +129,17 @@ async def responder_pergunta_suporte(
     return SuportePerguntaResponse(resposta=resposta)
 
 
-async def enfileirar_pergunta_chat(payload: SuportePerguntaRequest) -> dict:
+async def enfileirar_pergunta_chat(
+    payload: SuportePerguntaRequest, user_id: str | None = None
+) -> dict:
     await validar_entrada(payload.texto)
+    await validar_permissao_assunto(payload.texto, user_id)
     event_name = "support/chat.ask"
+    dados = {"texto": payload.texto}
+    if user_id is not None:
+        dados["user_id"] = user_id
     try:
-        ids = await inngest_client.send(
-            inngest.Event(name=event_name, data={"texto": payload.texto})
-        )
+        ids = await inngest_client.send(inngest.Event(name=event_name, data=dados))
     except Exception as exc:
         logger.exception("Falha ao publicar pergunta no Inngest")
         raise HTTPException(

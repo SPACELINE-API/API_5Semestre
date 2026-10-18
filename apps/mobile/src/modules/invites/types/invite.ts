@@ -10,14 +10,25 @@ export type ServiceOrderItemInvite = {
 	item_status?: string | null;
 };
 
-export type ServiceOrderItemDetails = {
+export type InviteItemSummary = {
 	id: string;
 	source_language: string;
 	target_language: string;
 	document_type: string | null;
+	deadline: string | null;
+	status: string;
+};
+
+export type ServiceOrderItemDetails = InviteItemSummary & {
 	file_url: string | null;
 	word_count: number | null;
 	price: string | null;
-	deadline: string | null;
-	status: string;
+};
+
+export type MyInvite = ServiceOrderItemInvite & {
+	item: InviteItemSummary;
+};
+
+export type MyInviteDetails = ServiceOrderItemInvite & {
+	item: ServiceOrderItemDetails;
 };

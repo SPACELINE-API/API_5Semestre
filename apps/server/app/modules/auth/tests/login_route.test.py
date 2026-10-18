@@ -29,6 +29,7 @@ class FakeUser:
     def __init__(self, *, is_active: bool = True) -> None:
         self.id = uuid.UUID("8bdf1a90-b7f2-45d9-a523-09dbf8f39e46")
         self.email = "user@example.com"
+        self.role = "tradutor"
         self.is_active = is_active
         self.last_login_at = None
         self.failed_login_attempts = 0
@@ -98,6 +99,7 @@ def test_login_returns_session_when_credentials_are_valid_and_user_is_active() -
         "user": {
             "id": "8bdf1a90-b7f2-45d9-a523-09dbf8f39e46",
             "email": "user@example.com",
+            "role": "tradutor",
         },
     }
     assert user.last_login_at is not None

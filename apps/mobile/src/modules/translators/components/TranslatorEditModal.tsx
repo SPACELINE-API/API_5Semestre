@@ -421,9 +421,9 @@ export function TranslatorEditModal({
 						<TouchableOpacity
 							onPress={handleSubmit}
 							disabled={isSubmitting}
-							className={`rounded-lg bg-blue-300 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+							className={`rounded-lg bg-blue-600 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 						>
-							<Text className="font-inter font-semibold text-blue-900 text-sm">
+							<Text className="font-inter-medium text-sm text-white">
 								{isSubmitting ? 'Salvando…' : 'Salvar alterações'}
 							</Text>
 						</TouchableOpacity>

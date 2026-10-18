@@ -3,6 +3,8 @@ import type { AuthorizationContext } from './auth';
 export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/dashboard': 'dashboard.read',
 	'/convites': 'assignments.read',
+	'/meus-itens': 'assignments.read',
+	'/meu-perfil': 'assignments.read',
 	'/visualizar-requisicoes': 'requests.read',
 	'/orcamento': 'quotes.read',
 	'/ordens-de-servico': 'service_orders.read',

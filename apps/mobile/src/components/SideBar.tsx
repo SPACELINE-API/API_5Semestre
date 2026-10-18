@@ -5,6 +5,7 @@ import { useRouter, usePathname, Link } from 'expo-router';
 import {
 	clearSession,
 	getAuthorizationContext,
+	isTranslatorSession,
 } from '../modules/auth/services/auth';
 import { hasFullRouteAccess } from '../modules/auth/services/authorization';
 import type { LucideIcon } from 'lucide-react-native';
@@ -16,6 +17,7 @@ import {
 	OrdemServicoIcon,
 	ClientesIcon,
 	TradutoresIcon,
+	PerfilIcon,
 	SuporteIcon,
 	SairIcon,
 	AbrirIcon,
@@ -108,6 +110,9 @@ export function SideBar({
 	const isSupportAgentActive = pathname.startsWith('/support-agent');
 	const isTradutoresActive = pathname.startsWith('/tradutores');
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
+	const isMyItemsActive = pathname.startsWith('/meus-itens');
+	const isProfileActive = pathname.startsWith('/meu-perfil');
+	const isTranslator = isTranslatorSession();
 	const showExpanded = isOpen || mobileOpen;
 	const authorizationContext = getAuthorizationContext();
 	const displayName = authorizationContext?.user.email ?? 'Usuário';
@@ -213,6 +218,24 @@ export function SideBar({
 											active={pathname.startsWith('/convites')}
 											onPress={() => navigate('/convites')}
 										/>
+									)}
+									{isTranslator && can('assignments.read') && (
+										<>
+											<NavItem
+												icon={OrdemServicoIcon}
+												label="Meus itens"
+												isOpen={showExpanded}
+												active={isMyItemsActive}
+												onPress={() => navigate('/meus-itens')}
+											/>
+											<NavItem
+												icon={PerfilIcon}
+												label="Meu perfil"
+												isOpen={showExpanded}
+												active={isProfileActive}
+												onPress={() => navigate('/meu-perfil')}
+											/>
+										</>
 									)}
 									{can('requests.read') && (
 										<NavItem

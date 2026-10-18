@@ -132,7 +132,6 @@ export function CompanyFormModal({
 		if (visible) {
 			setForm({ ...EMPTY_FORM, ...initialValues });
 		}
-		// initialValues is only meant to seed the form when it opens, not on every change
 	}, [visible]);
 
 	useEffect(() => {
