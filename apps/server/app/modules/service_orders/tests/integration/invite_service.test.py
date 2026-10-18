@@ -254,7 +254,6 @@ def test_invite_item_status_reflects_service_order_item_status(
     assert len(invites) == 1
     assert invites[0].item_status == STATUS_CONCLUIDA
 
-
 def test_translator_invite_details_expose_only_the_invited_item(
     db_session: Session, sent_emails: list[dict]
 ) -> None:
@@ -328,3 +327,4 @@ def test_list_my_invites_returns_only_own_invites_with_item_summary(
         "deadline",
         "status",
     }
+
