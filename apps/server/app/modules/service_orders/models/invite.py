@@ -56,4 +56,3 @@ class ServiceOrderItemInvite(Base):
     @property
     def item_status(self) -> str | None:
         return self.service_order_item.status if self.service_order_item else None
-

@@ -249,4 +249,3 @@ def test_invite_item_status_reflects_service_order_item_status(
     invites = service.list_invites_for_translator_email(translator.email)
     assert len(invites) == 1
     assert invites[0].item_status == STATUS_CONCLUIDA
-
