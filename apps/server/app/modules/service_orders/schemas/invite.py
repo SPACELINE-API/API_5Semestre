@@ -15,5 +15,6 @@ class ServiceOrderItemInviteResponse(BaseModel):
     status: str
     sent_at: datetime
     responded_at: datetime | None
+    item_status: str | None = None
 
     model_config = ConfigDict(from_attributes=True)

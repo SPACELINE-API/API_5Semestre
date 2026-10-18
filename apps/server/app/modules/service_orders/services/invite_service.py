@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.modules.service_orders.models.invite import (
     INVITE_STATUS_ACEITO,
@@ -96,6 +96,7 @@ class InviteService:
         self._get_item_or_404(item_id)
         return (
             self.db.query(ServiceOrderItemInvite)
+            .options(joinedload(ServiceOrderItemInvite.service_order_item))
             .filter(ServiceOrderItemInvite.service_order_item_id == item_id)
             .all()
         )
@@ -105,6 +106,7 @@ class InviteService:
     ) -> list[ServiceOrderItemInvite]:
         return (
             self.db.query(ServiceOrderItemInvite)
+            .options(joinedload(ServiceOrderItemInvite.service_order_item))
             .join(Translator, ServiceOrderItemInvite.translator_id == Translator.id)
             .filter(Translator.email.ilike(translator_email))
             .all()
