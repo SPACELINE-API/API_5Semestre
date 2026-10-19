@@ -21,7 +21,6 @@ def _seed_roles_and_permission(db: Session) -> dict[str, uuid.UUID]:
     role_ids: dict[str, uuid.UUID] = {}
     for role_name, description in (
         ("Administrador", "Administra usuários, roles e permissões."),
-        ("Operador", "Possui as mesmas permissões operacionais do administrador."),
         ("Projetos", "Gerencia projetos e orçamentos."),
         ("Financeiro", "Acessa informações financeiras autorizadas."),
         ("Atendimento", "Atende clientes e acompanha solicitações."),
@@ -224,7 +223,7 @@ def test_authorized_roles_get_200(api_client, role_name: str) -> None:
 
 @pytest.mark.parametrize(
     "role_name",
-    ["Operador", "Financeiro", "Atendimento", "Recursos externos"],
+    ["Financeiro", "Atendimento", "Recursos externos"],
 )
 def test_unauthorized_roles_get_403(api_client, role_name: str) -> None:
     from app.modules.auth.dependencies.dependencies import get_current_user

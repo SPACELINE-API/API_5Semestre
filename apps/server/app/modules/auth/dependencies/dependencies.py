@@ -81,14 +81,13 @@ def require_administrator(
         user is not None
         and user.is_active
         and any(
-            role.is_active
-            and role.name.strip().casefold() in {"administrador", "admin", "operador"}
+            role.is_active and role.name.strip().casefold() in {"administrador", "admin"}
             for role in user.roles
         )
     )
     if not has_full_access:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Apenas administradores ou operadores podem realizar esta operação",
+            detail="Apenas administradores podem realizar esta operação",
         )
     return current_user

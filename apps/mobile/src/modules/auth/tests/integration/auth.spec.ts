@@ -110,7 +110,7 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
 	});
 
-	for (const roleName of ['Administrador', 'Operador']) {
+	for (const roleName of ['Administrador']) {
 		test(`${roleName} acessa todas as rotas disponíveis na sidebar`, async ({
 			page,
 		}) => {

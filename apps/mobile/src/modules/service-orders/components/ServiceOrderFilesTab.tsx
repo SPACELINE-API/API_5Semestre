@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { ExternalLink, FileText, Trash2, Upload } from 'lucide-react-native';
+import {
+	ChevronDown,
+	ChevronUp,
+	ExternalLink,
+	FileText,
+	Trash2,
+	Upload,
+} from 'lucide-react-native';
 import type {
 	ServiceOrderFile,
 	ServiceOrderFileDirection,
@@ -11,7 +18,10 @@ import { pickDocument } from '../../../shared/utils/pickDocument';
 import { openDocument } from '../../../shared/components/FilePreview';
 import { getFileName } from '../../../shared/utils/file';
 import { formatDate } from '../utils/format';
+import { approvedDeliveries } from '../utils/fileReview';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+
+const COLLAPSE_THRESHOLD = 3;
 
 export type ServiceOrderFileDeletionTarget =
 	| { kind: 'item'; id: string; label: string }
@@ -78,56 +88,77 @@ function FileGroupList({
 	onDelete: (target: ServiceOrderFileDeletionTarget) => void;
 	deletingId: string | null;
 }) {
+	const [expanded, setExpanded] = useState(files.length <= COLLAPSE_THRESHOLD);
+	const Chevron = expanded ? ChevronUp : ChevronDown;
+
 	return (
 		<View className="gap-2">
-			<Text className="font-inter font-semibold text-gray-700 text-xs uppercase tracking-wide">
-				{title}
-			</Text>
+			<TouchableOpacity
+				onPress={() => setExpanded((current) => !current)}
+				activeOpacity={0.7}
+				accessibilityRole="button"
+				accessibilityState={{ expanded }}
+				accessibilityLabel={`${expanded ? 'Recolher' : 'Expandir'} ${title}`}
+				className="flex-row items-center justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2.5"
+			>
+				<View className="flex-row items-center gap-2">
+					<Text className="font-inter font-semibold text-gray-700 text-xs uppercase tracking-wide">
+						{title}
+					</Text>
+					<View className="rounded-full bg-white px-2 py-0.5">
+						<Text className="font-inter font-semibold text-gray-600 text-xs">
+							{files.length}
+						</Text>
+					</View>
+				</View>
+				<Chevron size={16} color="#6B7280" />
+			</TouchableOpacity>
 
-			{files.length === 0 && (
+			{expanded && files.length === 0 && (
 				<Text className="font-inter text-gray-400 text-sm">
 					Nenhum arquivo enviado.
 				</Text>
 			)}
 
-			{files.map((file) => (
-				<View
-					key={file.id}
-					className="flex-row items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5"
-				>
-					<TouchableOpacity
-						accessibilityRole="link"
-						onPress={() => openDocument(file.fileUrl)}
-						className="min-w-0 max-w-[70%] flex-1 flex-row items-center gap-2"
+			{expanded &&
+				files.map((file) => (
+					<View
+						key={file.id}
+						className="flex-row items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5"
 					>
-						<FileText size={16} color="#1C6FB0" />
-						<Text
-							className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-sm"
-							numberOfLines={1}
-						>
-							{getFileName(file.fileUrl)}
-						</Text>
-						<ExternalLink size={13} color="#1d4ed8" />
-					</TouchableOpacity>
-
-					<View className="flex-row items-center gap-2">
-						{file.uploadedAt && (
-							<Text className="font-inter text-gray-400 text-xs">
-								{formatDate(file.uploadedAt)}
-							</Text>
-						)}
 						<TouchableOpacity
-							onPress={() => onDelete(file.deletionTarget)}
-							disabled={deletingId === file.deletionTarget.id}
-							accessibilityRole="button"
-							accessibilityLabel={`Excluir ${file.label}`}
-							className="rounded-md p-2"
+							accessibilityRole="link"
+							onPress={() => openDocument(file.fileUrl)}
+							className="min-w-0 max-w-[70%] flex-1 flex-row items-center gap-2"
 						>
-							<Trash2 size={16} color="#B91C1C" />
+							<FileText size={16} color="#1C6FB0" />
+							<Text
+								className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-sm"
+								numberOfLines={1}
+							>
+								{getFileName(file.fileUrl)}
+							</Text>
+							<ExternalLink size={13} color="#1d4ed8" />
 						</TouchableOpacity>
+
+						<View className="flex-row items-center gap-2">
+							{file.uploadedAt && (
+								<Text className="font-inter text-gray-400 text-xs">
+									{formatDate(file.uploadedAt)}
+								</Text>
+							)}
+							<TouchableOpacity
+								onPress={() => onDelete(file.deletionTarget)}
+								disabled={deletingId === file.deletionTarget.id}
+								accessibilityRole="button"
+								accessibilityLabel={`Excluir ${file.label}`}
+								className="rounded-md p-2"
+							>
+								<Trash2 size={16} color="#B91C1C" />
+							</TouchableOpacity>
+						</View>
 					</View>
-				</View>
-			))}
+				))}
 		</View>
 	);
 }
@@ -154,9 +185,11 @@ export function ServiceOrderFilesTab({
 		),
 	];
 	const saidaFilesList = [
-		...files.filter((file) => file.direction === 'saida'),
-		...uploadedDeliveryFiles.filter(
-			(uploadedFile) => !files.some((file) => file.id === uploadedFile.id),
+		...approvedDeliveries(files),
+		...approvedDeliveries(
+			uploadedDeliveryFiles.filter(
+				(uploadedFile) => !files.some((file) => file.id === uploadedFile.id),
+			),
 		),
 	];
 	const saidaFiles = serviceOrderFilesToDisplayFiles(saidaFilesList);
@@ -298,6 +331,9 @@ export function ServiceOrderFilesTab({
 								{deliveredCount} de {items.length} itens entregues
 							</Text>
 						</View>
+						<Text className="font-inter text-gray-400 text-xs">
+							Só as entregas aprovadas na aba Revisão entram nesta contagem.
+						</Text>
 						<View className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
 							<View
 								className={`h-2 rounded-full ${
