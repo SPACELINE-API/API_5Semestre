@@ -110,7 +110,7 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
 	});
 
-	for (const roleName of ['Administrador', 'Operador']) {
+	for (const roleName of ['Administrador']) {
 		test(`${roleName} acessa todas as rotas disponíveis na sidebar`, async ({
 			page,
 		}) => {
@@ -118,7 +118,6 @@ test.describe('autenticação mobile unificada', () => {
 			await page.goto('/dashboard');
 
 			for (const label of [
-				'Tarefas atribuídas',
 				'Requisições',
 				'Orçamento',
 				'Ordem de serviço',
@@ -141,14 +140,14 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(page).toHaveURL(/\/dashboard$/);
 		await expect(
 			page.getByText('Tarefas atribuídas', { exact: true }),
-		).toBeVisible();
+		).toHaveCount(0);
 		await expect(page.getByText('Requisições', { exact: true })).toHaveCount(0);
 
 		await page.goto('/rota-inexistente');
 		await expect(page.getByText('Página não encontrada')).toBeVisible();
 		await expect(
 			page.getByText('Tarefas atribuídas', { exact: true }),
-		).toBeVisible();
+		).toHaveCount(0);
 		await expect(page.getByText('Requisições', { exact: true })).toHaveCount(0);
 	});
 

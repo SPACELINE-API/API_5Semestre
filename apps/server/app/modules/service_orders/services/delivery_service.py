@@ -15,10 +15,12 @@ from app.modules.service_orders.models.service_order_email_template import (
     SERVICE_ORDER_EMAIL_TEMPLATE_KEY,
     ServiceOrderEmailTemplate,
 )
-from app.modules.service_orders.models.service_order_file import ServiceOrderFile
+from app.modules.service_orders.models.service_order_file import (
+    REVIEW_APPROVED,
+    ServiceOrderFile,
+)
 from app.modules.service_orders.models.service_order_item import (
     STATUS_CONCLUIDA,
-    STATUS_EM_ANALISE,
 )
 from app.modules.service_orders.schemas.service_order import ServiceOrderDeliveryRequest
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
@@ -117,6 +119,11 @@ class ServiceOrderDeliveryService:
                 )
 
             documents = [documents_by_id[file_id] for file_id in requested_ids]
+            if any(document.review_status != REVIEW_APPROVED for document in documents):
+                raise HTTPException(
+                    status_code=409,
+                    detail="Um ou mais documentos selecionados ainda não foram aprovados.",
+                )
             if any(document.delivery_status == "sent" for document in documents):
                 raise HTTPException(
                     status_code=409,
@@ -127,6 +134,7 @@ class ServiceOrderDeliveryService:
                 document
                 for document in all_documents
                 if document.delivery_status in ("not_sent", "pending", "failed")
+                and document.review_status == REVIEW_APPROVED
             ]
 
         if not documents:
@@ -228,13 +236,11 @@ class ServiceOrderDeliveryService:
             .first()
             is not None
         )
-        for item in service_order.items:
-            was_completed = item.status == STATUS_CONCLUIDA
-            item.status = STATUS_EM_ANALISE if has_pending_documents else STATUS_CONCLUIDA
-            if item.status != STATUS_CONCLUIDA:
-                item.completed_at = None
-            elif not was_completed:
-                item.completed_at = datetime.now(UTC)
+        if not has_pending_documents:
+            for item in service_order.items:
+                if item.status != STATUS_CONCLUIDA:
+                    item.status = STATUS_CONCLUIDA
+                    item.completed_at = datetime.now(UTC)
         self.db.commit()
 
         return successful_deliveries

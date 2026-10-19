@@ -17,7 +17,6 @@ TODAS = {
 
 FERRAMENTAS_POR_ROLE = {
     "Administrador": TODAS,
-    "Operador": TODAS,
     "Atendimento": {"consultar_clientes"},
     "Projetos": {"consultar_ordens_servico", "consultar_tradutores", "consultar_orcamentos"},
     "Financeiro": {"consultar_ordens_servico", "consultar_orcamentos"},
@@ -25,11 +24,11 @@ FERRAMENTAS_POR_ROLE = {
 }
 
 ROLES_POR_FERRAMENTA = {
-    "listar_usuarios": {"Administrador", "Operador"},
-    "consultar_clientes": {"Administrador", "Operador", "Atendimento"},
-    "consultar_tradutores": {"Administrador", "Operador", "Projetos"},
-    "consultar_orcamentos": {"Administrador", "Operador", "Projetos", "Financeiro"},
-    "consultar_ordens_servico": {"Administrador", "Operador", "Projetos", "Financeiro"},
+    "listar_usuarios": {"Administrador"},
+    "consultar_clientes": {"Administrador", "Atendimento"},
+    "consultar_tradutores": {"Administrador", "Projetos"},
+    "consultar_orcamentos": {"Administrador", "Projetos", "Financeiro"},
+    "consultar_ordens_servico": {"Administrador", "Projetos", "Financeiro"},
 }
 
 

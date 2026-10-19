@@ -30,14 +30,14 @@ export function ProfileDataCard({
 }: ProfileDataCardProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [name, setName] = useState(profile.name);
-	const [phone, setPhone] = useState(profile.phone);
+	const [phone, setPhone] = useState(maskPhone(profile.phone));
 	const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
 	const [isSaving, setIsSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	function startEditing() {
 		setName(profile.name);
-		setPhone(profile.phone);
+		setPhone(maskPhone(profile.phone));
 		setFieldErrors({});
 		setError(null);
 		setIsEditing(true);
@@ -169,7 +169,7 @@ export function ProfileDataCard({
 					<View className="flex-row items-center gap-3">
 						<Phone size={16} color="#6B7280" />
 						<Text className="font-inter text-gray-700 text-sm">
-							{profile.phone}
+							{maskPhone(profile.phone)}
 						</Text>
 					</View>
 				</View>

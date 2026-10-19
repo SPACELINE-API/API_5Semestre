@@ -3,6 +3,7 @@ import { User } from 'lucide-react-native';
 import type { Company } from '../../clients/types/company';
 import type { Contact } from '../types/serviceOrder';
 import { formatCnpj } from '../../clients/utils/format';
+import { maskPhone } from '../../clients/utils/mask';
 import { InfoField } from './InfoField';
 
 type ClientInfoTabProps = {
@@ -31,7 +32,10 @@ export function ClientInfoTab({ company, contacts }: ClientInfoTabProps) {
 					<InfoField label="Nome fantasia" value={company.trade_name} />
 					<InfoField label="CNPJ" value={formatCnpj(company.cnpj)} />
 					<InfoField label="Segmento" value={company.industry} />
-					<InfoField label="Telefone" value={company.phone} />
+					<InfoField
+						label="Telefone"
+						value={company.phone ? maskPhone(company.phone) : company.phone}
+					/>
 					<InfoField label="E-mail" value={company.email} />
 				</View>
 			</View>
@@ -101,7 +105,8 @@ export function ClientInfoTab({ company, contacts }: ClientInfoTabProps) {
 							</View>
 
 							<Text className="mt-0.5 font-inter text-gray-400 text-xs">
-								{contact.department} · {contact.email} · {contact.phone}
+								{contact.department} · {contact.email} ·{' '}
+								{contact.phone ? maskPhone(contact.phone) : contact.phone}
 							</Text>
 						</View>
 					</View>

@@ -18,6 +18,7 @@ import {
 	getServiceOrderEmailTemplate,
 	sendServiceOrderDeliveries,
 } from '../services/serviceOrderService';
+import { approvedDeliveries } from '../utils/fileReview';
 
 type CompleteServiceOrderModalProps = {
 	visible: boolean;
@@ -85,9 +86,7 @@ export function CompleteServiceOrderModal({
 	const [sendError, setSendError] = useState<string | null>(null);
 	const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
 
-	const deliveryFiles = serviceOrder.files.filter(
-		(file) => file.direction === 'saida',
-	);
+	const deliveryFiles = approvedDeliveries(serviceOrder.files);
 	const selectableDeliveryFiles = deliveryFiles.filter(
 		(file) => file.delivery_status !== 'sent',
 	);
@@ -107,11 +106,8 @@ export function CompleteServiceOrderModal({
 		setSendError(null);
 		setIsSending(false);
 		setSelectedFileIds(
-			serviceOrder.files
-				.filter(
-					(file) =>
-						file.direction === 'saida' && file.delivery_status !== 'sent',
-				)
+			approvedDeliveries(serviceOrder.files)
+				.filter((file) => file.delivery_status !== 'sent')
 				.map((file) => file.id),
 		);
 		setIsLoadingTemplate(true);
