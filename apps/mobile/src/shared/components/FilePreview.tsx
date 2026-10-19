@@ -2,6 +2,7 @@ import { Platform, View, Text, TouchableOpacity, Linking } from 'react-native';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
 import { FileText } from 'lucide-react-native';
+import { resolveNativeResourceUrl } from '../utils/nativeResourceUrl';
 
 type FilePreviewProps = {
 	fileUrl: string;
@@ -11,25 +12,11 @@ type FilePreviewProps = {
 };
 
 function getNativeDocumentUrl(fileUrl: string) {
-	if (Platform.OS === 'web') return fileUrl;
-
-	try {
-		const url = new URL(fileUrl);
-		if (!['localhost', '127.0.0.1', '::1'].includes(url.hostname)) {
-			return fileUrl;
-		}
-
-		const hostUri = Constants.expoConfig?.hostUri;
-		if (!hostUri) return fileUrl;
-
-		const expoHost = new URL(`http://${hostUri}`).hostname;
-		if (['localhost', '127.0.0.1', '::1'].includes(expoHost)) return fileUrl;
-
-		url.hostname = expoHost;
-		return url.toString();
-	} catch {
-		return fileUrl;
-	}
+	return resolveNativeResourceUrl(
+		fileUrl,
+		Constants.expoConfig?.hostUri,
+		Platform.OS,
+	);
 }
 
 export function openDocument(fileUrl: string) {

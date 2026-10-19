@@ -2,12 +2,15 @@ import { useState } from 'react';
 import {
 	ActivityIndicator,
 	Image,
+	Platform,
 	Text,
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import Constants from 'expo-constants';
 import { Camera } from 'lucide-react-native';
 import { pickDocument } from '../../../shared/utils/pickDocument';
+import { resolveNativeResourceUrl } from '../../../shared/utils/nativeResourceUrl';
 import { uploadMyPhoto } from '../services/profileService';
 import type { TranslatorProfile } from '../types/profile';
 import {
@@ -38,6 +41,13 @@ export function ProfilePhotoCard({
 }: ProfilePhotoCardProps) {
 	const [isUploading, setIsUploading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const photoUrl = profile.photo_url
+		? resolveNativeResourceUrl(
+				profile.photo_url,
+				Constants.expoConfig?.hostUri,
+				Platform.OS,
+			)
+		: null;
 
 	async function handlePickPhoto() {
 		setError(null);
@@ -70,9 +80,9 @@ export function ProfilePhotoCard({
 		<View className="gap-4 rounded-xl border border-gray-100 p-5">
 			<View className="flex-row items-center gap-4">
 				<View className="h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-blue-50">
-					{profile.photo_url ? (
+					{photoUrl ? (
 						<Image
-							source={{ uri: profile.photo_url }}
+							source={{ uri: photoUrl }}
 							accessibilityLabel={`Foto de ${profile.name}`}
 							className="h-20 w-20"
 						/>
