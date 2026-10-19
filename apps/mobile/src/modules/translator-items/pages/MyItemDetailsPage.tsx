@@ -28,6 +28,12 @@ import { formatFileSize } from '../../translators/utils/profileFiles';
 import { InviteItemProgress } from '../../invites/components/InviteItemProgress';
 import { formatDate, formatPrice } from '../../invites/utils/format';
 import { useMyItem } from '../hooks/useMyItem';
+import {
+	DELIVERY_REVIEW_LABELS,
+	DELIVERY_REVIEW_STYLES,
+	canSendDelivery,
+	pendingChangesRequest,
+} from '../utils/deliveryReview';
 import { deliverMyItem } from '../services/translatorItemService';
 import {
 	DELIVERY_EXTENSIONS,
@@ -86,6 +92,10 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 	}
 
 	const isConcluded = item?.status === 'concluida';
+	const changesRequest = item
+		? pendingChangesRequest(item.delivered_files)
+		: null;
+	const canSend = !isConcluded && canSendDelivery(item?.delivered_files ?? []);
 
 	return (
 		<View className="relative flex-1 bg-white">
@@ -159,7 +169,7 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 							</Text>
 							{item.file_url ? (
 								<>
-									<FilePreview fileUrl={item.file_url} height={360} />
+									<FilePreview fileUrl={item.file_url} openInNewPage />
 									<TouchableOpacity
 										onPress={() => openDocument(item.file_url as string)}
 										activeOpacity={0.7}
@@ -180,6 +190,23 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 							)}
 						</View>
 
+						{changesRequest && (
+							<View className="gap-1.5 rounded-xl border border-red-100 bg-red-50 p-4">
+								<View className="flex-row items-center gap-2">
+									<AlertCircle size={16} color="#B91C1C" />
+									<Text className="font-inter font-semibold text-red-900 text-sm">
+										Ajustes solicitados na sua tradução
+									</Text>
+								</View>
+								<Text className="font-inter text-red-900 text-sm">
+									{changesRequest.review_note}
+								</Text>
+								<Text className="font-inter text-red-800 text-xs">
+									Faça os ajustes e envie uma nova versão abaixo.
+								</Text>
+							</View>
+						)}
+
 						<View className="gap-4 rounded-xl border border-gray-100 p-4">
 							<View className="gap-1">
 								<Text className="font-inter font-semibold text-gray-900 text-sm">
@@ -188,13 +215,13 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 								<Text className="font-inter text-gray-500 text-xs">
 									{isConcluded
 										? 'Este item já foi concluído e não aceita novos envios.'
-										: item.status === 'em_analise'
-											? 'Sua tradução está em análise. Se precisar, envie uma nova versão.'
+										: !canSend
+											? 'Sua tradução já foi enviada. Um novo envio só é liberado se forem solicitados ajustes.'
 											: `Formatos aceitos: ${DELIVERY_EXTENSIONS.join(', ').toUpperCase()} (até 25 MB).`}
 								</Text>
 							</View>
 
-							{!isConcluded && (
+							{canSend && (
 								<>
 									<TouchableOpacity
 										onPress={() => void handlePickFile()}
@@ -265,9 +292,20 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 											</Text>
 											<ExternalLink size={13} color="#1d4ed8" />
 										</TouchableOpacity>
-										<Text className="font-inter text-gray-400 text-xs">
-											{formatDate(delivered.uploaded_at)}
-										</Text>
+										<View className="items-end gap-1">
+											<View
+												className={`rounded-full px-2.5 py-0.5 ${DELIVERY_REVIEW_STYLES[delivered.review_status].background}`}
+											>
+												<Text
+													className={`font-inter font-medium text-xs ${DELIVERY_REVIEW_STYLES[delivered.review_status].text}`}
+												>
+													{DELIVERY_REVIEW_LABELS[delivered.review_status]}
+												</Text>
+											</View>
+											<Text className="font-inter text-gray-400 text-xs">
+												{formatDate(delivered.uploaded_at)}
+											</Text>
+										</View>
 									</View>
 								))}
 							</View>

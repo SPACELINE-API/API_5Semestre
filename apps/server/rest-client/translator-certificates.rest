@@ -27,6 +27,8 @@ Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
 
 ### Enviar certificado de um novo idioma de trabalho (PDF, JPG ou PNG até 10 MB)
 ### Reenviar para o mesmo idioma substitui o arquivo enquanto o certificado não for aprovado.
+### O mesmo arquivo (mesmo conteúdo) não pode ser enviado de novo pelo tradutor, em nenhum idioma.
+### No Storage o arquivo fica em <id-do-tradutor>/<idioma>/<nome-original>.
 # @name sendCertificate
 POST {{serverUrl}}/api/translators/me/certificates
 Authorization: Bearer {{loginTranslator.response.body.$.access_token}}

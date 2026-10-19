@@ -17,7 +17,7 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/projetos': 'projects.read',
 };
 
-const FULL_ROUTE_ACCESS_ROLES = new Set(['administrador', 'admin', 'operador']);
+const FULL_ROUTE_ACCESS_ROLES = new Set(['administrador', 'admin']);
 
 export function hasFullRouteAccess(context: AuthorizationContext | null) {
 	return Boolean(
@@ -30,6 +30,27 @@ export function hasFullRouteAccess(context: AuthorizationContext | null) {
 					.toLocaleLowerCase('pt-BR'),
 			),
 		),
+	);
+}
+
+const TRANSLATOR_ROLE = 'recursos externos';
+
+function normalizeRoleName(name: string) {
+	return name
+		.normalize('NFD')
+		.replace(/[̀-ͯ]/g, '')
+		.trim()
+		.toLocaleLowerCase('pt-BR');
+}
+
+export function isTranslatorProfile(context: AuthorizationContext | null) {
+	return (
+		!hasFullRouteAccess(context) &&
+		Boolean(
+			context?.roles.some(
+				(role) => normalizeRoleName(role.name) === TRANSLATOR_ROLE,
+			),
+		)
 	);
 }
 

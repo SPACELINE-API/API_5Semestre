@@ -60,6 +60,27 @@ export type ServiceOrderDelivery = {
 	sent_at: string | null;
 };
 
+export function approveServiceOrderFile(
+	serviceOrderId: string,
+	fileId: string,
+): Promise<ServiceOrderFile> {
+	return apiPostAuth<ServiceOrderFile, Record<string, never>>(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/files/${fileId}/approve`,
+		{},
+	);
+}
+
+export function requestServiceOrderFileChanges(
+	serviceOrderId: string,
+	fileId: string,
+	note: string,
+): Promise<ServiceOrderFile> {
+	return apiPostAuth<ServiceOrderFile, { note: string }>(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/files/${fileId}/request-changes`,
+		{ note },
+	);
+}
+
 export function sendServiceOrderDeliveries(
 	serviceOrderId: string,
 	data: ServiceOrderDeliveryInput,

@@ -7,7 +7,10 @@ import {
 	getAuthorizationContext,
 	isTranslatorSession,
 } from '../modules/auth/services/auth';
-import { hasFullRouteAccess } from '../modules/auth/services/authorization';
+import {
+	hasFullRouteAccess,
+	isTranslatorProfile,
+} from '../modules/auth/services/authorization';
 import type { LucideIcon } from 'lucide-react-native';
 import { X as CloseIcon } from 'lucide-react-native';
 import {
@@ -112,9 +115,10 @@ export function SideBar({
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
 	const isMyItemsActive = pathname.startsWith('/meus-itens');
 	const isProfileActive = pathname.startsWith('/meu-perfil');
-	const isTranslator = isTranslatorSession();
 	const showExpanded = isOpen || mobileOpen;
 	const authorizationContext = getAuthorizationContext();
+	const isTranslator =
+		isTranslatorSession() || isTranslatorProfile(authorizationContext);
 	const displayName = authorizationContext?.user.email ?? 'Usuário';
 	const displayRole =
 		authorizationContext?.roles.map((role) => role.name).join(', ') ?? '';
@@ -151,18 +155,24 @@ export function SideBar({
 						showExpanded ? 'flex-row justify-between' : 'flex-col gap-3 px-0'
 					}`}
 				>
-					<View className="flex-row items-center gap-3">
+					<View className="min-w-0 flex-1 flex-row items-center gap-3">
 						<View className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 bg-blue-500 items-center justify-center shrink-0">
 							<Text className="font-inter font-bold text-white text-sm">
 								{displayInitials}
 							</Text>
 						</View>
 						{showExpanded && (
-							<View className="flex-col">
-								<Text className="font-inter font-bold text-gray-900 text-sm leading-tight">
+							<View className="min-w-0 flex-1 flex-col">
+								<Text
+									className="font-inter font-bold text-gray-900 text-sm leading-tight"
+									numberOfLines={1}
+								>
 									{displayName}
 								</Text>
-								<Text className="font-inter text-gray-500 text-xs mt-0.5">
+								<Text
+									className="font-inter text-gray-500 text-xs mt-0.5"
+									numberOfLines={1}
+								>
 									{displayRole}
 								</Text>
 							</View>
@@ -188,144 +198,149 @@ export function SideBar({
 
 				<ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
 					<View className="flex-col gap-6">
-						{can('dashboard.read') && (
+						{isTranslator ? (
 							<View>
-								<GroupLabel isOpen={showExpanded}>Principal</GroupLabel>
+								<GroupLabel isOpen={showExpanded}>Meu trabalho</GroupLabel>
 								<View className="flex-col gap-1">
 									<NavItem
-										icon={DashboardIcon}
-										label="Dashboard"
+										icon={RequisicoesIcon}
+										label="Convites"
 										isOpen={showExpanded}
-										active={isDashboardActive}
-										onPress={() => navigate('/dashboard')}
+										active={pathname.startsWith('/convites')}
+										onPress={() => navigate('/convites')}
+									/>
+									<NavItem
+										icon={OrdemServicoIcon}
+										label="Meus itens"
+										isOpen={showExpanded}
+										active={isMyItemsActive}
+										onPress={() => navigate('/meus-itens')}
+									/>
+									<NavItem
+										icon={PerfilIcon}
+										label="Meu perfil"
+										isOpen={showExpanded}
+										active={isProfileActive}
+										onPress={() => navigate('/meu-perfil')}
 									/>
 								</View>
 							</View>
-						)}
+						) : (
+							<>
+								{can('dashboard.read') && (
+									<View>
+										<GroupLabel isOpen={showExpanded}>Principal</GroupLabel>
+										<View className="flex-col gap-1">
+											<NavItem
+												icon={DashboardIcon}
+												label="Dashboard"
+												isOpen={showExpanded}
+												active={isDashboardActive}
+												onPress={() => navigate('/dashboard')}
+											/>
+										</View>
+									</View>
+								)}
 
-						{(can('assignments.read') ||
-							can('requests.read') ||
-							can('quotes.read') ||
-							can('service_orders.read')) && (
-							<View>
-								<GroupLabel isOpen={showExpanded}>Serviços</GroupLabel>
-								<View className="flex-col gap-1">
-									{can('assignments.read') && (
-										<NavItem
-											icon={RequisicoesIcon}
-											label="Tarefas atribuídas"
-											isOpen={showExpanded}
-											active={pathname.startsWith('/convites')}
-											onPress={() => navigate('/convites')}
-										/>
-									)}
-									{isTranslator && can('assignments.read') && (
-										<>
-											<NavItem
-												icon={OrdemServicoIcon}
-												label="Meus itens"
-												isOpen={showExpanded}
-												active={isMyItemsActive}
-												onPress={() => navigate('/meus-itens')}
-											/>
-											<NavItem
-												icon={PerfilIcon}
-												label="Meu perfil"
-												isOpen={showExpanded}
-												active={isProfileActive}
-												onPress={() => navigate('/meu-perfil')}
-											/>
-										</>
-									)}
-									{can('requests.read') && (
-										<NavItem
-											icon={RequisicoesIcon}
-											label="Requisições"
-											isOpen={showExpanded}
-											active={isRequestsActive}
-											onPress={() => navigate('/visualizar-requisicoes')}
-										/>
-									)}
-									{can('quotes.read') && (
-										<Link href={'/orcamento' as never} asChild>
-											<TouchableOpacity
-												className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${
-													isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'
-												} ${!showExpanded ? 'justify-center px-0' : ''}`}
-											>
-												<OrcamentoIcon
-													size={20}
-													color={isOrcamentoActive ? '#2563eb' : '#4b5563'}
-													strokeWidth={1.8}
+								{(can('requests.read') ||
+									can('quotes.read') ||
+									can('service_orders.read')) && (
+									<View>
+										<GroupLabel isOpen={showExpanded}>Serviços</GroupLabel>
+										<View className="flex-col gap-1">
+											{can('requests.read') && (
+												<NavItem
+													icon={RequisicoesIcon}
+													label="Requisições"
+													isOpen={showExpanded}
+													active={isRequestsActive}
+													onPress={() => navigate('/visualizar-requisicoes')}
 												/>
-												{showExpanded && (
-													<Text
-														className={`font-inter text-sm flex-1 ${
+											)}
+											{can('quotes.read') && (
+												<Link href={'/orcamento' as never} asChild>
+													<TouchableOpacity
+														className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${
 															isOrcamentoActive
-																? 'font-semibold text-blue-600'
-																: 'font-medium text-gray-700'
-														}`}
+																? 'bg-blue-50'
+																: 'hover:bg-gray-50'
+														} ${!showExpanded ? 'justify-center px-0' : ''}`}
 													>
-														Orçamento
-													</Text>
-												)}
-											</TouchableOpacity>
-										</Link>
-									)}
-									{can('service_orders.read') && (
-										<NavItem
-											icon={OrdemServicoIcon}
-											label="Ordem de serviço"
-											isOpen={showExpanded}
-											active={isOrdersActive}
-											onPress={() => navigate('/ordens-de-servico')}
-										/>
-									)}
-								</View>
-							</View>
-						)}
+														<OrcamentoIcon
+															size={20}
+															color={isOrcamentoActive ? '#2563eb' : '#4b5563'}
+															strokeWidth={1.8}
+														/>
+														{showExpanded && (
+															<Text
+																className={`font-inter text-sm flex-1 ${
+																	isOrcamentoActive
+																		? 'font-semibold text-blue-600'
+																		: 'font-medium text-gray-700'
+																}`}
+															>
+																Orçamento
+															</Text>
+														)}
+													</TouchableOpacity>
+												</Link>
+											)}
+											{can('service_orders.read') && (
+												<NavItem
+													icon={OrdemServicoIcon}
+													label="Ordem de serviço"
+													isOpen={showExpanded}
+													active={isOrdersActive}
+													onPress={() => navigate('/ordens-de-servico')}
+												/>
+											)}
+										</View>
+									</View>
+								)}
 
-						{(can('clients.read') || can('translators.read')) && (
-							<View>
-								<GroupLabel isOpen={showExpanded}>Gerenciamento</GroupLabel>
-								<View className="flex-col gap-1">
-									{can('clients.read') && (
-										<NavItem
-											icon={ClientesIcon}
-											label="Clientes"
-											isOpen={showExpanded}
-											active={isClientsActive}
-											onPress={() => navigate('/clientes')}
-										/>
-									)}
-									{can('translators.read') && (
-										<NavItem
-											icon={TradutoresIcon}
-											label="Tradutores"
-											isOpen={showExpanded}
-											active={isTradutoresActive}
-											onPress={() => navigate('/tradutores')}
-										/>
-									)}
-								</View>
-							</View>
-						)}
+								{(can('clients.read') || can('translators.read')) && (
+									<View>
+										<GroupLabel isOpen={showExpanded}>Gerenciamento</GroupLabel>
+										<View className="flex-col gap-1">
+											{can('clients.read') && (
+												<NavItem
+													icon={ClientesIcon}
+													label="Clientes"
+													isOpen={showExpanded}
+													active={isClientsActive}
+													onPress={() => navigate('/clientes')}
+												/>
+											)}
+											{can('translators.read') && (
+												<NavItem
+													icon={TradutoresIcon}
+													label="Tradutores"
+													isOpen={showExpanded}
+													active={isTradutoresActive}
+													onPress={() => navigate('/tradutores')}
+												/>
+											)}
+										</View>
+									</View>
+								)}
 
-						{can('support.read') && (
-							<View>
-								<GroupLabel isOpen={showExpanded}>Outros</GroupLabel>
-								<View className="flex-col gap-1">
-									{can('support.read') && (
-										<NavItem
-											icon={SuporteIcon}
-											label="Suporte"
-											isOpen={showExpanded}
-											active={isSupportAgentActive}
-											onPress={() => navigate('/support-agent')}
-										/>
-									)}
-								</View>
-							</View>
+								{can('support.read') && (
+									<View>
+										<GroupLabel isOpen={showExpanded}>Outros</GroupLabel>
+										<View className="flex-col gap-1">
+											{can('support.read') && (
+												<NavItem
+													icon={SuporteIcon}
+													label="Suporte"
+													isOpen={showExpanded}
+													active={isSupportAgentActive}
+													onPress={() => navigate('/support-agent')}
+												/>
+											)}
+										</View>
+									</View>
+								)}
+							</>
 						)}
 					</View>
 				</ScrollView>

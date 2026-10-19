@@ -1,3 +1,4 @@
+import uuid
 from contextlib import contextmanager
 from types import SimpleNamespace
 
@@ -21,10 +22,12 @@ class _Client:
         self.response = response
         self.post_url = None
         self.post_json = None
+        self.post_headers = None
 
-    def post(self, url, headers, json):
+    def post(self, url, headers, json=None, content=None):
         self.post_url = url
         self.post_json = json
+        self.post_headers = headers
         return self.response
 
 
@@ -83,3 +86,23 @@ def test_create_signed_url_reports_storage_failure(monkeypatch):
         storage.create_signed_url(storage.CERTIFICATE_BUCKET, "t1/cert.pdf")
 
     assert error.value.status_code == 502
+
+
+def test_build_certificate_path_uses_language_folder_and_original_name():
+    path = storage.build_certificate_path(
+        uuid.UUID("a1a2a3a4-0000-4000-8000-000000000001"), "es-ES", "Certificação DELE.pdf"
+    )
+
+    assert path == "a1a2a3a4-0000-4000-8000-000000000001/es-ES/Certificacao_DELE.pdf"
+
+
+@pytest.mark.parametrize(("upsert", "expected"), [(False, None), (True, "true")])
+def test_upload_object_sends_upsert_only_when_overwriting(monkeypatch, upsert, expected):
+    client = _configure(monkeypatch, _Response(200))
+
+    storage.upload_object(
+        storage.CERTIFICATE_BUCKET, "t1/es-ES/cert.pdf", b"%PDF", "application/pdf", upsert=upsert
+    )
+
+    assert client.post_url.endswith("/storage/v1/object/translator-certificates/t1/es-ES/cert.pdf")
+    assert client.post_headers.get("x-upsert") == expected

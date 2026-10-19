@@ -11,9 +11,19 @@ from app.modules.service_orders.models.invite import (
     INVITE_STATUS_RECUSADO,
     ServiceOrderItemInvite,
 )
+from app.modules.service_orders.models.service_order_email_template import (
+    TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+    ServiceOrderEmailTemplate,
+)
 from app.modules.service_orders.models.service_order_item import (
     STATUS_EM_ANDAMENTO,
     ServiceOrderItem,
+)
+from app.modules.service_orders.services.invite_email import (
+    DEFAULT_INVITE_BODY_HTML,
+    DEFAULT_INVITE_SUBJECT,
+    InviteEmailData,
+    render_invite_email,
 )
 from app.modules.translators.models.translator import Translator
 from app.shared.email.smtp_client import send_email
@@ -77,18 +87,25 @@ class InviteService:
         self.db.add_all(invites)
         self.db.commit()
 
+        template = self.db.get(ServiceOrderEmailTemplate, TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY)
+        subject_template = template.subject if template else DEFAULT_INVITE_SUBJECT
+        body_template = template.body_html if template else DEFAULT_INVITE_BODY_HTML
+
         for invite, translator in zip(invites, translators, strict=True):
             self.db.refresh(invite)
-            send_email(
-                to=translator.email,
-                subject="Novo serviço de tradução disponível",
-                html_body=(
-                    f"<p>Olá {translator.name}, você foi convidado para um novo serviço de "
-                    f"tradução ({item.source_language} → {item.target_language}).</p>"
-                    f'<p><a href="{env_provider.get_site_url()}/convites/{invite.id}">'
-                    "Ver documento e responder</a></p>"
+            subject, html_body = render_invite_email(
+                subject_template,
+                body_template,
+                InviteEmailData(
+                    translator_name=translator.name,
+                    source_language=item.source_language,
+                    target_language=item.target_language,
+                    document_type=item.document_type,
+                    deadline=item.deadline,
+                    invite_url=f"{env_provider.get_site_url()}/convites/{invite.id}",
                 ),
             )
+            send_email(to=translator.email, subject=subject, html_body=html_body)
 
         return invites
 

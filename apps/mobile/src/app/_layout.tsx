@@ -131,10 +131,7 @@ export default function AppLayout() {
 	) {
 		return <Redirect href={firstAllowedRoute(authorizationContext) as never} />;
 	}
-	const showAppShell =
-		!isPublic &&
-		Boolean(session || authorizationContext) &&
-		authorizationLoaded;
+	const showAppShell = !isPublic && Boolean(session || authorizationContext);
 
 	return (
 		<SafeAreaProvider>

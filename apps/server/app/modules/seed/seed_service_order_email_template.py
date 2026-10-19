@@ -2,7 +2,12 @@ from sqlalchemy.orm import Session
 
 from app.modules.service_orders.models.service_order_email_template import (
     SERVICE_ORDER_EMAIL_TEMPLATE_KEY,
+    TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
     ServiceOrderEmailTemplate,
+)
+from app.modules.service_orders.services.invite_email import (
+    DEFAULT_INVITE_BODY_HTML,
+    DEFAULT_INVITE_SUBJECT,
 )
 from app.shared.database import get_session_factory
 
@@ -19,24 +24,31 @@ DEFAULT_BODY_HTML = (
 )
 
 
+def _upsert_template(database_session: Session, key: str, subject: str, body_html: str) -> None:
+    template = database_session.get(ServiceOrderEmailTemplate, key)
+    if template is None:
+        database_session.add(
+            ServiceOrderEmailTemplate(key=key, subject=subject, body_html=body_html)
+        )
+    else:
+        template.subject = subject
+        template.body_html = body_html
+
+
 def seed_service_order_email_template(*, db: Session | None = None) -> str:
     database_session = db or get_session_factory()()
     should_close_session = db is None
 
     try:
-        template = database_session.get(ServiceOrderEmailTemplate, SERVICE_ORDER_EMAIL_TEMPLATE_KEY)
-        if template is None:
-            database_session.add(
-                ServiceOrderEmailTemplate(
-                    key=SERVICE_ORDER_EMAIL_TEMPLATE_KEY,
-                    subject=DEFAULT_SUBJECT,
-                    body_html=DEFAULT_BODY_HTML,
-                )
-            )
-        else:
-            template.subject = DEFAULT_SUBJECT
-            template.body_html = DEFAULT_BODY_HTML
-
+        _upsert_template(
+            database_session, SERVICE_ORDER_EMAIL_TEMPLATE_KEY, DEFAULT_SUBJECT, DEFAULT_BODY_HTML
+        )
+        _upsert_template(
+            database_session,
+            TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+            DEFAULT_INVITE_SUBJECT,
+            DEFAULT_INVITE_BODY_HTML,
+        )
         database_session.commit()
         return SERVICE_ORDER_EMAIL_TEMPLATE_KEY
     finally:

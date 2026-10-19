@@ -112,11 +112,6 @@ SEED_ROLES = (
             "dashboard.read",
         ),
     ),
-    SeedRole(
-        name="Operador",
-        description="Possui as mesmas permissões operacionais do administrador.",
-        permissions=ADMIN_PERMISSIONS,
-    ),
 )
 
 
@@ -180,7 +175,6 @@ def _associate_seed_users(db: Session) -> None:
         ("admin", "Administrador"),
         ("cliente", "Atendimento"),
         ("tradutor", "Recursos externos"),
-        ("operador", "Operador"),
     ):
         db.execute(
             text(

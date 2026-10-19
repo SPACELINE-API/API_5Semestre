@@ -7,10 +7,11 @@ import {
 	ScrollView,
 	useWindowDimensions,
 } from 'react-native';
-import { Search, Check, Send } from 'lucide-react-native';
+import { Search, Check, Send, Users } from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { InviteStatusBadge } from './InviteStatusBadge';
 import { useItemInvites } from '../hooks/useItemInvites';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 
 type TranslatorsInviteTabProps = {
 	items: ServiceOrderItem[];
@@ -36,6 +37,7 @@ export function TranslatorsInviteTab({
 		Set<string>
 	>(new Set());
 	const [isSending, setIsSending] = useState(false);
+	const [isConfirmingAll, setIsConfirmingAll] = useState(false);
 
 	const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
 	const { invites, isLoading: isLoadingInvites } = useItemInvites(
@@ -52,6 +54,15 @@ export function TranslatorsInviteTab({
 					.map((invite) => invite.translator_id),
 			),
 		[invites],
+	);
+
+	const eligibleTranslators = useMemo(
+		() =>
+			translators.filter(
+				(translator) =>
+					translator.is_active && !pendingTranslatorIds.has(translator.id),
+			),
+		[translators, pendingTranslatorIds],
 	);
 
 	useEffect(() => {
@@ -103,6 +114,22 @@ export function TranslatorsInviteTab({
 		}
 	}
 
+	async function handleSendAll() {
+		if (!selectedItemId || eligibleTranslators.length === 0) return;
+
+		setIsSending(true);
+		try {
+			await onSendInvites(
+				selectedItemId,
+				eligibleTranslators.map((translator) => translator.id),
+			);
+			setSelectedTranslatorIds(new Set());
+		} finally {
+			setIsSending(false);
+			setIsConfirmingAll(false);
+		}
+	}
+
 	if (items.length === 0) {
 		return (
 			<Text className="font-inter text-gray-400 text-sm">
@@ -118,8 +145,8 @@ export function TranslatorsInviteTab({
 					Item da ordem
 				</Text>
 
-				<ScrollView horizontal showsHorizontalScrollIndicator={false}>
-					<View className="flex-row gap-2">
+				<ScrollView style={{ maxHeight: 176 }} nestedScrollEnabled>
+					<View className="flex-row flex-wrap gap-2">
 						{items.map((item) => {
 							const isSelected = item.id === selectedItemId;
 							const isAssigned = Boolean(item.translator_id);
@@ -164,7 +191,7 @@ export function TranslatorsInviteTab({
 						Este item já tem um tradutor atribuído:{' '}
 						{translatorsById.get(selectedItem.translator_id)?.name ??
 							selectedItem.translator_id}
-						. Não é possível enviar novos convites para ele — selecione outro
+						. Não é possível enviar novos convites para ele. Selecione outro
 						item.
 					</Text>
 				</View>
@@ -252,7 +279,7 @@ export function TranslatorsInviteTab({
 							</Text>
 							<View className="w-24 flex-row items-center gap-1.5">
 								{hasPendingInvite ? (
-									<Text className="font-inter text-gray-500 text-xs">
+									<Text className="font-inter font-medium text-red-900 text-xs">
 										Convite pendente
 									</Text>
 								) : (
@@ -279,27 +306,58 @@ export function TranslatorsInviteTab({
 				)}
 			</View>
 
-			<TouchableOpacity
-				onPress={handleSend}
-				disabled={
-					isSending || selectedTranslatorIds.size === 0 || isItemAssigned
-				}
-				activeOpacity={0.85}
-				accessibilityRole="button"
-				accessibilityLabel="Enviar convites para os tradutores selecionados"
-				className={`flex-row items-center gap-2 self-start rounded-lg bg-blue-600 px-5 py-2.5 ${
-					isSending || selectedTranslatorIds.size === 0 || isItemAssigned
-						? 'opacity-50'
-						: ''
-				}`}
-			>
-				<Send size={14} color="#FFFFFF" />
-				<Text className="font-inter font-semibold text-white text-sm">
-					{isSending
-						? 'Enviando…'
-						: `Enviar convites (${selectedTranslatorIds.size})`}
-				</Text>
-			</TouchableOpacity>
+			<View className="flex-row flex-wrap items-center gap-3">
+				<TouchableOpacity
+					onPress={handleSend}
+					disabled={
+						isSending || selectedTranslatorIds.size === 0 || isItemAssigned
+					}
+					activeOpacity={0.85}
+					accessibilityRole="button"
+					accessibilityLabel="Enviar convites para os tradutores selecionados"
+					className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 ${
+						isSending || selectedTranslatorIds.size === 0 || isItemAssigned
+							? 'opacity-50'
+							: ''
+					}`}
+				>
+					<Send size={14} color="#FFFFFF" />
+					<Text className="font-inter font-semibold text-white text-sm">
+						{isSending
+							? 'Enviando…'
+							: `Enviar convites (${selectedTranslatorIds.size})`}
+					</Text>
+				</TouchableOpacity>
+				<TouchableOpacity
+					onPress={() => setIsConfirmingAll(true)}
+					disabled={
+						isSending || eligibleTranslators.length === 0 || isItemAssigned
+					}
+					activeOpacity={0.85}
+					accessibilityRole="button"
+					accessibilityLabel="Enviar convite para todos os tradutores"
+					className={`flex-row items-center gap-2 rounded-lg border border-blue-600 px-5 py-2.5 ${
+						isSending || eligibleTranslators.length === 0 || isItemAssigned
+							? 'opacity-50'
+							: ''
+					}`}
+				>
+					<Users size={14} color="#2563EB" />
+					<Text className="font-inter font-semibold text-blue-600 text-sm">
+						Enviar para todos ({eligibleTranslators.length})
+					</Text>
+				</TouchableOpacity>
+			</View>
+
+			<ConfirmDialog
+				visible={isConfirmingAll}
+				title="Enviar para todos os tradutores?"
+				message={`O convite deste item será enviado por e-mail para ${eligibleTranslators.length} tradutores ativos que ainda não têm convite pendente.`}
+				confirmLabel="Enviar para todos"
+				isLoading={isSending}
+				onConfirm={() => void handleSendAll()}
+				onCancel={() => setIsConfirmingAll(false)}
+			/>
 
 			{!isLoadingInvites && invites.length > 0 && (
 				<View className="gap-2 border-t border-gray-100 pt-5">

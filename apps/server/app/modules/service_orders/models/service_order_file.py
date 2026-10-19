@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,6 +15,10 @@ if TYPE_CHECKING:
 DIRECTION_ENTRADA = "entrada"
 DIRECTION_SAIDA = "saida"
 
+REVIEW_PENDING = "pending"
+REVIEW_APPROVED = "approved"
+REVIEW_CHANGES_REQUESTED = "changes_requested"
+
 
 class ServiceOrderFile(Base):
     __tablename__ = "service_order_files"
@@ -22,6 +26,10 @@ class ServiceOrderFile(Base):
         CheckConstraint(
             "delivery_status IN ('not_sent', 'pending', 'sent', 'failed')",
             name="ck_service_order_files_delivery_status",
+        ),
+        CheckConstraint(
+            "review_status IN ('pending', 'approved', 'changes_requested')",
+            name="ck_service_order_files_review_status",
         ),
     )
 
@@ -51,6 +59,11 @@ class ServiceOrderFile(Base):
     delivery_status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="not_sent", server_default="not_sent"
     )
+    review_status: Mapped[str] = mapped_column(
+        String(30), nullable=False, default=REVIEW_APPROVED, server_default=REVIEW_APPROVED
+    )
+    review_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
