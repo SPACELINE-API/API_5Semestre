@@ -66,11 +66,13 @@ class TranslatorCertificateService:
             )
 
         # 1) ARMAZENA O ARQUIVO; SE FALHAR, NADA E GRAVADO NO BANCO
-        new_path = storage.build_object_path(translator_id, filename)
-        self._upload(new_path, content, content_type, translator_id)
+        previous_path = certificate.storage_path if certificate is not None else None
+        new_path = storage.build_certificate_path(translator_id, language_id, filename)
+        # MESMO NOME NO MESMO IDIOMA: O NOVO ARQUIVO SOBRESCREVE O ANTERIOR NO STORAGE
+        overwrites_previous = new_path == previous_path
+        self._upload(new_path, content, content_type, translator_id, upsert=overwrites_previous)
 
         # 2) GRAVA A REFERENCIA; SE FALHAR, REMOVE O ARQUIVO PARA NAO DEIXAR ASSOCIACAO INCOMPLETA
-        previous_path = certificate.storage_path if certificate is not None else None
         if certificate is None:
             certificate = TranslatorCertificate(
                 translator_id=translator_id,
@@ -98,14 +100,16 @@ class TranslatorCertificateService:
                 translator_id,
                 language_id,
             )
-            self._discard(new_path)
+            # SE O ARQUIVO ANTERIOR FOI SOBRESCRITO, O OBJETO E MANTIDO PARA O REGISTRO NAO PERDER O ARQUIVO
+            if not overwrites_previous:
+                self._discard(new_path)
             raise HTTPException(
                 status_code=500,
                 detail="Não foi possível registrar o certificado. Tente novamente.",
             ) from error
 
         # O ARQUIVO SUBSTITUIDO SO E REMOVIDO DEPOIS QUE O NOVO FOI REGISTRADO
-        if previous_path:
+        if previous_path and not overwrites_previous:
             self._discard(previous_path)
 
         self.db.refresh(certificate)
@@ -222,9 +226,13 @@ class TranslatorCertificateService:
         content: bytes,
         content_type: str,
         translator_id: uuid.UUID,
+        *,
+        upsert: bool = False,
     ) -> None:
         try:
-            storage.upload_object(storage.CERTIFICATE_BUCKET, object_path, content, content_type)
+            storage.upload_object(
+                storage.CERTIFICATE_BUCKET, object_path, content, content_type, upsert=upsert
+            )
         except HTTPException:
             logger.error("Storage recusou o certificado do tradutor %s", translator_id)
             raise

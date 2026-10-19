@@ -28,12 +28,14 @@ class FakeStorage:
     def __init__(self):
         self.uploaded: list[tuple[str, str]] = []
         self.deleted: list[tuple[str, str]] = []
+        self.upserts: list[bool] = []
         self.fail_upload = False
 
-    def upload_object(self, bucket, object_path, content, content_type):
+    def upload_object(self, bucket, object_path, content, content_type, *, upsert=False):
         if self.fail_upload:
             raise HTTPException(status_code=502, detail="Não foi possível armazenar o arquivo.")
         self.uploaded.append((bucket, object_path))
+        self.upserts.append(upsert)
 
     def delete_object(self, bucket, object_path):
         self.deleted.append((bucket, object_path))
@@ -83,14 +85,31 @@ def translator(db_session):
     return make_translator(db_session)
 
 
-def submit(service, translator, *, language_id="es", content=PDF, declared="application/pdf"):
+def submit(
+    service,
+    translator,
+    *,
+    language_id="es",
+    content=PDF,
+    declared="application/pdf",
+    filename="certificado-dele.pdf",
+):
     return service.submit(
         translator.email,
         language_id,
         ProficiencyLevel.ADVANCED,
-        "certificado-dele.pdf",
+        filename,
         content,
         declared,
+    )
+
+
+def reject(service, translator, certificate):
+    service.review(
+        translator.id,
+        certificate.id,
+        CertificateReviewInput(status=CertificateStatus.REJECTED, review_note="Ilegível"),
+        "admin@example.com",
     )
 
 
@@ -169,14 +188,9 @@ def test_database_failure_removes_uploaded_file(
 def test_resubmission_replaces_file_and_returns_to_pending(db_session, translator, fake_storage):
     service = TranslatorCertificateService(db_session)
     first = submit(service, translator)
-    service.review(
-        translator.id,
-        first.id,
-        CertificateReviewInput(status=CertificateStatus.REJECTED, review_note="Ilegível"),
-        "admin@example.com",
-    )
+    reject(service, translator, first)
 
-    second = submit(service, translator)
+    second = submit(service, translator, filename="certificado-dele-novo.pdf")
 
     assert second.id == first.id
     assert second.status == CertificateStatus.PENDING
@@ -327,3 +341,47 @@ def test_certifiable_languages_come_from_registered_languages(db_session, transl
     languages = service.list_certifiable_languages(translator.email)
 
     assert [(item.id, item.name) for item in languages] == [("de", "Alemão"), ("fr", "Francês")]
+
+
+def test_certificate_is_stored_in_language_folder_with_original_name(
+    db_session, translator, fake_storage
+):
+    submit(
+        TranslatorCertificateService(db_session),
+        translator,
+        filename="Certificado DELE B2.pdf",
+    )
+
+    assert fake_storage.uploaded == [
+        (storage.CERTIFICATE_BUCKET, f"{translator.id}/es/Certificado_DELE_B2.pdf")
+    ]
+    assert fake_storage.upserts == [False]
+
+
+def test_resubmission_with_same_name_overwrites_file_in_place(db_session, translator, fake_storage):
+    service = TranslatorCertificateService(db_session)
+    first = submit(service, translator)
+    reject(service, translator, first)
+
+    second = submit(service, translator, content=PDF + b"\n% corrigido")
+
+    assert second.id == first.id
+    assert fake_storage.uploaded[0] == fake_storage.uploaded[1]
+    assert fake_storage.upserts == [False, True]
+    assert fake_storage.deleted == []
+
+
+def test_database_failure_keeps_overwritten_file(db_session, translator, fake_storage, monkeypatch):
+    service = TranslatorCertificateService(db_session)
+    first = submit(service, translator)
+    reject(service, translator, first)
+
+    def failing_commit():
+        raise RuntimeError("database unavailable")
+
+    monkeypatch.setattr(db_session, "commit", failing_commit)
+    with pytest.raises(HTTPException):
+        submit(service, translator, content=PDF + b"\n% corrigido")
+    monkeypatch.undo()
+
+    assert fake_storage.deleted == []

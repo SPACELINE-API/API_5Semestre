@@ -43,8 +43,8 @@ def translator(isolated_db_session):
 
 @pytest.fixture
 def authenticated(isolated_db_session, translator, monkeypatch):
-    monkeypatch.setattr(storage, "upload_object", lambda *args: None)
-    monkeypatch.setattr(storage, "delete_object", lambda *args: None)
+    monkeypatch.setattr(storage, "upload_object", lambda *args, **kwargs: None)
+    monkeypatch.setattr(storage, "delete_object", lambda *args, **kwargs: None)
     user = SupabaseAuthenticatedUser(id=str(uuid.uuid4()), email=translator.email)
     admin = SupabaseAuthenticatedUser(id=str(uuid.uuid4()), email="admin@example.com")
     app.dependency_overrides[get_db] = lambda: isolated_db_session
