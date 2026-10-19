@@ -64,3 +64,7 @@ class Request(Base):
     document: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     document_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
     document_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    @property
+    def has_document(self) -> bool:
+        return self.document is not None

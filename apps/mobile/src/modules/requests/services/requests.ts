@@ -21,7 +21,9 @@ export type RequestItem = {
 	reproved_at?: string | null;
 	reproved_by_email?: string | null;
 	reproval_reason?: string | null;
-	document: string | null;
+	has_document: boolean;
+	document_filename?: string | null;
+	document_content_type?: string | null;
 };
 
 export type RequestStatusUpdateResult =
@@ -206,5 +208,46 @@ export async function createRequest(
 			status: error instanceof MultipartUploadError ? error.status : 0,
 			detail: error instanceof Error ? error.message : undefined,
 		};
+	}
+}
+
+export async function openRequestDocument(requestId: string): Promise<void> {
+	const session = getSession();
+	if (!session?.access_token) {
+		throw new Error('Não autenticado');
+	}
+
+	let newWindow: Window | null = null;
+	if (typeof window !== 'undefined') {
+		newWindow = window.open('about:blank');
+	}
+
+	try {
+		const response = await fetch(
+			`${API_BASE_URL}/api/quotes/requests/${encodeURIComponent(requestId)}/document`,
+			{
+				headers: {
+					Authorization: `Bearer ${session.access_token}`,
+				},
+			},
+		);
+
+		if (!response.ok) {
+			throw new Error('Não foi possível carregar o documento');
+		}
+
+		const blob = await response.blob();
+		const url = URL.createObjectURL(blob);
+
+		if (newWindow) {
+			newWindow.location.href = url;
+		} else {
+			window.location.href = url;
+		}
+	} catch (error) {
+		if (newWindow) {
+			newWindow.close();
+		}
+		throw error;
 	}
 }
