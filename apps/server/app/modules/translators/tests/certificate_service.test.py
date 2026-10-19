@@ -21,6 +21,9 @@ from app.modules.translators.services.certificate_service import TranslatorCerti
 from app.modules.translators.services.translator_service import TranslatorService
 
 PDF = b"%PDF-1.7\n" + b"0" * 64 + b"\n%%EOF\n"
+# CONTEUDOS DIFERENTES: O MESMO ARQUIVO NAO PODE SER ENVIADO EM DOIS IDIOMAS
+PDF_FR = b"%PDF-1.7\n" + b"1" * 64 + b"\n%%EOF\n"
+PDF_NEW = b"%PDF-1.7\n" + b"2" * 64 + b"\n%%EOF\n"
 GIF = b"GIF89a" + b"0" * 32
 
 
@@ -28,12 +31,14 @@ class FakeStorage:
     def __init__(self):
         self.uploaded: list[tuple[str, str]] = []
         self.deleted: list[tuple[str, str]] = []
+        self.upserts: list[bool] = []
         self.fail_upload = False
 
-    def upload_object(self, bucket, object_path, content, content_type):
+    def upload_object(self, bucket, object_path, content, content_type, *, upsert=False):
         if self.fail_upload:
             raise HTTPException(status_code=502, detail="Não foi possível armazenar o arquivo.")
         self.uploaded.append((bucket, object_path))
+        self.upserts.append(upsert)
 
     def delete_object(self, bucket, object_path):
         self.deleted.append((bucket, object_path))
@@ -83,14 +88,31 @@ def translator(db_session):
     return make_translator(db_session)
 
 
-def submit(service, translator, *, language_id="es", content=PDF, declared="application/pdf"):
+def submit(
+    service,
+    translator,
+    *,
+    language_id="es",
+    content=PDF,
+    declared="application/pdf",
+    filename="certificado-dele.pdf",
+):
     return service.submit(
         translator.email,
         language_id,
         ProficiencyLevel.ADVANCED,
-        "certificado-dele.pdf",
+        filename,
         content,
         declared,
+    )
+
+
+def reject(service, translator, certificate):
+    service.review(
+        translator.id,
+        certificate.id,
+        CertificateReviewInput(status=CertificateStatus.REJECTED, review_note="Ilegível"),
+        "admin@example.com",
     )
 
 
@@ -169,14 +191,9 @@ def test_database_failure_removes_uploaded_file(
 def test_resubmission_replaces_file_and_returns_to_pending(db_session, translator, fake_storage):
     service = TranslatorCertificateService(db_session)
     first = submit(service, translator)
-    service.review(
-        translator.id,
-        first.id,
-        CertificateReviewInput(status=CertificateStatus.REJECTED, review_note="Ilegível"),
-        "admin@example.com",
-    )
+    reject(service, translator, first)
 
-    second = submit(service, translator)
+    second = submit(service, translator, filename="certificado-dele-novo.pdf", content=PDF_NEW)
 
     assert second.id == first.id
     assert second.status == CertificateStatus.PENDING
@@ -221,7 +238,7 @@ def test_translator_lists_only_own_certificates(db_session, translator, fake_sto
     service = TranslatorCertificateService(db_session)
     other = make_translator(db_session)
     submit(service, translator, language_id="es")
-    submit(service, translator, language_id="fr")
+    submit(service, translator, language_id="fr", content=PDF_FR)
     submit(service, other, language_id="es")
 
     certificates = service.list_mine(translator.email)
@@ -303,7 +320,7 @@ def test_admin_listing_of_unknown_translator_is_404(db_session, fake_storage):
 def test_deleting_translator_removes_certificate_files(db_session, translator, fake_storage):
     service = TranslatorCertificateService(db_session)
     submit(service, translator, language_id="es")
-    submit(service, translator, language_id="fr")
+    submit(service, translator, language_id="fr", content=PDF_FR)
 
     TranslatorService(db_session).delete(translator.id)
 
@@ -322,8 +339,88 @@ def test_certifiable_languages_come_from_registered_languages(db_session, transl
         CertificateReviewInput(status=CertificateStatus.APPROVED),
         "admin@example.com",
     )
-    submit(service, translator, language_id="fr")
+    submit(service, translator, language_id="fr", content=PDF_FR)
 
     languages = service.list_certifiable_languages(translator.email)
 
     assert [(item.id, item.name) for item in languages] == [("de", "Alemão"), ("fr", "Francês")]
+
+
+def test_certificate_is_stored_in_language_folder_with_original_name(
+    db_session, translator, fake_storage
+):
+    submit(
+        TranslatorCertificateService(db_session),
+        translator,
+        filename="Certificado DELE B2.pdf",
+    )
+
+    assert fake_storage.uploaded == [
+        (storage.CERTIFICATE_BUCKET, f"{translator.id}/es/Certificado_DELE_B2.pdf")
+    ]
+    assert fake_storage.upserts == [False]
+
+
+def test_resubmission_with_same_name_overwrites_file_in_place(db_session, translator, fake_storage):
+    service = TranslatorCertificateService(db_session)
+    first = submit(service, translator)
+    reject(service, translator, first)
+
+    second = submit(service, translator, content=PDF + b"\n% corrigido")
+
+    assert second.id == first.id
+    assert fake_storage.uploaded[0] == fake_storage.uploaded[1]
+    assert fake_storage.upserts == [False, True]
+    assert fake_storage.deleted == []
+
+
+def test_database_failure_keeps_overwritten_file(db_session, translator, fake_storage, monkeypatch):
+    service = TranslatorCertificateService(db_session)
+    first = submit(service, translator)
+    reject(service, translator, first)
+
+    def failing_commit():
+        raise RuntimeError("database unavailable")
+
+    monkeypatch.setattr(db_session, "commit", failing_commit)
+    with pytest.raises(HTTPException):
+        submit(service, translator, content=PDF + b"\n% corrigido")
+    monkeypatch.undo()
+
+    assert fake_storage.deleted == []
+
+
+def test_same_file_cannot_be_sent_for_another_language(db_session, translator, fake_storage):
+    service = TranslatorCertificateService(db_session)
+    submit(service, translator, language_id="es")
+
+    with pytest.raises(HTTPException) as error:
+        submit(service, translator, language_id="fr", filename="outro-nome.pdf")
+
+    assert error.value.status_code == 409
+    assert error.value.detail == "Este arquivo já foi enviado como certificado de Espanhol."
+    assert len(fake_storage.uploaded) == 1
+    assert count_certificates(db_session) == 1
+
+
+def test_identical_file_cannot_replace_current_certificate(db_session, translator, fake_storage):
+    service = TranslatorCertificateService(db_session)
+    first = submit(service, translator)
+    reject(service, translator, first)
+
+    with pytest.raises(HTTPException) as error:
+        submit(service, translator, filename="mesmo-arquivo-renomeado.pdf")
+
+    assert error.value.status_code == 409
+    assert "igual ao certificado atual" in error.value.detail
+    assert len(fake_storage.uploaded) == 1
+
+
+def test_other_translator_can_send_the_same_file(db_session, translator, fake_storage):
+    service = TranslatorCertificateService(db_session)
+    other = make_translator(db_session)
+    submit(service, translator)
+
+    certificate = submit(service, other)
+
+    assert certificate.translator_id == other.id

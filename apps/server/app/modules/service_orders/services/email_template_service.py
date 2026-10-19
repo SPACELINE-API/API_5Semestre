@@ -11,8 +11,10 @@ class ServiceOrderEmailTemplateService:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_template(self) -> ServiceOrderEmailTemplate:
-        template = self.db.get(ServiceOrderEmailTemplate, SERVICE_ORDER_EMAIL_TEMPLATE_KEY)
+    def get_template(
+        self, key: str = SERVICE_ORDER_EMAIL_TEMPLATE_KEY
+    ) -> ServiceOrderEmailTemplate:
+        template = self.db.get(ServiceOrderEmailTemplate, key)
         if template is None:
             raise HTTPException(
                 status_code=404,

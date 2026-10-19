@@ -42,6 +42,20 @@ class TranslatorCertificateRepository:
             .first()
         )
 
+    # BUSCA UM CERTIFICADO DO TRADUTOR COM O MESMO CONTEUDO (IMPRESSAO DIGITAL SHA-256)
+    def get_by_checksum(
+        self, translator_id: uuid.UUID, checksum_sha256: str
+    ) -> TranslatorCertificate | None:
+        return (
+            self.db.query(TranslatorCertificate)
+            .options(joinedload(TranslatorCertificate.language))
+            .filter(
+                TranslatorCertificate.translator_id == translator_id,
+                TranslatorCertificate.checksum_sha256 == checksum_sha256,
+            )
+            .first()
+        )
+
     # LISTA OS CERTIFICADOS DO TRADUTOR, DO MAIS RECENTE PARA O MAIS ANTIGO
     def list_by_translator(self, translator_id: uuid.UUID) -> list[TranslatorCertificate]:
         return (

@@ -65,12 +65,18 @@ class TranslatorCertificateService:
                 detail="O certificado deste idioma já foi aprovado.",
             )
 
+        # O MESMO ARQUIVO NAO PODE SER ENVIADO DUAS VEZES PELO TRADUTOR, EM NENHUM IDIOMA
+        checksum = hashlib.sha256(content).hexdigest()
+        self._ensure_file_not_sent_before(translator_id, language_id, checksum)
+
         # 1) ARMAZENA O ARQUIVO; SE FALHAR, NADA E GRAVADO NO BANCO
-        new_path = storage.build_object_path(translator_id, filename)
-        self._upload(new_path, content, content_type, translator_id)
+        previous_path = certificate.storage_path if certificate is not None else None
+        new_path = storage.build_certificate_path(translator_id, language_id, filename)
+        # MESMO NOME NO MESMO IDIOMA: O NOVO ARQUIVO SOBRESCREVE O ANTERIOR NO STORAGE
+        overwrites_previous = new_path == previous_path
+        self._upload(new_path, content, content_type, translator_id, upsert=overwrites_previous)
 
         # 2) GRAVA A REFERENCIA; SE FALHAR, REMOVE O ARQUIVO PARA NAO DEIXAR ASSOCIACAO INCOMPLETA
-        previous_path = certificate.storage_path if certificate is not None else None
         if certificate is None:
             certificate = TranslatorCertificate(
                 translator_id=translator_id,
@@ -83,7 +89,7 @@ class TranslatorCertificateService:
         certificate.filename = filename[:255]
         certificate.content_type = content_type
         certificate.size_bytes = len(content)
-        certificate.checksum_sha256 = hashlib.sha256(content).hexdigest()
+        certificate.checksum_sha256 = checksum
         certificate.status = CertificateStatus.PENDING
         certificate.review_note = None
         certificate.reviewed_by_id = None
@@ -98,14 +104,16 @@ class TranslatorCertificateService:
                 translator_id,
                 language_id,
             )
-            self._discard(new_path)
+            # SE O ARQUIVO ANTERIOR FOI SOBRESCRITO, O OBJETO E MANTIDO PARA O REGISTRO NAO PERDER O ARQUIVO
+            if not overwrites_previous:
+                self._discard(new_path)
             raise HTTPException(
                 status_code=500,
                 detail="Não foi possível registrar o certificado. Tente novamente.",
             ) from error
 
         # O ARQUIVO SUBSTITUIDO SO E REMOVIDO DEPOIS QUE O NOVO FOI REGISTRADO
-        if previous_path:
+        if previous_path and not overwrites_previous:
             self._discard(previous_path)
 
         self.db.refresh(certificate)
@@ -204,6 +212,22 @@ class TranslatorCertificateService:
                 detail="Este idioma já está cadastrado no seu perfil.",
             )
 
+    def _ensure_file_not_sent_before(
+        self, translator_id: uuid.UUID, language_id: str, checksum: str
+    ) -> None:
+        duplicate = self.repo.get_by_checksum(translator_id, checksum)
+        if duplicate is None:
+            return
+        if duplicate.language_id == language_id:
+            raise HTTPException(
+                status_code=409,
+                detail="O arquivo enviado é igual ao certificado atual deste idioma.",
+            )
+        raise HTTPException(
+            status_code=409,
+            detail=f"Este arquivo já foi enviado como certificado de {duplicate.language_name}.",
+        )
+
     def _get_certificate_or_404(
         self, translator_id: uuid.UUID, certificate_id: uuid.UUID
     ) -> TranslatorCertificate:
@@ -222,9 +246,13 @@ class TranslatorCertificateService:
         content: bytes,
         content_type: str,
         translator_id: uuid.UUID,
+        *,
+        upsert: bool = False,
     ) -> None:
         try:
-            storage.upload_object(storage.CERTIFICATE_BUCKET, object_path, content, content_type)
+            storage.upload_object(
+                storage.CERTIFICATE_BUCKET, object_path, content, content_type, upsert=upsert
+            )
         except HTTPException:
             logger.error("Storage recusou o certificado do tradutor %s", translator_id)
             raise

@@ -9,6 +9,9 @@ class TranslatorItemFileResponse(BaseModel):
     id: uuid.UUID
     filename: str
     file_url: str
+    review_status: str
+    review_note: str | None
+    reviewed_at: datetime | None
     uploaded_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

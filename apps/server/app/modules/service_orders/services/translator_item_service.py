@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session, joinedload
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_file import (
     DIRECTION_SAIDA,
+    REVIEW_CHANGES_REQUESTED,
+    REVIEW_PENDING,
     ServiceOrderFile,
 )
 from app.modules.service_orders.models.service_order_item import (
@@ -109,6 +111,22 @@ class TranslatorItemService:
         if item.status == STATUS_CONCLUIDA:
             raise HTTPException(status_code=409, detail="Este item já foi concluído.")
 
+        deliveries = sorted(
+            (
+                file
+                for file in item.service_order.files
+                if file.service_order_item_id == item.id and file.direction == DIRECTION_SAIDA
+            ),
+            key=lambda file: file.uploaded_at,
+            reverse=True,
+        )
+        if deliveries and deliveries[0].review_status != REVIEW_CHANGES_REQUESTED:
+            raise HTTPException(
+                status_code=409,
+                detail="Já existe uma tradução enviada para este item. "
+                "Um novo envio só é permitido se os ajustes forem solicitados.",
+            )
+
         validate_delivery_file(filename, content)
 
         file_url = upload_service_order_file(filename, io.BytesIO(content), content_type)
@@ -120,6 +138,7 @@ class TranslatorItemService:
                 filename=filename[:255],
                 file_url=file_url,
                 direction=DIRECTION_SAIDA,
+                review_status=REVIEW_PENDING,
             )
         )
         item.status = STATUS_EM_ANALISE
