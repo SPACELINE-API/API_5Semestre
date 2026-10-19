@@ -46,8 +46,9 @@ export async function uploadFileMultipart<TResponse>(
 	fields: Record<string, string>,
 	httpMethod: 'POST' | 'PATCH' = 'POST',
 	fileFieldName = 'file',
+	includeSession = true,
 ): Promise<TResponse> {
-	const token = getSession()?.access_token;
+	const token = includeSession ? getSession()?.access_token : undefined;
 	const headers: Record<string, string> = token
 		? { Authorization: `Bearer ${token}` }
 		: {};
