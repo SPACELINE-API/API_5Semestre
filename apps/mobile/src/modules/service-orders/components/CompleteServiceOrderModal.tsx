@@ -1,4 +1,9 @@
-import { useEffect, useState } from 'react';
+import {
+	useEffect,
+	useState,
+	type ComponentProps,
+	type ComponentType,
+} from 'react';
 import {
 	ActivityIndicator,
 	Modal,
@@ -8,7 +13,9 @@ import {
 	TouchableOpacity,
 	View,
 	Linking,
+	Platform,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Check, FileText, Square, X } from 'lucide-react-native';
 import type {
 	ServiceOrder,
@@ -19,6 +26,7 @@ import {
 	sendServiceOrderDeliveries,
 } from '../services/serviceOrderService';
 import { approvedDeliveries } from '../utils/fileReview';
+import { openDocument } from '../../../shared/components/FilePreview';
 
 type CompleteServiceOrderModalProps = {
 	visible: boolean;
@@ -74,6 +82,9 @@ export function CompleteServiceOrderModal({
 	onClose,
 	onSent,
 }: CompleteServiceOrderModalProps) {
+	const KeyboardContainer = (
+		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
+	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const [template, setTemplate] = useState<ServiceOrderEmailTemplate | null>(
 		null,
 	);
@@ -181,7 +192,11 @@ export function CompleteServiceOrderModal({
 
 	async function handleOpenDocument(fileUrl: string) {
 		if (!fileUrl) return;
-		await Linking.openURL(fileUrl);
+		if (Platform.OS === 'web') {
+			await Linking.openURL(fileUrl);
+			return;
+		}
+		openDocument(fileUrl);
 	}
 
 	return (
@@ -213,10 +228,15 @@ export function CompleteServiceOrderModal({
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView
+					<KeyboardContainer
 						className="px-5 py-4 md:px-6"
 						contentContainerClassName="gap-5 pb-6"
-						keyboardShouldPersistTaps="handled"
+						{...(Platform.OS === 'web'
+							? { keyboardShouldPersistTaps: 'handled' as const }
+							: {
+									bottomOffset: 20,
+									keyboardShouldPersistTaps: 'handled' as const,
+								})}
 					>
 						<View className="gap-1">
 							<Text className="font-inter text-gray-500 text-xs">
@@ -397,7 +417,7 @@ export function CompleteServiceOrderModal({
 								{sendError}
 							</Text>
 						)}
-					</ScrollView>
+					</KeyboardContainer>
 
 					<View className="flex-row items-center justify-end gap-3 border-t border-gray-100 px-5 py-4 md:px-6">
 						<TouchableOpacity
