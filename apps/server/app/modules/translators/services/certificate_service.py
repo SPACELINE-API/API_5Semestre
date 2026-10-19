@@ -65,6 +65,10 @@ class TranslatorCertificateService:
                 detail="O certificado deste idioma já foi aprovado.",
             )
 
+        # O MESMO ARQUIVO NAO PODE SER ENVIADO DUAS VEZES PELO TRADUTOR, EM NENHUM IDIOMA
+        checksum = hashlib.sha256(content).hexdigest()
+        self._ensure_file_not_sent_before(translator_id, language_id, checksum)
+
         # 1) ARMAZENA O ARQUIVO; SE FALHAR, NADA E GRAVADO NO BANCO
         previous_path = certificate.storage_path if certificate is not None else None
         new_path = storage.build_certificate_path(translator_id, language_id, filename)
@@ -85,7 +89,7 @@ class TranslatorCertificateService:
         certificate.filename = filename[:255]
         certificate.content_type = content_type
         certificate.size_bytes = len(content)
-        certificate.checksum_sha256 = hashlib.sha256(content).hexdigest()
+        certificate.checksum_sha256 = checksum
         certificate.status = CertificateStatus.PENDING
         certificate.review_note = None
         certificate.reviewed_by_id = None
@@ -207,6 +211,22 @@ class TranslatorCertificateService:
                 status_code=409,
                 detail="Este idioma já está cadastrado no seu perfil.",
             )
+
+    def _ensure_file_not_sent_before(
+        self, translator_id: uuid.UUID, language_id: str, checksum: str
+    ) -> None:
+        duplicate = self.repo.get_by_checksum(translator_id, checksum)
+        if duplicate is None:
+            return
+        if duplicate.language_id == language_id:
+            raise HTTPException(
+                status_code=409,
+                detail="O arquivo enviado é igual ao certificado atual deste idioma.",
+            )
+        raise HTTPException(
+            status_code=409,
+            detail=f"Este arquivo já foi enviado como certificado de {duplicate.language_name}.",
+        )
 
     def _get_certificate_or_404(
         self, translator_id: uuid.UUID, certificate_id: uuid.UUID
