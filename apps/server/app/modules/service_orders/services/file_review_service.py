@@ -12,7 +12,6 @@ from app.modules.service_orders.models.service_order_file import (
     ServiceOrderFile,
 )
 from app.modules.service_orders.models.service_order_item import (
-    STATUS_CONCLUIDA,
     STATUS_EM_ANDAMENTO,
     ServiceOrderItem,
 )
@@ -52,14 +51,11 @@ class ServiceOrderFileReviewService:
         return file, item
 
     def approve(self, service_order_id: uuid.UUID, file_id: uuid.UUID) -> ServiceOrderFile:
-        file, item = self._get_reviewable_file(service_order_id, file_id)
+        file, _item = self._get_reviewable_file(service_order_id, file_id)
 
         file.review_status = REVIEW_APPROVED
         file.review_note = None
         file.reviewed_at = datetime.now(UTC)
-        if item.status != STATUS_CONCLUIDA:
-            item.status = STATUS_CONCLUIDA
-            item.completed_at = datetime.now(UTC)
 
         self.db.commit()
         self.db.refresh(file)

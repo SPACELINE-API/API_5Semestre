@@ -7,6 +7,7 @@ import type {
 import {
 	approvedDeliveries,
 	countApprovedDeliveries,
+	canCompleteOrder,
 	pendingReviewDeliveries,
 	reviewableFiles,
 	reviewedDeliveries,
@@ -94,5 +95,35 @@ test.describe('delivery review helpers', () => {
 			'new',
 			'old',
 		]);
+	});
+});
+
+test.describe('canCompleteOrder', () => {
+	test('hides the action once the order is concluded', () => {
+		expect(canCompleteOrder('concluida', [])).toBe(false);
+		expect(canCompleteOrder('concluida', [file('a')])).toBe(false);
+	});
+
+	test('shows the action while the order is not concluded', () => {
+		expect(canCompleteOrder('em_andamento', [])).toBe(true);
+		expect(canCompleteOrder('em_analise', [file('a')])).toBe(true);
+	});
+
+	test('hides the action once every delivery was sent', () => {
+		expect(
+			canCompleteOrder('em_andamento', [
+				file('a', { delivery_status: 'sent' }),
+				file('b', { delivery_status: 'sent' }),
+			]),
+		).toBe(false);
+	});
+
+	test('ignores incoming client files', () => {
+		expect(
+			canCompleteOrder('em_analise', [
+				file('a', { delivery_status: 'sent' }),
+				file('b', { direction: 'entrada' }),
+			]),
+		).toBe(false);
 	});
 });

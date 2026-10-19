@@ -27,7 +27,7 @@ import { ItemsTable } from '../components/ItemsTable';
 import { ServiceOrderFilesTab } from '../components/ServiceOrderFilesTab';
 import { TranslatorsInviteTab } from '../components/TranslatorsInviteTab';
 import { ItemReviewTab } from '../components/ItemReviewTab';
-import { pendingReviewDeliveries } from '../utils/fileReview';
+import { canCompleteOrder, pendingReviewDeliveries } from '../utils/fileReview';
 import { InviteTranslatorsModal } from '../components/InviteTranslatorsModal';
 import { AddItemModal } from '../components/AddItemModal';
 import { EditItemModal } from '../components/EditItemModal';
@@ -199,12 +199,11 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 							serviceOrder={serviceOrder}
 							companyName={company?.trade_name ?? 'Empresa não encontrada'}
 							view={view}
-							isLoading={isLoading}
-							onRefresh={() => {
-								refresh();
-								setRefreshToken((current) => current + 1);
-							}}
 							onDelete={() => setIsDeleteConfirmVisible(true)}
+							canComplete={canCompleteOrder(
+								serviceOrder.status,
+								serviceOrder.files,
+							)}
 							onComplete={() => setIsCompleteModalVisible(true)}
 							onViewChange={setView}
 						/>

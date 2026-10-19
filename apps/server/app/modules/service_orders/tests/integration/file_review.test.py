@@ -134,7 +134,9 @@ def make_delivery(
     return file
 
 
-def test_approve_marks_file_approved_and_concludes_the_item(db_session: Session) -> None:
+def test_approve_marks_file_approved_and_keeps_the_item_open_until_delivery(
+    db_session: Session,
+) -> None:
     order = make_order(db_session)
     item = make_item(db_session, order, make_translator(db_session))
     file = make_delivery(db_session, order, item)
@@ -145,7 +147,8 @@ def test_approve_marks_file_approved_and_concludes_the_item(db_session: Session)
     assert reviewed.reviewed_at is not None
     assert reviewed.review_note is None
     db_session.refresh(item)
-    assert item.status == STATUS_CONCLUIDA
+    assert item.status == STATUS_EM_ANALISE
+    assert item.completed_at is None
 
 
 def test_request_changes_stores_the_note_and_reopens_the_item(db_session: Session) -> None:

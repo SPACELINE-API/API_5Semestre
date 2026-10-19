@@ -31,6 +31,18 @@ export function approvedDeliveries(
 	);
 }
 
+export function canCompleteOrder(
+	orderStatus: string,
+	files: ServiceOrderFile[],
+): boolean {
+	if (orderStatus === 'concluida') return false;
+	const deliveries = files.filter(isDelivery);
+	return !(
+		deliveries.length > 0 &&
+		deliveries.every((file) => file.delivery_status === 'sent')
+	);
+}
+
 export function pendingReviewDeliveries(
 	files: ServiceOrderFile[],
 ): ServiceOrderFile[] {
