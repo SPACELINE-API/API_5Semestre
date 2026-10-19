@@ -31,8 +31,8 @@ import {
 
 type CertificateUploadModalProps = {
 	visible: boolean;
-	/** Idioma já escolhido ao abrir (ex.: substituir um certificado existente). */
-	initialLanguageId?: string;
+	/** Certificado em análise ou recusado cujo arquivo será substituído. */
+	certificateToReplace?: TranslatorCertificate | null;
 	onClose: () => void;
 	onSubmitted?: (certificate: TranslatorCertificate) => void;
 };
@@ -53,7 +53,7 @@ function normalize(value: string) {
 
 export function CertificateUploadModal({
 	visible,
-	initialLanguageId,
+	certificateToReplace,
 	onClose,
 	onSubmitted,
 }: CertificateUploadModalProps) {
@@ -84,9 +84,12 @@ export function CertificateUploadModal({
 
 	useEffect(() => {
 		if (!visible) return;
-		setLanguageId(initialLanguageId ?? '');
+		setLanguageId(certificateToReplace?.language_id ?? '');
+		setProficiency(certificateToReplace?.proficiency_level ?? null);
 		void loadLanguages();
-	}, [visible, initialLanguageId, loadLanguages]);
+	}, [visible, certificateToReplace, loadLanguages]);
+
+	const isReplacing = Boolean(certificateToReplace);
 
 	const selectedLanguage = languages.find((item) => item.id === languageId);
 	const filteredLanguages = useMemo(() => {
@@ -161,7 +164,7 @@ export function CertificateUploadModal({
 			});
 			onSubmitted?.(certificate);
 			setMessage(
-				`O certificado de ${certificate.language_name} foi enviado e ficará em análise até a avaliação do administrador.`,
+				`${isReplacing ? 'O novo arquivo do certificado' : 'O certificado'} de ${certificate.language_name} foi enviado e ficará em análise até a avaliação do administrador.`,
 			);
 			setStep('success');
 		} catch (cause) {
@@ -220,8 +223,12 @@ export function CertificateUploadModal({
 		<AppModal
 			visible={visible}
 			size="md"
-			title="Novo certificado"
-			message="Envie o certificado que comprova o seu novo idioma de trabalho."
+			title={isReplacing ? 'Substituir certificado' : 'Novo certificado'}
+			message={
+				isReplacing
+					? `O novo arquivo substituirá o certificado atual de ${certificateToReplace?.language_name} e voltará para análise.`
+					: 'Envie o certificado que comprova o seu novo idioma de trabalho.'
+			}
 			confirmLabel="Enviar"
 			confirmDisabled={!canSubmit}
 			isLoading={isSubmitting}
@@ -234,7 +241,7 @@ export function CertificateUploadModal({
 				</Text>
 				<TouchableOpacity
 					onPress={() => setIsPickerOpen((open) => !open)}
-					disabled={isSubmitting || isLoadingLanguages}
+					disabled={isSubmitting || isLoadingLanguages || isReplacing}
 					accessibilityRole="button"
 					accessibilityLabel="Selecionar idioma"
 					accessibilityState={{ expanded: isPickerOpen }}
@@ -246,11 +253,13 @@ export function CertificateUploadModal({
 					>
 						{isLoadingLanguages
 							? 'Carregando idiomas…'
-							: (selectedLanguage?.name ?? 'Selecione um idioma')}
+							: (selectedLanguage?.name ??
+								certificateToReplace?.language_name ??
+								'Selecione um idioma')}
 					</Text>
 					{isLoadingLanguages ? (
 						<ActivityIndicator size="small" color="#6B7280" />
-					) : (
+					) : isReplacing ? null : (
 						<ChevronDown size={16} color="#6B7280" />
 					)}
 				</TouchableOpacity>

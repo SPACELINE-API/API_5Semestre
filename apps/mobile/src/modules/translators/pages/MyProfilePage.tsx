@@ -34,6 +34,8 @@ export function MyProfilePage() {
 	const certificates = useMyCertificates();
 	const [activeTab, setActiveTab] = useState<ProfileTab>('data');
 	const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
+	const [certificateToReplace, setCertificateToReplace] =
+		useState<TranslatorCertificate | null>(null);
 	const [selectedCertificate, setSelectedCertificate] =
 		useState<TranslatorCertificate | null>(null);
 	const [unavailableIds, setUnavailableIds] = useState<ReadonlySet<string>>(
@@ -114,7 +116,10 @@ export function MyProfilePage() {
 							unavailableIds={unavailableIds}
 							onRetry={() => void certificates.refresh()}
 							onSelect={setSelectedCertificate}
-							onNewCertificate={() => setIsCertificateModalOpen(true)}
+							onNewCertificate={() => {
+								setCertificateToReplace(null);
+								setIsCertificateModalOpen(true);
+							}}
 						/>
 					</View>
 				</View>
@@ -131,16 +136,28 @@ export function MyProfilePage() {
 				onUnavailable={(certificateId) =>
 					setUnavailableIds((current) => new Set(current).add(certificateId))
 				}
-				onReplace={() => {
+				onReplace={(certificate) => {
 					setSelectedCertificate(null);
+					setCertificateToReplace(certificate);
 					setIsCertificateModalOpen(true);
 				}}
 			/>
 
 			<CertificateUploadModal
 				visible={isCertificateModalOpen}
-				onClose={() => setIsCertificateModalOpen(false)}
-				onSubmitted={() => void certificates.refresh()}
+				certificateToReplace={certificateToReplace}
+				onClose={() => {
+					setIsCertificateModalOpen(false);
+					setCertificateToReplace(null);
+				}}
+				onSubmitted={(certificate) => {
+					setUnavailableIds((current) => {
+						const next = new Set(current);
+						next.delete(certificate.id);
+						return next;
+					});
+					void certificates.refresh();
+				}}
 			/>
 
 			<Toast toast={toast} />
