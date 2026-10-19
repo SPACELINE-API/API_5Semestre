@@ -15,6 +15,7 @@ import { CertificateUploadModal } from '../components/CertificateUploadModal';
 import { LanguageCertificateCard } from '../components/LanguageCertificateCard';
 import { ProfileDataCard } from '../components/ProfileDataCard';
 import { ProfilePhotoCard } from '../components/ProfilePhotoCard';
+import { useMyCertificates } from '../hooks/useMyCertificates';
 import { useMyProfile } from '../hooks/useMyProfile';
 
 type ProfileTab = 'data' | 'languages' | 'certificates';
@@ -28,6 +29,7 @@ const TABS: { key: ProfileTab; label: string }[] = [
 export function MyProfilePage() {
 	const { profile, setProfile, isLoading, error, refresh } = useMyProfile();
 	const { toast, showToast } = useToast();
+	const certificates = useMyCertificates();
 	const [activeTab, setActiveTab] = useState<ProfileTab>('data');
 	const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
 
@@ -99,6 +101,10 @@ export function MyProfilePage() {
 
 					<View className={activeTab === 'certificates' ? '' : 'hidden'}>
 						<LanguageCertificateCard
+							certificates={certificates.certificates}
+							isLoading={certificates.isLoading}
+							error={certificates.error}
+							onRetry={() => void certificates.refresh()}
 							onNewCertificate={() => setIsCertificateModalOpen(true)}
 						/>
 					</View>
@@ -108,6 +114,7 @@ export function MyProfilePage() {
 			<CertificateUploadModal
 				visible={isCertificateModalOpen}
 				onClose={() => setIsCertificateModalOpen(false)}
+				onSubmitted={() => void certificates.refresh()}
 			/>
 
 			<Toast toast={toast} />
