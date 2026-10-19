@@ -38,6 +38,42 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 	);
 };
 
+const MAX_CONCURRENT_CACHE_OPERATIONS = 24;
+
+function throttleCacheStore(store, limit) {
+	let active = 0;
+	const queue = [];
+
+	function run(operation) {
+		return new Promise((resolve, reject) => {
+			const start = () => {
+				active += 1;
+				Promise.resolve()
+					.then(operation)
+					.then(resolve, reject)
+					.finally(() => {
+						active -= 1;
+						const next = queue.shift();
+						if (next) next();
+					});
+			};
+			if (active < limit) start();
+			else queue.push(start);
+		});
+	}
+
+	return {
+		prepare: store.prepare ? (...args) => store.prepare(...args) : undefined,
+		get: (key) => run(() => store.get(key)),
+		set: (key, value) => run(() => store.set(key, value)),
+		clear: () => store.clear(),
+	};
+}
+
+config.cacheStores = config.cacheStores.map((store) =>
+	throttleCacheStore(store, MAX_CONCURRENT_CACHE_OPERATIONS),
+);
+
 module.exports = withNativeWind(config, {
 	input: './src/shared/styles/global.css',
 });

@@ -192,31 +192,32 @@ export function SideBar({
 
 				<ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
 					<View className="flex-col gap-6">
-						{(can('dashboard.read') || can('reports.productivity.read')) && (
-							<View>
-								<GroupLabel isOpen={showExpanded}>Principal</GroupLabel>
-								<View className="flex-col gap-1">
-									{can('dashboard.read') && (
-										<NavItem
-											icon={DashboardIcon}
-											label="Dashboard"
-											isOpen={showExpanded}
-											active={isDashboardActive}
-											onPress={() => navigate('/dashboard')}
-										/>
-									)}
-									{can('reports.productivity.read') && (
-										<NavItem
-											icon={ProdutividadeIcon}
-											label="Produtividade"
-											isOpen={showExpanded}
-											active={isProductivityActive}
-											onPress={() => navigate('/produtividade')}
-										/>
-									)}
+						{!isTranslator &&
+							(can('dashboard.read') || can('reports.productivity.read')) && (
+								<View>
+									<GroupLabel isOpen={showExpanded}>Principal</GroupLabel>
+									<View className="flex-col gap-1">
+										{can('dashboard.read') && (
+											<NavItem
+												icon={DashboardIcon}
+												label="Dashboard"
+												isOpen={showExpanded}
+												active={isDashboardActive}
+												onPress={() => navigate('/dashboard')}
+											/>
+										)}
+										{can('reports.productivity.read') && (
+											<NavItem
+												icon={ProdutividadeIcon}
+												label="Produtividade"
+												isOpen={showExpanded}
+												active={isProductivityActive}
+												onPress={() => navigate('/produtividade')}
+											/>
+										)}
+									</View>
 								</View>
-							</View>
-						)}
+							)}
 
 						{((isTranslator && can('assignments.read')) ||
 							can('requests.read') ||
