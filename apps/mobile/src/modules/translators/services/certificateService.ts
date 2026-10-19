@@ -1,8 +1,4 @@
-import {
-	apiGetAuth,
-	apiUrl,
-	authHeaders,
-} from '../../../shared/services/apiClient';
+import { apiGetAuth, apiUrl } from '../../../shared/services/apiClient';
 import { toUploadable } from '../../../shared/utils/toUploadable';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
 import type {
@@ -40,7 +36,5 @@ export async function submitCertificate({
 		await toUploadable(file),
 		{ language_id: languageId, proficiency_level: proficiencyLevel },
 		'POST',
-		'file',
-		authHeaders(),
 	);
 }
