@@ -68,3 +68,7 @@ class Request(Base):
     @property
     def has_document(self) -> bool:
         return self.document is not None
+
+    @property
+    def quote_id(self) -> uuid.UUID | None:
+        return self.quote.id if self.quote else None

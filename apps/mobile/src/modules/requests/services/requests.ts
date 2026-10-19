@@ -24,6 +24,7 @@ export type RequestItem = {
 	has_document: boolean;
 	document_filename?: string | null;
 	document_content_type?: string | null;
+	quote_id?: string | null;
 };
 
 export type RequestStatusUpdateResult =

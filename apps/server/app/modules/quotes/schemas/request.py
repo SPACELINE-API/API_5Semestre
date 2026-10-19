@@ -47,6 +47,7 @@ class RequestResponse(BaseModel):
     reproved_at: datetime | None = None
     reproved_by_email: str | None = None
     reproval_reason: str | None = None
-    document: bytes | None = None
+    has_document: bool = False
     document_filename: str | None = None
     document_content_type: str | None = None
+    quote_id: uuid.UUID | None = None
