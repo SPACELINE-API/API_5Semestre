@@ -87,3 +87,11 @@ class RequestService:
             uuid.UUID(current_user.id) if data.status == StatusEnum.REPROVED else None,
             current_user.email if data.status == StatusEnum.REPROVED else None,
         )
+    def get_document(self, request_id):
+        request = self.repo.get_by_id(request_id)
+        if request is None or request.document is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Documento não encontrado.",
+            )
+        return request

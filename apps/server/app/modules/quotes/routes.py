@@ -1,6 +1,7 @@
 import uuid
+from urllib.parse import quote as url_quote
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import require_permission
@@ -212,6 +213,21 @@ def list_requests(
 ):
     service = RequestService(db)
     return service.list_all()
+
+
+@router.get("/requests/{request_id}/document")
+def get_request_document(
+    request_id: uuid.UUID,
+    _user=Depends(requests_read_permission),
+    db: Session = Depends(get_db),
+):
+    request = RequestService(db).get_document(request_id)
+    filename = url_quote(request.document_filename or "documento")
+    return Response(
+        content=request.document,
+        media_type=request.document_content_type or "application/octet-stream",
+        headers={"Content-Disposition": f"inline; filename*=UTF-8''{filename}"},
+    )
 
 
 @router.patch("/requests/{request_id}/status", response_model=RequestResponse)
