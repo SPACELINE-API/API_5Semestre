@@ -11,6 +11,9 @@ from app.modules.auth.dependencies.dependencies import (
     require_permission,
 )
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
+from app.modules.service_orders.models.service_order_email_template import (
+    TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+)
 from app.modules.service_orders.schemas.invite import (
     SendInvitesRequest,
     ServiceOrderItemInviteResponse,
@@ -24,6 +27,7 @@ from app.modules.service_orders.schemas.service_order import (
     ServiceOrderDeliveryResponse,
     ServiceOrderEmailTemplateResponse,
     ServiceOrderFileResponse,
+    ServiceOrderFileReviewRequest,
     ServiceOrderItemResponse,
     ServiceOrderResponse,
     UpdateServiceOrderItemRequest,
@@ -34,6 +38,7 @@ from app.modules.service_orders.services.delivery_service import ServiceOrderDel
 from app.modules.service_orders.services.email_template_service import (
     ServiceOrderEmailTemplateService,
 )
+from app.modules.service_orders.services.file_review_service import ServiceOrderFileReviewService
 from app.modules.service_orders.services.invite_service import InviteService
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.modules.service_orders.services.translator_item_service import (
@@ -58,6 +63,14 @@ def get_service_order_email_template(
     db: Session = Depends(get_db),
 ):
     return ServiceOrderEmailTemplateService(db).get_template()
+
+
+@router.get("/invite-email-template", response_model=ServiceOrderEmailTemplateResponse)
+def get_translator_invite_email_template(
+    _current_user: SupabaseAuthenticatedUser = Depends(require_administrator),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderEmailTemplateService(db).get_template(TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY)
 
 
 @router.post(
@@ -179,6 +192,33 @@ def add_service_order_file(
         content_type=content_type,
         direction=direction,
     )
+
+
+@router.post(
+    "/{service_order_id}/files/{file_id}/approve",
+    response_model=ServiceOrderFileResponse,
+)
+def approve_service_order_file(
+    service_order_id: uuid.UUID,
+    file_id: uuid.UUID,
+    _user=Depends(documents_write_permission),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderFileReviewService(db).approve(service_order_id, file_id)
+
+
+@router.post(
+    "/{service_order_id}/files/{file_id}/request-changes",
+    response_model=ServiceOrderFileResponse,
+)
+def request_service_order_file_changes(
+    service_order_id: uuid.UUID,
+    file_id: uuid.UUID,
+    data: ServiceOrderFileReviewRequest,
+    _user=Depends(documents_write_permission),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderFileReviewService(db).request_changes(service_order_id, file_id, data.note)
 
 
 @router.delete("/{service_order_id}/files/{file_id}", status_code=204)

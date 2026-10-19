@@ -31,18 +31,18 @@ async def testar_agente(
 @router.post("/perguntas", response_model=SuportePerguntaResponse, status_code=200)
 async def criar_pergunta(
     payload: SuportePerguntaRequest,
-    _user=Depends(support_write_permission),
+    current_user=Depends(support_write_permission),
     agente: AgenteSuporteClient = Depends(get_agente_suporte),
 ):
-    return await responder_pergunta_suporte(payload, agente)
+    return await responder_pergunta_suporte(payload, agente, user_id=current_user.email)
 
 
 @router.post("/chat", status_code=201)
 async def criar_pergunta_chat(
     payload: SuportePerguntaRequest,
-    _user=Depends(support_write_permission),
+    current_user=Depends(support_write_permission),
 ):
-    return await enfileirar_pergunta_chat(payload)
+    return await enfileirar_pergunta_chat(payload, user_id=current_user.email)
 
 
 @router.get("/chat/{event_id}/status")

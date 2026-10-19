@@ -28,6 +28,7 @@ const SERVICE_ORDER = {
 			filename: 'contrato-traduzido.pdf',
 			file_url: 'https://storage.example/contrato-traduzido.pdf',
 			direction: 'saida',
+			review_status: 'approved',
 			uploaded_at: '2026-01-02T00:00:00Z',
 		},
 	],

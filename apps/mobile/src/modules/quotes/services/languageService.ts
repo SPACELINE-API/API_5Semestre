@@ -1,4 +1,5 @@
 import { env } from '../../../shared/env';
+import { getSession } from '../../auth/services/auth';
 
 export type Language = {
 	id: string;
@@ -7,9 +8,16 @@ export type Language = {
 
 const API_BASE_URL = env.apiUrl;
 
+function authorizationHeaders(): Record<string, string> {
+	const token = getSession()?.access_token;
+	return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export async function fetchLanguages(): Promise<Language[]> {
 	try {
-		const response = await fetch(`${API_BASE_URL}/api/support/languages`);
+		const response = await fetch(`${API_BASE_URL}/api/support/languages`, {
+			headers: authorizationHeaders(),
+		});
 		if (!response.ok) {
 			throw new Error('Failed to fetch languages');
 		}
@@ -28,7 +36,10 @@ export async function createLanguage(
 	try {
 		const response = await fetch(`${API_BASE_URL}/api/support/languages`, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: {
+				'Content-Type': 'application/json',
+				...authorizationHeaders(),
+			},
 			body: JSON.stringify({ id, name }),
 		});
 

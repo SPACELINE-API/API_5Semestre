@@ -196,7 +196,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 									</Text>
 									{item.file_url ? (
 										<>
-											<FilePreview fileUrl={item.file_url} height={420} />
+											<FilePreview fileUrl={item.file_url} openInNewPage />
 
 											{invite.status === 'aceito' ? (
 												<TouchableOpacity

@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.modules.reports.permissions import PRODUCTIVITY_READ_PERMISSION
 from app.shared.database import get_session_factory
 
 
@@ -14,43 +13,45 @@ class SeedRole:
     permissions: tuple[str, ...]
 
 
+ADMIN_PERMISSIONS = (
+    "users.read",
+    "users.write",
+    "roles.read",
+    "roles.write",
+    "dashboard.read",
+    "clients.read",
+    "clients.write",
+    "contacts.read",
+    "contacts.write",
+    "requests.read",
+    "requests.write",
+    "quotes.read",
+    "quotes.write",
+    "quotes.approve",
+    "service_orders.read",
+    "service_orders.write",
+    "translators.read",
+    "translators.write",
+    "assignments.read",
+    "assignments.write",
+    "assignments.manage",
+    "assignments.respond",
+    "documents.read",
+    "documents.write",
+    "support.read",
+    "support.write",
+    "settings.read",
+    "settings.write",
+    "finance.read",
+    "finance.write",
+)
+
+
 SEED_ROLES = (
     SeedRole(
         name="Administrador",
         description="Administra usuários, roles e permissões.",
-        permissions=(
-            "users.read",
-            "users.write",
-            "roles.read",
-            "roles.write",
-            "dashboard.read",
-            "clients.read",
-            "clients.write",
-            "contacts.read",
-            "contacts.write",
-            "requests.read",
-            "requests.write",
-            "quotes.read",
-            "quotes.write",
-            "quotes.approve",
-            "service_orders.read",
-            "service_orders.write",
-            "translators.read",
-            "translators.write",
-            "assignments.read",
-            "assignments.write",
-            "assignments.manage",
-            "assignments.respond",
-            "documents.read",
-            "documents.write",
-            "support.read",
-            "support.write",
-            "settings.read",
-            "settings.write",
-            "finance.read",
-            "finance.write",
-            PRODUCTIVITY_READ_PERMISSION,
-        ),
+        permissions=(*ADMIN_PERMISSIONS, "proposals.read"),
     ),
     SeedRole(
         name="Atendimento",
@@ -86,7 +87,7 @@ SEED_ROLES = (
             "documents.read",
             "dashboard.read",
             "documents.write",
-            PRODUCTIVITY_READ_PERMISSION,
+            "proposals.read",
         ),
     ),
     SeedRole(

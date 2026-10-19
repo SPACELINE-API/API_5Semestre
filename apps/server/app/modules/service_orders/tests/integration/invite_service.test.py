@@ -17,7 +17,12 @@ from app.modules.service_orders.models.invite import (
     INVITE_STATUS_RECUSADO,
 )
 from app.modules.service_orders.models.service_order import ServiceOrder
+from app.modules.service_orders.models.service_order_email_template import (
+    TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+    ServiceOrderEmailTemplate,
+)
 from app.modules.service_orders.models.service_order_item import (
+    STATUS_CONCLUIDA,
     STATUS_EM_ANDAMENTO,
     STATUS_PENDENTE,
     ServiceOrderItem,
@@ -27,6 +32,7 @@ from app.modules.service_orders.schemas.invite import (
     TranslatorInviteResponse,
 )
 from app.modules.service_orders.services import invite_service as invite_service_module
+from app.modules.service_orders.services.invite_email import DEFAULT_INVITE_SUBJECT
 from app.modules.service_orders.services.invite_service import InviteService
 from app.modules.translators.models.translator import Translator
 
@@ -134,6 +140,57 @@ def test_send_invites_creates_pending_invites_and_sends_email(
     assert sent_emails[0]["to"] == translator.email
 
 
+def test_send_invites_uses_default_email_when_no_template_is_saved(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+
+    invites = InviteService(db_session).send_invites(item.id, [translator.id])
+
+    email = sent_emails[0]
+    assert email["subject"] == DEFAULT_INVITE_SUBJECT
+    assert translator.name in email["html_body"]
+    assert "pt-BR → en-US" in email["html_body"]
+    assert f"/convites/{invites[0].id}" in email["html_body"]
+    assert "{{" not in email["html_body"]
+
+
+def test_send_invites_uses_the_saved_translator_invite_template(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    db_session.add(
+        ServiceOrderEmailTemplate(
+            key=TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+            subject="Convite para {{nome_tradutor}}",
+            body_html="<p>{{idioma_origem}} para {{idioma_destino}}: {{link_convite}}</p>",
+        )
+    )
+    db_session.commit()
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+
+    invites = InviteService(db_session).send_invites(item.id, [translator.id])
+
+    email = sent_emails[0]
+    assert email["subject"] == f"Convite para {translator.name}"
+    assert email["html_body"].startswith("<p>pt-BR para en-US: ")
+    assert f"/convites/{invites[0].id}" in email["html_body"]
+
+
+def test_send_invites_sends_one_personalized_email_per_translator(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    first = make_translator(db_session)
+    second = make_translator(db_session)
+
+    InviteService(db_session).send_invites(item.id, [first.id, second.id])
+
+    assert {email["to"] for email in sent_emails} == {first.email, second.email}
+    assert len({email["html_body"] for email in sent_emails}) == 2
+
+
 def test_send_invites_raises_409_when_translator_has_pending_invite(
     db_session: Session, sent_emails: list[dict]
 ) -> None:
@@ -228,6 +285,30 @@ def test_decline_invite_sets_status_recusado(db_session: Session, sent_emails: l
     declined = service.decline_invite(invite.id, translator.email)
 
     assert declined.status == INVITE_STATUS_RECUSADO
+
+
+def test_invite_item_status_reflects_service_order_item_status(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+    service = InviteService(db_session)
+
+    [invite] = service.send_invites(item.id, [translator.id])
+    assert invite.item_status == STATUS_PENDENTE
+
+    service.accept_invite(invite.id, translator.email)
+    db_session.refresh(invite)
+    assert invite.item_status == STATUS_EM_ANDAMENTO
+
+    item.status = STATUS_CONCLUIDA
+    db_session.commit()
+    db_session.refresh(invite)
+    assert invite.item_status == STATUS_CONCLUIDA
+
+    invites = service.list_invites_for_translator_email(translator.email)
+    assert len(invites) == 1
+    assert invites[0].item_status == STATUS_CONCLUIDA
 
 
 def test_translator_invite_details_expose_only_the_invited_item(

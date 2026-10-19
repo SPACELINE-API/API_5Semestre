@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { getSession, onSessionChange } from '../../auth/services/auth';
 import {
 	consultarStatusPergunta,
 	enviarPerguntaChat,
@@ -31,10 +32,12 @@ function sleep(ms: number) {
 
 async function pollForAnswer(
 	eventId: string,
+	isCancelled: () => boolean,
 	maxAttempts = 200,
 	intervalMs = 500,
 ): Promise<string> {
 	for (let attempt = 0; attempt < maxAttempts; attempt++) {
+		if (isCancelled()) throw new Error('Conversa encerrada.');
 		const result = await consultarStatusPergunta(eventId);
 		if (result.status === 'completed') return result.resposta;
 		if (result.status === 'error') {
@@ -45,15 +48,32 @@ async function pollForAnswer(
 	throw new Error('A resposta demorou mais que o esperado. Tente novamente.');
 }
 
+type Conversation = {
+	messages: ChatMessage[];
+	draft: string;
+	lastFailedQuestion: string;
+};
+
+const emptyConversation: Conversation = {
+	messages: [],
+	draft: '',
+	lastFailedQuestion: '',
+};
+
+let conversationEpoch = 0;
+
 type SupportChatState = {
 	messages: ChatMessage[];
 	draft: string;
 	status: ChatStatus;
 	errorMessage: string;
 	lastFailedQuestion: string;
+	activeUserId: string | null;
+	savedConversations: Record<string, Conversation>;
 	setDraft: (value: string) => void;
 	sendQuestion: (overrideText?: string) => Promise<void>;
 	retryLastQuestion: () => void;
+	switchUser: (userId: string | null) => void;
 };
 
 export const useSupportChatStore = create<SupportChatState>()((set, get) => ({
@@ -62,8 +82,38 @@ export const useSupportChatStore = create<SupportChatState>()((set, get) => ({
 	status: 'idle',
 	errorMessage: '',
 	lastFailedQuestion: '',
+	activeUserId: getSession()?.user.id ?? null,
+	savedConversations: {},
 
 	setDraft: (value) => set({ draft: value }),
+
+	switchUser: (userId) => {
+		const {
+			activeUserId,
+			messages,
+			draft,
+			lastFailedQuestion,
+			savedConversations,
+		} = get();
+		if (userId === activeUserId) return;
+		conversationEpoch += 1;
+		const saved = activeUserId
+			? {
+					...savedConversations,
+					[activeUserId]: { messages, draft, lastFailedQuestion },
+				}
+			: savedConversations;
+		const next = (userId && saved[userId]) || emptyConversation;
+		set({
+			activeUserId: userId,
+			savedConversations: saved,
+			messages: next.messages,
+			draft: next.draft,
+			lastFailedQuestion: next.lastFailedQuestion,
+			status: 'idle',
+			errorMessage: '',
+		});
+	},
 
 	sendQuestion: async (overrideText) => {
 		const { draft, status } = get();
@@ -72,6 +122,9 @@ export const useSupportChatStore = create<SupportChatState>()((set, get) => ({
 		if (!text || text.length > QUESTION_MAX_LENGTH || status === 'loading') {
 			return;
 		}
+
+		const epoch = conversationEpoch;
+		const isCancelled = () => epoch !== conversationEpoch;
 
 		const userMessage: ChatMessage = {
 			id: createMessageId(),
@@ -89,7 +142,9 @@ export const useSupportChatStore = create<SupportChatState>()((set, get) => ({
 
 		try {
 			const { event_id } = await enviarPerguntaChat(text);
-			const resposta = await pollForAnswer(event_id);
+			if (isCancelled()) return;
+			const resposta = await pollForAnswer(event_id, isCancelled);
+			if (isCancelled()) return;
 
 			const agentMessage: ChatMessage = {
 				id: createMessageId(),
@@ -104,6 +159,7 @@ export const useSupportChatStore = create<SupportChatState>()((set, get) => ({
 				lastFailedQuestion: '',
 			}));
 		} catch (cause) {
+			if (isCancelled()) return;
 			const rawMessage =
 				cause instanceof Error
 					? cause.message
@@ -126,3 +182,7 @@ export const useSupportChatStore = create<SupportChatState>()((set, get) => ({
 		sendQuestion(lastFailedQuestion);
 	},
 }));
+
+onSessionChange((userId) => {
+	useSupportChatStore.getState().switchUser(userId);
+});
