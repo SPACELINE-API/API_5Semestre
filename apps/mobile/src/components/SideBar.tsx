@@ -231,17 +231,29 @@ export function SideBar({
 							</View>
 						) : (
 							<>
-								{can('dashboard.read') && (
+								{(can('dashboard.read') ||
+									can('reports.productivity.read')) && (
 									<View>
 										<GroupLabel isOpen={showExpanded}>Principal</GroupLabel>
 										<View className="flex-col gap-1">
-											<NavItem
-												icon={DashboardIcon}
-												label="Dashboard"
-												isOpen={showExpanded}
-												active={isDashboardActive}
-												onPress={() => navigate('/dashboard')}
-											/>
+											{can('dashboard.read') && (
+												<NavItem
+													icon={DashboardIcon}
+													label="Dashboard"
+													isOpen={showExpanded}
+													active={isDashboardActive}
+													onPress={() => navigate('/dashboard')}
+												/>
+											)}
+											{can('reports.productivity.read') && (
+												<NavItem
+													icon={ProdutividadeIcon}
+													label="Produtividade"
+													isOpen={showExpanded}
+													active={isProductivityActive}
+													onPress={() => navigate('/produtividade')}
+												/>
+											)}
 										</View>
 									</View>
 								)}
