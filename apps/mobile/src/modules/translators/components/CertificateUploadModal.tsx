@@ -34,14 +34,15 @@ type CertificateUploadModalProps = {
 	/** Idioma já escolhido ao abrir (ex.: substituir um certificado existente). */
 	initialLanguageId?: string;
 	onClose: () => void;
-	onSubmitted: (certificate: TranslatorCertificate) => void;
+	onSubmitted?: (certificate: TranslatorCertificate) => void;
 };
 
 type Step = 'form' | 'confirm-replace' | 'success' | 'error';
 
-const FILE_HINT = `${CERTIFICATE_FILE_RULES.formatsLabel} · até ${formatFileSize(
-	CERTIFICATE_FILE_RULES.maxBytes,
-)}`;
+const MEGABYTE = 1024 * 1024;
+const FILE_HINT = `${CERTIFICATE_FILE_RULES.formatsLabel} · até ${
+	CERTIFICATE_FILE_RULES.maxBytes / MEGABYTE
+} MB`;
 
 function normalize(value: string) {
 	return value
@@ -158,7 +159,7 @@ export function CertificateUploadModal({
 				proficiencyLevel: proficiency,
 				file,
 			});
-			onSubmitted(certificate);
+			onSubmitted?.(certificate);
 			setMessage(
 				`O certificado de ${certificate.language_name} foi enviado e ficará em análise até a avaliação do administrador.`,
 			);
