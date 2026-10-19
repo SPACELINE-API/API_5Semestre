@@ -45,8 +45,7 @@ export const CERTIFICATE_STATUS_PRESENTATION: Record<
 		badge: { background: 'bg-gray-100', text: 'text-gray-700' },
 		modalType: 'error',
 		title: 'Certificado indisponível',
-		message:
-			'O arquivo deste certificado não foi encontrado no armazenamento. Envie o arquivo novamente.',
+		message: 'O arquivo deste certificado não foi encontrado no armazenamento.',
 	},
 };
 
