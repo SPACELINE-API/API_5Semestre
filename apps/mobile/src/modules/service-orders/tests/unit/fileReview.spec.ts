@@ -113,16 +113,20 @@ test.describe('canCompleteOrder', () => {
 
 	test('keeps the action available to finalize already sent deliveries', () => {
 		expect(
-			canCompleteOrder('em_andamento', [
-				file('a', {
-					service_order_item_id: 'item-0',
-					delivery_status: 'sent',
-				}),
-				file('b', {
-					service_order_item_id: 'item-1',
-					delivery_status: 'sent',
-				}),
-			], items(2)),
+			canCompleteOrder(
+				'em_andamento',
+				[
+					file('a', {
+						service_order_item_id: 'item-0',
+						delivery_status: 'sent',
+					}),
+					file('b', {
+						service_order_item_id: 'item-1',
+						delivery_status: 'sent',
+					}),
+				],
+				items(2),
+			),
 		).toBe(true);
 	});
 
@@ -162,7 +166,7 @@ test.describe('canCompleteOrder', () => {
 					service_order_item_id: 'item-0',
 					uploaded_at: '2026-03-01T10:00:00Z',
 					delivery_status: 'sent',
-			}),
+				}),
 				file('pending', {
 					service_order_item_id: 'item-0',
 					uploaded_at: '2026-03-02T10:00:00Z',

@@ -10,7 +10,6 @@ import {
 	CircleAlert,
 	LayoutGrid,
 	RefreshCw,
-	Sparkles,
 } from 'lucide-react-native';
 import { DashboardCard } from '../components/DashboardCard';
 import { DashboardStatCard } from '../components/DashboardStatCard';

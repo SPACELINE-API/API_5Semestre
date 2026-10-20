@@ -1,11 +1,14 @@
 import { getFileName } from './file';
 
 export function getDownloadFileName(fileUrl: string) {
-	return (
-		getFileName(fileUrl)
-			.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_')
-			.trim() || 'arquivo'
-	);
+	const sanitizedName = getFileName(fileUrl)
+		.replace(/[<>:"/\\|?*]/g, '_')
+		.split('')
+		.map((character) => (character.charCodeAt(0) < 32 ? '_' : character))
+		.join('')
+		.trim();
+
+	return sanitizedName || 'arquivo';
 }
 
 export function getDownloadMimeType(fileName: string) {

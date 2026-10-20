@@ -167,7 +167,8 @@ export function CompleteServiceOrderModal({
 		subject.trim().length > 0 &&
 		message.trim().length > 0 &&
 		selectedFileIds.length > 0;
-	const canFinalize = canFinalizeOrder(serviceOrder.items, serviceOrder.files) && !isSending;
+	const canFinalize =
+		canFinalizeOrder(serviceOrder.items, serviceOrder.files) && !isSending;
 
 	function toggleFile(fileId: string) {
 		setSelectedFileIds((current) =>

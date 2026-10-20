@@ -61,11 +61,7 @@ export function canFinalizeOrder(
 	const approvedUnlinked = current.filter(
 		(file) => !file.service_order_item_id && file.review_status === 'approved',
 	);
-	if (
-		approvedUnlinked.some(
-			(file) => file.delivery_status !== 'sent',
-		)
-	) {
+	if (approvedUnlinked.some((file) => file.delivery_status !== 'sent')) {
 		return false;
 	}
 
@@ -77,7 +73,9 @@ export function canFinalizeOrder(
 	return items.every((item) => {
 		const latest = latestByItem.get(item.id);
 		if (!latest) return approvedUnlinked.length > 0;
-		return latest.review_status === 'approved' && latest.delivery_status === 'sent';
+		return (
+			latest.review_status === 'approved' && latest.delivery_status === 'sent'
+		);
 	});
 }
 

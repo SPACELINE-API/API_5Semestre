@@ -37,6 +37,14 @@ test.describe('download file metadata', () => {
 			),
 		).toBe('report_final.pdf');
 	});
+
+	test('replaces control characters in names that cannot be created in shared storage', () => {
+		expect(
+			getDownloadFileName(
+				'https://storage.example.com/folder/report%00final.pdf',
+			),
+		).toBe('report_final.pdf');
+	});
 });
 
 test.describe('getDownloadUrl', () => {
