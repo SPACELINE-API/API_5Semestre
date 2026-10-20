@@ -284,7 +284,7 @@ export function CertificateUploadModal({
 								placeholder="Buscar idioma"
 								placeholderTextColor="#9CA3AF"
 								accessibilityLabel="Buscar idioma"
-								className="h-10 flex-1 font-inter text-sm text-gray-900"
+								className="h-10 flex-1 font-inter text-sm text-gray-900 outline-none"
 							/>
 						</View>
 						<ScrollView
