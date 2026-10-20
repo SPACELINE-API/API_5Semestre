@@ -35,6 +35,37 @@ import { ConfirmDialog } from '../../shared/components/ConfirmDialog';
 
 type TranslatorTab = 'info' | 'languages';
 
+function hasTranslatorProfileChanges(
+	translator: Translator,
+	data: TranslatorUpdateInput,
+) {
+	const sorted = (values: string[]) => [...values].sort().join('|');
+	const phoneDigits = (value: string) => value.replace(/\D/g, '');
+	const languages = (rows: TranslatorUpdateInput['languages']) =>
+		rows
+			.map(
+				({ language_id, proficiency_level }) =>
+					`${language_id}:${proficiency_level}`,
+			)
+			.sort()
+			.join('|');
+
+	return (
+		data.name !== translator.name ||
+		data.email !== translator.email ||
+		phoneDigits(data.phone) !== phoneDigits(translator.phone) ||
+		sorted(data.qualification_ids) !==
+			sorted(translator.qualifications.map(({ id }) => id)) ||
+		languages(data.languages) !==
+			languages(
+				translator.languages.map(({ language_id, proficiency_level }) => ({
+					language_id,
+					proficiency_level,
+				})),
+			)
+	);
+}
+
 const TABS: { key: TranslatorTab; label: string }[] = [
 	{ key: 'info', label: 'Informações' },
 	{ key: 'languages', label: 'Idiomas e fluência' },
@@ -80,10 +111,15 @@ export default function TranslatorDetailsScreen() {
 		if (!translator) return;
 
 		const { is_active, ...updateData } = data;
-		let updated = await updateTranslator(translator.id, updateData);
+		let updated = translator;
 		if (is_active !== translator.is_active) {
 			updated = await setTranslatorActive(translator.id, is_active);
 		}
+
+		if (hasTranslatorProfileChanges(translator, updateData)) {
+			updated = await updateTranslator(translator.id, updateData);
+		}
+
 		setTranslator(updated);
 		showToast('Tradutor atualizado com sucesso.', 'success');
 	}

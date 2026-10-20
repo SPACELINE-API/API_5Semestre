@@ -203,6 +203,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 							canComplete={canCompleteOrder(
 								serviceOrder.status,
 								serviceOrder.files,
+								serviceOrder.items,
 							)}
 							onComplete={() => setIsCompleteModalVisible(true)}
 							onViewChange={setView}
@@ -537,6 +538,11 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 						setIsCompleteModalVisible(false);
 						refresh();
 						showToast('Documentos enviados ao cliente com sucesso!', 'success');
+					}}
+					onCompleted={() => {
+						setIsCompleteModalVisible(false);
+						refresh();
+						showToast('Ordem de serviço finalizada com sucesso!', 'success');
 					}}
 				/>
 			)}

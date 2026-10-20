@@ -40,7 +40,10 @@ from app.modules.service_orders.services.email_template_service import (
 )
 from app.modules.service_orders.services.file_review_service import ServiceOrderFileReviewService
 from app.modules.service_orders.services.invite_service import InviteService
-from app.modules.service_orders.services.service_order_service import ServiceOrderService
+from app.modules.service_orders.services.service_order_service import (
+    ServiceOrderService,
+    to_response,
+)
 from app.modules.service_orders.services.translator_item_service import (
     DELIVERY_MAX_BYTES,
     TranslatorItemService,
@@ -86,6 +89,16 @@ def send_translated_documents(
     return ServiceOrderDeliveryService(db).send_translated_documents(
         service_order_id, email_override
     )
+
+
+@router.post("/{service_order_id}/complete", response_model=ServiceOrderResponse)
+def complete_service_order_with_sent_documents(
+    service_order_id: uuid.UUID,
+    _user=Depends(service_orders_write_permission),
+    db: Session = Depends(get_db),
+):
+    service_order = ServiceOrderDeliveryService(db).finalize_already_sent_order(service_order_id)
+    return to_response(service_order)
 
 
 @router.get("/items/me", response_model=list[TranslatorItemResponse])

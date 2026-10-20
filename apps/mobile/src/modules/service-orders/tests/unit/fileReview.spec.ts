@@ -6,8 +6,10 @@ import type {
 } from '../../types/serviceOrder';
 import {
 	approvedDeliveries,
+	canFinalizeOrder,
 	countApprovedDeliveries,
 	canCompleteOrder,
+	currentOutputDeliveries,
 	pendingReviewDeliveries,
 	reviewableFiles,
 	reviewedDeliveries,
@@ -109,11 +111,76 @@ test.describe('canCompleteOrder', () => {
 		expect(canCompleteOrder('em_analise', [file('a')])).toBe(true);
 	});
 
-	test('hides the action once every delivery was sent', () => {
+	test('keeps the action available to finalize already sent deliveries', () => {
 		expect(
 			canCompleteOrder('em_andamento', [
-				file('a', { delivery_status: 'sent' }),
-				file('b', { delivery_status: 'sent' }),
+				file('a', {
+					service_order_item_id: 'item-0',
+					delivery_status: 'sent',
+				}),
+				file('b', {
+					service_order_item_id: 'item-1',
+					delivery_status: 'sent',
+				}),
+			], items(2)),
+		).toBe(true);
+	});
+
+	test('allows finalizing a sent order-level file without item links', () => {
+		expect(
+			canFinalizeOrder(items(1), [
+				file('order', {
+					service_order_item_id: null,
+					delivery_status: 'sent',
+				}),
+			]),
+		).toBe(true);
+	});
+
+	test('does not let a later order-level file replace a pending item version', () => {
+		const current = currentOutputDeliveries([
+			file('old', {
+				service_order_item_id: 'item-0',
+				uploaded_at: '2026-03-01T10:00:00Z',
+				delivery_status: 'sent',
+			}),
+			file('pending', {
+				service_order_item_id: 'item-0',
+				uploaded_at: '2026-03-02T10:00:00Z',
+				review_status: 'pending',
+			}),
+			file('order', {
+				service_order_item_id: null,
+				uploaded_at: '2026-03-03T10:00:00Z',
+				delivery_status: 'sent',
+			}),
+		]);
+		expect(current.map(({ id }) => id)).toEqual(['order', 'pending']);
+		expect(
+			canFinalizeOrder(items(1), [
+				file('old', {
+					service_order_item_id: 'item-0',
+					uploaded_at: '2026-03-01T10:00:00Z',
+					delivery_status: 'sent',
+			}),
+				file('pending', {
+					service_order_item_id: 'item-0',
+					uploaded_at: '2026-03-02T10:00:00Z',
+					review_status: 'pending',
+				}),
+				file('order', {
+					service_order_item_id: null,
+					uploaded_at: '2026-03-03T10:00:00Z',
+					delivery_status: 'sent',
+				}),
+			]),
+		).toBe(false);
+	});
+
+	test('hides the action when there are no approved deliveries to send', () => {
+		expect(
+			canCompleteOrder('em_analise', [
+				file('a', { review_status: 'changes_requested' }),
 			]),
 		).toBe(false);
 	});

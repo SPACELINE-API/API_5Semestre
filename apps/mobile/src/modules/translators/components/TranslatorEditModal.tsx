@@ -69,6 +69,36 @@ function translatorToForm(translator: Translator) {
 	};
 }
 
+function hasProfileChanges(
+	translator: Translator,
+	data: ReturnType<typeof translatorToForm>,
+) {
+	const qualificationIds = (ids: string[]) => [...ids].sort().join('|');
+	const languages = (rows: TranslatorLanguageFormRow[]) =>
+		rows
+			.map(
+				({ language_id, proficiency_level }) =>
+					`${language_id}:${proficiency_level}`,
+			)
+			.sort()
+			.join('|');
+
+	return (
+		data.name !== translator.name ||
+		data.email !== translator.email ||
+		data.phone !== maskPhone(translator.phone) ||
+		qualificationIds(data.qualification_ids) !==
+			qualificationIds(translator.qualifications.map(({ id }) => id)) ||
+		languages(data.languages) !==
+			languages(
+				translator.languages.map(({ language_id, proficiency_level }) => ({
+					language_id,
+					proficiency_level,
+				})),
+			)
+	);
+}
+
 export function TranslatorEditModal({
 	visible,
 	translator,
@@ -214,10 +244,23 @@ export function TranslatorEditModal({
 	}
 
 	async function handleSubmit() {
-		const errors = validateForm();
-		if (Object.keys(errors).length > 0) {
-			setFieldErrors(errors);
-			return;
+		if (!translator) return;
+
+		const formData = {
+			name,
+			email,
+			phone,
+			is_active: isActive,
+			languages,
+			qualification_ids: selectedQualifications,
+		};
+		const profileChanged = hasProfileChanges(translator, formData);
+		if (profileChanged) {
+			const errors = validateForm();
+			if (Object.keys(errors).length > 0) {
+				setFieldErrors(errors);
+				return;
+			}
 		}
 
 		setSubmitError(null);
@@ -280,6 +323,9 @@ export function TranslatorEditModal({
 						<TouchableOpacity
 							onPress={() => setIsActive((current) => !current)}
 							activeOpacity={0.8}
+							accessibilityRole="switch"
+							accessibilityLabel="Status do tradutor"
+							accessibilityState={{ checked: isActive }}
 							className={`h-5 w-9 justify-center rounded-full px-0.5 ${
 								isActive ? 'bg-blue-500' : 'bg-gray-300'
 							}`}
@@ -398,35 +444,39 @@ export function TranslatorEditModal({
 								);
 							})}
 						</View>
+					</ScrollView>
 
+					<View className="border-t border-gray-300 px-6 py-4">
 						{submitError && (
-							<View className="rounded-lg bg-red-50 px-3 py-2.5">
+							<View
+								accessibilityRole="alert"
+								className="mb-3 rounded-lg bg-red-50 px-3 py-2.5"
+							>
 								<Text className="font-inter text-red-900 text-sm">
 									{submitError}
 								</Text>
 							</View>
 						)}
-					</ScrollView>
+						<View className="flex-row items-center justify-between">
+							<TouchableOpacity
+								onPress={handleClose}
+								className="rounded-lg border border-gray-300 px-5 py-2.5"
+							>
+								<Text className="font-inter font-medium text-gray-800 text-sm">
+									Cancelar
+								</Text>
+							</TouchableOpacity>
 
-					<View className="flex-row items-center justify-between border-t border-gray-300 px-6 py-4">
-						<TouchableOpacity
-							onPress={handleClose}
-							className="rounded-lg border border-gray-300 px-5 py-2.5"
-						>
-							<Text className="font-inter font-medium text-gray-800 text-sm">
-								Cancelar
-							</Text>
-						</TouchableOpacity>
-
-						<TouchableOpacity
-							onPress={handleSubmit}
-							disabled={isSubmitting}
-							className={`rounded-lg bg-blue-600 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
-						>
-							<Text className="font-inter-medium text-sm text-white">
-								{isSubmitting ? 'Salvando…' : 'Salvar alterações'}
-							</Text>
-						</TouchableOpacity>
+							<TouchableOpacity
+								onPress={handleSubmit}
+								disabled={isSubmitting}
+								className={`rounded-lg bg-blue-600 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+							>
+								<Text className="font-inter-medium text-sm text-white">
+									{isSubmitting ? 'Salvando…' : 'Salvar alterações'}
+								</Text>
+							</TouchableOpacity>
+						</View>
 					</View>
 				</View>
 

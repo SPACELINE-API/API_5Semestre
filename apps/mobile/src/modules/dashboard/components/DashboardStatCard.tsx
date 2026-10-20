@@ -1,8 +1,6 @@
-import { Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Text, View } from 'react-native';
 import {
 	AlertCircle,
-	ArrowUpRight,
 	Building2,
 	CheckCircle2,
 	ClipboardList,
@@ -108,25 +106,11 @@ function getBadgeStyle(badgeType?: DashboardMetric['badgeType']) {
 }
 
 export function DashboardStatCard({ metric }: DashboardStatCardProps) {
-	const router = useRouter();
 	const config = getMetricConfig(metric.icon);
 	const badgeStyle = getBadgeStyle(metric.badgeType);
 
-	const handlePress = () => {
-		if (metric.route) {
-			router.push(metric.route as never);
-		}
-	};
-
 	return (
-		<TouchableOpacity
-			accessibilityRole="button"
-			accessibilityLabel={`${metric.title}: ${metric.value}`}
-			onPress={handlePress}
-			activeOpacity={0.7}
-			disabled={!metric.route}
-			className="min-w-[140px] flex-1 basis-[140px] md:basis-[220px] max-w-[calc(50%-5px)] md:max-w-[340px] justify-between rounded-xl md:rounded-2xl border border-gray-100 bg-white p-3.5 md:p-5 shadow-xs hover:border-blue-200 hover:shadow-md transition-all"
-		>
+		<View className="min-w-[140px] flex-1 basis-[140px] md:basis-[220px] max-w-[calc(50%-5px)] md:max-w-[340px] justify-between rounded-xl md:rounded-2xl border border-gray-100 bg-white p-3.5 md:p-5 shadow-xs">
 			<View className="flex-row items-center justify-between">
 				<View
 					className={`h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-lg md:rounded-xl ${config.bgColor}`}
@@ -164,15 +148,6 @@ export function DashboardStatCard({ metric }: DashboardStatCardProps) {
 					{metric.description}
 				</Text>
 			</View>
-
-			{metric.route && (
-				<View className="mt-2.5 md:mt-4 flex-row items-center justify-between border-t border-gray-50 pt-2 md:pt-3">
-					<Text className="font-inter-medium text-[11px] md:text-xs text-blue-600">
-						Ver detalhes
-					</Text>
-					<ArrowUpRight size={12} color="#2563eb" />
-				</View>
-			)}
-		</TouchableOpacity>
+		</View>
 	);
 }

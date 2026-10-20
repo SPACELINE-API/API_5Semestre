@@ -23,9 +23,14 @@ import type {
 } from '../types/serviceOrder';
 import {
 	getServiceOrderEmailTemplate,
+	finalizeAlreadySentServiceOrder,
 	sendServiceOrderDeliveries,
 } from '../services/serviceOrderService';
-import { approvedDeliveries } from '../utils/fileReview';
+import {
+	approvedDeliveries,
+	canFinalizeOrder,
+	currentOutputDeliveries,
+} from '../utils/fileReview';
 import { openDocument } from '../../../shared/components/FilePreview';
 
 type CompleteServiceOrderModalProps = {
@@ -34,6 +39,7 @@ type CompleteServiceOrderModalProps = {
 	customerName?: string;
 	onClose: () => void;
 	onSent: () => void;
+	onCompleted: () => void;
 };
 
 function escapeHtml(value: string): string {
@@ -81,6 +87,7 @@ export function CompleteServiceOrderModal({
 	customerName,
 	onClose,
 	onSent,
+	onCompleted,
 }: CompleteServiceOrderModalProps) {
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
@@ -97,7 +104,8 @@ export function CompleteServiceOrderModal({
 	const [sendError, setSendError] = useState<string | null>(null);
 	const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
 
-	const deliveryFiles = approvedDeliveries(serviceOrder.files);
+	const currentFiles = currentOutputDeliveries(serviceOrder.files);
+	const deliveryFiles = approvedDeliveries(currentFiles);
 	const selectableDeliveryFiles = deliveryFiles.filter(
 		(file) => file.delivery_status !== 'sent',
 	);
@@ -117,7 +125,7 @@ export function CompleteServiceOrderModal({
 		setSendError(null);
 		setIsSending(false);
 		setSelectedFileIds(
-			approvedDeliveries(serviceOrder.files)
+			approvedDeliveries(currentOutputDeliveries(serviceOrder.files))
 				.filter((file) => file.delivery_status !== 'sent')
 				.map((file) => file.id),
 		);
@@ -159,6 +167,7 @@ export function CompleteServiceOrderModal({
 		subject.trim().length > 0 &&
 		message.trim().length > 0 &&
 		selectedFileIds.length > 0;
+	const canFinalize = canFinalizeOrder(serviceOrder.items, serviceOrder.files) && !isSending;
 
 	function toggleFile(fileId: string) {
 		setSelectedFileIds((current) =>
@@ -190,6 +199,24 @@ export function CompleteServiceOrderModal({
 		}
 	}
 
+	async function handleFinalize() {
+		if (!canFinalize) return;
+		setIsSending(true);
+		setSendError(null);
+		try {
+			await finalizeAlreadySentServiceOrder(serviceOrder.id);
+			onCompleted();
+		} catch (error) {
+			setSendError(
+				error instanceof Error
+					? error.message
+					: 'Não foi possível finalizar a ordem de serviço.',
+			);
+		} finally {
+			setIsSending(false);
+		}
+	}
+
 	async function handleOpenDocument(fileUrl: string) {
 		if (!fileUrl) return;
 		if (Platform.OS === 'web') {
@@ -214,7 +241,9 @@ export function CompleteServiceOrderModal({
 								Concluir ordem de serviço
 							</Text>
 							<Text className="mt-0.5 font-inter text-gray-400 text-xs">
-								Revise a mensagem e os documentos da entrega
+								{canFinalize
+									? 'Os documentos já foram enviados ao cliente'
+									: 'Revise a mensagem e os documentos da entrega'}
 							</Text>
 						</View>
 						<TouchableOpacity
@@ -431,18 +460,36 @@ export function CompleteServiceOrderModal({
 								Cancelar
 							</Text>
 						</TouchableOpacity>
-						<TouchableOpacity
-							onPress={handleSend}
-							disabled={!canSend}
-							accessibilityRole="button"
-							accessibilityState={{ disabled: !canSend, busy: isSending }}
-							className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 ${canSend ? '' : 'opacity-50'}`}
-						>
-							{isSending && <ActivityIndicator size="small" color="#FFFFFF" />}
-							<Text className="font-inter font-semibold text-white text-sm">
-								{isSending ? 'Enviando...' : 'Enviar'}
-							</Text>
-						</TouchableOpacity>
+						{canFinalize ? (
+							<TouchableOpacity
+								onPress={handleFinalize}
+								accessibilityRole="button"
+								accessibilityState={{ busy: isSending }}
+								className="flex-row items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5"
+							>
+								{isSending && (
+									<ActivityIndicator size="small" color="#FFFFFF" />
+								)}
+								<Text className="font-inter font-semibold text-white text-sm">
+									{isSending ? 'Finalizando...' : 'Finalizar OS'}
+								</Text>
+							</TouchableOpacity>
+						) : (
+							<TouchableOpacity
+								onPress={handleSend}
+								disabled={!canSend}
+								accessibilityRole="button"
+								accessibilityState={{ disabled: !canSend, busy: isSending }}
+								className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 ${canSend ? '' : 'opacity-50'}`}
+							>
+								{isSending && (
+									<ActivityIndicator size="small" color="#FFFFFF" />
+								)}
+								<Text className="font-inter font-semibold text-white text-sm">
+									{isSending ? 'Enviando...' : 'Enviar'}
+								</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 				</View>
 			</View>

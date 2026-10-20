@@ -92,11 +92,6 @@ function MobileItemCard({
 						<Text className="font-inter text-gray-700 text-sm">
 							{item.document_type ?? 'Não informado'}
 						</Text>
-						{item.word_count != null && (
-							<Text className="font-inter text-gray-400 text-xs">
-								{item.word_count} palavras
-							</Text>
-						)}
 					</View>
 					<View className="min-w-0 flex-1 gap-1">
 						<Text className="font-inter text-gray-400 text-xs">Preço</Text>
@@ -260,11 +255,6 @@ export function ItemsTable({
 								<Text className="font-inter text-gray-500 text-xs md:text-sm">
 									{item.document_type ?? 'Não informado'}
 								</Text>
-								{item.word_count != null && (
-									<Text className="font-inter text-gray-400 text-xs">
-										{item.word_count} palavras
-									</Text>
-								)}
 							</View>
 
 							<View className="md:w-[10%]">

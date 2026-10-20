@@ -1,8 +1,16 @@
 import { Platform, View, Text, TouchableOpacity, Linking } from 'react-native';
 import Constants from 'expo-constants';
+import { File, Paths } from 'expo-file-system';
+import * as LegacyFileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import * as WebBrowser from 'expo-web-browser';
 import { FileText } from 'lucide-react-native';
 import { resolveNativeResourceUrl } from '../utils/nativeResourceUrl';
+import {
+	getDownloadFileName,
+	getDownloadMimeType,
+	getDownloadUrl,
+} from '../utils/fileDownload';
 
 type FilePreviewProps = {
 	fileUrl: string;
@@ -27,6 +35,101 @@ export function openDocument(fileUrl: string) {
 	}
 
 	void Linking.openURL(getNativeDocumentUrl(fileUrl));
+}
+
+export async function downloadDocument(fileUrl: string) {
+	const downloadUrl = getDownloadUrl(getNativeDocumentUrl(fileUrl));
+	const fileName = getDownloadFileName(fileUrl);
+	if (Platform.OS === 'web') {
+		const response = await fetch(downloadUrl);
+		if (!response.ok) {
+			throw new Error(
+				`Não foi possível baixar o arquivo (${response.status}).`,
+			);
+		}
+		const blobUrl = URL.createObjectURL(await response.blob());
+		const link = document.createElement('a');
+		link.href = blobUrl;
+		link.download = fileName;
+		link.rel = 'noopener';
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+		return 'downloaded';
+	}
+
+	if (Platform.OS === 'android') {
+		const storage = LegacyFileSystem.StorageAccessFramework;
+		const permission = await storage.requestDirectoryPermissionsAsync(
+			storage.getUriForDirectoryInRoot('Download'),
+		);
+		if (!permission.granted) return 'cancelled';
+
+		const extensionIndex = fileName.lastIndexOf('.');
+		const displayName =
+			extensionIndex > 0 ? fileName.slice(0, extensionIndex) : fileName;
+		const temporaryUri = `${LegacyFileSystem.cacheDirectory}${Date.now()}_${encodeURIComponent(fileName)}`;
+		let destinationUri: string | undefined;
+
+		try {
+			const response = await LegacyFileSystem.downloadAsync(
+				downloadUrl,
+				temporaryUri,
+			);
+			if (response.status < 200 || response.status >= 300) {
+				throw new Error(
+					`Não foi possível baixar o arquivo (${response.status}).`,
+				);
+			}
+
+			destinationUri = await storage.createFileAsync(
+				permission.directoryUri,
+				displayName,
+				response.mimeType?.split(';')[0] || getDownloadMimeType(fileName),
+			);
+			const fileInfo = await LegacyFileSystem.getInfoAsync(temporaryUri);
+			if (!fileInfo.exists || fileInfo.isDirectory) {
+				throw new Error('O arquivo baixado não pôde ser lido.');
+			}
+
+			const chunkSize = 256 * 1024;
+			for (let position = 0; position < fileInfo.size; position += chunkSize) {
+				const chunk = await LegacyFileSystem.readAsStringAsync(temporaryUri, {
+					encoding: LegacyFileSystem.EncodingType.Base64,
+					position,
+					length: Math.min(chunkSize, fileInfo.size - position),
+				});
+				await storage.writeAsStringAsync(destinationUri, chunk, {
+					encoding: LegacyFileSystem.EncodingType.Base64,
+					append: position > 0,
+				});
+			}
+			return 'downloaded';
+		} catch (error) {
+			if (destinationUri) {
+				await LegacyFileSystem.deleteAsync(destinationUri).catch(
+					() => undefined,
+				);
+			}
+			throw error;
+		} finally {
+			await LegacyFileSystem.deleteAsync(temporaryUri).catch(() => undefined);
+		}
+	}
+
+	const downloadedFile = await File.downloadFileAsync(
+		downloadUrl,
+		new File(Paths.cache, fileName),
+		{ idempotent: true },
+	);
+	if (!(await Sharing.isAvailableAsync())) {
+		throw new Error('O compartilhamento de arquivos não está disponível.');
+	}
+	await Sharing.shareAsync(downloadedFile.uri, {
+		dialogTitle: `Salvar ${fileName}`,
+	});
+	return 'shared';
 }
 
 export function FilePreview({
