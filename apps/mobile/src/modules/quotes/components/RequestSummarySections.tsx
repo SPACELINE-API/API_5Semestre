@@ -36,7 +36,9 @@ function RequestDocumentButton({ request }: { request: RequestItem }) {
 		setOpening(true);
 		setError(null);
 		try {
-			await openRequestDocument(request.id);
+			if (request.document_url) {
+				await openRequestDocument(request.document_url);
+			}
 		} catch (err) {
 			setError('Erro ao abrir documento');
 		} finally {

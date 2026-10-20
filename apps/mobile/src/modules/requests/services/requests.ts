@@ -1,9 +1,12 @@
+import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
 import { env } from '../../../shared/env';
 import {
 	MultipartUploadError,
 	uploadFileMultipart,
 } from '../../../shared/utils/uploadFileMultipart';
 import { getSession } from '../../auth/services/auth';
+import { openDocument } from '../../../shared/components/FilePreview';
 
 export type RequestStatus = 'pending' | 'approved' | 'reproved';
 
@@ -24,6 +27,7 @@ export type RequestItem = {
 	has_document: boolean;
 	document_filename?: string | null;
 	document_content_type?: string | null;
+	document_url?: string | null;
 	quote_id?: string | null;
 };
 
@@ -212,43 +216,6 @@ export async function createRequest(
 	}
 }
 
-export async function openRequestDocument(requestId: string): Promise<void> {
-	const session = getSession();
-	if (!session?.access_token) {
-		throw new Error('Não autenticado');
-	}
-
-	let newWindow: Window | null = null;
-	if (typeof window !== 'undefined') {
-		newWindow = window.open('about:blank');
-	}
-
-	try {
-		const response = await fetch(
-			`${API_BASE_URL}/api/quotes/requests/${encodeURIComponent(requestId)}/document`,
-			{
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-				},
-			},
-		);
-
-		if (!response.ok) {
-			throw new Error('Não foi possível carregar o documento');
-		}
-
-		const blob = await response.blob();
-		const url = URL.createObjectURL(blob);
-
-		if (newWindow) {
-			newWindow.location.href = url;
-		} else {
-			window.location.href = url;
-		}
-	} catch (error) {
-		if (newWindow) {
-			newWindow.close();
-		}
-		throw error;
-	}
+export async function openRequestDocument(documentUrl: string): Promise<void> {
+	openDocument(documentUrl);
 }
