@@ -1,5 +1,18 @@
-import { useEffect, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import {
+	useEffect,
+	useState,
+	type ComponentProps,
+	type ComponentType,
+} from 'react';
+import {
+	Modal,
+	View,
+	Text,
+	TouchableOpacity,
+	ScrollView,
+	Platform,
+} from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { X } from 'lucide-react-native';
 import type { Company, CompanyUpdateInput } from '../types/company';
 import {
@@ -95,6 +108,9 @@ export function CompanyEditModal({
 	onSubmit,
 	toast,
 }: CompanyEditModalProps) {
+	const KeyboardContainer = (
+		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
+	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const [form, setForm] = useState<CompanyUpdateInput | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -276,10 +292,15 @@ export function CompanyEditModal({
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView
+					<KeyboardContainer
 						className="px-6 py-4"
 						contentContainerClassName="gap-4 pb-6"
-						keyboardShouldPersistTaps="handled"
+						{...(Platform.OS === 'web'
+							? { keyboardShouldPersistTaps: 'handled' as const }
+							: {
+									bottomOffset: 20,
+									keyboardShouldPersistTaps: 'handled' as const,
+								})}
 					>
 						<Text className="font-inter font-bold text-gray-900 text-sm">
 							Identificação
@@ -403,7 +424,7 @@ export function CompanyEditModal({
 								<Text className="font-inter text-red-900 text-sm">{error}</Text>
 							</View>
 						)}
-					</ScrollView>
+					</KeyboardContainer>
 
 					<View className="flex-row items-center justify-between border-t border-gray-300 px-6 py-4">
 						<TouchableOpacity

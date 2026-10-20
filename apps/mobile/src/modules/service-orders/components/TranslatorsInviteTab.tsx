@@ -66,6 +66,14 @@ export function TranslatorsInviteTab({
 	);
 
 	useEffect(() => {
+		const eligibleIds = new Set(eligibleTranslators.map(({ id }) => id));
+		setSelectedTranslatorIds((current) => {
+			const next = new Set([...current].filter((id) => eligibleIds.has(id)));
+			return next.size === current.size ? current : next;
+		});
+	}, [eligibleTranslators]);
+
+	useEffect(() => {
 		setSelectedTranslatorIds(new Set());
 	}, [selectedItemId]);
 
@@ -91,6 +99,9 @@ export function TranslatorsInviteTab({
 	}, [translators, search]);
 
 	function toggleTranslator(id: string) {
+		const translator = translators.find((item) => item.id === id);
+		if (!translator?.is_active || pendingTranslatorIds.has(id)) return;
+
 		setSelectedTranslatorIds((current) => {
 			const next = new Set(current);
 			if (next.has(id)) {
@@ -103,11 +114,14 @@ export function TranslatorsInviteTab({
 	}
 
 	async function handleSend() {
-		if (!selectedItemId || selectedTranslatorIds.size === 0) return;
+		const selectableIds = eligibleTranslators
+			.filter((translator) => selectedTranslatorIds.has(translator.id))
+			.map((translator) => translator.id);
+		if (!selectedItemId || selectableIds.length === 0) return;
 
 		setIsSending(true);
 		try {
-			await onSendInvites(selectedItemId, Array.from(selectedTranslatorIds));
+			await onSendInvites(selectedItemId, selectableIds);
 			setSelectedTranslatorIds(new Set());
 		} finally {
 			setIsSending(false);
@@ -239,11 +253,13 @@ export function TranslatorsInviteTab({
 				{filteredTranslators.map((translator) => {
 					const isSelected = selectedTranslatorIds.has(translator.id);
 					const hasPendingInvite = pendingTranslatorIds.has(translator.id);
-					const isDisabled = isItemAssigned || hasPendingInvite;
+					const isInactive = !translator.is_active;
+					const isDisabled = isItemAssigned || hasPendingInvite || isInactive;
 
 					return (
 						<TouchableOpacity
 							key={translator.id}
+							disabled={isDisabled}
 							onPress={() => {
 								if (isDisabled) return;
 								toggleTranslator(translator.id);
@@ -252,10 +268,11 @@ export function TranslatorsInviteTab({
 							accessibilityRole="checkbox"
 							accessibilityState={{ checked: isSelected, disabled: isDisabled }}
 							accessibilityLabel={`Selecionar tradutor ${translator.name}${
-								hasPendingInvite ? ' (convite pendente)' : ''
+								isInactive ? ' (tradutor inativo)' : ''
+							}${hasPendingInvite ? ' (convite pendente)' : ''}
 							}`}
 							className={`flex-row items-center gap-3 border-b border-gray-50 px-4 py-3 last:border-b-0 ${
-								hasPendingInvite
+								isDisabled
 									? 'opacity-50'
 									: isSelected
 										? 'bg-blue-50'

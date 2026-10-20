@@ -15,6 +15,7 @@ from app.modules.service_orders.models.invite import (
     INVITE_STATUS_EXPIRADO,
     INVITE_STATUS_PENDENTE,
     INVITE_STATUS_RECUSADO,
+    ServiceOrderItemInvite,
 )
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_email_template import (
@@ -138,6 +139,28 @@ def test_send_invites_creates_pending_invites_and_sends_email(
     assert invites[0].status == INVITE_STATUS_PENDENTE
     assert len(sent_emails) == 1
     assert sent_emails[0]["to"] == translator.email
+
+
+def test_send_invites_rejects_inactive_translator_without_persisting_or_email(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+    translator.is_active = False
+    db_session.commit()
+    service = InviteService(db_session)
+
+    with pytest.raises(HTTPException) as exc_info:
+        service.send_invites(item.id, [translator.id])
+
+    assert exc_info.value.status_code == 409
+    assert (
+        db_session.query(ServiceOrderItemInvite)
+        .filter(ServiceOrderItemInvite.service_order_item_id == item.id)
+        .count()
+        == 0
+    )
+    assert sent_emails == []
 
 
 def test_send_invites_uses_default_email_when_no_template_is_saved(

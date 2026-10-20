@@ -4,8 +4,10 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
+	Platform,
 } from 'react-native';
-import { useState } from 'react';
+import { useState, type ComponentProps, type ComponentType } from 'react';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { AlertCircle } from 'lucide-react-native';
 import { TabBar } from '../../../shared/components/TabBar';
 import { Toast } from '../../../shared/components/Toast';
@@ -25,6 +27,9 @@ const TABS: { key: ProfileTab; label: string }[] = [
 ];
 
 export function MyProfilePage() {
+	const KeyboardContainer = (
+		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
+	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const { profile, setProfile, isLoading, error, refresh } = useMyProfile();
 	const { toast, showToast } = useToast();
 	const [activeTab, setActiveTab] = useState<ProfileTab>('data');
@@ -61,9 +66,16 @@ export function MyProfilePage() {
 
 	return (
 		<View className="relative flex-1 bg-white">
-			<ScrollView
+			<KeyboardContainer
+				className="flex-1"
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8"
+				{...(Platform.OS === 'web'
+					? {}
+					: {
+							bottomOffset: 20,
+							keyboardShouldPersistTaps: 'handled' as const,
+						})}
 			>
 				<View className="mb-6 border-b border-gray-200 pb-6">
 					<Text className="font-inter font-bold text-gray-950 text-2xl">
@@ -99,7 +111,7 @@ export function MyProfilePage() {
 						<LanguageCertificateCard />
 					</View>
 				</View>
-			</ScrollView>
+			</KeyboardContainer>
 
 			<Toast toast={toast} />
 		</View>
