@@ -50,6 +50,8 @@ const TYPE_STYLES: Record<
 	},
 };
 
+// CABECALHO E BOTOES FICAM FORA DA AREA DE ROLAGEM (PADRAO DOS MODAIS DO PROJETO):
+// EM ALGUNS ANDROIDS, BOTOES DENTRO DO SCROLLVIEW DE UM MODAL NAO RECEBEM O TOQUE
 export function AppModal({
 	visible,
 	title,
@@ -82,117 +84,123 @@ export function AppModal({
 			<View className="flex-1 items-center justify-center bg-black/40 px-4 py-6">
 				<View
 					accessibilityViewIsModal
-					className={`max-h-full w-full rounded-xl bg-white ${
+					className={`max-h-[90%] w-full overflow-hidden rounded-xl bg-white ${
 						size === 'md' ? 'max-w-[520px]' : 'max-w-[400px]'
 					}`}
 				>
-					<ScrollView
-						bounces={false}
-						contentContainerClassName="gap-4 p-6 md:p-7"
-						keyboardShouldPersistTaps="handled"
-					>
-						{!isCentered && (
-							<View className="flex-row items-start justify-between gap-3">
-								<View className="flex-1 gap-1">
-									<Text className="font-inter font-bold text-gray-900 text-lg">
-										{title}
+					{isCentered && style && Icon ? (
+						<View className="items-center gap-3 px-6 pt-6 md:px-7 md:pt-7">
+							<View
+								className={`h-14 w-14 items-center justify-center rounded-full ${style.background}`}
+							>
+								<Icon size={26} color={style.color} strokeWidth={2} />
+							</View>
+							<View className="gap-1.5">
+								<Text
+									accessibilityRole="header"
+									className="text-center font-inter font-bold text-gray-900 text-lg"
+								>
+									{title}
+								</Text>
+								{message ? (
+									<Text className="text-center font-inter text-gray-500 text-sm">
+										{message}
 									</Text>
-									{message ? (
-										<Text className="font-inter text-gray-500 text-sm">
-											{message}
-										</Text>
-									) : null}
-								</View>
+								) : null}
+							</View>
+						</View>
+					) : (
+						<View className="flex-row items-start justify-between gap-3 px-6 pt-6 md:px-7 md:pt-7">
+							<View className="flex-1 gap-1">
+								<Text
+									accessibilityRole="header"
+									className="font-inter font-bold text-gray-900 text-lg"
+								>
+									{title}
+								</Text>
+								{message ? (
+									<Text className="font-inter text-gray-500 text-sm">
+										{message}
+									</Text>
+								) : null}
+							</View>
+							<TouchableOpacity
+								onPress={onClose}
+								disabled={isLoading}
+								accessibilityRole="button"
+								accessibilityLabel="Fechar"
+								hitSlop={8}
+								className="rounded-md p-1"
+							>
+								<X size={20} color="#6B7280" />
+							</TouchableOpacity>
+						</View>
+					)}
+
+					{children ? (
+						<ScrollView
+							bounces={false}
+							className="shrink grow-0"
+							contentContainerClassName="gap-4 px-6 pt-4 md:px-7"
+							keyboardShouldPersistTaps="handled"
+						>
+							{children}
+						</ScrollView>
+					) : null}
+
+					<View
+						className={`flex-row gap-3 px-6 pb-6 pt-5 md:px-7 md:pb-7 ${
+							isCentered ? '' : 'justify-end'
+						}`}
+					>
+						{hasConfirm ? (
+							<>
 								<TouchableOpacity
 									onPress={onClose}
 									disabled={isLoading}
 									accessibilityRole="button"
-									accessibilityLabel="Fechar"
-									hitSlop={8}
-									className="rounded-md p-1"
-								>
-									<X size={20} color="#6B7280" />
-								</TouchableOpacity>
-							</View>
-						)}
-
-						{isCentered && style && Icon && (
-							<View className="items-center gap-3">
-								<View
-									className={`h-14 w-14 items-center justify-center rounded-full ${style.background}`}
-								>
-									<Icon size={26} color={style.color} strokeWidth={2} />
-								</View>
-								<View className="gap-1.5">
-									<Text
-										accessibilityRole="header"
-										className="text-center font-inter font-bold text-gray-900 text-lg"
-									>
-										{title}
-									</Text>
-									{message ? (
-										<Text className="text-center font-inter text-gray-500 text-sm">
-											{message}
-										</Text>
-									) : null}
-								</View>
-							</View>
-						)}
-
-						{children}
-
-						<View
-							className={`mt-2 flex-row gap-3 ${isCentered ? '' : 'justify-end'}`}
-						>
-							{hasConfirm ? (
-								<>
-									<TouchableOpacity
-										onPress={onClose}
-										disabled={isLoading}
-										accessibilityRole="button"
-										className={`items-center rounded-lg border border-gray-300 px-4 py-2.5 ${
-											isCentered ? 'flex-1' : ''
-										}`}
-									>
-										<Text className="font-inter font-medium text-gray-800 text-sm">
-											{cancelLabel}
-										</Text>
-									</TouchableOpacity>
-									<TouchableOpacity
-										onPress={onConfirm}
-										disabled={isLoading || confirmDisabled}
-										accessibilityRole="button"
-										accessibilityState={{
-											disabled: isLoading || confirmDisabled,
-											busy: isLoading,
-										}}
-										className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${
-											isCentered ? 'flex-1' : ''
-										} ${isLoading || confirmDisabled ? 'opacity-50' : ''}`}
-									>
-										{isLoading && (
-											<ActivityIndicator size="small" color="#FFFFFF" />
-										)}
-										<Text className="font-inter font-semibold text-sm text-white">
-											{isLoading ? 'Aguarde…' : confirmLabel}
-										</Text>
-									</TouchableOpacity>
-								</>
-							) : (
-								<TouchableOpacity
-									onPress={onClose}
-									accessibilityRole="button"
-									className={`items-center rounded-lg bg-blue-600 px-4 py-2.5 ${
+									className={`items-center rounded-lg border border-gray-300 px-4 py-2.5 ${
 										isCentered ? 'flex-1' : ''
 									}`}
 								>
-									<Text className="font-inter font-semibold text-sm text-white">
-										{closeLabel}
+									<Text className="font-inter font-medium text-gray-800 text-sm">
+										{cancelLabel}
 									</Text>
 								</TouchableOpacity>
-							)}
-						</View>
-					</ScrollView>
+								<TouchableOpacity
+									onPress={onConfirm}
+									disabled={isLoading || confirmDisabled}
+									accessibilityRole="button"
+									accessibilityState={{
+										disabled: isLoading || confirmDisabled,
+										busy: isLoading,
+									}}
+									className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${
+										isCentered ? 'flex-1' : ''
+									} ${isLoading || confirmDisabled ? 'opacity-50' : ''}`}
+								>
+									{isLoading && (
+										<ActivityIndicator size="small" color="#FFFFFF" />
+									)}
+									<Text className="font-inter font-semibold text-sm text-white">
+										{isLoading ? 'Aguarde…' : confirmLabel}
+									</Text>
+								</TouchableOpacity>
+							</>
+						) : (
+							<TouchableOpacity
+								onPress={onClose}
+								accessibilityRole="button"
+								className={`items-center rounded-lg bg-blue-600 px-4 py-2.5 ${
+									isCentered ? 'flex-1' : ''
+								}`}
+							>
+								<Text className="font-inter font-semibold text-sm text-white">
+									{closeLabel}
+								</Text>
+							</TouchableOpacity>
+						)}
+					</View>
 				</View>
 			</View>
 		</Modal>
