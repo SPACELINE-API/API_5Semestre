@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View, Platform } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export interface CardRequestProps {
@@ -110,10 +110,6 @@ export default function CardRequest({
 				onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
 				className={`w-full items-center rounded-lg py-2.5 ${
 					status === 'reproved' ? 'bg-gray-500' : 'bg-blue-600'
-				} ${
-					Platform.OS === 'web' && status !== 'reproved'
-						? 'hover:bg-blue-700'
-						: ''
 				}`}
 			>
 				<Text className="font-inter-semibold text-sm text-white">
