@@ -1,7 +1,6 @@
 import uuid
-from urllib.parse import quote as url_quote
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import require_permission
@@ -213,9 +212,6 @@ def list_requests(
 ):
     service = RequestService(db)
     return service.list_all()
-
-
-
 
 
 @router.patch("/requests/{request_id}/status", response_model=RequestResponse)

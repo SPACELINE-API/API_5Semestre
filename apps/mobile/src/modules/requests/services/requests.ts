@@ -1,5 +1,3 @@
-import { Platform } from 'react-native';
-import * as FileSystem from 'expo-file-system/legacy';
 import { env } from '../../../shared/env';
 import {
 	MultipartUploadError,

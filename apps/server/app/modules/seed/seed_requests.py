@@ -1,6 +1,7 @@
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
+from io import BytesIO
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -8,9 +9,8 @@ from sqlalchemy.orm import Session
 from app.modules.clients.models.company import Company
 from app.modules.contacts.models.contact import Contact
 from app.modules.quotes.models.request import Request, StatusEnum
-from app.shared.database import get_session_factory
 from app.modules.quotes.services.storage import upload_request_document
-from io import BytesIO
+from app.shared.database import get_session_factory
 
 
 @dataclass(frozen=True)
@@ -99,7 +99,12 @@ def seed_requests(*, db: Session | None = None) -> list[str]:
             request.reproval_reason = None
 
             if seed_request.id == uuid.UUID("a1000000-0000-4000-8000-000000000001"):
-                asset_path = Path(__file__).parent.parent.parent.parent / "rest-client" / "seed-assets" / "contrato-societario.pdf"
+                asset_path = (
+                    Path(__file__).parent.parent.parent.parent
+                    / "rest-client"
+                    / "seed-assets"
+                    / "contrato-societario.pdf"
+                )
                 if asset_path.is_file():
                     with asset_path.open("rb") as asset_file:
                         file_url = upload_request_document(
