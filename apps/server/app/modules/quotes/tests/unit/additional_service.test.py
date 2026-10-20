@@ -263,6 +263,25 @@ def test_update_additional_service_fails_when_not_found(service: AdditionalServi
     service.repository.update_additional_service.assert_not_called()
 
 
+def test_update_additional_service_rejects_completed_service(service: AdditionalServiceService):
+    additional_service = AdditionalService(
+        quote_id=uuid4(),
+        description="Tradução de documento secundário",
+        price=Decimal("150.00"),
+        status="approved",
+    )
+    service.repository.get_additional_service_by_id.return_value = additional_service
+
+    with pytest.raises(
+        AdditionalServiceConflictError,
+        match="Não é possível editar um serviço adicional concluído",
+    ):
+        service.update_additional_service(uuid4(), AdditionalServiceUpdate(price=Decimal("80.00")))
+
+    assert additional_service.price == Decimal("150.00")
+    service.repository.update_additional_service.assert_not_called()
+
+
 def test_update_additional_service_raises_conflict_on_duplicate_description(
     service: AdditionalServiceService,
 ):

@@ -15,6 +15,7 @@ from app.modules.quotes.schemas.additional_service import (
 )
 
 DUPLICATED_DESCRIPTION_MESSAGE = "Já existe um serviço adicional com essa descrição neste orçamento"
+COMPLETED_SERVICE_MESSAGE = "Não é possível editar um serviço adicional concluído"
 
 
 class AdditionalServiceNotFoundError(Exception):
@@ -56,6 +57,8 @@ class AdditionalServiceService:
         self, service_id: uuid.UUID, payload: AdditionalServiceUpdate
     ) -> AdditionalService:
         additional_service = self.get_additional_service(service_id)
+        if additional_service.status == "approved":
+            raise AdditionalServiceConflictError(COMPLETED_SERVICE_MESSAGE)
         for field, value in payload.model_dump(exclude_unset=True).items():
             setattr(additional_service, field, value)
         try:

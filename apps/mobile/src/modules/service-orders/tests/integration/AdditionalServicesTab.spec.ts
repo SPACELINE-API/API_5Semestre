@@ -334,7 +334,7 @@ test.describe('Serviços adicionais na ordem de serviço', () => {
 		await expect(page.getByText('Concluído', { exact: true })).toBeVisible();
 		await expect(
 			page.getByLabel('Editar serviço adicional Diagramação'),
-		).toBeVisible();
+		).toHaveCount(0);
 		await expect(
 			page.getByLabel('Marcar serviço adicional Diagramação como concluído'),
 		).toHaveCount(0);

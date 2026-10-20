@@ -100,7 +100,7 @@ export function AdditionalServiceCard({
 							</Text>
 						</TouchableOpacity>
 					)}
-					{onEdit && (
+					{onEdit && service.status !== 'approved' && (
 						<TouchableOpacity
 							onPress={onEdit}
 							activeOpacity={0.7}

@@ -458,7 +458,9 @@ export function QuoteCard({
 		setCustomerNeed(quote.customer_need ?? '');
 		setDraftItems(quote.items.map(toDraftItem));
 		setDraftAdditionalServices(
-			additionalServices.map(toDraftAdditionalService),
+			additionalServices
+				.filter((service) => service.status !== 'approved')
+				.map(toDraftAdditionalService),
 		);
 		setCompanyId(quote.company_id ?? null);
 		setSaveError('');
@@ -1153,32 +1155,39 @@ export function QuoteCard({
 							Serviços adicionais ({additionalServices.length})
 						</SectionTitle>
 						<View className="gap-3">
-							{isEditing && draftAdditionalServices.length ? (
-								draftAdditionalServices.map((service) => (
-									<View
-										key={service.id}
-										className="flex-row flex-wrap gap-x-5 gap-y-3 rounded-xl border border-gray-200 bg-white p-4"
-									>
-										<EditField
-											label="Descrição do serviço"
-											value={service.description}
-											onChangeText={(value) =>
-												updateDraftAdditionalService(service.id, {
-													description: value,
-												})
-											}
-										/>
-										<CurrencyField
-											label="Valor do serviço"
-											value={service.price}
-											onChangeValue={(value) =>
-												updateDraftAdditionalService(service.id, {
-													price: value,
-												})
-											}
-										/>
-									</View>
-								))
+							{isEditing && additionalServices.length ? (
+								additionalServices.map((service) => {
+									const draft = draftAdditionalServices.find(
+										(item) => item.id === service.id,
+									);
+									return draft ? (
+										<View
+											key={draft.id}
+											className="flex-row flex-wrap gap-x-5 gap-y-3 rounded-xl border border-gray-200 bg-white p-4"
+										>
+											<EditField
+												label="Descrição do serviço"
+												value={draft.description}
+												onChangeText={(value) =>
+													updateDraftAdditionalService(draft.id, {
+														description: value,
+													})
+												}
+											/>
+											<CurrencyField
+												label="Valor do serviço"
+												value={draft.price}
+												onChangeValue={(value) =>
+													updateDraftAdditionalService(draft.id, {
+														price: value,
+													})
+												}
+											/>
+										</View>
+									) : (
+										<AdditionalServiceCard key={service.id} service={service} />
+									);
+								})
 							) : additionalServicesLoading ? (
 								<Text className="font-inter text-sm text-gray-500">
 									Carregando serviços adicionais...
