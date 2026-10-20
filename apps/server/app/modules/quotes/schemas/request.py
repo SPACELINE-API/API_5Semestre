@@ -50,4 +50,5 @@ class RequestResponse(BaseModel):
     has_document: bool = False
     document_filename: str | None = None
     document_content_type: str | None = None
+    document_url: str | None = None
     quote_id: uuid.UUID | None = None

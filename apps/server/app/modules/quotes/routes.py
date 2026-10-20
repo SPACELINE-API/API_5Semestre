@@ -215,19 +215,7 @@ def list_requests(
     return service.list_all()
 
 
-@router.get("/requests/{request_id}/document")
-def get_request_document(
-    request_id: uuid.UUID,
-    _user=Depends(requests_read_permission),
-    db: Session = Depends(get_db),
-):
-    request = RequestService(db).get_document(request_id)
-    filename = url_quote(request.document_filename or "documento")
-    return Response(
-        content=request.document,
-        media_type=request.document_content_type or "application/octet-stream",
-        headers={"Content-Disposition": f"inline; filename*=UTF-8''{filename}"},
-    )
+
 
 
 @router.patch("/requests/{request_id}/status", response_model=RequestResponse)

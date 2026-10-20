@@ -64,10 +64,11 @@ class Request(Base):
     document: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     document_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
     document_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    document_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     @property
     def has_document(self) -> bool:
-        return self.document is not None
+        return self.document_url is not None or self.document is not None
 
     @property
     def quote_id(self) -> uuid.UUID | None:

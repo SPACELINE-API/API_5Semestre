@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from io import BytesIO
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -10,6 +11,7 @@ from app.modules.contacts.models.contact import Contact
 from app.modules.quotes.models.request import StatusEnum
 from app.modules.quotes.repositories.request_repository import RequestRepository
 from app.modules.quotes.schemas.request import RequestCreate, RequestStatusUpdate
+from app.modules.quotes.services.storage import upload_request_document
 
 
 class RequestService:
@@ -32,7 +34,17 @@ class RequestService:
                     detail="Você precisa aguardar no mínimo uma semana antes de enviar outra solicitação.",
                 )
 
-        return self.repo.create(data.model_dump())
+        request_data = data.model_dump()
+        if data.document and data.document_filename:
+            file_url = upload_request_document(
+                data.document_filename,
+                BytesIO(data.document),
+                data.document_content_type or "application/octet-stream",
+            )
+            request_data["document_url"] = file_url
+            request_data["document"] = None
+
+        return self.repo.create(request_data)
 
     def _validate_customer_links(self, company_id, contact_id) -> None:
         if contact_id and not company_id:
@@ -87,11 +99,3 @@ class RequestService:
             uuid.UUID(current_user.id) if data.status == StatusEnum.REPROVED else None,
             current_user.email if data.status == StatusEnum.REPROVED else None,
         )
-    def get_document(self, request_id):
-        request = self.repo.get_by_id(request_id)
-        if request is None or request.document is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Documento não encontrado.",
-            )
-        return request
