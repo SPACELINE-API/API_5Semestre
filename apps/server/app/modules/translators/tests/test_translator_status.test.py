@@ -87,9 +87,7 @@ def test_deactivating_translator_then_saving_profile_keeps_status_inactive(
                 "email": translator.email,
                 "phone": "11988887777",
                 "qualification_ids": [],
-                "languages": [
-                    {"language_id": "pt-BR", "proficiency_level": "native"}
-                ],
+                "languages": [{"language_id": "pt-BR", "proficiency_level": "native"}],
             },
         )
 

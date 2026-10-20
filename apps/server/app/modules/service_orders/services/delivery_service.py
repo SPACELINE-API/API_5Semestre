@@ -128,8 +128,7 @@ class ServiceOrderDeliveryService:
         unlinked_files = [
             document
             for document in current_documents
-            if document.service_order_item_id is None
-            and document.review_status == REVIEW_APPROVED
+            if document.service_order_item_id is None and document.review_status == REVIEW_APPROVED
         ]
 
         if any(
