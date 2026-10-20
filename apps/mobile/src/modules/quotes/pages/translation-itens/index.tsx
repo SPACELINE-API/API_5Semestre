@@ -216,8 +216,15 @@ export function NewQuoteModal({
 												<Trash2 size={13} color="#b91c1c" />
 											</TouchableOpacity>
 										)}
-										<View className={isDesktop ? 'flex-row flex-wrap gap-4' : 'gap-4'}>
-											<View className={isDesktop ? 'w-[48%]' : 'w-full'} style={{ zIndex: 50 }}>
+										<View
+											className={
+												isDesktop ? 'flex-row flex-wrap gap-4' : 'gap-4'
+											}
+										>
+											<View
+												className={isDesktop ? 'w-[48%]' : 'w-full'}
+												style={{ zIndex: 50 }}
+											>
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Idioma origem
 												</Text>
@@ -228,7 +235,10 @@ export function NewQuoteModal({
 													}
 												/>
 											</View>
-											<View className={isDesktop ? 'w-[48%]' : 'w-full'} style={{ zIndex: 40 }}>
+											<View
+												className={isDesktop ? 'w-[48%]' : 'w-full'}
+												style={{ zIndex: 40 }}
+											>
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Idioma destino
 												</Text>
@@ -239,7 +249,10 @@ export function NewQuoteModal({
 													}
 												/>
 											</View>
-											<View className={isDesktop ? 'w-[48%]' : 'w-full'} style={{ zIndex: 30 }}>
+											<View
+												className={isDesktop ? 'w-[48%]' : 'w-full'}
+												style={{ zIndex: 30 }}
+											>
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Tipo de documento
 												</Text>
@@ -253,7 +266,10 @@ export function NewQuoteModal({
 													}
 												/>
 											</View>
-											<View className={isDesktop ? 'w-[48%]' : 'w-full'} style={{ zIndex: 20 }}>
+											<View
+												className={isDesktop ? 'w-[48%]' : 'w-full'}
+												style={{ zIndex: 20 }}
+											>
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Arquivo
 												</Text>
@@ -274,7 +290,10 @@ export function NewQuoteModal({
 													</Text>
 												</TouchableOpacity>
 											</View>
-											<View className={isDesktop ? 'w-[32%]' : 'w-full'} style={{ zIndex: 10 }}>
+											<View
+												className={isDesktop ? 'w-[32%]' : 'w-full'}
+												style={{ zIndex: 10 }}
+											>
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Valor
 												</Text>
@@ -303,7 +322,13 @@ export function NewQuoteModal({
 						</View>
 					</ScrollView>
 
-					<View className={isDesktop ? 'flex-row items-center justify-between border-t border-gray-300 px-6 py-4' : 'flex-col gap-4 border-t border-gray-300 px-6 py-4'}>
+					<View
+						className={
+							isDesktop
+								? 'flex-row items-center justify-between border-t border-gray-300 px-6 py-4'
+								: 'flex-col gap-4 border-t border-gray-300 px-6 py-4'
+						}
+					>
 						<View className={isDesktop ? 'w-auto' : 'w-full'}>
 							<Text className="mb-1 font-inter text-xs text-gray-500">
 								Total do orçamento
@@ -312,11 +337,17 @@ export function NewQuoteModal({
 								{decimalStringToBRL(String(total))}
 							</Text>
 						</View>
-						<View className={isDesktop ? 'flex-row gap-3' : 'w-full flex-col gap-3'}>
+						<View
+							className={isDesktop ? 'flex-row gap-3' : 'w-full flex-col gap-3'}
+						>
 							<TouchableOpacity
 								accessibilityRole="button"
 								onPress={resetAndClose}
-								className={isDesktop ? 'rounded-lg border border-gray-300 px-5 py-2.5' : 'w-full min-h-[44px] items-center justify-center rounded-lg border border-gray-300 px-5 py-2.5'}
+								className={
+									isDesktop
+										? 'rounded-lg border border-gray-300 px-5 py-2.5'
+										: 'w-full min-h-[44px] items-center justify-center rounded-lg border border-gray-300 px-5 py-2.5'
+								}
 							>
 								<Text className="font-inter font-medium text-gray-800 text-sm">
 									Cancelar
