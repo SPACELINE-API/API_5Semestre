@@ -64,6 +64,7 @@ async function mockProfileApi(
 		route.fulfill(json(LANGUAGES)),
 	);
 	await page.route('**/api/translators/me/certificates', (route) => {
+		if (route.request().method() === 'GET') return route.fulfill(json([]));
 		submitted.push(route.request().postData() ?? '');
 		return route.fulfill(json(submitResponse.body, submitResponse.status));
 	});
