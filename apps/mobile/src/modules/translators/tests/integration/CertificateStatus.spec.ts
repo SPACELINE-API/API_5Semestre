@@ -246,10 +246,49 @@ test('substitui o certificado e exibe o novo arquivo após o envio', async ({
 	await page
 		.getByText('Arraste o arquivo para cá')
 		.dispatchEvent('drop', { dataTransfer });
+
+	// NA SUBSTITUICAO DE UM CERTIFICADO JA ENVIADO, A TROCA PRECISA SER CONFIRMADA
+	await expect(page.getByText('Substituir certificado?')).toBeVisible();
+	await expect(
+		page.getByText(
+			'O certificado atual "delf-c1.pdf" será substituído por "delf-c1-legivel.pdf".',
+		),
+	).toBeVisible();
+	await page.getByText('Substituir', { exact: true }).click();
 	await page.getByText('Enviar', { exact: true }).click();
 
 	await expect(page.getByText('Certificado enviado')).toBeVisible();
 	await page.getByText('OK', { exact: true }).click();
 	await expect(page.getByText(/delf-c1-legivel\.pdf/)).toBeVisible();
 	await expect(page.getByText('Em análise', { exact: true })).toBeVisible();
+});
+
+test('cancelar a confirmação mantém o certificado atual sem arquivo novo', async ({
+	page,
+}) => {
+	await mockApi(page, [REJECTED]);
+	await openCertificatesTab(page);
+	await page.getByLabel(/Certificado de Francês \(França\)/).click();
+	await page.getByText('Substituir', { exact: true }).click();
+
+	const dataTransfer = await page.evaluateHandle(
+		(bytes) => {
+			const transfer = new DataTransfer();
+			transfer.items.add(
+				new File([new Uint8Array(bytes)], 'outro-arquivo.pdf', {
+					type: 'application/pdf',
+				}),
+			);
+			return transfer;
+		},
+		[...PDF],
+	);
+	await page
+		.getByText('Arraste o arquivo para cá')
+		.dispatchEvent('drop', { dataTransfer });
+	await page.getByText('Cancelar', { exact: true }).click();
+
+	await expect(page.getByText('Substituir certificado?')).toHaveCount(0);
+	await expect(page.getByText('outro-arquivo.pdf')).toHaveCount(0);
+	await expect(page.getByText('Arraste o arquivo para cá')).toBeVisible();
 });
