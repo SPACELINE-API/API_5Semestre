@@ -135,9 +135,7 @@ def test_existing_language_survives_profile_updates_and_status_can_be_toggled(
             "email": translator.email,
             "phone": "11988887777",
             "qualification_ids": [],
-            "languages": [
-                {"language_id": "sq-AL", "proficiency_level": "advanced"}
-            ],
+            "languages": [{"language_id": "sq-AL", "proficiency_level": "advanced"}],
         }
 
         updated = client.put(
@@ -148,9 +146,7 @@ def test_existing_language_survives_profile_updates_and_status_can_be_toggled(
         assert updated.status_code == 200
         assert updated.json()["name"] == "Tradutor editado"
         assert updated.json()["is_active"] is True
-        assert [item["language_id"] for item in updated.json()["languages"]] == [
-            "sq-AL"
-        ]
+        assert [item["language_id"] for item in updated.json()["languages"]] == ["sq-AL"]
 
         deactivated = client.patch(
             f"/api/translators/{translator.id}/status",
