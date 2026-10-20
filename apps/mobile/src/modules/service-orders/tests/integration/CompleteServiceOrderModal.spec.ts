@@ -57,6 +57,9 @@ test('abre a conclusão e exibe template, documentos traduzidos e observação',
 	await page.route('**/api/translators', (route) =>
 		route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
 	);
+	await page.route(/\/api\/quotes\/additional-services/, (route) =>
+		route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+	);
 	await page.route('**/api/service-orders/order-1', (route) =>
 		route.fulfill({
 			status: 200,
@@ -149,6 +152,9 @@ test('permite cancelar e mantém o modal aberto quando o envio falha', async ({
 			}),
 		);
 	}
+	await page.route(/\/api\/quotes\/additional-services/, (route) =>
+		route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+	);
 	await page.route('**/api/service-orders/order-1', (route) =>
 		route.fulfill({
 			status: 200,
