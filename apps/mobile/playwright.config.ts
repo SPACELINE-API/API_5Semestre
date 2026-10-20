@@ -5,8 +5,7 @@ const installedBrowserChannel = process.env.PLAYWRIGHT_CHANNEL;
 export default defineConfig({
 	testDir: './src',
 	testMatch: '**/*.spec.ts',
-	testIgnore: '**/node_modules/**',
-	testIgnore: '**/unit/*.spec.ts',
+	testIgnore: ['**/node_modules/**', '**/unit/*.spec.ts'],
 	fullyParallel: true,
 	forbidOnly: Boolean(process.env.CI),
 	retries: process.env.CI ? 2 : 0,
