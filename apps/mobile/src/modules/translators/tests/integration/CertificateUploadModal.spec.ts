@@ -123,9 +123,12 @@ test('envia o certificado do idioma informado e exibe mensagem de sucesso', asyn
 	expect(submitted).toHaveLength(1);
 	expect(submitted[0]).toContain('es-ES');
 	expect(submitted[0]).toContain('advanced');
+
+	await page.getByText('OK', { exact: true }).click();
+	await expect(page.getByText('Certificado enviado')).toHaveCount(0);
 });
 
-test('exige confirmação para substituir o arquivo já selecionado', async ({
+test('troca o arquivo selecionado sem pedir confirmação em um certificado novo', async ({
 	page,
 }) => {
 	await mockProfileApi(page, { status: 201, body: CERTIFICATE });
@@ -133,13 +136,22 @@ test('exige confirmação para substituir o arquivo já selecionado', async ({
 	await fillCertificate(page);
 
 	await dropFile(page, 'novo-certificado.pdf', PDF, 'application/pdf');
-	await expect(page.getByText('Substituir arquivo?')).toBeVisible();
-	await page.getByText('Cancelar', { exact: true }).click();
-	await expect(page.getByText('certificado-dele.pdf')).toBeVisible();
 
-	await dropFile(page, 'novo-certificado.pdf', PDF, 'application/pdf');
-	await page.getByText('Substituir', { exact: true }).click();
+	await expect(page.getByText('Substituir arquivo?')).toHaveCount(0);
 	await expect(page.getByText('novo-certificado.pdf')).toBeVisible();
+	await expect(page.getByText('certificado-dele.pdf')).toHaveCount(0);
+});
+
+test('campo de busca de idioma não exibe borda de foco', async ({ page }) => {
+	await mockProfileApi(page, { status: 201, body: CERTIFICATE });
+	await openCertificateModal(page);
+	await page.getByLabel('Selecionar idioma').click();
+
+	const search = page.getByLabel('Buscar idioma');
+	await search.focus();
+
+	// OUTLINE-NONE DO TAILWIND DEIXA O CONTORNO TRANSPARENTE (NAO VISIVEL)
+	await expect(search).toHaveCSS('outline-color', 'rgba(0, 0, 0, 0)');
 });
 
 test('rejeita arquivo inválido informando o motivo sem perder o preenchimento', async ({
