@@ -37,7 +37,7 @@ type CertificateUploadModalProps = {
 	onSubmitted?: (certificate: TranslatorCertificate) => void;
 };
 
-type Step = 'form' | 'success' | 'error';
+type Step = 'form' | 'confirm-replace' | 'success' | 'error';
 
 const MEGABYTE = 1024 * 1024;
 const FILE_HINT = `${CERTIFICATE_FILE_RULES.formatsLabel} · até ${
@@ -67,6 +67,7 @@ export function CertificateUploadModal({
 	const [languageId, setLanguageId] = useState('');
 	const [proficiency, setProficiency] = useState<ProficiencyLevel | null>(null);
 	const [file, setFile] = useState<NativeFile | null>(null);
+	const [pendingFile, setPendingFile] = useState<NativeFile | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const loadLanguages = useCallback(async () => {
@@ -107,6 +108,7 @@ export function CertificateUploadModal({
 		setLanguageId('');
 		setProficiency(null);
 		setFile(null);
+		setPendingFile(null);
 		setIsSubmitting(false);
 	}
 
@@ -131,7 +133,24 @@ export function CertificateUploadModal({
 			return;
 		}
 
+		// NA SUBSTITUICAO DE UM CERTIFICADO JA ENVIADO, A TROCA DO ARQUIVO PRECISA SER CONFIRMADA
+		if (isReplacing) {
+			setPendingFile(candidate);
+			setStep('confirm-replace');
+			return;
+		}
 		setFile(candidate);
+	}
+
+	function confirmReplace() {
+		setFile(pendingFile);
+		setPendingFile(null);
+		setStep('form');
+	}
+
+	function cancelReplace() {
+		setPendingFile(null);
+		setStep('form');
 	}
 
 	async function handleSubmit() {
@@ -168,6 +187,20 @@ export function CertificateUploadModal({
 				title="Certificado enviado"
 				message={message}
 				onClose={close}
+			/>
+		);
+	}
+
+	if (step === 'confirm-replace') {
+		return (
+			<AppModal
+				visible={visible}
+				type="confirmation"
+				title="Substituir certificado?"
+				message={`O certificado atual "${certificateToReplace?.filename}" será substituído por "${pendingFile?.name}".`}
+				confirmLabel="Substituir"
+				onConfirm={confirmReplace}
+				onClose={cancelReplace}
 			/>
 		);
 	}
