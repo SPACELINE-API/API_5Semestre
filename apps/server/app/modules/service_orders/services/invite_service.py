@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.modules.service_orders.models.invite import (
     INVITE_STATUS_ACEITO,
@@ -11,9 +11,19 @@ from app.modules.service_orders.models.invite import (
     INVITE_STATUS_RECUSADO,
     ServiceOrderItemInvite,
 )
+from app.modules.service_orders.models.service_order_email_template import (
+    TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+    ServiceOrderEmailTemplate,
+)
 from app.modules.service_orders.models.service_order_item import (
     STATUS_EM_ANDAMENTO,
     ServiceOrderItem,
+)
+from app.modules.service_orders.services.invite_email import (
+    DEFAULT_INVITE_BODY_HTML,
+    DEFAULT_INVITE_SUBJECT,
+    InviteEmailData,
+    render_invite_email,
 )
 from app.modules.translators.models.translator import Translator
 from app.shared.email.smtp_client import send_email
@@ -55,6 +65,12 @@ class InviteService:
         if len(translators) != len(set(translator_ids)):
             raise HTTPException(status_code=422, detail="Um ou mais tradutores não encontrados")
 
+        if any(not translator.is_active for translator in translators):
+            raise HTTPException(
+                status_code=409,
+                detail="Não é possível enviar convites para tradutores inativos",
+            )
+
         existing_pending = (
             self.db.query(ServiceOrderItemInvite)
             .filter(
@@ -77,18 +93,25 @@ class InviteService:
         self.db.add_all(invites)
         self.db.commit()
 
+        template = self.db.get(ServiceOrderEmailTemplate, TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY)
+        subject_template = template.subject if template else DEFAULT_INVITE_SUBJECT
+        body_template = template.body_html if template else DEFAULT_INVITE_BODY_HTML
+
         for invite, translator in zip(invites, translators, strict=True):
             self.db.refresh(invite)
-            send_email(
-                to=translator.email,
-                subject="Novo serviço de tradução disponível",
-                html_body=(
-                    f"<p>Olá {translator.name}, você foi convidado para um novo serviço de "
-                    f"tradução ({item.source_language} → {item.target_language}).</p>"
-                    f'<p><a href="{env_provider.get_site_url()}/convites/{invite.id}">'
-                    "Ver documento e responder</a></p>"
+            subject, html_body = render_invite_email(
+                subject_template,
+                body_template,
+                InviteEmailData(
+                    translator_name=translator.name,
+                    source_language=item.source_language,
+                    target_language=item.target_language,
+                    document_type=item.document_type,
+                    deadline=item.deadline,
+                    invite_url=f"{env_provider.get_site_url()}/convites/{invite.id}",
                 ),
             )
+            send_email(to=translator.email, subject=subject, html_body=html_body)
 
         return invites
 
@@ -96,6 +119,7 @@ class InviteService:
         self._get_item_or_404(item_id)
         return (
             self.db.query(ServiceOrderItemInvite)
+            .options(joinedload(ServiceOrderItemInvite.service_order_item))
             .filter(ServiceOrderItemInvite.service_order_item_id == item_id)
             .all()
         )
@@ -105,10 +129,25 @@ class InviteService:
     ) -> list[ServiceOrderItemInvite]:
         return (
             self.db.query(ServiceOrderItemInvite)
+            .options(joinedload(ServiceOrderItemInvite.service_order_item))
             .join(Translator, ServiceOrderItemInvite.translator_id == Translator.id)
             .filter(Translator.email.ilike(translator_email))
+            .order_by(ServiceOrderItemInvite.sent_at.desc())
             .all()
         )
+
+    def get_invite_for_translator(
+        self, invite_id: uuid.UUID, translator_email: str
+    ) -> ServiceOrderItemInvite:
+        invite = self._get_invite_or_404(invite_id)
+
+        if invite.translator.email.lower() != translator_email.lower():
+            raise HTTPException(
+                status_code=403,
+                detail="Este convite não pertence ao usuário autenticado",
+            )
+
+        return invite
 
     def accept_invite(
         self, invite_id: uuid.UUID, current_user_email: str

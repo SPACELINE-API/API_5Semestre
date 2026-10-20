@@ -27,15 +27,19 @@ import { ClientInfoTab } from '../components/ClientInfoTab';
 import { ItemsTable } from '../components/ItemsTable';
 import { ServiceOrderFilesTab } from '../components/ServiceOrderFilesTab';
 import { TranslatorsInviteTab } from '../components/TranslatorsInviteTab';
+import { ItemReviewTab } from '../components/ItemReviewTab';
+import { canCompleteOrder, pendingReviewDeliveries } from '../utils/fileReview';
 import { InviteTranslatorsModal } from '../components/InviteTranslatorsModal';
 import { AddItemModal } from '../components/AddItemModal';
 import { EditItemModal } from '../components/EditItemModal';
 import {
+	approveServiceOrderFile,
 	createServiceOrderItem,
 	deleteServiceOrder,
 	deleteServiceOrderFile,
 	deleteServiceOrderItem,
 	deleteServiceOrderItemFile,
+	requestServiceOrderFileChanges,
 	sendItemInvites,
 	updateServiceOrder,
 	updateServiceOrderItem,
@@ -230,12 +234,12 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 							serviceOrder={serviceOrder}
 							companyName={company?.trade_name ?? 'Empresa não encontrada'}
 							view={view}
-							isLoading={isLoading}
-							onRefresh={() => {
-								refresh();
-								setRefreshToken((current) => current + 1);
-							}}
 							onDelete={() => setIsDeleteConfirmVisible(true)}
+							canComplete={canCompleteOrder(
+								serviceOrder.status,
+								serviceOrder.files,
+								serviceOrder.items,
+							)}
 							onComplete={() => setIsCompleteModalVisible(true)}
 							onViewChange={setView}
 						/>
@@ -245,6 +249,9 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 								<ServiceOrderDetailTabs
 									selected={detailTab}
 									onSelect={setDetailTab}
+									reviewCount={
+										pendingReviewDeliveries(serviceOrder.files).length
+									}
 								/>
 
 								<View className="py-7">
@@ -341,6 +348,51 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											}
 											onEditService={setEditingAdditionalService}
 											onCompleteService={handleCompleteAdditionalService}
+									{detailTab === 'revisao' && (
+										<ItemReviewTab
+											items={serviceOrder.items}
+											files={serviceOrder.files}
+											translatorsById={translatorsById}
+											onApprove={async (file) => {
+												try {
+													await approveServiceOrderFile(
+														serviceOrder.id,
+														file.id,
+													);
+													await refresh();
+													showToast('Entrega aprovada com sucesso!', 'success');
+												} catch (reviewError) {
+													showToast(
+														reviewError instanceof Error
+															? reviewError.message
+															: 'Não foi possível aprovar a entrega.',
+														'error',
+													);
+												}
+											}}
+											onRequestChanges={async (file, note) => {
+												try {
+													await requestServiceOrderFileChanges(
+														serviceOrder.id,
+														file.id,
+														note,
+													);
+													await refresh();
+													showToast(
+														'Ajustes solicitados ao tradutor.',
+														'success',
+													);
+													return true;
+												} catch (reviewError) {
+													showToast(
+														reviewError instanceof Error
+															? reviewError.message
+															: 'Não foi possível enviar o pedido de ajustes.',
+														'error',
+													);
+													return false;
+												}
+											}}
 										/>
 									)}
 
@@ -567,6 +619,11 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 						setIsCompleteModalVisible(false);
 						refresh();
 						showToast('Documentos enviados ao cliente com sucesso!', 'success');
+					}}
+					onCompleted={() => {
+						setIsCompleteModalVisible(false);
+						refresh();
+						showToast('Ordem de serviço finalizada com sucesso!', 'success');
 					}}
 				/>
 			)}

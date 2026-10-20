@@ -14,8 +14,7 @@ def get_effective_permissions(roles: Iterable[Role]) -> set[str]:
 def has_permission(roles: Iterable[Role], permission_code: str) -> bool:
     active_roles = tuple(role for role in roles if role.is_active)
     has_full_access = any(
-        role.name.strip().casefold() in {"administrador", "admin", "operador"}
-        for role in active_roles
+        role.name.strip().casefold() in {"administrador", "admin"} for role in active_roles
     )
     if has_full_access:
         return True

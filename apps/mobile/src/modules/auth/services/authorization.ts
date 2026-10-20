@@ -3,11 +3,14 @@ import type { AuthorizationContext } from './auth';
 export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/dashboard': 'dashboard.read',
 	'/convites': 'assignments.read',
+	'/meus-itens': 'assignments.read',
+	'/meu-perfil': 'assignments.read',
 	'/visualizar-requisicoes': 'requests.read',
 	'/orcamento': 'quotes.read',
 	'/ordens-de-servico': 'service_orders.read',
 	'/clientes': 'clients.read',
 	'/tradutores': 'translators.read',
+	'/produtividade': 'reports.productivity.read',
 	'/support-agent': 'support.read',
 	'/administracao': 'roles.read',
 	'/usuarios': 'users.read',
@@ -15,7 +18,7 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/projetos': 'projects.read',
 };
 
-const FULL_ROUTE_ACCESS_ROLES = new Set(['administrador', 'admin', 'operador']);
+const FULL_ROUTE_ACCESS_ROLES = new Set(['administrador', 'admin']);
 
 export function hasFullRouteAccess(context: AuthorizationContext | null) {
 	return Boolean(
@@ -28,6 +31,27 @@ export function hasFullRouteAccess(context: AuthorizationContext | null) {
 					.toLocaleLowerCase('pt-BR'),
 			),
 		),
+	);
+}
+
+const TRANSLATOR_ROLE = 'recursos externos';
+
+function normalizeRoleName(name: string) {
+	return name
+		.normalize('NFD')
+		.replace(/[̀-ͯ]/g, '')
+		.trim()
+		.toLocaleLowerCase('pt-BR');
+}
+
+export function isTranslatorProfile(context: AuthorizationContext | null) {
+	return (
+		!hasFullRouteAccess(context) &&
+		Boolean(
+			context?.roles.some(
+				(role) => normalizeRoleName(role.name) === TRANSLATOR_ROLE,
+			),
+		)
 	);
 }
 
@@ -53,11 +77,26 @@ export function canAccess(
 	);
 }
 
+export const LANDING_ROUTES = new Set([
+	'/dashboard',
+	'/convites',
+	'/meus-itens',
+	'/meu-perfil',
+	'/visualizar-requisicoes',
+	'/orcamento',
+	'/ordens-de-servico',
+	'/clientes',
+	'/tradutores',
+	'/produtividade',
+	'/support-agent',
+]);
+
 export function firstAllowedRoute(context: AuthorizationContext | null) {
 	if (hasFullRouteAccess(context)) return '/dashboard';
 	return (
-		Object.entries(ROUTE_PERMISSIONS).find(([, permission]) =>
-			context?.permissions.includes(permission),
+		Object.entries(ROUTE_PERMISSIONS).find(
+			([route, permission]) =>
+				LANDING_ROUTES.has(route) && context?.permissions.includes(permission),
 		)?.[0] ?? '/login'
 	);
 }

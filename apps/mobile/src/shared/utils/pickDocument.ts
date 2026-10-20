@@ -2,9 +2,16 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Platform } from 'react-native';
 import type { NativeFile } from '../types/file';
 
-export async function pickDocument(): Promise<NativeFile | null> {
+type PickDocumentOptions = {
+	types?: string[];
+};
+
+export async function pickDocument(
+	options: PickDocumentOptions = {},
+): Promise<NativeFile | null> {
 	const result = await DocumentPicker.getDocumentAsync({
 		copyToCacheDirectory: Platform.OS !== 'android',
+		type: options.types,
 	});
 
 	if (result.canceled || !result.assets?.[0]) return null;
@@ -14,5 +21,6 @@ export async function pickDocument(): Promise<NativeFile | null> {
 		uri: asset.uri,
 		name: asset.name,
 		type: asset.mimeType ?? 'application/octet-stream',
+		size: asset.size,
 	};
 }

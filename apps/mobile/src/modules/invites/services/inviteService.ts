@@ -1,22 +1,19 @@
-import {
-	apiGet,
-	apiGetAuth,
-	apiPostAuth,
-} from '../../../shared/services/apiClient';
+import { apiGetAuth, apiPostAuth } from '../../../shared/services/apiClient';
 import type {
-	ServiceOrderItemDetails,
+	MyInvite,
+	MyInviteDetails,
 	ServiceOrderItemInvite,
 } from '../types/invite';
 
 const SERVICE_ORDERS_PATH = '/api/service-orders';
 
-type ServiceOrderWithItems = {
-	items: ServiceOrderItemDetails[];
-};
+export function listMyInvites(): Promise<MyInvite[]> {
+	return apiGetAuth<MyInvite[]>(`${SERVICE_ORDERS_PATH}/invites/me`);
+}
 
-export function listMyInvites(): Promise<ServiceOrderItemInvite[]> {
-	return apiGetAuth<ServiceOrderItemInvite[]>(
-		`${SERVICE_ORDERS_PATH}/invites/me`,
+export function getMyInvite(inviteId: string): Promise<MyInviteDetails> {
+	return apiGetAuth<MyInviteDetails>(
+		`${SERVICE_ORDERS_PATH}/invites/${inviteId}`,
 	);
 }
 
@@ -36,18 +33,4 @@ export function declineInvite(
 		`${SERVICE_ORDERS_PATH}/invites/${inviteId}/decline`,
 		{},
 	);
-}
-
-export async function findServiceOrderItem(
-	itemId: string,
-): Promise<ServiceOrderItemDetails | null> {
-	const serviceOrders =
-		await apiGet<ServiceOrderWithItems[]>(SERVICE_ORDERS_PATH);
-
-	for (const serviceOrder of serviceOrders) {
-		const item = serviceOrder.items.find((current) => current.id === itemId);
-		if (item) return item;
-	}
-
-	return null;
 }

@@ -26,7 +26,9 @@ import {
 	getSession,
 	loadAuthorizationContext,
 	getAuthorizationContext,
+	clearSession,
 } from '../modules/auth/services/auth';
+import { ApiError } from '../shared/services/publicApiClient';
 import {
 	canAccess,
 	firstAllowedRoute,
@@ -93,8 +95,14 @@ export default function AppLayout() {
 					setAuthorizationVersion((version) => version + 1);
 				}
 			})
-			.catch(() => {
+			.catch((cause: unknown) => {
 				if (active) {
+					if (cause instanceof ApiError && cause.status === 401) {
+						clearSession();
+						setAuthorizationError(false);
+						setAuthorizationLoaded(true);
+						return;
+					}
 					setAuthorizationError(true);
 					setAuthorizationLoaded(true);
 				}
@@ -121,8 +129,11 @@ export default function AppLayout() {
 	if (!isPublic && hasMounted && !session && !authorizationContext)
 		return <Redirect href={'/login' as never} />;
 	if (!isPublic && !authorizationLoaded && !authorizationContext) return null;
-	if (!isPublic && authorizationLoaded && authorizationError)
+	if (!isPublic && authorizationLoaded && authorizationError) {
+		if (!session && !authorizationContext)
+			return <Redirect href={'/login' as never} />;
 		return <AuthorizationUnavailable />;
+	}
 	if (
 		!isPublic &&
 		authorizationLoaded &&
@@ -131,10 +142,7 @@ export default function AppLayout() {
 	) {
 		return <Redirect href={firstAllowedRoute(authorizationContext) as never} />;
 	}
-	const showAppShell =
-		!isPublic &&
-		Boolean(session || authorizationContext) &&
-		authorizationLoaded;
+	const showAppShell = !isPublic && Boolean(session || authorizationContext);
 
 	return (
 		<SafeAreaProvider>

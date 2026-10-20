@@ -15,14 +15,25 @@ from app.modules.service_orders.models.invite import (
     INVITE_STATUS_EXPIRADO,
     INVITE_STATUS_PENDENTE,
     INVITE_STATUS_RECUSADO,
+    ServiceOrderItemInvite,
 )
 from app.modules.service_orders.models.service_order import ServiceOrder
+from app.modules.service_orders.models.service_order_email_template import (
+    TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+    ServiceOrderEmailTemplate,
+)
 from app.modules.service_orders.models.service_order_item import (
+    STATUS_CONCLUIDA,
     STATUS_EM_ANDAMENTO,
     STATUS_PENDENTE,
     ServiceOrderItem,
 )
+from app.modules.service_orders.schemas.invite import (
+    TranslatorInviteDetailsResponse,
+    TranslatorInviteResponse,
+)
 from app.modules.service_orders.services import invite_service as invite_service_module
+from app.modules.service_orders.services.invite_email import DEFAULT_INVITE_SUBJECT
 from app.modules.service_orders.services.invite_service import InviteService
 from app.modules.translators.models.translator import Translator
 
@@ -130,6 +141,79 @@ def test_send_invites_creates_pending_invites_and_sends_email(
     assert sent_emails[0]["to"] == translator.email
 
 
+def test_send_invites_rejects_inactive_translator_without_persisting_or_email(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+    translator.is_active = False
+    db_session.commit()
+    service = InviteService(db_session)
+
+    with pytest.raises(HTTPException) as exc_info:
+        service.send_invites(item.id, [translator.id])
+
+    assert exc_info.value.status_code == 409
+    assert (
+        db_session.query(ServiceOrderItemInvite)
+        .filter(ServiceOrderItemInvite.service_order_item_id == item.id)
+        .count()
+        == 0
+    )
+    assert sent_emails == []
+
+
+def test_send_invites_uses_default_email_when_no_template_is_saved(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+
+    invites = InviteService(db_session).send_invites(item.id, [translator.id])
+
+    email = sent_emails[0]
+    assert email["subject"] == DEFAULT_INVITE_SUBJECT
+    assert translator.name in email["html_body"]
+    assert "pt-BR → en-US" in email["html_body"]
+    assert f"/convites/{invites[0].id}" in email["html_body"]
+    assert "{{" not in email["html_body"]
+
+
+def test_send_invites_uses_the_saved_translator_invite_template(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    db_session.add(
+        ServiceOrderEmailTemplate(
+            key=TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY,
+            subject="Convite para {{nome_tradutor}}",
+            body_html="<p>{{idioma_origem}} para {{idioma_destino}}: {{link_convite}}</p>",
+        )
+    )
+    db_session.commit()
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+
+    invites = InviteService(db_session).send_invites(item.id, [translator.id])
+
+    email = sent_emails[0]
+    assert email["subject"] == f"Convite para {translator.name}"
+    assert email["html_body"].startswith("<p>pt-BR para en-US: ")
+    assert f"/convites/{invites[0].id}" in email["html_body"]
+
+
+def test_send_invites_sends_one_personalized_email_per_translator(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    first = make_translator(db_session)
+    second = make_translator(db_session)
+
+    InviteService(db_session).send_invites(item.id, [first.id, second.id])
+
+    assert {email["to"] for email in sent_emails} == {first.email, second.email}
+    assert len({email["html_body"] for email in sent_emails}) == 2
+
+
 def test_send_invites_raises_409_when_translator_has_pending_invite(
     db_session: Session, sent_emails: list[dict]
 ) -> None:
@@ -224,3 +308,102 @@ def test_decline_invite_sets_status_recusado(db_session: Session, sent_emails: l
     declined = service.decline_invite(invite.id, translator.email)
 
     assert declined.status == INVITE_STATUS_RECUSADO
+
+
+def test_invite_item_status_reflects_service_order_item_status(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+    service = InviteService(db_session)
+
+    [invite] = service.send_invites(item.id, [translator.id])
+    assert invite.item_status == STATUS_PENDENTE
+
+    service.accept_invite(invite.id, translator.email)
+    db_session.refresh(invite)
+    assert invite.item_status == STATUS_EM_ANDAMENTO
+
+    item.status = STATUS_CONCLUIDA
+    db_session.commit()
+    db_session.refresh(invite)
+    assert invite.item_status == STATUS_CONCLUIDA
+
+    invites = service.list_invites_for_translator_email(translator.email)
+    assert len(invites) == 1
+    assert invites[0].item_status == STATUS_CONCLUIDA
+
+
+def test_translator_invite_details_expose_only_the_invited_item(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+    service = InviteService(db_session)
+    [invite] = service.send_invites(item.id, [translator.id])
+
+    found = service.get_invite_for_translator(invite.id, translator.email.upper())
+    response = TranslatorInviteDetailsResponse.model_validate(found).model_dump()
+
+    assert response["item"]["id"] == item.id
+    assert response["item"]["status"] == STATUS_PENDENTE
+    assert set(response["item"]) == {
+        "id",
+        "source_language",
+        "target_language",
+        "document_type",
+        "deadline",
+        "status",
+        "file_url",
+        "word_count",
+        "price",
+    }
+
+
+def test_translator_cannot_read_another_translators_invite(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+    other_translator = make_translator(db_session)
+    service = InviteService(db_session)
+    [invite] = service.send_invites(item.id, [translator.id])
+
+    with pytest.raises(HTTPException) as exc_info:
+        service.get_invite_for_translator(invite.id, other_translator.email)
+
+    assert exc_info.value.status_code == 403
+
+
+def test_translator_invite_details_of_unknown_invite_is_404(db_session: Session) -> None:
+    with pytest.raises(HTTPException) as exc_info:
+        InviteService(db_session).get_invite_for_translator(uuid.uuid4(), "alguem@email.com")
+
+    assert exc_info.value.status_code == 404
+
+
+def test_list_my_invites_returns_only_own_invites_with_item_summary(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    first_item = make_item(db_session)
+    second_item = make_item(db_session)
+    translator = make_translator(db_session)
+    other_translator = make_translator(db_session)
+    service = InviteService(db_session)
+    service.send_invites(first_item.id, [translator.id])
+    service.send_invites(second_item.id, [translator.id, other_translator.id])
+
+    mine = service.list_invites_for_translator_email(translator.email)
+    others = service.list_invites_for_translator_email(other_translator.email)
+    summary = TranslatorInviteResponse.model_validate(mine[0]).model_dump()["item"]
+
+    assert len(mine) == 2
+    assert len(others) == 1
+    assert set(summary) == {
+        "id",
+        "source_language",
+        "target_language",
+        "document_type",
+        "deadline",
+        "status",
+    }

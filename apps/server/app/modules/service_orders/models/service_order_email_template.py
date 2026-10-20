@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.shared.database import Base
 
 SERVICE_ORDER_EMAIL_TEMPLATE_KEY = "translated_document_delivery"
+TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY = "translator_invite"
 
 
 class ServiceOrderEmailTemplate(Base):

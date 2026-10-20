@@ -5,7 +5,6 @@ import {
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator,
-	Linking,
 } from 'react-native';
 import {
 	ArrowLeft,
@@ -18,7 +17,11 @@ import { useRouter } from 'expo-router';
 import { getSession } from '../../auth/services/auth';
 import { useInviteDetails } from '../hooks/useInviteDetails';
 import { InviteStatusBadge } from '../components/InviteStatusBadge';
-import { FilePreview } from '../../../shared/components/FilePreview';
+import { InviteItemProgress } from '../components/InviteItemProgress';
+import {
+	FilePreview,
+	openDocument,
+} from '../../../shared/components/FilePreview';
 import { formatDate, formatPrice } from '../utils/format';
 import { acceptInvite, declineInvite } from '../services/inviteService';
 import { Toast } from '../../../shared/components/Toast';
@@ -91,9 +94,6 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 					py-6
 					md:px-10
 					md:py-8
-					md:max-w-[720px]
-					md:w-full
-					md:self-center
 				"
 			>
 				<TouchableOpacity
@@ -148,6 +148,10 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 									{item.source_language} → {item.target_language}
 								</Text>
 
+								{invite.status === 'aceito' && (
+									<InviteItemProgress status={item.status} />
+								)}
+
 								<View className="flex-row flex-wrap gap-x-10 gap-y-4">
 									<View className="gap-0.5">
 										<Text className="font-inter text-gray-400 text-xs">
@@ -192,13 +196,11 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 									</Text>
 									{item.file_url ? (
 										<>
-											<FilePreview fileUrl={item.file_url} height={420} />
+											<FilePreview fileUrl={item.file_url} openInNewPage />
 
 											{invite.status === 'aceito' ? (
 												<TouchableOpacity
-													onPress={() =>
-														Linking.openURL(item.file_url as string)
-													}
+													onPress={() => openDocument(item.file_url as string)}
 													activeOpacity={0.7}
 													accessibilityRole="link"
 													accessibilityLabel="Baixar documento"

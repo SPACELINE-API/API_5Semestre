@@ -19,12 +19,15 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import {
 	clearSession,
+	getAuthorizationContext,
+	isTranslatorSession,
 	login,
 	loadAuthorizationContext,
 	requestPasswordRecovery,
 	resetPassword,
 	saveSession,
 } from '../services/auth';
+import { isTranslatorProfile } from '../services/authorization';
 import { DecorativeBackground } from '../components/DecorativeBackground';
 import { LoginFields } from '../components/LoginFields';
 import { LoginHero } from '../components/LoginHero';
@@ -204,7 +207,11 @@ export function LoginPage() {
 			const session = await login(email.trim(), password);
 			saveSession(session, remember);
 			await loadAuthorizationContext();
-			router.replace('/dashboard' as never);
+			router.replace(
+				(isTranslatorSession() || isTranslatorProfile(getAuthorizationContext())
+					? '/convites'
+					: '/dashboard') as never,
+			);
 		} catch (cause) {
 			clearSession();
 			setError(getLoginError(cause));

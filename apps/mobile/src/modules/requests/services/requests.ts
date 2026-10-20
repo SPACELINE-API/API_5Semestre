@@ -162,6 +162,7 @@ export async function createRequest(
 				fields,
 				'POST',
 				'document',
+				false,
 			);
 
 			return { success: true, data };
