@@ -104,9 +104,12 @@ async function mockApi(
 					),
 				),
 	);
-	await page.route(SIGNED_URL, (route) =>
-		route.fulfill({ status: 200, contentType: 'application/pdf', body: PDF }),
-	);
+	// O LINK ABRE EM OUTRA ABA: A SIMULACAO PRECISA VALER PARA TODO O CONTEXTO
+	await page
+		.context()
+		.route(SIGNED_URL, (route) =>
+			route.fulfill({ status: 200, contentType: 'application/pdf', body: PDF }),
+		);
 	await page.route('**/api/translators/me/certificates', (route) => {
 		if (route.request().method() === 'GET') return route.fulfill(json(current));
 
