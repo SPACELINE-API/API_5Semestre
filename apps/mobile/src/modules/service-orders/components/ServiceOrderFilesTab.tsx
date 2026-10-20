@@ -16,7 +16,7 @@ import type {
 import type { UploadableFile } from '../../../shared/types/file';
 import { pickDocument } from '../../../shared/utils/pickDocument';
 import { openDocument } from '../../../shared/components/FilePreview';
-import { getFileName } from '../../../shared/utils/file';
+import { getTruncatedFileName } from '../../../shared/utils/file';
 import { formatDate } from '../utils/format';
 import { approvedDeliveries } from '../utils/fileReview';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
@@ -129,14 +129,14 @@ function FileGroupList({
 						<TouchableOpacity
 							accessibilityRole="link"
 							onPress={() => openDocument(file.fileUrl)}
-							className="min-w-0 max-w-[70%] flex-1 flex-row items-center gap-2"
+							className="min-w-0 max-w-full flex-row items-center gap-1"
 						>
 							<FileText size={16} color="#1C6FB0" />
 							<Text
-								className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-sm"
+								className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-xs"
 								numberOfLines={1}
 							>
-								{getFileName(file.fileUrl)}
+								{getTruncatedFileName(file.fileUrl)}
 							</Text>
 							<ExternalLink size={13} color="#1d4ed8" />
 						</TouchableOpacity>

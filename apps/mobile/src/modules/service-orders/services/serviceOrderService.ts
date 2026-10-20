@@ -91,6 +91,15 @@ export function sendServiceOrderDeliveries(
 	);
 }
 
+export function finalizeAlreadySentServiceOrder(
+	serviceOrderId: string,
+): Promise<ServiceOrder> {
+	return apiPostAuth<ServiceOrder, Record<string, never>>(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/complete`,
+		{},
+	);
+}
+
 export function deleteServiceOrder(id: string): Promise<void> {
 	return apiDeleteAuth(`${SERVICE_ORDERS_PATH}/${id}`);
 }

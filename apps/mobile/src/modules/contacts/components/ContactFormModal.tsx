@@ -1,6 +1,19 @@
-import { useState, useEffect } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import {
+	useState,
+	useEffect,
+	type ComponentProps,
+	type ComponentType,
+} from 'react';
+import {
+	Modal,
+	View,
+	Text,
+	TouchableOpacity,
+	ScrollView,
+	Platform,
+} from 'react-native';
 import { X } from 'lucide-react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import type { Contact, ContactCreateInput } from '../types/contact';
 import { FormField } from '../../clients/components/FormField';
 import { isValidEmail, isValidPhone } from '../../clients/utils/validation';
@@ -77,6 +90,9 @@ export function ContactFormModal({
 	onSubmit,
 	toast,
 }: ContactFormModalProps) {
+	const KeyboardContainer = (
+		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
+	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const [form, setForm] = useState<FormData>(EMPTY_FORM);
 	const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -176,7 +192,16 @@ export function ContactFormModal({
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView className="px-6 py-6" contentContainerClassName="gap-5">
+					<KeyboardContainer
+						className="px-6 py-6"
+						contentContainerClassName="gap-5 pb-6"
+						{...(Platform.OS === 'web'
+							? { keyboardShouldPersistTaps: 'handled' as const }
+							: {
+									bottomOffset: 20,
+									keyboardShouldPersistTaps: 'handled' as const,
+								})}
+					>
 						<FormField
 							label="Nome"
 							value={form.name}
@@ -217,7 +242,7 @@ export function ContactFormModal({
 								<Text className="font-inter text-red-900 text-sm">{error}</Text>
 							</View>
 						)}
-					</ScrollView>
+					</KeyboardContainer>
 					<View className="flex-row items-center justify-end gap-3 border-t border-gray-300 px-6 py-4">
 						<TouchableOpacity
 							onPress={handleClose}

@@ -9,7 +9,10 @@ from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
-from app.modules.service_orders.models.service_order_file import ServiceOrderFile
+from app.modules.service_orders.models.service_order_file import (
+    REVIEW_APPROVED,
+    ServiceOrderFile,
+)
 from app.modules.service_orders.models.service_order_item import (
     STATUS_CONCLUIDA,
     STATUS_EM_ANALISE,
@@ -320,6 +323,23 @@ class ServiceOrderService:
         )
         if not item:
             raise HTTPException(status_code=404, detail="Item da ordem de serviço não encontrado")
+
+        has_approved_unsent_delivery = (
+            self.db.query(ServiceOrderFile.id)
+            .filter(
+                ServiceOrderFile.service_order_item_id == item.id,
+                ServiceOrderFile.direction == "saida",
+                ServiceOrderFile.review_status == REVIEW_APPROVED,
+                ServiceOrderFile.delivery_status != "sent",
+            )
+            .first()
+            is not None
+        )
+        if has_approved_unsent_delivery:
+            raise HTTPException(
+                status_code=409,
+                detail=("Envie os documentos aprovados deste item antes de excluí-lo."),
+            )
 
         file_url = item.file_url
         self.db.delete(item)

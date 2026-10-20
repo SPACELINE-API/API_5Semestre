@@ -10,7 +10,6 @@ import {
 	CircleAlert,
 	LayoutGrid,
 	RefreshCw,
-	Sparkles,
 } from 'lucide-react-native';
 import { DashboardCard } from '../components/DashboardCard';
 import { DashboardStatCard } from '../components/DashboardStatCard';
@@ -33,12 +32,6 @@ export function DashboardPage() {
 				<View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-xs md:rounded-3xl md:p-8">
 					<View className="flex-row flex-wrap items-center justify-between gap-3 md:gap-4">
 						<View className="flex-1 min-w-[200px]">
-							<View className="flex-row items-center gap-1.5 md:gap-2">
-								<Sparkles size={16} color="#2563eb" />
-								<Text className="font-inter-semibold text-[10px] md:text-xs text-blue-600 uppercase tracking-wider">
-									Painel Espacial
-								</Text>
-							</View>
 							<Text className="mt-1 font-poppins-bold text-xl text-gray-900 md:text-3xl">
 								Olá, {userDisplayName}!
 							</Text>
@@ -56,16 +49,6 @@ export function DashboardPage() {
 									</Text>
 								</View>
 							)}
-
-							<TouchableOpacity
-								accessibilityRole="button"
-								accessibilityLabel="Atualizar painel"
-								onPress={() => void reload()}
-								activeOpacity={0.7}
-								className="h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-lg md:rounded-xl border border-gray-200 bg-white shadow-xs hover:bg-gray-50"
-							>
-								<RefreshCw size={14} color="#4b5563" />
-							</TouchableOpacity>
 						</View>
 					</View>
 				</View>

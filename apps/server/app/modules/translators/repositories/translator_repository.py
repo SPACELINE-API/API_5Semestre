@@ -97,13 +97,21 @@ class TranslatorRepository:
         translator.email = email
         translator.phone = phone
         translator.qualifications = qualifications
-        translator.languages = [
-            TranslatorLanguage(
-                language_id=language_input.language_id,
-                proficiency_level=language_input.proficiency_level,
-            )
-            for language_input in languages_input
-        ]
+
+        existing_languages = {language.language_id: language for language in translator.languages}
+        updated_languages: list[TranslatorLanguage] = []
+        for language_input in languages_input:
+            language = existing_languages.pop(language_input.language_id, None)
+            if language is None:
+                language = TranslatorLanguage(
+                    language_id=language_input.language_id,
+                    proficiency_level=language_input.proficiency_level,
+                )
+            else:
+                language.proficiency_level = language_input.proficiency_level
+            updated_languages.append(language)
+
+        translator.languages = updated_languages
 
         self.db.commit()
         return self.get_by_id(translator.id) or translator
