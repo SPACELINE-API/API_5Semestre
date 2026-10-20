@@ -191,11 +191,16 @@ test('abre o arquivo por link temporário', async ({ page }) => {
 	await openCertificatesTab(page);
 	await page.getByLabel(/Certificado de Alemão/).click();
 
+	// O NAVEGADOR PODE BAIXAR O PDF EM VEZ DE EXIBI-LO (EX.: CHROMIUM DA CI),
+	// ENTAO O TESTE CONFIRMA QUE A NOVA ABA REQUISITOU O LINK TEMPORARIO
 	const popupPromise = page.waitForEvent('popup');
+	const signedRequest = page
+		.context()
+		.waitForEvent('request', (request) => request.url() === SIGNED_URL);
 	await page.getByText('Visualizar arquivo').click();
-	const popup = await popupPromise;
 
-	await expect.poll(() => popup.url()).toBe(SIGNED_URL);
+	await popupPromise;
+	expect((await signedRequest).url()).toBe(SIGNED_URL);
 });
 
 test('exibe mensagem quando o arquivo está indisponível', async ({ page }) => {
