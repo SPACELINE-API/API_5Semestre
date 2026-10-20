@@ -37,7 +37,7 @@ type CertificateUploadModalProps = {
 	onSubmitted?: (certificate: TranslatorCertificate) => void;
 };
 
-type Step = 'form' | 'confirm-replace' | 'success' | 'error';
+type Step = 'form' | 'success' | 'error';
 
 const MEGABYTE = 1024 * 1024;
 const FILE_HINT = `${CERTIFICATE_FILE_RULES.formatsLabel} · até ${
@@ -67,7 +67,6 @@ export function CertificateUploadModal({
 	const [languageId, setLanguageId] = useState('');
 	const [proficiency, setProficiency] = useState<ProficiencyLevel | null>(null);
 	const [file, setFile] = useState<NativeFile | null>(null);
-	const [pendingFile, setPendingFile] = useState<NativeFile | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const loadLanguages = useCallback(async () => {
@@ -105,7 +104,6 @@ export function CertificateUploadModal({
 		setLanguageId('');
 		setProficiency(null);
 		setFile(null);
-		setPendingFile(null);
 		setIsSubmitting(false);
 	}
 
@@ -119,7 +117,7 @@ export function CertificateUploadModal({
 		setStep('error');
 	}
 
-	// SO UM ARQUIVO POR VEZ: SE JA EXISTE UM SELECIONADO, A TROCA EXIGE CONFIRMACAO
+	// SO UM ARQUIVO POR VEZ: UM NOVO ARQUIVO VALIDO SUBSTITUI O SELECIONADO NA HORA
 	function handleFileSelected(candidate: NativeFile) {
 		const validationError = validateProfileFile(
 			candidate,
@@ -130,23 +128,7 @@ export function CertificateUploadModal({
 			return;
 		}
 
-		if (file) {
-			setPendingFile(candidate);
-			setStep('confirm-replace');
-			return;
-		}
 		setFile(candidate);
-	}
-
-	function confirmReplace() {
-		setFile(pendingFile);
-		setPendingFile(null);
-		setStep('form');
-	}
-
-	function cancelReplace() {
-		setPendingFile(null);
-		setStep('form');
 	}
 
 	async function handleSubmit() {
@@ -196,20 +178,6 @@ export function CertificateUploadModal({
 				message={message}
 				closeLabel="Voltar"
 				onClose={() => setStep('form')}
-			/>
-		);
-	}
-
-	if (step === 'confirm-replace') {
-		return (
-			<AppModal
-				visible={visible}
-				type="confirmation"
-				title="Substituir arquivo?"
-				message={`O arquivo "${file?.name}" será substituído por "${pendingFile?.name}".`}
-				confirmLabel="Substituir"
-				onConfirm={confirmReplace}
-				onClose={cancelReplace}
 			/>
 		);
 	}
