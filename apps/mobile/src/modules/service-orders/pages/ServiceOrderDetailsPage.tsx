@@ -348,6 +348,8 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											}
 											onEditService={setEditingAdditionalService}
 											onCompleteService={handleCompleteAdditionalService}
+										/>
+									)}
 									{detailTab === 'revisao' && (
 										<ItemReviewTab
 											items={serviceOrder.items}
