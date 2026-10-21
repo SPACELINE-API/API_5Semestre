@@ -122,7 +122,7 @@ export function CertificateUploadModal({
 		setStep('error');
 	}
 
-	// SO UM ARQUIVO POR VEZ: SE JA EXISTE UM SELECIONADO, A TROCA EXIGE CONFIRMACAO
+	// SO UM ARQUIVO POR VEZ: UM NOVO ARQUIVO VALIDO SUBSTITUI O SELECIONADO NA HORA
 	function handleFileSelected(candidate: NativeFile) {
 		const validationError = validateProfileFile(
 			candidate,
@@ -133,7 +133,8 @@ export function CertificateUploadModal({
 			return;
 		}
 
-		if (file) {
+		// NA SUBSTITUICAO DE UM CERTIFICADO JA ENVIADO, A TROCA DO ARQUIVO PRECISA SER CONFIRMADA
+		if (isReplacing) {
 			setPendingFile(candidate);
 			setStep('confirm-replace');
 			return;
@@ -190,6 +191,20 @@ export function CertificateUploadModal({
 		);
 	}
 
+	if (step === 'confirm-replace') {
+		return (
+			<AppModal
+				visible={visible}
+				type="confirmation"
+				title="Substituir certificado?"
+				message={`O certificado atual "${certificateToReplace?.filename}" será substituído por "${pendingFile?.name}".`}
+				confirmLabel="Substituir"
+				onConfirm={confirmReplace}
+				onClose={cancelReplace}
+			/>
+		);
+	}
+
 	if (step === 'error') {
 		return (
 			<AppModal
@@ -199,20 +214,6 @@ export function CertificateUploadModal({
 				message={message}
 				closeLabel="Voltar"
 				onClose={() => setStep('form')}
-			/>
-		);
-	}
-
-	if (step === 'confirm-replace') {
-		return (
-			<AppModal
-				visible={visible}
-				type="confirmation"
-				title="Substituir arquivo?"
-				message={`O arquivo "${file?.name}" será substituído por "${pendingFile?.name}".`}
-				confirmLabel="Substituir"
-				onConfirm={confirmReplace}
-				onClose={cancelReplace}
 			/>
 		);
 	}
@@ -293,7 +294,7 @@ export function CertificateUploadModal({
 								placeholder="Buscar idioma"
 								placeholderTextColor="#9CA3AF"
 								accessibilityLabel="Buscar idioma"
-								className="h-10 flex-1 font-inter text-sm text-gray-900"
+								className="h-10 flex-1 font-inter text-sm text-gray-900 outline-none"
 							/>
 						</View>
 						<ScrollView
