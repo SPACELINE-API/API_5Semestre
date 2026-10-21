@@ -362,7 +362,7 @@ export async function uploadQuoteDocument(
 			{},
 			'POST',
 			'file',
-			false,
+			true,
 		);
 
 		return data.file_url;
