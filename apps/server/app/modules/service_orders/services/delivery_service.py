@@ -89,6 +89,88 @@ class ServiceOrderDeliveryService:
         company = self.db.query(Company).filter(Company.id == service_order.company_id).first()
         return company.trade_name if company else "cliente"
 
+    @staticmethod
+    def _current_output_documents(
+        documents: list[ServiceOrderFile],
+    ) -> list[ServiceOrderFile]:
+        latest_by_item = {}
+        unlinked_documents = []
+        for document in documents:
+            if document.service_order_item_id is None:
+                unlinked_documents.append(document)
+            else:
+                latest_by_item[document.service_order_item_id] = document
+        return [*unlinked_documents, *latest_by_item.values()]
+
+    def _complete_order_if_ready(self, service_order: ServiceOrder) -> bool:
+        """Conclude an order only when the current output of every item was approved and sent.
+
+        Older versions that were rejected remain in the history, but must not block the
+        order once a newer approved version has been delivered.
+        """
+        items = list(service_order.items)
+        output_files = (
+            self.db.query(ServiceOrderFile)
+            .filter(
+                ServiceOrderFile.service_order_id == service_order.id,
+                ServiceOrderFile.direction == "saida",
+            )
+            .order_by(ServiceOrderFile.uploaded_at.asc(), ServiceOrderFile.id.asc())
+            .all()
+        )
+
+        current_documents = self._current_output_documents(output_files)
+        latest_by_item = {
+            document.service_order_item_id: document
+            for document in current_documents
+            if document.service_order_item_id is not None
+        }
+        unlinked_files = [
+            document
+            for document in current_documents
+            if document.service_order_item_id is None and document.review_status == REVIEW_APPROVED
+        ]
+
+        if any(
+            document.delivery_status != "sent" or document.review_status != REVIEW_APPROVED
+            for document in unlinked_files
+        ):
+            return False
+
+        for item in items:
+            latest_item_file = latest_by_item.get(item.id)
+            if latest_item_file is None:
+                if not unlinked_files:
+                    return False
+                continue
+            if (
+                latest_item_file.delivery_status != "sent"
+                or latest_item_file.review_status != REVIEW_APPROVED
+            ):
+                return False
+
+        completed_at = datetime.now(UTC)
+        for item in items:
+            if item.status != STATUS_CONCLUIDA:
+                item.status = STATUS_CONCLUIDA
+                item.completed_at = completed_at
+        self.db.commit()
+        return True
+
+    def finalize_already_sent_order(self, service_order_id: uuid.UUID) -> ServiceOrder:
+        service_order = ServiceOrderService(self.db)._get_service_order_or_404(service_order_id)
+        if not service_order.items:
+            raise HTTPException(
+                status_code=409,
+                detail="A ordem de serviço não possui itens para concluir.",
+            )
+        if not self._complete_order_if_ready(service_order):
+            raise HTTPException(
+                status_code=409,
+                detail=("A ordem ainda possui documentos pendentes de aprovação ou envio."),
+            )
+        return service_order
+
     def send_translated_documents(
         self,
         service_order_id: uuid.UUID,
@@ -105,6 +187,8 @@ class ServiceOrderDeliveryService:
             .order_by(ServiceOrderFile.uploaded_at.asc())
             .all()
         )
+        current_documents = self._current_output_documents(all_documents)
+        current_document_ids = {document.id for document in current_documents}
         if email_override and email_override.file_ids is not None:
             requested_ids = list(dict.fromkeys(email_override.file_ids))
             if not requested_ids:
@@ -119,6 +203,11 @@ class ServiceOrderDeliveryService:
                 )
 
             documents = [documents_by_id[file_id] for file_id in requested_ids]
+            if any(document.id not in current_document_ids for document in documents):
+                raise HTTPException(
+                    status_code=409,
+                    detail="Uma ou mais versões selecionadas foram substituídas por arquivos atuais.",
+                )
             if any(document.review_status != REVIEW_APPROVED for document in documents):
                 raise HTTPException(
                     status_code=409,
@@ -132,7 +221,7 @@ class ServiceOrderDeliveryService:
         else:
             documents = [
                 document
-                for document in all_documents
+                for document in current_documents
                 if document.delivery_status in ("not_sent", "pending", "failed")
                 and document.review_status == REVIEW_APPROVED
             ]
@@ -226,21 +315,6 @@ class ServiceOrderDeliveryService:
         for attempt in successful_deliveries:
             self.db.refresh(attempt)
 
-        has_pending_documents = (
-            self.db.query(ServiceOrderFile.id)
-            .filter(
-                ServiceOrderFile.service_order_id == service_order.id,
-                ServiceOrderFile.direction == "saida",
-                ServiceOrderFile.delivery_status != "sent",
-            )
-            .first()
-            is not None
-        )
-        if not has_pending_documents:
-            for item in service_order.items:
-                if item.status != STATUS_CONCLUIDA:
-                    item.status = STATUS_CONCLUIDA
-                    item.completed_at = datetime.now(UTC)
-        self.db.commit()
+        self._complete_order_if_ready(service_order)
 
         return successful_deliveries

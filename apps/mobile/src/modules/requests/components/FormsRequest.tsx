@@ -16,7 +16,7 @@ import { FileUp, Trash } from 'lucide-react-native';
 import { createRequest } from '../services/requests';
 import { isValidEmail } from '../../clients/utils/validation';
 import { RequestLanguageSelect } from './RequestLanguageSelect';
-import { listLanguages } from '../../translators/services/translatorService';
+import { listPublicLanguages } from '../../translators/services/translatorService';
 import type { LanguageResponse } from '../../translators/types/translator';
 
 export default function FormsRequest() {
@@ -44,7 +44,7 @@ export default function FormsRequest() {
 	useEffect(() => {
 		let isCurrent = true;
 
-		listLanguages()
+		listPublicLanguages()
 			.then((languages) => {
 				if (isCurrent) setAvailableLanguages(languages);
 			})

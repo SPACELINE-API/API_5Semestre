@@ -2,15 +2,10 @@ import { env } from '../../../shared/env';
 import {
 	apiDeleteAuth,
 	apiPatchAuth,
+	authHeaders,
 } from '../../../shared/services/apiClient';
-import { getSession } from '../../auth/services/auth';
 
 const API_BASE_URL = env.apiUrl;
-
-function authorizationHeaders(): Record<string, string> {
-	const token = getSession()?.access_token;
-	return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 export type QuoteFromRequestResponse = {
 	id: string;
@@ -38,7 +33,10 @@ export async function generateQuoteFromRequest(
 	try {
 		const response = await fetch(
 			`${API_BASE_URL}/api/quotes/from-request/${encodeURIComponent(requestId)}`,
-			{ method: 'POST', headers: authorizationHeaders() },
+			{
+				method: 'POST',
+				headers: authHeaders(),
+			},
 		);
 		const data = await response.json().catch(() => null);
 
@@ -148,7 +146,7 @@ export async function listQuotes(params: {
 	let response: Response;
 	try {
 		response = await fetch(`${API_BASE_URL}/api/quotes?${query.toString()}`, {
-			headers: authorizationHeaders(),
+			headers: authHeaders(),
 		});
 	} catch (error) {
 		console.error('Error loading quotes:', error);
@@ -259,10 +257,7 @@ export async function createQuote(): Promise<QuoteResponse | null> {
 	try {
 		const response = await fetch(`${API_BASE_URL}/api/quotes`, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				...authorizationHeaders(),
-			},
+			headers: { 'Content-Type': 'application/json', ...authHeaders() },
 			body: JSON.stringify({}),
 		});
 
@@ -313,10 +308,7 @@ export async function createQuoteItem(
 			`${API_BASE_URL}/api/quotes/${quoteId}/translation-items`,
 			{
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					...authorizationHeaders(),
-				},
+				headers: { 'Content-Type': 'application/json', ...authHeaders() },
 				body: JSON.stringify(itemData),
 			},
 		);
@@ -361,7 +353,7 @@ export async function uploadQuoteDocument(
 
 		const response = await fetch(`${API_BASE_URL}/api/quotes/upload-document`, {
 			method: 'POST',
-			headers: authorizationHeaders(),
+			headers: authHeaders(),
 			body: formData,
 		});
 

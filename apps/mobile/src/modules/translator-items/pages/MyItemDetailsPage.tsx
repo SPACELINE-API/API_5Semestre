@@ -10,7 +10,6 @@ import { useRouter } from 'expo-router';
 import {
 	AlertCircle,
 	ArrowLeft,
-	Download,
 	ExternalLink,
 	FileText,
 	Paperclip,
@@ -168,21 +167,7 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 								Documento para traduzir
 							</Text>
 							{item.file_url ? (
-								<>
-									<FilePreview fileUrl={item.file_url} openInNewPage />
-									<TouchableOpacity
-										onPress={() => openDocument(item.file_url as string)}
-										activeOpacity={0.7}
-										accessibilityRole="link"
-										accessibilityLabel="Baixar documento"
-										className="flex-row items-center gap-1.5 self-start"
-									>
-										<Download size={14} color="#1C6FB0" />
-										<Text className="font-inter font-medium text-blue-600 text-sm">
-											Baixar arquivo
-										</Text>
-									</TouchableOpacity>
-								</>
+								<FilePreview fileUrl={item.file_url} openInNewPage />
 							) : (
 								<Text className="font-inter text-gray-400 text-sm">
 									Nenhum documento anexado
