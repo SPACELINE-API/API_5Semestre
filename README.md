@@ -1,6 +1,5 @@
 <img width="1280" height="320" alt="banner-spacelang" src="https://github.com/user-attachments/assets/b625156f-6b79-4976-ae1c-4dc6b28716e1" />
 
-
 <p align="center">
   <a href="#desafio">Desafio</a> |
   <a href="#tecnologias">Tecnologias</a> |
@@ -179,14 +178,18 @@ Nesta sprint, foi planejada a construção da base inicial do sistema:
 
 ### Objetivos da Sprint
 
-Nesta sprint, o foco é completar o fluxo de entrega e dar visibilidade à operação:
+Nesta sprint, o foco é completar o fluxo de entrega e dar visibilidade à
+operação:
 
 - Envio do documento final ao cliente por e-mail, direto pelo sistema (US18)
 - Painel inicial com atalhos para as principais ações do perfil (US19)
-- Serviços adicionais com preço próprio, associados a recursos ou serviços (US20)
+- Serviços adicionais com preço próprio, associados a recursos ou serviços
+  (US20)
 - Listagem de propostas comerciais por período para acompanhar as vendas (US21)
-- Relatório de produtividade por profissional e painel de indicadores por status (US22 e US23)
-- Agente de IA capaz de executar ações reais no sistema, como cadastrar tarefas (US24)
+- Relatório de produtividade por profissional e painel de indicadores por status
+  (US22 e US23)
+- Agente de IA capaz de executar ações reais no sistema, como cadastrar tarefas
+  (US24)
 
 </details>
 
@@ -195,7 +198,8 @@ Nesta sprint, o foco é completar o fluxo de entrega e dar visibilidade à opera
 
 ### Objetivos da Sprint
 
-Nesta sprint, o foco é fechar o ciclo financeiro e reforçar o controle de acesso:
+Nesta sprint, o foco é fechar o ciclo financeiro e reforçar o controle de
+acesso:
 
 - Listagem de projetos finalizados aguardando faturamento (US25)
 - Disparo automático da fase de cobrança ao finalizar o projeto (US26)
