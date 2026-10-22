@@ -138,8 +138,12 @@ test.describe('Painel inicial (Dashboard)', () => {
 		await expect(
 			page.getByText('Tarefas atribuídas', { exact: true }),
 		).toHaveCount(0);
-		await expect(page.getByText('Clientes', { exact: true })).toHaveCount(0);
-		await expect(page.getByText('Tradutores', { exact: true })).toHaveCount(0);
+		await expect(
+			page.getByRole('button', { name: 'Clientes', exact: true }),
+		).toBeDisabled();
+		await expect(
+			page.getByRole('button', { name: 'Tradutores', exact: true }),
+		).toBeDisabled();
 	});
 
 	test('navega para o módulo correspondente ao acionar um atalho', async ({
