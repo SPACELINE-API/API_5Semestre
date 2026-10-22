@@ -4,6 +4,7 @@ import {
 	uploadFileMultipart,
 } from '../../../shared/utils/uploadFileMultipart';
 import { authHeaders } from '../../../shared/services/apiClient';
+import { openDocument } from '../../../shared/components/FilePreview';
 
 export type RequestStatus = 'pending' | 'approved' | 'reproved';
 
@@ -21,7 +22,11 @@ export type RequestItem = {
 	reproved_at?: string | null;
 	reproved_by_email?: string | null;
 	reproval_reason?: string | null;
-	document: string | null;
+	has_document: boolean;
+	document_filename?: string | null;
+	document_content_type?: string | null;
+	document_url?: string | null;
+	quote_id?: string | null;
 };
 
 export type RequestStatusUpdateResult =
@@ -162,7 +167,7 @@ export async function createRequest(
 				fields,
 				'POST',
 				'document',
-				false,
+				true,
 			);
 
 			return { success: true, data };
@@ -197,4 +202,8 @@ export async function createRequest(
 			detail: error instanceof Error ? error.message : undefined,
 		};
 	}
+}
+
+export async function openRequestDocument(documentUrl: string): Promise<void> {
+	openDocument(documentUrl);
 }

@@ -13,6 +13,7 @@ import { TabBar } from '../../../shared/components/TabBar';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { LanguagesList } from '../components/LanguagesList';
+import { CertificateUploadModal } from '../components/CertificateUploadModal';
 import { LanguageCertificateCard } from '../components/LanguageCertificateCard';
 import { ProfileDataCard } from '../components/ProfileDataCard';
 import { ProfilePhotoCard } from '../components/ProfilePhotoCard';
@@ -33,6 +34,7 @@ export function MyProfilePage() {
 	const { profile, setProfile, isLoading, error, refresh } = useMyProfile();
 	const { toast, showToast } = useToast();
 	const [activeTab, setActiveTab] = useState<ProfileTab>('data');
+	const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
 
 	if (isLoading && !profile) {
 		return (
@@ -108,10 +110,17 @@ export function MyProfilePage() {
 					)}
 
 					<View className={activeTab === 'certificates' ? '' : 'hidden'}>
-						<LanguageCertificateCard />
+						<LanguageCertificateCard
+							onNewCertificate={() => setIsCertificateModalOpen(true)}
+						/>
 					</View>
 				</View>
 			</KeyboardContainer>
+
+			<CertificateUploadModal
+				visible={isCertificateModalOpen}
+				onClose={() => setIsCertificateModalOpen(false)}
+			/>
 
 			<Toast toast={toast} />
 		</View>
