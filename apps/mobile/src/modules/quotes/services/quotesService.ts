@@ -4,9 +4,7 @@ import {
 	apiPatchAuth,
 	authHeaders,
 } from '../../../shared/services/apiClient';
-import {
-	uploadFileMultipart,
-} from '../../../shared/utils/uploadFileMultipart';
+import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
 import type { UploadableFile } from '../../../shared/types/file';
 
 const API_BASE_URL = env.apiUrl;
