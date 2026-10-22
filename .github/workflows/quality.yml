@@ -164,7 +164,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: apps/mobile
-        run: pnpm exec playwright install --with-deps --no-shell chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run mobile tests
         working-directory: apps/mobile
