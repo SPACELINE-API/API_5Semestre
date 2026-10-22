@@ -26,6 +26,7 @@ import type { RequestItem } from '../../requests/services/requests';
 import { generateQuoteFromRequest } from '../services/quotesService';
 import type { QuoteFromRequestResponse } from '../services/quotesService';
 import { GeneratedQuoteNotice } from '../components/GeneratedQuoteNotice';
+import { AlreadyGeneratedQuoteNotice } from '../components/AlreadyGeneratedQuoteNotice';
 import { QuoteRequestPageHeader } from '../components/QuoteRequestPageHeader';
 import { QuoteGenerationPanel } from '../components/QuoteGenerationPanel';
 import { RejectedRequestNotice } from '../components/RejectedRequestNotice';
@@ -175,7 +176,7 @@ export default function GenerateQuoteFromRequestPage() {
 	);
 	const isApproved = request?.status === 'approved';
 	const canGenerate = Boolean(
-		request && isApproved && missingFields.length === 0,
+		request && isApproved && !request.quote_id && missingFields.length === 0,
 	);
 
 	async function handleGenerateQuote() {
@@ -242,6 +243,12 @@ export default function GenerateQuoteFromRequestPage() {
 								onViewQuotes={() => router.replace('/orcamento' as never)}
 							/>
 						) : null}
+						{!generatedQuote && request.quote_id ? (
+							<AlreadyGeneratedQuoteNotice
+								quoteId={request.quote_id}
+								onViewQuotes={() => router.replace('/orcamento' as never)}
+							/>
+						) : null}
 						<RequestSummarySections request={request} />
 
 						{!generatedQuote && request.status === 'pending' && (
@@ -264,7 +271,7 @@ export default function GenerateQuoteFromRequestPage() {
 							/>
 						)}
 
-						{!generatedQuote && isApproved && (
+						{!generatedQuote && isApproved && !request.quote_id && (
 							<QuoteGenerationPanel
 								missingFields={missingFields}
 								error={generationError}

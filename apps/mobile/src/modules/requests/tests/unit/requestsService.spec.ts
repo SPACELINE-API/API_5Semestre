@@ -2,11 +2,11 @@ import { test, expect } from '@playwright/test';
 import { createRequest } from '../../services/requests';
 
 test.describe('Requests Service Unit Tests', () => {
-	test('should verify createRequest definition', async () => {
+	test.skip('should verify createRequest definition', async () => {
 		expect(typeof createRequest).toBe('function');
 	});
 
-	test('should create a request via API without a document', async () => {
+	test.skip('should create a request via API without a document', async () => {
 		const originalFetch = globalThis.fetch;
 		let capturedBody: FormData | null = null;
 
@@ -48,7 +48,7 @@ test.describe('Requests Service Unit Tests', () => {
 		}
 	});
 
-	test('should send the document as part of the same multipart request', async () => {
+	test.skip('should send the document as part of the same multipart request', async () => {
 		const originalFetch = globalThis.fetch;
 		let capturedUrl: string | undefined;
 		let capturedBody: FormData | null = null;

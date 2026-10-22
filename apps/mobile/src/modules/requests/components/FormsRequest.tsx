@@ -41,6 +41,11 @@ export default function FormsRequest() {
 
 	const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 
+	function cleanFileName(fileName: string): string {
+		// Remove hash do nome do arquivo (ex: "arquivo-1234567890.pdf" -> "arquivo.pdf")
+		return fileName.replace(/-\d+\.(?=[^.]+$)/, '.');
+	}
+
 	useEffect(() => {
 		let isCurrent = true;
 
@@ -100,7 +105,7 @@ export default function FormsRequest() {
 			document: document
 				? {
 						uri: document.uri,
-						name: document.name,
+						name: cleanFileName(document.name),
 						type: document.mimeType,
 						file: document.file,
 					}
@@ -152,7 +157,10 @@ export default function FormsRequest() {
 			}
 
 			setError('');
-			setDocument(file);
+			setDocument({
+				...file,
+				name: cleanFileName(file.name),
+			});
 		} catch {
 			setError(
 				'Não foi possível abrir o arquivo selecionado. Tente escolher outro arquivo.',
