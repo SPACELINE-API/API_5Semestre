@@ -1,7 +1,8 @@
-import { ScrollView, Text, TouchableOpacity } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 type TabBarProps<T extends string> = {
-	tabs: { key: T; label: string }[];
+	/** `badge` opcional: número exibido ao lado do rótulo quando maior que zero. */
+	tabs: { key: T; label: string; badge?: number }[];
 	activeTab: T;
 	onTabChange: (tab: T) => void;
 };
@@ -20,6 +21,7 @@ export function TabBar<T extends string>({
 		>
 			{tabs.map((tab) => {
 				const isSelected = tab.key === activeTab;
+				const hasBadge = (tab.badge ?? 0) > 0;
 
 				return (
 					<TouchableOpacity
@@ -28,7 +30,10 @@ export function TabBar<T extends string>({
 						activeOpacity={0.7}
 						accessibilityRole="tab"
 						accessibilityState={{ selected: isSelected }}
-						className={`border-b-2 py-3 ${
+						accessibilityLabel={
+							hasBadge ? `${tab.label}, ${tab.badge} pendentes` : undefined
+						}
+						className={`flex-row items-center gap-2 border-b-2 py-3 ${
 							isSelected ? 'border-blue-600' : 'border-transparent'
 						}`}
 					>
@@ -41,6 +46,13 @@ export function TabBar<T extends string>({
 						>
 							{tab.label}
 						</Text>
+						{hasBadge && (
+							<View className="min-w-[20px] items-center rounded-full bg-red-500 px-1.5 py-0.5">
+								<Text className="font-inter font-semibold text-[11px] text-white">
+									{tab.badge}
+								</Text>
+							</View>
+						)}
 					</TouchableOpacity>
 				);
 			})}
