@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
 	ActivityIndicator,
+	Platform,
 	ScrollView,
 	Text,
 	TextInput,
@@ -36,6 +37,8 @@ type CertificateUploadModalProps = {
 	onClose: () => void;
 	onSubmitted?: (certificate: TranslatorCertificate) => void;
 };
+
+const PICKER_RETURN_DELAY_MS = 600;
 
 type Step = 'form' | 'confirm-replace' | 'success' | 'error';
 
@@ -122,6 +125,14 @@ export function CertificateUploadModal({
 		setStep('error');
 	}
 
+	function afterPicker(action: () => void) {
+		if (Platform.OS === 'web') {
+			action();
+			return;
+		}
+		setTimeout(action, PICKER_RETURN_DELAY_MS);
+	}
+
 	// SO UM ARQUIVO POR VEZ: UM NOVO ARQUIVO VALIDO SUBSTITUI O SELECIONADO NA HORA
 	function handleFileSelected(candidate: NativeFile) {
 		const validationError = validateProfileFile(
@@ -129,14 +140,14 @@ export function CertificateUploadModal({
 			CERTIFICATE_FILE_RULES,
 		);
 		if (validationError) {
-			showError(validationError);
+			afterPicker(() => showError(validationError));
 			return;
 		}
 
 		// NA SUBSTITUICAO DE UM CERTIFICADO JA ENVIADO, A TROCA DO ARQUIVO PRECISA SER CONFIRMADA
 		if (isReplacing) {
 			setPendingFile(candidate);
-			setStep('confirm-replace');
+			afterPicker(() => setStep('confirm-replace'));
 			return;
 		}
 		setFile(candidate);
@@ -182,6 +193,7 @@ export function CertificateUploadModal({
 	if (step === 'success') {
 		return (
 			<AppModal
+				key="success"
 				visible={visible}
 				type="success"
 				title="Certificado enviado"
@@ -194,6 +206,7 @@ export function CertificateUploadModal({
 	if (step === 'confirm-replace') {
 		return (
 			<AppModal
+				key="confirm-replace"
 				visible={visible}
 				type="confirmation"
 				title="Substituir certificado?"
@@ -208,6 +221,7 @@ export function CertificateUploadModal({
 	if (step === 'error') {
 		return (
 			<AppModal
+				key="error"
 				visible={visible}
 				type="error"
 				title="Não foi possível anexar o certificado"
@@ -222,6 +236,7 @@ export function CertificateUploadModal({
 
 	return (
 		<AppModal
+			key="form"
 			visible={visible}
 			size="md"
 			title={isReplacing ? 'Substituir certificado' : 'Novo certificado'}
