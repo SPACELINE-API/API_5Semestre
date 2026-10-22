@@ -15,19 +15,36 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/projetos': 'projects.read',
 };
 
-const FULL_ROUTE_ACCESS_ROLES = new Set(['administrador', 'admin', 'operador']);
+const ADMINISTRATOR_ROLES = new Set(['administrador', 'admin']);
+const FULL_ROUTE_ACCESS_ROLES = new Set([...ADMINISTRATOR_ROLES, 'operador']);
+
+function normalizeRoleName(roleName: string) {
+	return roleName
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.trim()
+		.toLocaleLowerCase('pt-BR');
+}
+
+export function isAdministratorRole(roleName: string) {
+	return ADMINISTRATOR_ROLES.has(normalizeRoleName(roleName));
+}
+
+export function isFullAccessRole(roleName: string) {
+	return FULL_ROUTE_ACCESS_ROLES.has(normalizeRoleName(roleName));
+}
 
 export function hasFullRouteAccess(context: AuthorizationContext | null) {
-	return Boolean(
-		context?.roles.some((role) =>
-			FULL_ROUTE_ACCESS_ROLES.has(
-				role.name
-					.normalize('NFD')
-					.replace(/[\u0300-\u036f]/g, '')
-					.trim()
-					.toLocaleLowerCase('pt-BR'),
-			),
-		),
+	return Boolean(context?.roles.some((role) => isFullAccessRole(role.name)));
+}
+
+export function hasPermission(
+	context: AuthorizationContext | null,
+	permission: string,
+) {
+	return (
+		hasFullRouteAccess(context) ||
+		Boolean(context?.permissions.includes(permission))
 	);
 }
 

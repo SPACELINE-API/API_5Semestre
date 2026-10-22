@@ -80,15 +80,17 @@ test.describe('autenticação mobile unificada', () => {
 		).toBe(false);
 	});
 
-	test('oculta orçamento e bloqueia acesso direto para perfil sem quotes.read', async ({
+	test('desabilita orçamento e bloqueia acesso direto para perfil sem quotes.read', async ({
 		page,
 	}) => {
 		await useExternalProfile(page);
 		await page.goto('/visualizar-requisicoes');
-		await expect(page.getByText('Orçamento', { exact: true })).toHaveCount(0);
 		await expect(
-			page.getByText('Tarefas atribuídas', { exact: true }),
-		).toHaveCount(0);
+			page.getByRole('button', { name: 'Orçamento', exact: true }),
+		).toBeDisabled();
+		await expect(
+			page.getByRole('button', { name: 'Tarefas atribuídas', exact: true }),
+		).toBeDisabled();
 		await page.goto('/orcamento/novo-orcamento');
 		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
 	});
@@ -142,14 +144,18 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(
 			page.getByText('Tarefas atribuídas', { exact: true }),
 		).toBeVisible();
-		await expect(page.getByText('Requisições', { exact: true })).toHaveCount(0);
+		await expect(
+			page.getByRole('button', { name: 'Requisições', exact: true }),
+		).toBeDisabled();
 
 		await page.goto('/rota-inexistente');
 		await expect(page.getByText('Página não encontrada')).toBeVisible();
 		await expect(
 			page.getByText('Tarefas atribuídas', { exact: true }),
 		).toBeVisible();
-		await expect(page.getByText('Requisições', { exact: true })).toHaveCount(0);
+		await expect(
+			page.getByRole('button', { name: 'Requisições', exact: true }),
+		).toBeDisabled();
 	});
 
 	test('mantém a rota pública de solicitação sem sessão', async ({ page }) => {
