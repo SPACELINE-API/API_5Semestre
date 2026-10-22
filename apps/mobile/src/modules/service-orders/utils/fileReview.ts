@@ -31,15 +31,68 @@ export function approvedDeliveries(
 	);
 }
 
+export function currentOutputDeliveries(
+	files: ServiceOrderFile[],
+): ServiceOrderFile[] {
+	const outputFiles = files
+		.filter(isDelivery)
+		.sort(
+			(a, b) =>
+				a.uploaded_at.localeCompare(b.uploaded_at) || a.id.localeCompare(b.id),
+		);
+	const latestByItem = new Map<string, ServiceOrderFile>();
+	const unlinked: ServiceOrderFile[] = [];
+	for (const file of outputFiles) {
+		if (file.service_order_item_id) {
+			latestByItem.set(file.service_order_item_id, file);
+		} else {
+			unlinked.push(file);
+		}
+	}
+	return [...unlinked, ...latestByItem.values()];
+}
+
+export function canFinalizeOrder(
+	items: ServiceOrderItem[],
+	files: ServiceOrderFile[],
+): boolean {
+	if (items.length === 0) return false;
+	const current = currentOutputDeliveries(files);
+	const approvedUnlinked = current.filter(
+		(file) => !file.service_order_item_id && file.review_status === 'approved',
+	);
+	if (approvedUnlinked.some((file) => file.delivery_status !== 'sent')) {
+		return false;
+	}
+
+	const latestByItem = new Map(
+		current
+			.filter((file) => file.service_order_item_id)
+			.map((file) => [file.service_order_item_id as string, file]),
+	);
+	return items.every((item) => {
+		const latest = latestByItem.get(item.id);
+		if (!latest) return approvedUnlinked.length > 0;
+		return (
+			latest.review_status === 'approved' && latest.delivery_status === 'sent'
+		);
+	});
+}
+
 export function canCompleteOrder(
 	orderStatus: string,
 	files: ServiceOrderFile[],
+	items: ServiceOrderItem[] = [],
 ): boolean {
 	if (orderStatus === 'concluida') return false;
-	const deliveries = files.filter(isDelivery);
-	return !(
-		deliveries.length > 0 &&
-		deliveries.every((file) => file.delivery_status === 'sent')
+	if (files.length === 0) return true;
+	const current = currentOutputDeliveries(files);
+	if (current.length === 0) return false;
+	return (
+		current.some(
+			(file) =>
+				file.review_status === 'approved' && file.delivery_status !== 'sent',
+		) || canFinalizeOrder(items, files)
 	);
 }
 

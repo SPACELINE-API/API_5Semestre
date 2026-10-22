@@ -31,15 +31,14 @@ class AdditionalServiceRepository:
             .all()
         )
 
-    def list_additional_services_by_service_order(
-        self, service_order_id: uuid.UUID
-    ) -> list[AdditionalService]:
-        return (
-            self.db.query(AdditionalService)
-            .filter(AdditionalService.service_order_id == service_order_id)
-            .order_by(AdditionalService.created_at)
-            .all()
-        )
+    def update_additional_service(self, additional_service: AdditionalService) -> AdditionalService:
+        try:
+            self.db.commit()
+        except IntegrityError:
+            self.db.rollback()
+            raise
+        self.db.refresh(additional_service)
+        return additional_service
 
     def delete_additional_service(self, additional_service: AdditionalService) -> None:
         self.db.delete(additional_service)

@@ -10,6 +10,7 @@ export interface CardRequestProps {
 	customer_need: string;
 	status: string;
 	request_date: string;
+	quote_id?: string | null;
 }
 
 function formatRequestDate(request_date: string): string {
@@ -37,6 +38,7 @@ export default function CardRequest({
 	customer_need,
 	status,
 	request_date,
+	quote_id,
 }: CardRequestProps) {
 	const router = useRouter();
 	const statusLabel =
@@ -58,8 +60,10 @@ export default function CardRequest({
 				? 'Ver decisão da solicitação'
 				: 'Revisar solicitação';
 
+	const shouldShowAction = !(status === 'approved' && quote_id);
+
 	return (
-		<View className="min-w-[300px] flex-1 basis-[320px] gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+		<View className="basis-[320px] flex-shrink-0 gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
 			<View className="flex-row items-start justify-between gap-2">
 				<View className="min-w-0 flex-1">
 					<Text
@@ -104,16 +108,20 @@ export default function CardRequest({
 				</View>
 			</View>
 
-			<TouchableOpacity
-				accessibilityRole="button"
-				accessibilityLabel={`${actionLabel} de ${customer_name}`}
-				onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
-				className={`w-full items-center rounded-lg py-2.5 ${status === 'reproved' ? 'bg-gray-500' : 'bg-blue-600 hover:bg-blue-700'}`}
-			>
-				<Text className="font-inter-semibold text-sm text-white">
-					{actionLabel}
-				</Text>
-			</TouchableOpacity>
+			{shouldShowAction ? (
+				<TouchableOpacity
+					accessibilityRole="button"
+					accessibilityLabel={`${actionLabel} de ${customer_name}`}
+					onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
+					className={`w-full items-center rounded-lg py-2.5 ${
+						status === 'reproved' ? 'bg-gray-500' : 'bg-blue-600'
+					}`}
+				>
+					<Text className="font-inter-semibold text-sm text-white">
+						{actionLabel}
+					</Text>
+				</TouchableOpacity>
+			) : null}
 		</View>
 	);
 }

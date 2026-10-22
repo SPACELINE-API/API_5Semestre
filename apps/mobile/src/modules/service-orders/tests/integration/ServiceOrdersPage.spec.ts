@@ -50,6 +50,16 @@ const SERVICE_ORDER = {
 };
 
 test.describe('Service orders list', () => {
+	test.beforeEach(async ({ page }) => {
+		await page.route('**/api/contacts', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: '[]',
+			});
+		});
+	});
+
 	test('loads and renders service orders with resolved company name', async ({
 		page,
 	}) => {

@@ -77,7 +77,7 @@ export default function ViewRequestPage() {
 						</TouchableOpacity>
 					</View>
 				) : requests.length > 0 ? (
-					<View className="mt-8 w-full flex-row flex-wrap gap-5">
+					<View className="mt-8 w-full flex-row flex-wrap gap-5 md:justify-start justify-center">
 						{requests.map((request) => (
 							<CardRequest key={request.id} {...request} />
 						))}

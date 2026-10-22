@@ -2,15 +2,12 @@ import { env } from '../../../shared/env';
 import {
 	apiDeleteAuth,
 	apiPatchAuth,
+	authHeaders,
 } from '../../../shared/services/apiClient';
-import { getSession } from '../../auth/services/auth';
+import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
+import type { UploadableFile } from '../../../shared/types/file';
 
 const API_BASE_URL = env.apiUrl;
-
-function authorizationHeaders(): Record<string, string> {
-	const token = getSession()?.access_token;
-	return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 export type QuoteFromRequestResponse = {
 	id: string;
@@ -38,7 +35,10 @@ export async function generateQuoteFromRequest(
 	try {
 		const response = await fetch(
 			`${API_BASE_URL}/api/quotes/from-request/${encodeURIComponent(requestId)}`,
-			{ method: 'POST', headers: authorizationHeaders() },
+			{
+				method: 'POST',
+				headers: authHeaders(),
+			},
 		);
 		const data = await response.json().catch(() => null);
 
@@ -148,7 +148,7 @@ export async function listQuotes(params: {
 	let response: Response;
 	try {
 		response = await fetch(`${API_BASE_URL}/api/quotes?${query.toString()}`, {
-			headers: authorizationHeaders(),
+			headers: authHeaders(),
 		});
 	} catch (error) {
 		console.error('Error loading quotes:', error);
@@ -259,10 +259,7 @@ export async function createQuote(): Promise<QuoteResponse | null> {
 	try {
 		const response = await fetch(`${API_BASE_URL}/api/quotes`, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				...authorizationHeaders(),
-			},
+			headers: { 'Content-Type': 'application/json', ...authHeaders() },
 			body: JSON.stringify({}),
 		});
 
@@ -313,10 +310,7 @@ export async function createQuoteItem(
 			`${API_BASE_URL}/api/quotes/${quoteId}/translation-items`,
 			{
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					...authorizationHeaders(),
-				},
+				headers: { 'Content-Type': 'application/json', ...authHeaders() },
 				body: JSON.stringify(itemData),
 			},
 		);
@@ -343,36 +337,31 @@ export async function uploadQuoteDocument(
 	fileName: string,
 ): Promise<string | null> {
 	try {
-		const formData = new FormData();
 		const isWeb =
 			typeof window !== 'undefined' && typeof window.document !== 'undefined';
 
+		let file: UploadableFile;
 		if (isWeb) {
 			const fetchResponse = await fetch(fileUri);
 			const blob = await fetchResponse.blob();
-			formData.append('file', blob, fileName);
+			file = blob as UploadableFile;
 		} else {
-			formData.append('file', {
+			file = {
 				uri: fileUri,
 				name: fileName,
 				type: 'application/octet-stream',
-			} as unknown as Blob);
+			} as UploadableFile;
 		}
 
-		const response = await fetch(`${API_BASE_URL}/api/quotes/upload-document`, {
-			method: 'POST',
-			headers: authorizationHeaders(),
-			body: formData,
-		});
+		const data = await uploadFileMultipart<{ file_url: string }>(
+			`${API_BASE_URL}/api/quotes/upload-document`,
+			file,
+			{},
+			'POST',
+			'file',
+			true,
+		);
 
-		if (!response.ok) {
-			const errorText = await response.text();
-			throw new Error(
-				`Failed to upload document: ${response.status}. Details: ${errorText}`,
-			);
-		}
-
-		const data = await response.json();
 		return data.file_url;
 	} catch (error) {
 		console.error('Error uploading document:', error);

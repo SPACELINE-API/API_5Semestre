@@ -1,5 +1,6 @@
 import io
 import uuid
+from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
@@ -83,6 +84,25 @@ class TranslatorItemService:
 
         return item
 
+    def _next_delivery_uploaded_at(self, item_id: uuid.UUID) -> datetime:
+        self.db.query(ServiceOrderItem.id).filter(
+            ServiceOrderItem.id == item_id
+        ).with_for_update().first()
+        latest_uploaded_at = (
+            self.db.query(ServiceOrderFile.uploaded_at)
+            .filter(
+                ServiceOrderFile.service_order_item_id == item_id,
+                ServiceOrderFile.direction == DIRECTION_SAIDA,
+            )
+            .order_by(ServiceOrderFile.uploaded_at.desc())
+            .limit(1)
+            .scalar()
+        )
+        uploaded_at = datetime.now(UTC)
+        if latest_uploaded_at and uploaded_at <= latest_uploaded_at:
+            uploaded_at = latest_uploaded_at + timedelta(microseconds=1)
+        return uploaded_at
+
     def list_items(self, email: str) -> list[TranslatorItemResponse]:
         translator = self._get_translator(email)
         items = (
@@ -111,6 +131,7 @@ class TranslatorItemService:
         if item.status == STATUS_CONCLUIDA:
             raise HTTPException(status_code=409, detail="Este item já foi concluído.")
 
+        uploaded_at = self._next_delivery_uploaded_at(item.id)
         deliveries = sorted(
             (
                 file
@@ -139,6 +160,7 @@ class TranslatorItemService:
                 file_url=file_url,
                 direction=DIRECTION_SAIDA,
                 review_status=REVIEW_PENDING,
+                uploaded_at=uploaded_at,
             )
         )
         item.status = STATUS_EM_ANALISE
