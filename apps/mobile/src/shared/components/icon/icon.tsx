@@ -16,9 +16,13 @@ import {
 	ShieldCheckIcon,
 	ChevronRightIcon,
 	ChevronUpIcon,
+	LayoutDashboard,
+	UserRound,
+	Mail,
 } from 'lucide-react-native';
 
 export {
+	LayoutDashboard as DashboardIcon,
 	Inbox as RequisicoesIcon,
 	FileText as OrcamentoIcon,
 	ClipboardList as OrdemServicoIcon,
@@ -36,4 +40,6 @@ export {
 	KeyRoundIcon as PermissoesIcon,
 	PlugIcon as IntegracoesIcon,
 	ChevronUpIcon as ChevronUp,
+	UserRound as PerfilIcon,
+	Mail as ConvitesIcon,
 };

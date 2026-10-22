@@ -19,6 +19,7 @@ class LoginRequest(BaseModel):
 class UserResponse(BaseModel):
     id: str
     email: EmailStr
+    role: str
 
 
 class LoginResponse(BaseModel):

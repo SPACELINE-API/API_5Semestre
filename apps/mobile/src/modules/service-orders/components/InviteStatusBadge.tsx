@@ -10,7 +10,7 @@ const INVITE_STATUS_LABEL: Record<InviteStatus, string> = {
 
 const INVITE_STATUS_STYLE: Record<InviteStatus, { bg: string; text: string }> =
 	{
-		pendente: { bg: 'bg-gray-100', text: 'text-gray-700' },
+		pendente: { bg: 'bg-blue-50', text: 'text-blue-900' },
 		aceito: { bg: 'bg-green-50', text: 'text-green-900' },
 		recusado: { bg: 'bg-red-50', text: 'text-red-900' },
 		expirado: { bg: 'bg-gray-100', text: 'text-gray-400' },

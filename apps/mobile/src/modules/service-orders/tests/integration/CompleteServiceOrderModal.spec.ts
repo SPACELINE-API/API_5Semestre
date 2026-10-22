@@ -28,6 +28,7 @@ const SERVICE_ORDER = {
 			filename: 'contrato-traduzido.pdf',
 			file_url: 'https://storage.example/contrato-traduzido.pdf',
 			direction: 'saida',
+			review_status: 'approved',
 			uploaded_at: '2026-01-02T00:00:00Z',
 		},
 	],
@@ -54,6 +55,9 @@ test('abre a conclusão e exibe template, documentos traduzidos e observação',
 		route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
 	);
 	await page.route('**/api/translators', (route) =>
+		route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+	);
+	await page.route(/\/api\/quotes\/additional-services/, (route) =>
 		route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
 	);
 	await page.route('**/api/service-orders/order-1', (route) =>
@@ -148,6 +152,9 @@ test('permite cancelar e mantém o modal aberto quando o envio falha', async ({
 			}),
 		);
 	}
+	await page.route(/\/api\/quotes\/additional-services/, (route) =>
+		route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+	);
 	await page.route('**/api/service-orders/order-1', (route) =>
 		route.fulfill({
 			status: 200,

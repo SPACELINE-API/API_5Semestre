@@ -5,8 +5,6 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.modules.quotes.schemas.additional_service import AdditionalServiceResponse
-
 SAO_PAULO_TIMEZONE = ZoneInfo("America/Sao_Paulo")
 
 
@@ -86,13 +84,21 @@ class UpdateServiceOrderItemRequest(BaseModel):
 class ServiceOrderFileResponse(BaseModel):
     id: uuid.UUID
     service_order_id: uuid.UUID
+    service_order_item_id: uuid.UUID | None = None
     filename: str
     file_url: str
     direction: str
     delivery_status: str
+    review_status: str
+    review_note: str | None = None
+    reviewed_at: datetime | None = None
     uploaded_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceOrderFileReviewRequest(BaseModel):
+    note: str = Field(min_length=3, max_length=1000)
 
 
 class ServiceOrderDeliveryResponse(BaseModel):
@@ -137,7 +143,6 @@ class ServiceOrderResponse(BaseModel):
     external_notes: str | None
     status: str
     items: list[ServiceOrderItemResponse]
-    additional_services: list[AdditionalServiceResponse] = Field(default_factory=list)
     files: list[ServiceOrderFileResponse]
     created_at: datetime
     updated_at: datetime

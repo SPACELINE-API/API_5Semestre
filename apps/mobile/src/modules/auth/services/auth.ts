@@ -5,7 +5,7 @@ export type LoginResponse = {
 	access_token: string;
 	token_type: string;
 	expires_in: number;
-	user: { id: string; email: string };
+	user: { id: string; email: string; role?: string };
 };
 
 export type AuthorizationContext = {
@@ -13,6 +13,21 @@ export type AuthorizationContext = {
 	roles: { id: string; name: string }[];
 	permissions: string[];
 };
+
+type SessionListener = (userId: string | null) => void;
+
+const sessionListeners = new Set<SessionListener>();
+
+export function onSessionChange(listener: SessionListener) {
+	sessionListeners.add(listener);
+	return () => {
+		sessionListeners.delete(listener);
+	};
+}
+
+function notifySessionChange(userId: string | null) {
+	sessionListeners.forEach((listener) => listener(userId));
+}
 
 let nativeSession: LoginResponse | null = null;
 let authorizationContext: AuthorizationContext | null = null;
@@ -74,6 +89,7 @@ export function login(email: string, password: string) {
 }
 
 export function saveSession(session: LoginResponse, remember = false) {
+	const previousUserId = getSession()?.user.id ?? null;
 	nativeSession = session;
 	authorizationContext = null;
 	setCookie(
@@ -81,6 +97,7 @@ export function saveSession(session: LoginResponse, remember = false) {
 		encodeCookieValue(session),
 		remember ? session.expires_in : undefined,
 	);
+	if (previousUserId !== session.user.id) notifySessionChange(session.user.id);
 }
 
 export function getSession(): LoginResponse | null {
@@ -89,10 +106,15 @@ export function getSession(): LoginResponse | null {
 	return nativeSession;
 }
 
+export function isTranslatorSession(): boolean {
+	return getSession()?.user.role?.toLowerCase() === 'tradutor';
+}
+
 export function clearSession() {
 	nativeSession = null;
 	authorizationContext = null;
 	deleteCookie(SESSION_COOKIE);
+	notifySessionChange(null);
 }
 
 export function setAuthorizationContext(context: AuthorizationContext) {

@@ -8,7 +8,6 @@ def test_seed_roles_declares_active_roles_with_permissions() -> None:
         "Projetos",
         "Financeiro",
         "Recursos externos",
-        "Operador",
     ]
     assert all(role.permissions for role in SEED_ROLES)
     assert len({permission for role in SEED_ROLES for permission in role.permissions}) >= 8

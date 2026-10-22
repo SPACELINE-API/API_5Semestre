@@ -5,6 +5,7 @@ import {
 	apiPostAuth,
 	apiPutAuth,
 } from '../../../shared/services/apiClient';
+import { request } from '../../../shared/services/publicApiClient';
 import type {
 	Translator,
 	TranslatorCreateInput,
@@ -21,6 +22,10 @@ export function listQualifications(): Promise<QualificationResponse[]> {
 
 export function listLanguages(): Promise<LanguageResponse[]> {
 	return apiGetAuth<LanguageResponse[]>('/api/support/languages');
+}
+
+export function listPublicLanguages(): Promise<LanguageResponse[]> {
+	return request<LanguageResponse[]>('/api/support/languages');
 }
 
 export function createLanguage(

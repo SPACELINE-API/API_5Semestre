@@ -5,16 +5,25 @@ import { useRouter, usePathname } from 'expo-router';
 import {
 	clearSession,
 	getAuthorizationContext,
+	isTranslatorSession,
 } from '../modules/auth/services/auth';
-import { hasFullRouteAccess } from '../modules/auth/services/authorization';
-import type { LucideIcon } from 'lucide-react-native';
-import { X as CloseIcon } from 'lucide-react-native';
 import {
+	hasFullRouteAccess,
+	isTranslatorProfile,
+} from '../modules/auth/services/authorization';
+import type { LucideIcon } from 'lucide-react-native';
+import {
+	BarChart3 as ProdutividadeIcon,
+	X as CloseIcon,
+} from 'lucide-react-native';
+import {
+	DashboardIcon,
 	RequisicoesIcon,
 	OrcamentoIcon,
 	OrdemServicoIcon,
 	ClientesIcon,
 	TradutoresIcon,
+	PerfilIcon,
 	SuporteIcon,
 	ConfiguracoesIcon,
 	SairIcon,
@@ -111,14 +120,20 @@ export function SideBar({
 	const insets = useSafeAreaInsets();
 	const [isOpen, setIsOpen] = useState<boolean>(true);
 
+	const isDashboardActive = pathname === '/dashboard' || pathname === '/';
+	const isProductivityActive = pathname.startsWith('/produtividade');
 	const isRequestsActive = pathname.startsWith('/visualizar-requisicoes');
 	const isClientsActive = pathname.startsWith('/clientes');
 	const isOrdersActive = pathname.startsWith('/ordens-de-servico');
 	const isSupportAgentActive = pathname.startsWith('/support-agent');
 	const isTradutoresActive = pathname.startsWith('/tradutores');
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
+	const isMyItemsActive = pathname.startsWith('/meus-itens');
+	const isProfileActive = pathname.startsWith('/meu-perfil');
 	const showExpanded = isOpen || mobileOpen;
 	const authorizationContext = getAuthorizationContext();
+	const isTranslator =
+		isTranslatorSession() || isTranslatorProfile(authorizationContext);
 	const displayName = authorizationContext?.user.email ?? 'Usuário';
 	const displayRole =
 		authorizationContext?.roles.map((role) => role.name).join(', ') ?? '';
@@ -155,18 +170,24 @@ export function SideBar({
 						showExpanded ? 'flex-row justify-between' : 'flex-col gap-3 px-0'
 					}`}
 				>
-					<View className="flex-row items-center gap-3">
+					<View className="min-w-0 flex-1 flex-row items-center gap-3">
 						<View className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 bg-blue-500 items-center justify-center shrink-0">
 							<Text className="font-inter font-bold text-white text-sm">
 								{displayInitials}
 							</Text>
 						</View>
 						{showExpanded && (
-							<View className="flex-col">
-								<Text className="font-inter font-bold text-gray-900 text-sm leading-tight">
+							<View className="min-w-0 flex-1 flex-col">
+								<Text
+									className="font-inter font-bold text-gray-900 text-sm leading-tight"
+									numberOfLines={1}
+								>
 									{displayName}
 								</Text>
-								<Text className="font-inter text-gray-500 text-xs mt-0.5">
+								<Text
+									className="font-inter text-gray-500 text-xs mt-0.5"
+									numberOfLines={1}
+								>
 									{displayRole}
 								</Text>
 							</View>
@@ -192,79 +213,124 @@ export function SideBar({
 
 				<ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
 					<View className="flex-col gap-6">
-						<View>
-							<GroupLabel isOpen={showExpanded}>Serviços</GroupLabel>
-							<View className="flex-col gap-1">
-								<NavItem
-									icon={RequisicoesIcon}
-									label="Tarefas atribuídas"
-									isOpen={showExpanded}
-									active={pathname.startsWith('/convites')}
-									disabled={!can('assignments.read')}
-									onPress={() => navigate('/convites')}
-								/>
-								<NavItem
-									icon={RequisicoesIcon}
-									label="Requisições"
-									isOpen={showExpanded}
-									active={isRequestsActive}
-									disabled={!can('requests.read')}
-									onPress={() => navigate('/visualizar-requisicoes')}
-								/>
-								<NavItem
-									icon={OrcamentoIcon}
-									label="Orçamento"
-									isOpen={showExpanded}
-									active={isOrcamentoActive}
-									disabled={!can('quotes.read')}
-									onPress={() => navigate('/orcamento')}
-								/>
-								<NavItem
-									icon={OrdemServicoIcon}
-									label="Ordem de serviço"
-									isOpen={showExpanded}
-									active={isOrdersActive}
-									disabled={!can('service_orders.read')}
-									onPress={() => navigate('/ordens-de-servico')}
-								/>
+						{isTranslator ? (
+							<View>
+								<GroupLabel isOpen={showExpanded}>Meu trabalho</GroupLabel>
+								<View className="flex-col gap-1">
+									<NavItem
+										icon={RequisicoesIcon}
+										label="Convites"
+										isOpen={showExpanded}
+										active={pathname.startsWith('/convites')}
+										onPress={() => navigate('/convites')}
+									/>
+									<NavItem
+										icon={OrdemServicoIcon}
+										label="Meus itens"
+										isOpen={showExpanded}
+										active={isMyItemsActive}
+										onPress={() => navigate('/meus-itens')}
+									/>
+									<NavItem
+										icon={PerfilIcon}
+										label="Meu perfil"
+										isOpen={showExpanded}
+										active={isProfileActive}
+										onPress={() => navigate('/meu-perfil')}
+									/>
+								</View>
 							</View>
-						</View>
+						) : (
+							<>
+								<View>
+									<GroupLabel isOpen={showExpanded}>Principal</GroupLabel>
+									<View className="flex-col gap-1">
+										<NavItem
+											icon={DashboardIcon}
+											label="Dashboard"
+											isOpen={showExpanded}
+											active={isDashboardActive}
+											disabled={!can('dashboard.read')}
+											onPress={() => navigate('/dashboard')}
+										/>
+										<NavItem
+											icon={ProdutividadeIcon}
+											label="Produtividade"
+											isOpen={showExpanded}
+											active={isProductivityActive}
+											disabled={!can('reports.productivity.read')}
+											onPress={() => navigate('/produtividade')}
+										/>
+									</View>
+								</View>
 
-						<View>
-							<GroupLabel isOpen={showExpanded}>Gerenciamento</GroupLabel>
-							<View className="flex-col gap-1">
-								<NavItem
-									icon={ClientesIcon}
-									label="Clientes"
-									isOpen={showExpanded}
-									active={isClientsActive}
-									disabled={!can('clients.read')}
-									onPress={() => navigate('/clientes')}
-								/>
-								<NavItem
-									icon={TradutoresIcon}
-									label="Tradutores"
-									isOpen={showExpanded}
-									active={isTradutoresActive}
-									disabled={!can('translators.read')}
-									onPress={() => navigate('/tradutores')}
-								/>
-							</View>
-						</View>
+								<View>
+									<GroupLabel isOpen={showExpanded}>Serviços</GroupLabel>
+									<View className="flex-col gap-1">
+										<NavItem
+											icon={RequisicoesIcon}
+											label="Requisições"
+											isOpen={showExpanded}
+											active={isRequestsActive}
+											disabled={!can('requests.read')}
+											onPress={() => navigate('/visualizar-requisicoes')}
+										/>
+										<NavItem
+											icon={OrcamentoIcon}
+											label="Orçamento"
+											isOpen={showExpanded}
+											active={isOrcamentoActive}
+											disabled={!can('quotes.read')}
+											onPress={() => navigate('/orcamento')}
+										/>
+										<NavItem
+											icon={OrdemServicoIcon}
+											label="Ordem de serviço"
+											isOpen={showExpanded}
+											active={isOrdersActive}
+											disabled={!can('service_orders.read')}
+											onPress={() => navigate('/ordens-de-servico')}
+										/>
+									</View>
+								</View>
 
-						<View>
-							<GroupLabel isOpen={showExpanded}>Outros</GroupLabel>
-							<View className="flex-col gap-1">
-								<NavItem
-									icon={SuporteIcon}
-									label="Suporte"
-									isOpen={showExpanded}
-									active={isSupportAgentActive}
-									disabled={!can('support.read')}
-									onPress={() => navigate('/support-agent')}
-								/>
-							</View>
-						</View>
+								<View>
+									<GroupLabel isOpen={showExpanded}>Gerenciamento</GroupLabel>
+									<View className="flex-col gap-1">
+										<NavItem
+											icon={ClientesIcon}
+											label="Clientes"
+											isOpen={showExpanded}
+											active={isClientsActive}
+											disabled={!can('clients.read')}
+											onPress={() => navigate('/clientes')}
+										/>
+										<NavItem
+											icon={TradutoresIcon}
+											label="Tradutores"
+											isOpen={showExpanded}
+											active={isTradutoresActive}
+											disabled={!can('translators.read')}
+											onPress={() => navigate('/tradutores')}
+										/>
+									</View>
+								</View>
+
+								<View>
+									<GroupLabel isOpen={showExpanded}>Outros</GroupLabel>
+									<View className="flex-col gap-1">
+										<NavItem
+											icon={SuporteIcon}
+											label="Suporte"
+											isOpen={showExpanded}
+											active={isSupportAgentActive}
+											disabled={!can('support.read')}
+											onPress={() => navigate('/support-agent')}
+										/>
+									</View>
+								</View>
+							</>
+						)}
 					</View>
 				</ScrollView>
 

@@ -7,6 +7,7 @@ import {
 	ScrollView,
 	TextInput,
 	Pressable,
+	useWindowDimensions,
 } from 'react-native';
 import { ChevronDown } from 'lucide-react-native';
 import {
@@ -15,6 +16,7 @@ import {
 	Language,
 } from '../services/languageService';
 import { usePermission } from '../../auth/hooks/usePermission';
+import { getLanguageDropdownLayout } from '../utils/languageDropdownLayout';
 
 interface LanguageSelectProps {
 	value?: string;
@@ -27,6 +29,7 @@ export function LanguageSelect({
 	onChange,
 	placeholder = 'Selecione um idioma',
 }: LanguageSelectProps) {
+	const viewport = useWindowDimensions();
 	const [languages, setLanguages] = useState<Language[]>([]);
 	const [isOpen, setIsOpen] = useState(false);
 	const [isModalVisible, setIsModalVisible] = useState(false);
@@ -69,6 +72,9 @@ export function LanguageSelect({
 	};
 
 	const selectedLanguage = languages.find((l) => l.id === value);
+	const dropdownLayout = anchor
+		? getLanguageDropdownLayout(anchor, viewport)
+		: null;
 
 	const openDropdown = () => {
 		triggerRef.current?.measureInWindow((x, y, width, height) => {
@@ -81,11 +87,12 @@ export function LanguageSelect({
 		<View className="relative z-50">
 			<TouchableOpacity
 				ref={triggerRef}
-				className="border border-gray-200 rounded-md p-3 bg-white flex-row justify-between items-center"
+				className="flex-row items-center justify-between gap-2 rounded-md border border-gray-200 bg-white p-3"
 				onPress={openDropdown}
 			>
 				<Text
-					className={`text-sm font-inter ${selectedLanguage ? 'text-gray-900' : 'text-gray-400'}`}
+					className={`min-w-0 flex-1 font-inter text-sm ${selectedLanguage ? 'text-gray-900' : 'text-gray-400'}`}
+					numberOfLines={1}
 				>
 					{selectedLanguage
 						? `${selectedLanguage.name} (${selectedLanguage.id})`
@@ -105,14 +112,11 @@ export function LanguageSelect({
 					onPress={() => setIsOpen(false)}
 				/>
 
-				{anchor && (
+				{anchor && dropdownLayout && (
 					<View
 						className="absolute bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
 						style={{
-							top: anchor.y + anchor.height + 4,
-							left: anchor.x,
-							width: anchor.width,
-							maxHeight: 192,
+							...dropdownLayout,
 							backgroundColor: 'white',
 						}}
 					>
@@ -128,6 +132,7 @@ export function LanguageSelect({
 								>
 									<Text
 										className={`font-inter text-sm ${value === item.id ? 'text-blue-700 font-inter-medium' : 'text-gray-700'}`}
+										numberOfLines={1}
 									>
 										{item.name} ({item.id})
 									</Text>
