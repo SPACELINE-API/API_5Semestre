@@ -57,7 +57,7 @@ export default function ConfigPermissions({
 	}
 
 	return (
-		<View className="w-full sm:w-[170px] rounded-xl border border-gray-200 bg-white p-4 gap-4">
+		<View className="w-full sm:w-[200px] sm:h-[210px] rounded-xl border border-gray-200 bg-white p-4 gap-4">
 			<Text className="font-inter font-medium text-gray-900 text-sm">
 				{module.label}
 			</Text>
