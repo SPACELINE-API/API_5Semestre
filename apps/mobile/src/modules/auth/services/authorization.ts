@@ -7,6 +7,7 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/meu-perfil': 'assignments.read',
 	'/visualizar-requisicoes': 'requests.read',
 	'/orcamento': 'quotes.read',
+	'/orcamento/gerar': 'requests.read',
 	'/ordens-de-servico': 'service_orders.read',
 	'/clientes': 'clients.read',
 	'/tradutores': 'translators.read',
@@ -14,7 +15,7 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/support-agent': 'support.read',
 	'/administracao': 'roles.read',
 	'/usuarios': 'users.read',
-	'/configuracoes': 'settings.read',
+	'/configuracoes': 'roles.read',
 	'/projetos': 'projects.read',
 };
 

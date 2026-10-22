@@ -12,9 +12,15 @@ export type Role = {
 	permissions: Permission[];
 };
 
+export type ExtraPermission = {
+	permission: Permission;
+	label: string;
+};
+
 export type PermissionModule = {
 	key: string;
 	label: string;
 	read?: Permission;
 	write?: Permission;
+	extras: ExtraPermission[];
 };

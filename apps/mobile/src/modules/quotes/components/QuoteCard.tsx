@@ -1225,7 +1225,8 @@ export function QuoteCard({
 								<TouchableOpacity
 									accessibilityRole="button"
 									onPress={() => setShowAdditionalServiceModal(true)}
-									className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5"
+									disabled={!canWriteQuotes}
+									className={`flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 								>
 									<Plus size={15} color="#374151" />
 									<Text className="font-inter-medium text-sm text-gray-700">

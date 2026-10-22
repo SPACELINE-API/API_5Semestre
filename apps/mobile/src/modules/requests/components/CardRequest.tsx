@@ -40,16 +40,15 @@ export default function CardRequest({
 	request_date,
 }: CardRequestProps) {
 	const router = useRouter();
-	const canReadQuotes = usePermission('quotes.read');
+	const canReadRequests = usePermission('requests.read');
 	const canWriteRequests = usePermission('requests.write');
 	const canWriteQuotes = usePermission('quotes.write');
 	const canOpen =
-		canReadQuotes &&
-		(status === 'approved'
+		status === 'approved'
 			? canWriteQuotes
 			: status === 'reproved'
-				? true
-				: canWriteRequests);
+				? canReadRequests
+				: canWriteRequests;
 	const statusLabel =
 		status === 'approved'
 			? 'Aprovada'

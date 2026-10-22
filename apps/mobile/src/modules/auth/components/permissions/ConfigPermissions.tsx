@@ -15,8 +15,6 @@ export interface ConfigPermissionsProps {
 	onChange: (permissionIds: string[]) => void;
 }
 
-type PermissionKind = 'read' | 'write';
-
 export default function ConfigPermissions({
 	module,
 	profile,
@@ -25,27 +23,34 @@ export default function ConfigPermissions({
 }: ConfigPermissionsProps) {
 	const permissionIds = new Set(profile.permissions.map(({ id }) => id));
 	const canView = Boolean(module.read && permissionIds.has(module.read.id));
-	const canEdit = Boolean(module.write && permissionIds.has(module.write.id));
+	const writePermission = module.write;
+	const canEdit = Boolean(
+		writePermission && permissionIds.has(writePermission.id),
+	);
 
-	function handleToggle(kind: PermissionKind, enabled: boolean) {
+	function handleReadToggle(enabled: boolean) {
+		if (!module.read) return;
 		const nextIds = new Set(permissionIds);
 
-		if (kind === 'read' && module.read) {
-			if (enabled) {
-				nextIds.add(module.read.id);
-			} else {
-				nextIds.delete(module.read.id);
-				if (module.write) nextIds.delete(module.write.id);
-			}
+		if (enabled) {
+			nextIds.add(module.read.id);
+		} else {
+			nextIds.delete(module.read.id);
+			if (module.write) nextIds.delete(module.write.id);
+			module.extras.forEach(({ permission }) => nextIds.delete(permission.id));
 		}
 
-		if (kind === 'write' && module.write) {
-			if (enabled) {
-				nextIds.add(module.write.id);
-				if (module.read) nextIds.add(module.read.id);
-			} else {
-				nextIds.delete(module.write.id);
-			}
+		onChange([...nextIds]);
+	}
+
+	function handleDependentToggle(permissionId: string, enabled: boolean) {
+		const nextIds = new Set(permissionIds);
+
+		if (enabled) {
+			nextIds.add(permissionId);
+			if (module.read) nextIds.add(module.read.id);
+		} else {
+			nextIds.delete(permissionId);
 		}
 
 		onChange([...nextIds]);
@@ -63,17 +68,30 @@ export default function ConfigPermissions({
 						label="Visualização"
 						value={canView}
 						disabled={disabled}
-						onChange={(enabled) => handleToggle('read', enabled)}
+						onChange={handleReadToggle}
 					/>
 				)}
-				{module.write && (
+				{writePermission && (
 					<PermissionToggle
 						label="Edição"
 						value={canEdit}
 						disabled={disabled}
-						onChange={(enabled) => handleToggle('write', enabled)}
+						onChange={(enabled) =>
+							handleDependentToggle(writePermission.id, enabled)
+						}
 					/>
 				)}
+				{module.extras.map(({ permission, label }) => (
+					<PermissionToggle
+						key={permission.id}
+						label={label}
+						value={permissionIds.has(permission.id)}
+						disabled={disabled}
+						onChange={(enabled) =>
+							handleDependentToggle(permission.id, enabled)
+						}
+					/>
+				))}
 			</View>
 		</View>
 	);

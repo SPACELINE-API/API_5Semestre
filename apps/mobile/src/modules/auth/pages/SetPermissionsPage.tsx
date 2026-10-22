@@ -10,7 +10,7 @@ import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 
 const MODULE_LABELS: Record<string, string> = {
-	dashboard: 'Painel',
+	dashboard: 'Dashboard',
 	requests: 'Requisições',
 	quotes: 'Orçamentos',
 	service_orders: 'Ordens de serviço',
@@ -20,28 +20,62 @@ const MODULE_LABELS: Record<string, string> = {
 	translators: 'Tradutores',
 	documents: 'Documentos',
 	projects: 'Projetos',
-	proposals: 'Propostas',
-	finance: 'Financeiro',
 	support: 'Suporte',
-	users: 'Usuários',
 	roles: 'Perfis de acesso',
 	settings: 'Configurações',
+};
+
+const VISIBLE_PERMISSIONS = new Set([
+	'dashboard.read',
+	'requests.read',
+	'requests.write',
+	'quotes.read',
+	'quotes.write',
+	'service_orders.read',
+	'service_orders.write',
+	'assignments.read',
+	'assignments.write',
+	'clients.read',
+	'clients.write',
+	'contacts.read',
+	'contacts.write',
+	'translators.read',
+	'translators.write',
+	'documents.write',
+	'projects.read',
+	'support.read',
+	'support.write',
+	'settings.write',
+	'roles.read',
+	'roles.write',
+]);
+
+const EXTRA_PERMISSION_LABELS: Record<string, string> = {
+	'quotes.approve': 'Aprovação',
+	'assignments.respond': 'Responder convites',
+	'assignments.manage': 'Gerenciar convites',
 };
 
 function buildModules(permissions: Permission[]): PermissionModule[] {
 	const modules = new Map<string, PermissionModule>();
 
 	for (const permission of permissions) {
+		const extraLabel = EXTRA_PERMISSION_LABELS[permission.code];
+		if (!VISIBLE_PERMISSIONS.has(permission.code) && !extraLabel) continue;
 		const separator = permission.code.lastIndexOf('.');
 		const key = permission.code.slice(0, separator);
 		const action = permission.code.slice(separator + 1);
-		if (action !== 'read' && action !== 'write') continue;
 
 		const module = modules.get(key) ?? {
 			key,
 			label: MODULE_LABELS[key] ?? key,
+			extras: [],
 		};
-		module[action] = permission;
+		if (extraLabel) {
+			module.extras.push({ permission, label: extraLabel });
+		} else if (action === 'read' || action === 'write') {
+			module[action] = permission;
+		}
 		modules.set(key, module);
 	}
 

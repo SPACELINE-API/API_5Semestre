@@ -340,7 +340,7 @@ export function SideBar({
 						label="Configurações"
 						isOpen={showExpanded}
 						active={pathname.startsWith('/configuracoes')}
-						disabled={!can('settings.read')}
+						disabled={!can('roles.read')}
 						onPress={() => navigate('/configuracoes/permissoes')}
 					/>
 					<TouchableOpacity
