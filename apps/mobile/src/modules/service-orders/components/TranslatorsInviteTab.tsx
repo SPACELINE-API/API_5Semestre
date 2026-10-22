@@ -11,6 +11,7 @@ import { Search, Check, Send } from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { InviteStatusBadge } from './InviteStatusBadge';
 import { useItemInvites } from '../hooks/useItemInvites';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type TranslatorsInviteTabProps = {
 	items: ServiceOrderItem[];
@@ -32,6 +33,7 @@ export function TranslatorsInviteTab({
 		items.find((item) => !item.translator_id)?.id ?? items[0]?.id ?? '',
 	);
 	const [search, setSearch] = useState('');
+	const canWriteAssignments = usePermission('assignments.write');
 	const [selectedTranslatorIds, setSelectedTranslatorIds] = useState<
 		Set<string>
 	>(new Set());
@@ -282,13 +284,19 @@ export function TranslatorsInviteTab({
 			<TouchableOpacity
 				onPress={handleSend}
 				disabled={
-					isSending || selectedTranslatorIds.size === 0 || isItemAssigned
+					isSending ||
+					selectedTranslatorIds.size === 0 ||
+					isItemAssigned ||
+					!canWriteAssignments
 				}
 				activeOpacity={0.85}
 				accessibilityRole="button"
 				accessibilityLabel="Enviar convites para os tradutores selecionados"
 				className={`flex-row items-center gap-2 self-start rounded-lg bg-blue-600 px-5 py-2.5 ${
-					isSending || selectedTranslatorIds.size === 0 || isItemAssigned
+					isSending ||
+					selectedTranslatorIds.size === 0 ||
+					isItemAssigned ||
+					!canWriteAssignments
 						? 'opacity-50'
 						: ''
 				}`}

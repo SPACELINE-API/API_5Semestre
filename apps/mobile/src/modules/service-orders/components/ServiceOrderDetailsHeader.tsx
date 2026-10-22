@@ -9,6 +9,7 @@ import {
 import { StatusBadge } from './StatusBadge';
 import { formatDate } from '../utils/format';
 import type { ServiceOrder } from '../types/serviceOrder';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 export type ServiceOrderView = 'detalhes' | 'workflow';
 
@@ -36,6 +37,8 @@ export function ServiceOrderDetailsHeader({
 	onComplete: () => void;
 	onViewChange: (view: ServiceOrderView) => void;
 }) {
+	const canWriteServiceOrders = usePermission('service_orders.write');
+
 	return (
 		<View className="flex-row flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-7">
 			<View className="flex-1 min-w-[220px]">
@@ -67,10 +70,11 @@ export function ServiceOrderDetailsHeader({
 			<View className="flex-row flex-wrap items-start gap-3 self-start md:flex-nowrap">
 				<TouchableOpacity
 					onPress={onComplete}
+					disabled={!canWriteServiceOrders}
 					activeOpacity={0.85}
 					accessibilityRole="button"
 					accessibilityLabel="Concluir Ordem de Serviço"
-					className="flex-row items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5"
+					className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 				>
 					<CheckCheck size={16} color="#FFFFFF" />
 					<Text className="font-inter font-semibold text-white text-xs">
@@ -89,10 +93,11 @@ export function ServiceOrderDetailsHeader({
 				</TouchableOpacity>
 				<TouchableOpacity
 					onPress={onDelete}
+					disabled={!canWriteServiceOrders}
 					activeOpacity={0.7}
 					accessibilityRole="button"
 					accessibilityLabel="Excluir ordem de serviço"
-					className="h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100"
+					className={`h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 				>
 					<Trash2 size={16} color="#791F1F" />
 				</TouchableOpacity>

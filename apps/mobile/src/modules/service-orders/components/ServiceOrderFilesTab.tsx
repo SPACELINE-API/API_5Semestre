@@ -12,6 +12,7 @@ import { openDocument } from '../../../shared/components/FilePreview';
 import { getFileName } from '../../../shared/utils/file';
 import { formatDate } from '../utils/format';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 export type ServiceOrderFileDeletionTarget =
 	| { kind: 'item'; id: string; label: string }
@@ -78,6 +79,7 @@ function FileGroupList({
 	onDelete: (target: ServiceOrderFileDeletionTarget) => void;
 	deletingId: string | null;
 }) {
+	const canWriteDocuments = usePermission('documents.write');
 	return (
 		<View className="gap-2">
 			<Text className="font-inter font-semibold text-gray-700 text-xs uppercase tracking-wide">
@@ -118,10 +120,12 @@ function FileGroupList({
 						)}
 						<TouchableOpacity
 							onPress={() => onDelete(file.deletionTarget)}
-							disabled={deletingId === file.deletionTarget.id}
+							disabled={
+								deletingId === file.deletionTarget.id || !canWriteDocuments
+							}
 							accessibilityRole="button"
 							accessibilityLabel={`Excluir ${file.label}`}
-							className="rounded-md p-2"
+							className={`rounded-md p-2 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 						>
 							<Trash2 size={16} color="#B91C1C" />
 						</TouchableOpacity>
@@ -139,6 +143,7 @@ export function ServiceOrderFilesTab({
 	onDelete,
 }: ServiceOrderFilesTabProps) {
 	const [isUploading, setIsUploading] = useState(false);
+	const canWriteDocuments = usePermission('documents.write');
 	const [uploadedDeliveryFiles, setUploadedDeliveryFiles] = useState<
 		ServiceOrderFile[]
 	>([]);
@@ -193,7 +198,7 @@ export function ServiceOrderFilesTab({
 	}
 
 	function renderDeliveryUploadButton() {
-		const disabled = isUploading || !canUploadDelivery;
+		const disabled = isUploading || !canUploadDelivery || !canWriteDocuments;
 		return (
 			<View>
 				<TouchableOpacity

@@ -1,5 +1,6 @@
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { usePermission } from '@/modules/auth/hooks/usePermission';
 
 export interface CardRequestProps {
 	id: number | string;
@@ -39,6 +40,16 @@ export default function CardRequest({
 	request_date,
 }: CardRequestProps) {
 	const router = useRouter();
+	const canReadQuotes = usePermission('quotes.read');
+	const canWriteRequests = usePermission('requests.write');
+	const canWriteQuotes = usePermission('quotes.write');
+	const canOpen =
+		canReadQuotes &&
+		(status === 'approved'
+			? canWriteQuotes
+			: status === 'reproved'
+				? true
+				: canWriteRequests);
 	const statusLabel =
 		status === 'approved'
 			? 'Aprovada'
@@ -108,7 +119,8 @@ export default function CardRequest({
 				accessibilityRole="button"
 				accessibilityLabel={`${actionLabel} de ${customer_name}`}
 				onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
-				className={`w-full items-center rounded-lg py-2.5 ${status === 'reproved' ? 'bg-gray-500' : 'bg-blue-600 hover:bg-blue-700'}`}
+				disabled={!canOpen}
+				className={`w-full items-center rounded-lg py-2.5 ${status === 'reproved' ? 'bg-gray-500' : 'bg-blue-600 hover:bg-blue-700'} ${!canOpen ? 'opacity-40' : ''}`}
 			>
 				<Text className="font-inter-semibold text-sm text-white">
 					{actionLabel}

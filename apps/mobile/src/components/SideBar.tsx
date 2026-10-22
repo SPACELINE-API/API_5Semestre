@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, usePathname, Link } from 'expo-router';
+import { useRouter, usePathname } from 'expo-router';
 import {
 	clearSession,
 	getAuthorizationContext,
@@ -16,6 +16,7 @@ import {
 	ClientesIcon,
 	TradutoresIcon,
 	SuporteIcon,
+	ConfiguracoesIcon,
 	SairIcon,
 	AbrirIcon,
 	FecharIcon,
@@ -28,6 +29,7 @@ type NavItemProps = {
 	active: boolean;
 	onPress: () => void;
 	badge?: string | number;
+	disabled?: boolean;
 };
 
 function NavItem({
@@ -37,23 +39,32 @@ function NavItem({
 	active,
 	onPress,
 	badge,
+	disabled = false,
 }: NavItemProps) {
 	return (
 		<TouchableOpacity
 			onPress={onPress}
+			disabled={disabled}
+			accessibilityRole="button"
+			accessibilityLabel={label}
+			accessibilityState={{ disabled }}
 			className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${
-				active ? 'bg-blue-50' : 'hover:bg-gray-50'
+				active ? 'bg-blue-50' : disabled ? '' : 'hover:bg-gray-50'
 			} ${!isOpen ? 'justify-center px-0' : ''}`}
 		>
 			<Icon
 				size={20}
-				color={active ? '#2563eb' : '#4b5563'}
+				color={active ? '#2563eb' : disabled ? '#d1d5db' : '#4b5563'}
 				strokeWidth={1.8}
 			/>
 			{isOpen && (
 				<Text
 					className={`font-inter text-sm flex-1 ${
-						active ? 'font-semibold text-blue-600' : 'font-medium text-gray-700'
+						active
+							? 'font-semibold text-blue-600'
+							: disabled
+								? 'font-medium text-gray-300'
+								: 'font-medium text-gray-700'
 					}`}
 				>
 					{label}
@@ -181,116 +192,91 @@ export function SideBar({
 
 				<ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
 					<View className="flex-col gap-6">
-						{(can('assignments.read') ||
-							can('requests.read') ||
-							can('quotes.read') ||
-							can('service_orders.read')) && (
-							<View>
-								<GroupLabel isOpen={showExpanded}>Serviços</GroupLabel>
-								<View className="flex-col gap-1">
-									{can('assignments.read') && (
-										<NavItem
-											icon={RequisicoesIcon}
-											label="Tarefas atribuídas"
-											isOpen={showExpanded}
-											active={pathname.startsWith('/convites')}
-											onPress={() => navigate('/convites')}
-										/>
-									)}
-									{can('requests.read') && (
-										<NavItem
-											icon={RequisicoesIcon}
-											label="Requisições"
-											isOpen={showExpanded}
-											active={isRequestsActive}
-											onPress={() => navigate('/visualizar-requisicoes')}
-										/>
-									)}
-									{can('quotes.read') && (
-										<Link href={'/orcamento' as never} asChild>
-											<TouchableOpacity
-												className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${
-													isOrcamentoActive ? 'bg-blue-50' : 'hover:bg-gray-50'
-												} ${!showExpanded ? 'justify-center px-0' : ''}`}
-											>
-												<OrcamentoIcon
-													size={20}
-													color={isOrcamentoActive ? '#2563eb' : '#4b5563'}
-													strokeWidth={1.8}
-												/>
-												{showExpanded && (
-													<Text
-														className={`font-inter text-sm flex-1 ${
-															isOrcamentoActive
-																? 'font-semibold text-blue-600'
-																: 'font-medium text-gray-700'
-														}`}
-													>
-														Orçamento
-													</Text>
-												)}
-											</TouchableOpacity>
-										</Link>
-									)}
-									{can('service_orders.read') && (
-										<NavItem
-											icon={OrdemServicoIcon}
-											label="Ordem de serviço"
-											isOpen={showExpanded}
-											active={isOrdersActive}
-											onPress={() => navigate('/ordens-de-servico')}
-										/>
-									)}
-								</View>
+						<View>
+							<GroupLabel isOpen={showExpanded}>Serviços</GroupLabel>
+							<View className="flex-col gap-1">
+								<NavItem
+									icon={RequisicoesIcon}
+									label="Tarefas atribuídas"
+									isOpen={showExpanded}
+									active={pathname.startsWith('/convites')}
+									disabled={!can('assignments.read')}
+									onPress={() => navigate('/convites')}
+								/>
+								<NavItem
+									icon={RequisicoesIcon}
+									label="Requisições"
+									isOpen={showExpanded}
+									active={isRequestsActive}
+									disabled={!can('requests.read')}
+									onPress={() => navigate('/visualizar-requisicoes')}
+								/>
+								<NavItem
+									icon={OrcamentoIcon}
+									label="Orçamento"
+									isOpen={showExpanded}
+									active={isOrcamentoActive}
+									disabled={!can('quotes.read')}
+									onPress={() => navigate('/orcamento')}
+								/>
+								<NavItem
+									icon={OrdemServicoIcon}
+									label="Ordem de serviço"
+									isOpen={showExpanded}
+									active={isOrdersActive}
+									disabled={!can('service_orders.read')}
+									onPress={() => navigate('/ordens-de-servico')}
+								/>
 							</View>
-						)}
+						</View>
 
-						{(can('clients.read') || can('translators.read')) && (
-							<View>
-								<GroupLabel isOpen={showExpanded}>Gerenciamento</GroupLabel>
-								<View className="flex-col gap-1">
-									{can('clients.read') && (
-										<NavItem
-											icon={ClientesIcon}
-											label="Clientes"
-											isOpen={showExpanded}
-											active={isClientsActive}
-											onPress={() => navigate('/clientes')}
-										/>
-									)}
-									{can('translators.read') && (
-										<NavItem
-											icon={TradutoresIcon}
-											label="Tradutores"
-											isOpen={showExpanded}
-											active={isTradutoresActive}
-											onPress={() => navigate('/tradutores')}
-										/>
-									)}
-								</View>
+						<View>
+							<GroupLabel isOpen={showExpanded}>Gerenciamento</GroupLabel>
+							<View className="flex-col gap-1">
+								<NavItem
+									icon={ClientesIcon}
+									label="Clientes"
+									isOpen={showExpanded}
+									active={isClientsActive}
+									disabled={!can('clients.read')}
+									onPress={() => navigate('/clientes')}
+								/>
+								<NavItem
+									icon={TradutoresIcon}
+									label="Tradutores"
+									isOpen={showExpanded}
+									active={isTradutoresActive}
+									disabled={!can('translators.read')}
+									onPress={() => navigate('/tradutores')}
+								/>
 							</View>
-						)}
+						</View>
 
-						{can('support.read') && (
-							<View>
-								<GroupLabel isOpen={showExpanded}>Outros</GroupLabel>
-								<View className="flex-col gap-1">
-									{can('support.read') && (
-										<NavItem
-											icon={SuporteIcon}
-											label="Suporte"
-											isOpen={showExpanded}
-											active={isSupportAgentActive}
-											onPress={() => navigate('/support-agent')}
-										/>
-									)}
-								</View>
+						<View>
+							<GroupLabel isOpen={showExpanded}>Outros</GroupLabel>
+							<View className="flex-col gap-1">
+								<NavItem
+									icon={SuporteIcon}
+									label="Suporte"
+									isOpen={showExpanded}
+									active={isSupportAgentActive}
+									disabled={!can('support.read')}
+									onPress={() => navigate('/support-agent')}
+								/>
 							</View>
-						)}
+						</View>
 					</View>
 				</ScrollView>
 
 				<View className="relative flex-col gap-1 pt-4 mt-2 border-t border-gray-100">
+					<NavItem
+						icon={ConfiguracoesIcon}
+						label="Configurações"
+						isOpen={showExpanded}
+						active={pathname.startsWith('/configuracoes')}
+						disabled={!can('settings.read')}
+						onPress={() => navigate('/configuracoes/permissoes')}
+					/>
 					<TouchableOpacity
 						accessibilityRole="button"
 						accessibilityLabel="Sair do sistema"

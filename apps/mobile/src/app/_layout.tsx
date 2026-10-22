@@ -26,6 +26,7 @@ import {
 	getSession,
 	loadAuthorizationContext,
 	getAuthorizationContext,
+	subscribeAuthorizationContext,
 } from '../modules/auth/services/auth';
 import {
 	canAccess,
@@ -70,6 +71,14 @@ export default function AppLayout() {
 	useEffect(() => {
 		setIsMobileNavOpen(false);
 	}, [pathname]);
+
+	useEffect(
+		() =>
+			subscribeAuthorizationContext(() =>
+				setAuthorizationVersion((version) => version + 1),
+			),
+		[],
+	);
 
 	useEffect(() => {
 		let active = true;
