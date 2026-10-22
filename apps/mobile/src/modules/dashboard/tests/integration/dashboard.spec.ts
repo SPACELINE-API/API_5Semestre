@@ -152,8 +152,12 @@ test.describe('Painel inicial (Dashboard)', () => {
 		await page.goto('/dashboard');
 
 		await expect(page.getByText(SUBTITLE)).toBeVisible();
-		await expect(page.getByText('Acesso Rápido', { exact: true })).toBeVisible();
-		await expect(page.getByRole('button', { name: /^Acessar / })).toHaveCount(2);
+		await expect(
+			page.getByText('Acesso Rápido', { exact: true }),
+		).toBeVisible();
+		await expect(page.getByRole('button', { name: /^Acessar / })).toHaveCount(
+			2,
+		);
 
 		await expect(page.getByText('Requisições').first()).toBeVisible();
 		await expect(page.getByText('Orçamento').first()).toBeVisible();
@@ -267,7 +271,9 @@ test.describe('Painel inicial (Dashboard)', () => {
 			await setupSession(page, ['dashboard.read'], roleName);
 			await page.goto('/dashboard');
 
-			await expect(page.getByRole('button', { name: /^Acessar / })).toHaveCount(7);
+			await expect(page.getByRole('button', { name: /^Acessar / })).toHaveCount(
+				7,
+			);
 
 			for (const title of [
 				'Tarefas atribuídas',
@@ -311,8 +317,16 @@ test.describe('Painel inicial (Dashboard)', () => {
 				status: 200,
 				contentType: 'application/json',
 				body: quotesPage([
-					{ status: 'pending', total_value: '1500.00', created_at: isoDaysAgo(1) },
-					{ status: 'approved', total_value: '2500.50', created_at: isoDaysAgo(1) },
+					{
+						status: 'pending',
+						total_value: '1500.00',
+						created_at: isoDaysAgo(1),
+					},
+					{
+						status: 'approved',
+						total_value: '2500.50',
+						created_at: isoDaysAgo(1),
+					},
 				]),
 			}),
 		);
@@ -335,8 +349,16 @@ test.describe('Painel inicial (Dashboard)', () => {
 				status: 200,
 				contentType: 'application/json',
 				body: quotesPage([
-					{ status: 'pending', total_value: '1000.00', created_at: isoDaysAgo(20) },
-					{ status: 'approved', total_value: '2000.00', created_at: isoDaysAgo(1) },
+					{
+						status: 'pending',
+						total_value: '1000.00',
+						created_at: isoDaysAgo(20),
+					},
+					{
+						status: 'approved',
+						total_value: '2000.00',
+						created_at: isoDaysAgo(1),
+					},
 				]),
 			}),
 		);
@@ -377,7 +399,11 @@ test.describe('Painel inicial (Dashboard)', () => {
 				status: 200,
 				contentType: 'application/json',
 				body: quotesPage([
-					{ status: 'approved', total_value: '900.00', created_at: isoDaysAgo(1) },
+					{
+						status: 'approved',
+						total_value: '900.00',
+						created_at: isoDaysAgo(1),
+					},
 				]),
 			});
 		});
