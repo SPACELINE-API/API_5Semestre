@@ -5,7 +5,6 @@ import {
 	authHeaders,
 } from '../../../shared/services/apiClient';
 import {
-	MultipartUploadError,
 	uploadFileMultipart,
 } from '../../../shared/utils/uploadFileMultipart';
 import type { UploadableFile } from '../../../shared/types/file';
