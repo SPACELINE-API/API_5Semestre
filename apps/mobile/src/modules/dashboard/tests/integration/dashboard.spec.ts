@@ -34,6 +34,21 @@ async function setupSession(
 	);
 }
 
+const SUBTITLE =
+	'Acompanhe suas principais métricas e acesse rapidamente as ações do seu perfil.';
+
+const isoDaysAgo = (days: number) =>
+	new Date(Date.now() - days * 86_400_000).toISOString();
+
+const quotesPage = (items: unknown[]) =>
+	JSON.stringify({
+		items,
+		total: items.length,
+		page: 1,
+		page_size: 10,
+		total_pages: 1,
+	});
+
 test.describe('Painel inicial (Dashboard)', () => {
 	test.beforeEach(async ({ page }) => {
 		await page.route(/\/api\/quotes/, (route) =>
@@ -44,6 +59,13 @@ test.describe('Painel inicial (Dashboard)', () => {
 			}),
 		);
 		await page.route(/\/api\/service-orders/, (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: '[]',
+			}),
+		);
+		await page.route(/\/api\/requests/, (route) =>
 			route.fulfill({
 				status: 200,
 				contentType: 'application/json',
@@ -129,8 +151,13 @@ test.describe('Painel inicial (Dashboard)', () => {
 		]);
 		await page.goto('/dashboard');
 
-		await expect(page.getByText('Olá, usuario!')).toBeVisible();
-		await expect(page.getByText('2 módulos disponíveis')).toBeVisible();
+		await expect(page.getByText(SUBTITLE)).toBeVisible();
+		await expect(
+			page.getByText('Acesso Rápido', { exact: true }),
+		).toBeVisible();
+		await expect(page.getByRole('button', { name: /^Acessar / })).toHaveCount(
+			2,
+		);
 
 		await expect(page.getByText('Requisições').first()).toBeVisible();
 		await expect(page.getByText('Orçamento').first()).toBeVisible();
@@ -244,10 +271,11 @@ test.describe('Painel inicial (Dashboard)', () => {
 			await setupSession(page, ['dashboard.read'], roleName);
 			await page.goto('/dashboard');
 
-			await expect(page.getByText('7 módulos disponíveis')).toBeVisible();
+			await expect(page.getByRole('button', { name: /^Acessar / })).toHaveCount(
+				6,
+			);
 
 			for (const title of [
-				'Tarefas atribuídas',
 				'Requisições',
 				'Orçamento',
 				'Ordem de serviço',
@@ -271,12 +299,144 @@ test.describe('Painel inicial (Dashboard)', () => {
 		]);
 		await page.goto('/dashboard');
 
-		await expect(page.getByText('Olá, usuario!')).toBeVisible();
+		await expect(page.getByText(SUBTITLE)).toBeVisible();
 		await expect(
 			page.getByRole('button', { name: 'Acessar Requisições' }),
 		).toBeVisible();
 		await expect(
 			page.getByRole('button', { name: 'Acessar Orçamento' }),
 		).toBeVisible();
+	});
+
+	test('exibe quantidade e valor por status na Visão Geral', async ({
+		page,
+	}) => {
+		await page.route(/\/api\/quotes/, (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: quotesPage([
+					{
+						status: 'pending',
+						total_value: '1500.00',
+						created_at: isoDaysAgo(1),
+					},
+					{
+						status: 'approved',
+						total_value: '2500.50',
+						created_at: isoDaysAgo(1),
+					},
+				]),
+			}),
+		);
+		await setupSession(page, ['dashboard.read'], 'Administrador');
+		await page.goto('/dashboard');
+
+		await expect(page.getByRole('tab', { name: 'Orçamentos' })).toBeVisible();
+		for (const label of ['Em aberto', 'Aprovados', 'Reprovados']) {
+			await expect(page.getByText(label, { exact: true })).toBeVisible();
+		}
+		// total do grupo e valor de cada status
+		await expect(page.getByText(/R\$\s*4\.000,50/).first()).toBeVisible();
+		await expect(page.getByText(/R\$\s*1\.500,00/)).toBeVisible();
+		await expect(page.getByText(/R\$\s*2\.500,50/)).toBeVisible();
+	});
+
+	test('atualiza cards e gráfico ao trocar o período', async ({ page }) => {
+		await page.route(/\/api\/quotes/, (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: quotesPage([
+					{
+						status: 'pending',
+						total_value: '1000.00',
+						created_at: isoDaysAgo(20),
+					},
+					{
+						status: 'approved',
+						total_value: '2000.00',
+						created_at: isoDaysAgo(1),
+					},
+				]),
+			}),
+		);
+		await setupSession(page, ['dashboard.read'], 'Administrador');
+		await page.goto('/dashboard');
+
+		// período padrão (30 dias) inclui os dois orçamentos
+		await expect(page.getByText(/R\$\s*3\.000,00/).first()).toBeVisible();
+
+		await page.getByRole('tab', { name: 'Período: 7 dias' }).click();
+
+		await expect(page.getByText(/R\$\s*3\.000,00/)).toHaveCount(0);
+		await expect(page.getByText(/R\$\s*2\.000,00/).first()).toBeVisible();
+	});
+
+	test('informa ausência de resultados quando não há dados no período', async ({
+		page,
+	}) => {
+		await setupSession(page, ['dashboard.read'], 'Administrador');
+		await page.goto('/dashboard');
+
+		await expect(page.getByText('Nenhum registro no período')).toBeVisible();
+	});
+
+	test('exibe erro da Visão Geral e permite nova tentativa', async ({
+		page,
+	}) => {
+		let shouldFail = true;
+		await page.route(/\/api\/quotes/, (route) => {
+			if (shouldFail) {
+				return route.fulfill({
+					status: 500,
+					contentType: 'application/json',
+					body: JSON.stringify({ detail: 'Falha ao consultar orçamentos.' }),
+				});
+			}
+			return route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: quotesPage([
+					{
+						status: 'approved',
+						total_value: '900.00',
+						created_at: isoDaysAgo(1),
+					},
+				]),
+			});
+		});
+		await setupSession(page, ['dashboard.read', 'quotes.read']);
+		await page.goto('/dashboard');
+
+		await expect(
+			page.getByText('Não foi possível carregar os dados do período'),
+		).toBeVisible();
+		// o Acesso Rápido continua disponível mesmo com a Visão Geral em erro
+		await expect(
+			page.getByRole('button', { name: 'Acessar Orçamento' }),
+		).toBeVisible();
+
+		shouldFail = false;
+		await page.getByRole('button', { name: 'Tentar novamente' }).click();
+
+		await expect(
+			page.getByText('Não foi possível carregar os dados do período'),
+		).not.toBeVisible();
+		await expect(page.getByText(/R\$\s*900,00/).first()).toBeVisible();
+	});
+
+	test('não exibe filtro de período para perfil sem acesso aos indicadores', async ({
+		page,
+	}) => {
+		await setupSession(page, ['dashboard.read', 'clients.read']);
+		await page.goto('/dashboard');
+
+		await expect(
+			page.getByRole('button', { name: 'Acessar Clientes' }),
+		).toBeVisible();
+		await expect(
+			page.getByRole('tab', { name: 'Período: 7 dias' }),
+		).toHaveCount(0);
 	});
 });
