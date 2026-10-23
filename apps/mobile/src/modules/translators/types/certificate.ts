@@ -40,3 +40,6 @@ export type SubmitCertificateInput = {
 	proficiencyLevel: ProficiencyLevel;
 	file: NativeFile;
 };
+
+export type CertificateReviewInput =
+	{ status: 'approved' } | { status: 'rejected'; review_note: string };

@@ -13,11 +13,14 @@ import { TabBar } from '../../../shared/components/TabBar';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { LanguagesList } from '../components/LanguagesList';
+import { CertificateDetailsModal } from '../components/CertificateDetailsModal';
 import { CertificateUploadModal } from '../components/CertificateUploadModal';
 import { LanguageCertificateCard } from '../components/LanguageCertificateCard';
 import { ProfileDataCard } from '../components/ProfileDataCard';
 import { ProfilePhotoCard } from '../components/ProfilePhotoCard';
+import { useMyCertificates } from '../hooks/useMyCertificates';
 import { useMyProfile } from '../hooks/useMyProfile';
+import type { TranslatorCertificate } from '../types/certificate';
 
 type ProfileTab = 'data' | 'languages' | 'certificates';
 
@@ -33,8 +36,16 @@ export function MyProfilePage() {
 	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const { profile, setProfile, isLoading, error, refresh } = useMyProfile();
 	const { toast, showToast } = useToast();
+	const certificates = useMyCertificates();
 	const [activeTab, setActiveTab] = useState<ProfileTab>('data');
 	const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
+	const [certificateToReplace, setCertificateToReplace] =
+		useState<TranslatorCertificate | null>(null);
+	const [selectedCertificate, setSelectedCertificate] =
+		useState<TranslatorCertificate | null>(null);
+	const [unavailableIds, setUnavailableIds] = useState<ReadonlySet<string>>(
+		new Set(),
+	);
 
 	if (isLoading && !profile) {
 		return (
@@ -111,15 +122,54 @@ export function MyProfilePage() {
 
 					<View className={activeTab === 'certificates' ? '' : 'hidden'}>
 						<LanguageCertificateCard
-							onNewCertificate={() => setIsCertificateModalOpen(true)}
+							certificates={certificates.certificates}
+							isLoading={certificates.isLoading}
+							error={certificates.error}
+							unavailableIds={unavailableIds}
+							onRetry={() => void certificates.refresh()}
+							onSelect={setSelectedCertificate}
+							onNewCertificate={() => {
+								setCertificateToReplace(null);
+								setIsCertificateModalOpen(true);
+							}}
 						/>
 					</View>
 				</View>
 			</KeyboardContainer>
 
+			<CertificateDetailsModal
+				certificate={selectedCertificate}
+				isUnavailable={
+					selectedCertificate
+						? unavailableIds.has(selectedCertificate.id)
+						: false
+				}
+				onClose={() => setSelectedCertificate(null)}
+				onUnavailable={(certificateId) =>
+					setUnavailableIds((current) => new Set(current).add(certificateId))
+				}
+				onReplace={(certificate) => {
+					setSelectedCertificate(null);
+					setCertificateToReplace(certificate);
+					setIsCertificateModalOpen(true);
+				}}
+			/>
+
 			<CertificateUploadModal
 				visible={isCertificateModalOpen}
-				onClose={() => setIsCertificateModalOpen(false)}
+				certificateToReplace={certificateToReplace}
+				onClose={() => {
+					setIsCertificateModalOpen(false);
+					setCertificateToReplace(null);
+				}}
+				onSubmitted={(certificate) => {
+					setUnavailableIds((current) => {
+						const next = new Set(current);
+						next.delete(certificate.id);
+						return next;
+					});
+					void certificates.refresh();
+				}}
 			/>
 
 			<Toast toast={toast} />

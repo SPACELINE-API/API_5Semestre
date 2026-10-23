@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
 	ActivityIndicator,
+	Platform,
 	ScrollView,
 	Text,
 	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { Check, ChevronDown, Search } from 'lucide-react-native';
+import { Check, ChevronDown, CircleAlert, Search } from 'lucide-react-native';
 import { AppModal } from '../../../shared/components/AppModal';
 import { FileDropzone } from '../../../shared/components/FileDropzone';
 import type { NativeFile } from '../../../shared/types/file';
@@ -31,18 +32,30 @@ import {
 
 type CertificateUploadModalProps = {
 	visible: boolean;
-	/** Idioma já escolhido ao abrir (ex.: substituir um certificado existente). */
-	initialLanguageId?: string;
+	/** Certificado em análise ou recusado cujo arquivo será substituído. */
+	certificateToReplace?: TranslatorCertificate | null;
 	onClose: () => void;
 	onSubmitted?: (certificate: TranslatorCertificate) => void;
 };
 
-type Step = 'form' | 'success' | 'error';
+const PICKER_RETURN_DELAY_MS = 600;
+
+type Step = 'form' | 'confirm-replace' | 'success' | 'error';
 
 const MEGABYTE = 1024 * 1024;
 const FILE_HINT = `${CERTIFICATE_FILE_RULES.formatsLabel} · até ${
 	CERTIFICATE_FILE_RULES.maxBytes / MEGABYTE
 } MB`;
+
+// MONTA O AVISO COM O QUE AINDA FALTA PARA LIBERAR O ENVIO
+function missingFieldsMessage(missing: string[]): string | null {
+	if (missing.length === 0) return null;
+	const items =
+		missing.length === 1
+			? missing[0]
+			: `${missing.slice(0, -1).join(', ')} e ${missing[missing.length - 1]}`;
+	return `Selecione ${items} para enviar.`;
+}
 
 function normalize(value: string) {
 	return value
@@ -53,7 +66,7 @@ function normalize(value: string) {
 
 export function CertificateUploadModal({
 	visible,
-	initialLanguageId,
+	certificateToReplace,
 	onClose,
 	onSubmitted,
 }: CertificateUploadModalProps) {
@@ -67,6 +80,7 @@ export function CertificateUploadModal({
 	const [languageId, setLanguageId] = useState('');
 	const [proficiency, setProficiency] = useState<ProficiencyLevel | null>(null);
 	const [file, setFile] = useState<NativeFile | null>(null);
+	const [pendingFile, setPendingFile] = useState<NativeFile | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const loadLanguages = useCallback(async () => {
@@ -83,9 +97,12 @@ export function CertificateUploadModal({
 
 	useEffect(() => {
 		if (!visible) return;
-		setLanguageId(initialLanguageId ?? '');
+		setLanguageId(certificateToReplace?.language_id ?? '');
+		setProficiency(certificateToReplace?.proficiency_level ?? null);
 		void loadLanguages();
-	}, [visible, initialLanguageId, loadLanguages]);
+	}, [visible, certificateToReplace, loadLanguages]);
+
+	const isReplacing = Boolean(certificateToReplace);
 
 	const selectedLanguage = languages.find((item) => item.id === languageId);
 	const filteredLanguages = useMemo(() => {
@@ -104,6 +121,7 @@ export function CertificateUploadModal({
 		setLanguageId('');
 		setProficiency(null);
 		setFile(null);
+		setPendingFile(null);
 		setIsSubmitting(false);
 	}
 
@@ -117,6 +135,14 @@ export function CertificateUploadModal({
 		setStep('error');
 	}
 
+	function afterPicker(action: () => void) {
+		if (Platform.OS === 'web') {
+			action();
+			return;
+		}
+		setTimeout(action, PICKER_RETURN_DELAY_MS);
+	}
+
 	// SO UM ARQUIVO POR VEZ: UM NOVO ARQUIVO VALIDO SUBSTITUI O SELECIONADO NA HORA
 	function handleFileSelected(candidate: NativeFile) {
 		const validationError = validateProfileFile(
@@ -124,11 +150,28 @@ export function CertificateUploadModal({
 			CERTIFICATE_FILE_RULES,
 		);
 		if (validationError) {
-			showError(validationError);
+			afterPicker(() => showError(validationError));
 			return;
 		}
 
+		// NA SUBSTITUICAO DE UM CERTIFICADO JA ENVIADO, A TROCA DO ARQUIVO PRECISA SER CONFIRMADA
+		if (isReplacing) {
+			setPendingFile(candidate);
+			afterPicker(() => setStep('confirm-replace'));
+			return;
+		}
 		setFile(candidate);
+	}
+
+	function confirmReplace() {
+		setFile(pendingFile);
+		setPendingFile(null);
+		setStep('form');
+	}
+
+	function cancelReplace() {
+		setPendingFile(null);
+		setStep('form');
 	}
 
 	async function handleSubmit() {
@@ -143,7 +186,7 @@ export function CertificateUploadModal({
 			});
 			onSubmitted?.(certificate);
 			setMessage(
-				`O certificado de ${certificate.language_name} foi enviado e ficará em análise até a avaliação do administrador.`,
+				`${isReplacing ? 'O novo arquivo do certificado' : 'O certificado'} de ${certificate.language_name} foi enviado e ficará em análise até a avaliação do administrador.`,
 			);
 			setStep('success');
 		} catch (cause) {
@@ -160,6 +203,7 @@ export function CertificateUploadModal({
 	if (step === 'success') {
 		return (
 			<AppModal
+				key="success"
 				visible={visible}
 				type="success"
 				title="Certificado enviado"
@@ -169,9 +213,25 @@ export function CertificateUploadModal({
 		);
 	}
 
+	if (step === 'confirm-replace') {
+		return (
+			<AppModal
+				key="confirm-replace"
+				visible={visible}
+				type="confirmation"
+				title="Substituir certificado?"
+				message={`O certificado atual "${certificateToReplace?.filename}" será substituído por "${pendingFile?.name}".`}
+				confirmLabel="Substituir"
+				onConfirm={confirmReplace}
+				onClose={cancelReplace}
+			/>
+		);
+	}
+
 	if (step === 'error') {
 		return (
 			<AppModal
+				key="error"
 				visible={visible}
 				type="error"
 				title="Não foi possível anexar o certificado"
@@ -183,13 +243,25 @@ export function CertificateUploadModal({
 	}
 
 	const canSubmit = Boolean(languageId && proficiency && file);
+	const missingMessage = missingFieldsMessage(
+		[
+			!languageId && 'o idioma',
+			!proficiency && 'a proficiência',
+			!file && 'o arquivo do certificado',
+		].filter((item): item is string => Boolean(item)),
+	);
 
 	return (
 		<AppModal
+			key="form"
 			visible={visible}
 			size="md"
-			title="Novo certificado"
-			message="Envie o certificado que comprova o seu novo idioma de trabalho."
+			title={isReplacing ? 'Substituir certificado' : 'Novo certificado'}
+			message={
+				isReplacing
+					? `O novo arquivo substituirá o certificado atual de ${certificateToReplace?.language_name} e voltará para análise.`
+					: 'Envie o certificado que comprova o seu novo idioma de trabalho.'
+			}
 			confirmLabel="Enviar"
 			confirmDisabled={!canSubmit}
 			isLoading={isSubmitting}
@@ -202,7 +274,7 @@ export function CertificateUploadModal({
 				</Text>
 				<TouchableOpacity
 					onPress={() => setIsPickerOpen((open) => !open)}
-					disabled={isSubmitting || isLoadingLanguages}
+					disabled={isSubmitting || isLoadingLanguages || isReplacing}
 					accessibilityRole="button"
 					accessibilityLabel="Selecionar idioma"
 					accessibilityState={{ expanded: isPickerOpen }}
@@ -214,11 +286,13 @@ export function CertificateUploadModal({
 					>
 						{isLoadingLanguages
 							? 'Carregando idiomas…'
-							: (selectedLanguage?.name ?? 'Selecione um idioma')}
+							: (selectedLanguage?.name ??
+								certificateToReplace?.language_name ??
+								'Selecione um idioma')}
 					</Text>
 					{isLoadingLanguages ? (
 						<ActivityIndicator size="small" color="#6B7280" />
-					) : (
+					) : isReplacing ? null : (
 						<ChevronDown size={16} color="#6B7280" />
 					)}
 				</TouchableOpacity>
@@ -340,6 +414,18 @@ export function CertificateUploadModal({
 					onError={showError}
 				/>
 			</View>
+
+			{missingMessage && (
+				<View
+					accessibilityLiveRegion="polite"
+					className="flex-row items-center gap-2 rounded-lg bg-blue-50 px-3 py-2.5"
+				>
+					<CircleAlert size={16} color="#1D4ED8" />
+					<Text className="flex-1 font-inter text-blue-900 text-xs">
+						{missingMessage}
+					</Text>
+				</View>
+			)}
 		</AppModal>
 	);
 }
