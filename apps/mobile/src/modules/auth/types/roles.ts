@@ -12,6 +12,11 @@ export type Role = {
 	permissions: Permission[];
 };
 
+export type RoleFormData = {
+	name: string;
+	description: string | null;
+};
+
 export type ExtraPermission = {
 	permission: Permission;
 	label: string;

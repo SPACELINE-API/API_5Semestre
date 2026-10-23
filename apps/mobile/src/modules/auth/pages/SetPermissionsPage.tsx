@@ -1,11 +1,23 @@
 import { useMemo, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import {
+	View,
+	Text,
+	ScrollView,
+	ActivityIndicator,
+	TouchableOpacity,
+} from 'react-native';
+import { Plus } from 'lucide-react-native';
 import ConfigPermissions from '../components/permissions/ConfigPermissions';
+import { RoleFormModal } from '../components/permissions/RoleFormModal';
 import SelectRole from '../components/permissions/SelectRole';
 import { usePermission } from '../hooks/usePermission';
 import { useRolePermissions } from '../hooks/useRolePermissions';
 import { isAdministratorRole } from '../services/authorization';
-import type { Permission, PermissionModule } from '../types/roles';
+import type {
+	Permission,
+	PermissionModule,
+	RoleFormData,
+} from '../types/roles';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 
@@ -87,9 +99,24 @@ function buildModules(permissions: Permission[]): PermissionModule[] {
 export default function SetPermissionsPage() {
 	const { toast, showToast } = useToast();
 	const canEditRoles = usePermission('roles.write');
-	const { roles, permissions, isLoading, error, setRolePermissionIds } =
-		useRolePermissions({ onError: (message) => showToast(message, 'error') });
+	const {
+		roles,
+		permissions,
+		isLoading,
+		error,
+		setRolePermissionIds,
+		addRole,
+	} = useRolePermissions({
+		onError: (message) => showToast(message, 'error'),
+	});
 	const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
+	const [showRoleModal, setShowRoleModal] = useState(false);
+
+	async function handleCreateRole(data: RoleFormData) {
+		const created = await addRole(data);
+		setSelectedRoleId(created.id);
+		showToast('Perfil cadastrado com sucesso!', 'success');
+	}
 
 	const modules = useMemo(() => buildModules(permissions), [permissions]);
 	const editableRoles = useMemo(
@@ -129,18 +156,31 @@ export default function SetPermissionsPage() {
 						</View>
 					) : (
 						<View className="rounded-2xl border border-gray-200 bg-white p-6 gap-6">
-							<SelectRole
-								roles={editableRoles}
-								selectedRoleId={selectedRole?.id ?? null}
-								onSelect={setSelectedRoleId}
-							/>
+							<View className="flex-row justify-between flex-wrap items-end gap-3">
+								<SelectRole
+									roles={editableRoles}
+									selectedRoleId={selectedRole?.id ?? null}
+									onSelect={setSelectedRoleId}
+								/>
+								<TouchableOpacity
+									accessibilityRole="button"
+									onPress={() => setShowRoleModal(true)}
+									disabled={!canEditRoles}
+									className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${!canEditRoles ? 'opacity-40' : ''}`}
+								>
+									<Plus size={15} color="#fff" />
+									<Text className="font-inter-medium text-sm text-white">
+										Novo perfil
+									</Text>
+								</TouchableOpacity>
+							</View>
 
 							{selectedRole && (
 								<View className="gap-4 mt-5">
 									<Text className="font-inter font-semibold text-gray-900 text-sm">
 										{selectedRole.name}
 									</Text>
-									<View className="flex-row flex-wrap gap-4">
+									<View className="flex-row justify-between flex-wrap gap-4">
 										{modules.map((module) => (
 											<ConfigPermissions
 												key={module.key}
@@ -159,6 +199,12 @@ export default function SetPermissionsPage() {
 					)}
 				</View>
 			</ScrollView>
+
+			<RoleFormModal
+				visible={showRoleModal}
+				onClose={() => setShowRoleModal(false)}
+				onSubmit={handleCreateRole}
+			/>
 
 			<Toast toast={toast} />
 		</View>

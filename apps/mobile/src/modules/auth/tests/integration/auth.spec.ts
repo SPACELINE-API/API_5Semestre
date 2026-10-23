@@ -212,3 +212,81 @@ test.describe('autenticação mobile unificada', () => {
 		expect(requestBody.access_token).toBe('mobile-token');
 	});
 });
+
+test.describe('configuração de permissões', () => {
+	test('cadastra um novo perfil sem permissões e o seleciona', async ({
+		page,
+	}) => {
+		let requestBody: Record<string, unknown> = {};
+		await useExternalProfile(page, [], 'Administrador');
+		await page.route('**/api/roles/permissions', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([
+					{ id: 'clients-read', code: 'clients.read', description: null },
+					{ id: 'clients-write', code: 'clients.write', description: null },
+				]),
+			}),
+		);
+		await page.route('**/api/roles', async (route) => {
+			if (route.request().method() === 'POST') {
+				requestBody = route.request().postDataJSON();
+				await route.fulfill({
+					status: 201,
+					contentType: 'application/json',
+					body: JSON.stringify({
+						id: 'role-comercial',
+						name: 'Comercial',
+						description: 'Acompanha propostas',
+						is_active: true,
+						permissions: [],
+					}),
+				});
+				return;
+			}
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([
+					{
+						id: 'role-atendimento',
+						name: 'Atendimento',
+						description: null,
+						is_active: true,
+						permissions: [
+							{ id: 'clients-read', code: 'clients.read', description: null },
+						],
+					},
+				]),
+			});
+		});
+
+		await page.goto('/configuracoes/permissoes');
+		await expect(page.getByText('Atendimento').first()).toBeVisible();
+
+		await page.getByRole('button', { name: 'Novo perfil' }).click();
+		await page.getByPlaceholder('Ex: Comercial').fill('Comercial');
+		await page
+			.getByPlaceholder('Ex: Acompanha propostas e clientes')
+			.fill('Acompanha propostas');
+		await page
+			.getByRole('button', { name: 'Confirmar cadastro do perfil de acesso' })
+			.click();
+
+		await expect(
+			page.getByText('Perfil cadastrado com sucesso!'),
+		).toBeVisible();
+		expect(requestBody).toEqual({
+			name: 'Comercial',
+			description: 'Acompanha propostas',
+			permission_ids: [],
+		});
+		await expect(
+			page.getByRole('button', { name: 'Selecionar perfil de acesso' }),
+		).toContainText('Comercial');
+		await expect(
+			page.getByRole('switch', { name: 'Visualização' }),
+		).not.toBeChecked();
+	});
+});

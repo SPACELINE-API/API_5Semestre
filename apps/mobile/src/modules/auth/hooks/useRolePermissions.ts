@@ -4,11 +4,12 @@ import {
 	refreshAuthorizationContext,
 } from '../services/auth';
 import {
+	createRole,
 	listPermissions,
 	listRoles,
 	updateRolePermissions,
 } from '../services/roles';
-import type { Permission, Role } from '../types/roles';
+import type { Permission, Role, RoleFormData } from '../types/roles';
 
 type Options = {
 	onError: (message: string) => void;
@@ -121,11 +122,19 @@ export function useRolePermissions({ onError }: Options) {
 		[permissions, flush],
 	);
 
+	const addRole = useCallback(async (data: RoleFormData) => {
+		const created = await createRole(data);
+		confirmedRoles.current.set(created.id, created);
+		setRoles((current) => [...current, created]);
+		return created;
+	}, []);
+
 	return {
 		roles,
 		permissions,
 		isLoading,
 		error,
 		setRolePermissionIds,
+		addRole,
 	};
 }
