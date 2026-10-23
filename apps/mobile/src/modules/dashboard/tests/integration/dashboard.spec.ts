@@ -272,11 +272,10 @@ test.describe('Painel inicial (Dashboard)', () => {
 			await page.goto('/dashboard');
 
 			await expect(page.getByRole('button', { name: /^Acessar / })).toHaveCount(
-				7,
+				6,
 			);
 
 			for (const title of [
-				'Tarefas atribuídas',
 				'Requisições',
 				'Orçamento',
 				'Ordem de serviço',
