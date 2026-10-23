@@ -1,7 +1,6 @@
 import {
 	ActivityIndicator,
 	Pressable,
-	RefreshControl,
 	ScrollView,
 	Text,
 	View,
@@ -55,9 +54,6 @@ export function DashboardPage() {
 		<ScrollView
 			className="flex-1 bg-gray-50/50"
 			showsVerticalScrollIndicator={false}
-			refreshControl={
-				<RefreshControl refreshing={false} onRefresh={() => void reload()} />
-			}
 		>
 			<View className="w-full max-w-6xl self-center gap-5 p-3 md:gap-8 md:p-8">
 				{/* Cabeçalho */}
@@ -80,14 +76,6 @@ export function DashboardPage() {
 							do seu perfil.
 						</Text>
 					</View>
-					<Pressable
-						accessibilityRole="button"
-						accessibilityLabel="Atualizar painel"
-						onPress={() => void reload()}
-						className="h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-gray-100 active:bg-gray-200"
-					>
-						<RefreshCw size={16} color="#6b7280" />
-					</Pressable>
 				</View>
 
 				{loading ? (

@@ -4,15 +4,21 @@ import { Inbox } from 'lucide-react-native';
 import { formatCurrency } from '../services/dashboardMetrics';
 import type { OverviewGroup } from '../types/overview';
 
-const COLORS = [
-	'#2563eb',
-	'#f59e0b',
-	'#10b981',
-	'#8b5cf6',
-	'#ef4444',
-	'#0891b2',
-	'#6b7280',
-];
+/** Usado só para status que não estão no mapa acima. */
+const FALLBACK_COLORS = ['#2563eb', '#8b5cf6', '#0891b2', '#6b7280'];
+
+function getStatusColor(status: string, index: number) {
+	const key = status
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase();
+
+	if (/pend|aberto|aguard/.test(key)) return '#f59e0b'; // âmbar
+	if (/aprov|approv/.test(key)) return '#10b981'; // verde
+	if (/reprov|rejeit|recus|reject|declin|negad/.test(key)) return '#ef4444'; // vermelho
+
+	return FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+}
 
 type ChartMetric = 'count' | 'amount';
 
@@ -93,7 +99,7 @@ export function StatusOverview({
 		const value = metric === 'amount' ? (s.amount ?? 0) : s.count;
 		return {
 			...s,
-			color: COLORS[i % COLORS.length],
+			color: getStatusColor(s.status, i),
 			pct: base > 0 ? (value / base) * 100 : 0,
 		};
 	});

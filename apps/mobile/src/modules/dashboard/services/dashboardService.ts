@@ -18,15 +18,6 @@ import type {
 
 export const AVAILABLE_SHORTCUTS: DashboardShortcut[] = [
 	{
-		id: 'assignments',
-		title: 'Tarefas atribuídas',
-		description:
-			'Visualize e gerencie os convites e tarefas de tradução atribuídas a você.',
-		route: '/convites',
-		permission: 'assignments.read',
-		category: 'Serviços',
-	},
-	{
 		id: 'requests',
 		title: 'Requisições',
 		description:
@@ -114,9 +105,10 @@ export async function fetchDashboardMetrics(
 
 	// 1. Convites e Tarefas (Tradutores / Recursos externos, e também visível para quem tem assignments.read)
 	if (
-		isExternalResource ||
-		permissions.includes('assignments.read') ||
-		permissions.includes('assignments.respond')
+		!isFull &&
+		(isExternalResource ||
+			permissions.includes('assignments.read') ||
+			permissions.includes('assignments.respond'))
 	) {
 		fetchTasks.push(
 			listMyInvites()

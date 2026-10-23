@@ -53,7 +53,6 @@ export function useDashboard() {
 
 	const loadOverview = useCallback(
 		async (selected: PeriodKey, allowedIds: string[]) => {
-			// Ignora respostas antigas quando o usuário troca de período rapidamente.
 			const requestId = ++overviewRequestRef.current;
 			setOverviewLoading(true);
 			setOverviewError('');
@@ -90,8 +89,6 @@ export function useDashboard() {
 		};
 	}, [loadDashboard]);
 
-	// O overview depende dos atalhos autorizados, então espera o painel carregar.
-	// Recarregar o painel (loading true -> false) também refaz o overview.
 	useEffect(() => {
 		if (loading || error) return;
 		void loadOverview(
