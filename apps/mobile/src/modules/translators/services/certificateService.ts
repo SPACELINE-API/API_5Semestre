@@ -1,9 +1,14 @@
-import { apiGetAuth, apiUrl } from '../../../shared/services/apiClient';
+import {
+	apiGetAuth,
+	apiPatchAuth,
+	apiUrl,
+} from '../../../shared/services/apiClient';
 import { toUploadable } from '../../../shared/utils/toUploadable';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
 import type {
 	CertifiableLanguage,
 	CertificateFileLink,
+	CertificateReviewInput,
 	SubmitCertificateInput,
 	TranslatorCertificate,
 } from '../types/certificate';
@@ -36,5 +41,38 @@ export async function submitCertificate({
 		await toUploadable(file),
 		{ language_id: languageId, proficiency_level: proficiencyLevel },
 		'POST',
+	);
+}
+
+// ROTAS DO ADMINISTRADOR: CERTIFICADOS DE UM TRADUTOR ESPECIFICO
+function translatorCertificatesPath(translatorId: string) {
+	return `/api/translators/${translatorId}/certificates`;
+}
+
+export function listTranslatorCertificates(
+	translatorId: string,
+): Promise<TranslatorCertificate[]> {
+	return apiGetAuth<TranslatorCertificate[]>(
+		translatorCertificatesPath(translatorId),
+	);
+}
+
+export function getTranslatorCertificateFile(
+	translatorId: string,
+	certificateId: string,
+): Promise<CertificateFileLink> {
+	return apiGetAuth<CertificateFileLink>(
+		`${translatorCertificatesPath(translatorId)}/${certificateId}/file`,
+	);
+}
+
+export function reviewCertificate(
+	translatorId: string,
+	certificateId: string,
+	input: CertificateReviewInput,
+): Promise<TranslatorCertificate> {
+	return apiPatchAuth<TranslatorCertificate, CertificateReviewInput>(
+		`${translatorCertificatesPath(translatorId)}/${certificateId}/review`,
+		input,
 	);
 }

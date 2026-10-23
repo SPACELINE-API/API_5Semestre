@@ -65,6 +65,12 @@ class InviteService:
         if len(translators) != len(set(translator_ids)):
             raise HTTPException(status_code=422, detail="Um ou mais tradutores não encontrados")
 
+        if any(not translator.is_active for translator in translators):
+            raise HTTPException(
+                status_code=409,
+                detail="Não é possível enviar convites para tradutores inativos",
+            )
+
         existing_pending = (
             self.db.query(ServiceOrderItemInvite)
             .filter(

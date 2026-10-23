@@ -13,3 +13,9 @@ export function getFileName(fileUrl: string) {
 		'',
 	);
 }
+
+export function getTruncatedFileName(fileUrl: string, maxLength = 12) {
+	const filename = getFileName(fileUrl);
+	if (filename.length <= maxLength) return filename;
+	return `${filename.slice(0, maxLength)}...`;
+}

@@ -1,8 +1,9 @@
-import { Text, View } from 'react-native';
-import { FileText } from 'lucide-react-native';
+import React from 'react';
+import { Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { FileText, ExternalLink } from 'lucide-react-native';
 
 import type { RequestItem } from '../../requests/services/requests';
-import { FilePreview } from '../../../shared/components/FilePreview';
+import { openRequestDocument } from '../../requests/services/requests';
 
 function formatDate(value?: string) {
 	if (!value) return '—';
@@ -23,6 +24,53 @@ function InfoField({ label, value }: { label: string; value?: string | null }) {
 			<Text className="font-inter text-sm text-gray-900">
 				{value?.trim() || 'Não informado'}
 			</Text>
+		</View>
+	);
+}
+
+function RequestDocumentButton({ request }: { request: RequestItem }) {
+	const [opening, setOpening] = React.useState(false);
+	const [error, setError] = React.useState<string | null>(null);
+
+	const handlePress = async () => {
+		setOpening(true);
+		setError(null);
+		try {
+			if (request.document_url) {
+				await openRequestDocument(request.document_url);
+			}
+		} catch {
+			setError('Erro ao abrir documento');
+		} finally {
+			setOpening(false);
+		}
+	};
+
+	return (
+		<View className="gap-2">
+			<TouchableOpacity
+				onPress={handlePress}
+				disabled={opening}
+				className="min-h-[44px] bg-blue-50 border border-blue-200 rounded-lg flex-row items-center justify-center gap-2 px-4"
+			>
+				{opening ? (
+					<ActivityIndicator size="small" color="#2563eb" />
+				) : (
+					<>
+						<FileText size={20} color="#2563eb" />
+						<ExternalLink size={20} color="#2563eb" />
+					</>
+				)}
+				<Text
+					className="font-inter-medium text-sm text-blue-700"
+					numberOfLines={1}
+				>
+					{request.document_filename || 'Abrir documento'}
+				</Text>
+			</TouchableOpacity>
+			{error && (
+				<Text className="font-inter text-xs text-red-600">{error}</Text>
+			)}
 		</View>
 	);
 }
@@ -69,8 +117,8 @@ export function RequestSummarySections({ request }: { request: RequestItem }) {
 					<Text className="font-inter-medium text-xs text-gray-500">
 						Documento anexado
 					</Text>
-					{request.document ? (
-						<FilePreview fileUrl={request.document} openInNewPage />
+					{request.has_document ? (
+						<RequestDocumentButton request={request} />
 					) : (
 						<Text className="font-inter text-sm text-gray-500">
 							Nenhum documento anexado.

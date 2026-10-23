@@ -1,4 +1,9 @@
-import { useEffect, useState } from 'react';
+import {
+	useEffect,
+	useState,
+	type ComponentProps,
+	type ComponentType,
+} from 'react';
 import {
 	ActivityIndicator,
 	Modal,
@@ -8,7 +13,9 @@ import {
 	TouchableOpacity,
 	View,
 	Linking,
+	Platform,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Check, FileText, Square, X } from 'lucide-react-native';
 import type {
 	ServiceOrder,
@@ -16,9 +23,15 @@ import type {
 } from '../types/serviceOrder';
 import {
 	getServiceOrderEmailTemplate,
+	finalizeAlreadySentServiceOrder,
 	sendServiceOrderDeliveries,
 } from '../services/serviceOrderService';
-import { approvedDeliveries } from '../utils/fileReview';
+import {
+	approvedDeliveries,
+	canFinalizeOrder,
+	currentOutputDeliveries,
+} from '../utils/fileReview';
+import { openDocument } from '../../../shared/components/FilePreview';
 
 type CompleteServiceOrderModalProps = {
 	visible: boolean;
@@ -26,6 +39,7 @@ type CompleteServiceOrderModalProps = {
 	customerName?: string;
 	onClose: () => void;
 	onSent: () => void;
+	onCompleted: () => void;
 };
 
 function escapeHtml(value: string): string {
@@ -73,7 +87,11 @@ export function CompleteServiceOrderModal({
 	customerName,
 	onClose,
 	onSent,
+	onCompleted,
 }: CompleteServiceOrderModalProps) {
+	const KeyboardContainer = (
+		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
+	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const [template, setTemplate] = useState<ServiceOrderEmailTemplate | null>(
 		null,
 	);
@@ -86,7 +104,8 @@ export function CompleteServiceOrderModal({
 	const [sendError, setSendError] = useState<string | null>(null);
 	const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
 
-	const deliveryFiles = approvedDeliveries(serviceOrder.files);
+	const currentFiles = currentOutputDeliveries(serviceOrder.files);
+	const deliveryFiles = approvedDeliveries(currentFiles);
 	const selectableDeliveryFiles = deliveryFiles.filter(
 		(file) => file.delivery_status !== 'sent',
 	);
@@ -106,7 +125,7 @@ export function CompleteServiceOrderModal({
 		setSendError(null);
 		setIsSending(false);
 		setSelectedFileIds(
-			approvedDeliveries(serviceOrder.files)
+			approvedDeliveries(currentOutputDeliveries(serviceOrder.files))
 				.filter((file) => file.delivery_status !== 'sent')
 				.map((file) => file.id),
 		);
@@ -148,6 +167,8 @@ export function CompleteServiceOrderModal({
 		subject.trim().length > 0 &&
 		message.trim().length > 0 &&
 		selectedFileIds.length > 0;
+	const canFinalize =
+		canFinalizeOrder(serviceOrder.items, serviceOrder.files) && !isSending;
 
 	function toggleFile(fileId: string) {
 		setSelectedFileIds((current) =>
@@ -179,9 +200,31 @@ export function CompleteServiceOrderModal({
 		}
 	}
 
+	async function handleFinalize() {
+		if (!canFinalize) return;
+		setIsSending(true);
+		setSendError(null);
+		try {
+			await finalizeAlreadySentServiceOrder(serviceOrder.id);
+			onCompleted();
+		} catch (error) {
+			setSendError(
+				error instanceof Error
+					? error.message
+					: 'Não foi possível finalizar a ordem de serviço.',
+			);
+		} finally {
+			setIsSending(false);
+		}
+	}
+
 	async function handleOpenDocument(fileUrl: string) {
 		if (!fileUrl) return;
-		await Linking.openURL(fileUrl);
+		if (Platform.OS === 'web') {
+			await Linking.openURL(fileUrl);
+			return;
+		}
+		openDocument(fileUrl);
 	}
 
 	return (
@@ -199,7 +242,9 @@ export function CompleteServiceOrderModal({
 								Concluir ordem de serviço
 							</Text>
 							<Text className="mt-0.5 font-inter text-gray-400 text-xs">
-								Revise a mensagem e os documentos da entrega
+								{canFinalize
+									? 'Os documentos já foram enviados ao cliente'
+									: 'Revise a mensagem e os documentos da entrega'}
 							</Text>
 						</View>
 						<TouchableOpacity
@@ -213,10 +258,15 @@ export function CompleteServiceOrderModal({
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView
+					<KeyboardContainer
 						className="px-5 py-4 md:px-6"
 						contentContainerClassName="gap-5 pb-6"
-						keyboardShouldPersistTaps="handled"
+						{...(Platform.OS === 'web'
+							? { keyboardShouldPersistTaps: 'handled' as const }
+							: {
+									bottomOffset: 20,
+									keyboardShouldPersistTaps: 'handled' as const,
+								})}
 					>
 						<View className="gap-1">
 							<Text className="font-inter text-gray-500 text-xs">
@@ -397,7 +447,7 @@ export function CompleteServiceOrderModal({
 								{sendError}
 							</Text>
 						)}
-					</ScrollView>
+					</KeyboardContainer>
 
 					<View className="flex-row items-center justify-end gap-3 border-t border-gray-100 px-5 py-4 md:px-6">
 						<TouchableOpacity
@@ -411,18 +461,36 @@ export function CompleteServiceOrderModal({
 								Cancelar
 							</Text>
 						</TouchableOpacity>
-						<TouchableOpacity
-							onPress={handleSend}
-							disabled={!canSend}
-							accessibilityRole="button"
-							accessibilityState={{ disabled: !canSend, busy: isSending }}
-							className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 ${canSend ? '' : 'opacity-50'}`}
-						>
-							{isSending && <ActivityIndicator size="small" color="#FFFFFF" />}
-							<Text className="font-inter font-semibold text-white text-sm">
-								{isSending ? 'Enviando...' : 'Enviar'}
-							</Text>
-						</TouchableOpacity>
+						{canFinalize ? (
+							<TouchableOpacity
+								onPress={handleFinalize}
+								accessibilityRole="button"
+								accessibilityState={{ busy: isSending }}
+								className="flex-row items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5"
+							>
+								{isSending && (
+									<ActivityIndicator size="small" color="#FFFFFF" />
+								)}
+								<Text className="font-inter font-semibold text-white text-sm">
+									{isSending ? 'Finalizando...' : 'Finalizar OS'}
+								</Text>
+							</TouchableOpacity>
+						) : (
+							<TouchableOpacity
+								onPress={handleSend}
+								disabled={!canSend}
+								accessibilityRole="button"
+								accessibilityState={{ disabled: !canSend, busy: isSending }}
+								className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 ${canSend ? '' : 'opacity-50'}`}
+							>
+								{isSending && (
+									<ActivityIndicator size="small" color="#FFFFFF" />
+								)}
+								<Text className="font-inter font-semibold text-white text-sm">
+									{isSending ? 'Enviando...' : 'Enviar'}
+								</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 				</View>
 			</View>

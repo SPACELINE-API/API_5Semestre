@@ -38,7 +38,7 @@ export function InviteSearchBar({
 					onChangeText={onSearchChange}
 					placeholder="Buscar por documento ou idioma"
 					placeholderTextColor="#9CA3AF"
-					className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none"
+					className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none h-10"
 				/>
 			</View>
 

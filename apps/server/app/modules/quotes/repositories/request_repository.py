@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.modules.quotes.models.request import Request, StatusEnum
 
@@ -14,7 +14,7 @@ class RequestRepository:
         return self.db.get(Request, request_id)
 
     def list_all(self) -> list[Request]:
-        return self.db.query(Request).all()
+        return self.db.query(Request).options(joinedload(Request.quote)).all()
 
     def create(self, data: dict) -> Request:
         request = Request(**data)

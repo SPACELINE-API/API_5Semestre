@@ -13,7 +13,7 @@ from .llm import get_guardrail_model, setup_llm_env
 
 logger = logging.getLogger(__name__)
 
-INPUT_GUARD_TIMEOUT_SECONDS = 30
+INPUT_GUARD_TIMEOUT_SECONDS = 120
 
 
 def _setup_guardrail_env() -> None:

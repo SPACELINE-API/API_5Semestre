@@ -8,7 +8,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { Check, ChevronDown, Search } from 'lucide-react-native';
+import { Check, ChevronDown, CircleAlert, Search } from 'lucide-react-native';
 import { AppModal } from '../../../shared/components/AppModal';
 import { FileDropzone } from '../../../shared/components/FileDropzone';
 import type { NativeFile } from '../../../shared/types/file';
@@ -46,6 +46,16 @@ const MEGABYTE = 1024 * 1024;
 const FILE_HINT = `${CERTIFICATE_FILE_RULES.formatsLabel} · até ${
 	CERTIFICATE_FILE_RULES.maxBytes / MEGABYTE
 } MB`;
+
+// MONTA O AVISO COM O QUE AINDA FALTA PARA LIBERAR O ENVIO
+function missingFieldsMessage(missing: string[]): string | null {
+	if (missing.length === 0) return null;
+	const items =
+		missing.length === 1
+			? missing[0]
+			: `${missing.slice(0, -1).join(', ')} e ${missing[missing.length - 1]}`;
+	return `Selecione ${items} para enviar.`;
+}
 
 function normalize(value: string) {
 	return value
@@ -233,6 +243,13 @@ export function CertificateUploadModal({
 	}
 
 	const canSubmit = Boolean(languageId && proficiency && file);
+	const missingMessage = missingFieldsMessage(
+		[
+			!languageId && 'o idioma',
+			!proficiency && 'a proficiência',
+			!file && 'o arquivo do certificado',
+		].filter((item): item is string => Boolean(item)),
+	);
 
 	return (
 		<AppModal
@@ -397,6 +414,18 @@ export function CertificateUploadModal({
 					onError={showError}
 				/>
 			</View>
+
+			{missingMessage && (
+				<View
+					accessibilityLiveRegion="polite"
+					className="flex-row items-center gap-2 rounded-lg bg-blue-50 px-3 py-2.5"
+				>
+					<CircleAlert size={16} color="#1D4ED8" />
+					<Text className="flex-1 font-inter text-blue-900 text-xs">
+						{missingMessage}
+					</Text>
+				</View>
+			)}
 		</AppModal>
 	);
 }

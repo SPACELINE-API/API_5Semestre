@@ -217,3 +217,24 @@ test('mantém o modal utilizável em tela estreita', async ({ page }) => {
 	await expect(page.getByText('Importar documento')).toBeInViewport();
 	await expect(page.getByText('Enviar', { exact: true })).toBeInViewport();
 });
+
+test('avisa o que falta quando o arquivo é anexado sem idioma e proficiência', async ({
+	page,
+}) => {
+	await mockProfileApi(page, { status: 201, body: CERTIFICATE });
+	await openCertificateModal(page);
+
+	await dropFile(page, 'certificado-dele.pdf', PDF, 'application/pdf');
+	await expect(
+		page.getByText('Selecione o idioma e a proficiência para enviar.'),
+	).toBeVisible();
+
+	await page.getByLabel('Selecionar idioma').click();
+	await page.getByText('Espanhol (Espanha)').click();
+	await expect(
+		page.getByText('Selecione a proficiência para enviar.'),
+	).toBeVisible();
+
+	await page.getByText('Avançado', { exact: true }).click();
+	await expect(page.getByText(/para enviar\./)).toHaveCount(0);
+});

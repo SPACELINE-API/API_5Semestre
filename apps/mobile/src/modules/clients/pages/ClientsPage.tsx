@@ -239,7 +239,7 @@ export function ClientsPage() {
 											: 'Buscar por nome, CNPJ...'
 									}
 									placeholderTextColor="#9CA3AF"
-									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
+									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
 								/>
 
 								{search.length > 0 && (

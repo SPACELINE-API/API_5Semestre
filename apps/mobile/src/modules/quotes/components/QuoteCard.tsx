@@ -45,6 +45,18 @@ import {
 } from '../../clients/services/companyService';
 import type { Company, CompanyCreateInput } from '../../clients/types/company';
 import { CompanyFormModal } from '../../clients/components/CompanyFormModal';
+import type {
+	AdditionalService,
+	AdditionalServiceFormData,
+} from '../services/additionalService';
+import {
+	createAdditionalService,
+	listAdditionalServicesByQuote,
+	updateAdditionalService,
+	updateAdditionalServiceStatus,
+} from '../services/additionalService';
+import { AdditionalServiceCard } from './AdditionalServiceCard';
+import { AdditionalServiceFormModal } from './AdditionalServiceFormModal';
 
 const statusStyles: Record<string, { label: string; classes: string }> = {
 	approved: { label: 'Aprovado', classes: 'bg-emerald-50 text-emerald-700' },
@@ -303,6 +315,22 @@ function SectionTitle({ children }: { children: ReactNode }) {
 	);
 }
 
+type DraftAdditionalService = {
+	id: string;
+	description: string;
+	price: string;
+};
+
+function toDraftAdditionalService(
+	service: AdditionalService,
+): DraftAdditionalService {
+	return {
+		id: service.id,
+		description: service.description,
+		price: Number(service.price).toFixed(2),
+	};
+}
+
 type DraftItem = {
 	id: string;
 	isNew: boolean;
@@ -373,11 +401,48 @@ export function QuoteCard({
 		null,
 	);
 
+	const [additionalServices, setAdditionalServices] = useState<
+		AdditionalService[]
+	>([]);
+	const [additionalServicesLoading, setAdditionalServicesLoading] =
+		useState(false);
+	const [additionalServicesError, setAdditionalServicesError] = useState('');
+	const [showAdditionalServiceModal, setShowAdditionalServiceModal] =
+		useState(false);
+	const [draftAdditionalServices, setDraftAdditionalServices] = useState<
+		DraftAdditionalService[]
+	>([]);
+
 	useEffect(() => {
 		listCompanies()
 			.then(setCompanies)
 			.catch(() => setCompanies([]));
 	}, []);
+
+	useEffect(() => {
+		if (!expanded) return;
+
+		let active = true;
+		setAdditionalServicesLoading(true);
+		setAdditionalServicesError('');
+		listAdditionalServicesByQuote(quote.id)
+			.then((services) => {
+				if (active) setAdditionalServices(services);
+			})
+			.catch(() => {
+				if (active)
+					setAdditionalServicesError(
+						'Não foi possível carregar os serviços adicionais.',
+					);
+			})
+			.finally(() => {
+				if (active) setAdditionalServicesLoading(false);
+			});
+
+		return () => {
+			active = false;
+		};
+	}, [expanded, quote.id]);
 
 	const status = statusStyles[quote.status.toLowerCase()] ?? {
 		label: quote.status,
@@ -392,6 +457,11 @@ export function QuoteCard({
 		setTranslationLanguage(quote.translation_language ?? '');
 		setCustomerNeed(quote.customer_need ?? '');
 		setDraftItems(quote.items.map(toDraftItem));
+		setDraftAdditionalServices(
+			additionalServices
+				.filter((service) => service.status !== 'approved')
+				.map(toDraftAdditionalService),
+		);
 		setCompanyId(quote.company_id ?? null);
 		setSaveError('');
 		setIsEditing(true);
@@ -449,6 +519,47 @@ export function QuoteCard({
 		}
 	}
 
+	function updateDraftAdditionalService(
+		id: string,
+		patch: Partial<DraftAdditionalService>,
+	) {
+		setDraftAdditionalServices((current) =>
+			current.map((service) =>
+				service.id === id ? { ...service, ...patch } : service,
+			),
+		);
+	}
+
+	async function handleCreateAdditionalService(
+		data: AdditionalServiceFormData,
+	) {
+		const service = await createAdditionalService({
+			...data,
+			quote_id: quote.id,
+		});
+		setAdditionalServices((current) => [...current, service]);
+	}
+
+	async function handleCompleteAdditionalService(service: AdditionalService) {
+		setSaveError('');
+		try {
+			const updated = await updateAdditionalServiceStatus(
+				service.id,
+				'approved',
+			);
+			setAdditionalServices((current) =>
+				current.map((item) => (item.id === updated.id ? updated : item)),
+			);
+		} catch (error) {
+			setSaveError(
+				error instanceof Error
+					? error.message
+					: 'Não foi possível concluir o serviço adicional.',
+			);
+			throw error;
+		}
+	}
+
 	async function handlePickItemFile(itemId: string) {
 		const file = await pickDocument();
 		if (!file) return;
@@ -467,6 +578,17 @@ export function QuoteCard({
 	}
 
 	async function handleSave() {
+		if (
+			draftAdditionalServices.some(
+				(service) => !service.description.trim() || !service.price,
+			)
+		) {
+			setSaveError(
+				'Informe a descrição e o valor de todos os serviços adicionais.',
+			);
+			return;
+		}
+
 		setIsSaving(true);
 		setSaveError('');
 
@@ -535,6 +657,45 @@ export function QuoteCard({
 				)
 				.map((result) => result.data);
 
+			const changedAdditionalServices = draftAdditionalServices.filter(
+				(draft) => {
+					const original = additionalServices.find(
+						(service) => service.id === draft.id,
+					);
+					return (
+						original &&
+						(original.description !== draft.description.trim() ||
+							Number(original.price) !== Number(draft.price))
+					);
+				},
+			);
+
+			try {
+				const updatedAdditionalServices = await Promise.all(
+					changedAdditionalServices.map((draft) =>
+						updateAdditionalService(draft.id, {
+							description: draft.description.trim(),
+							price: Number(draft.price),
+						}),
+					),
+				);
+				setAdditionalServices((current) =>
+					current.map(
+						(service) =>
+							updatedAdditionalServices.find(
+								(updated) => updated.id === service.id,
+							) ?? service,
+					),
+				);
+			} catch (error) {
+				setSaveError(
+					error instanceof Error
+						? error.message
+						: 'Não foi possível salvar um dos serviços adicionais.',
+				);
+				return;
+			}
+
 			onQuoteChange({ ...quote, ...quoteResult.data, items: savedItems });
 			setIsEditing(false);
 		} finally {
@@ -595,7 +756,7 @@ export function QuoteCard({
 
 			{expanded && (
 				<View className="gap-6 p-5 md:p-6">
-					{quote.status === 'approved' && quote.service_order_id ? (
+					{quote.status === 'approved' && !quote.service_order_id ? (
 						<TouchableOpacity
 							accessibilityRole="button"
 							accessibilityLabel={`Abrir ordem de serviço do orçamento ${shortId(quote.id)}`}
@@ -989,6 +1150,82 @@ export function QuoteCard({
 						)}
 					</View>
 
+					<View>
+						<SectionTitle>
+							Serviços adicionais ({additionalServices.length})
+						</SectionTitle>
+						<View className="gap-3">
+							{isEditing && additionalServices.length ? (
+								additionalServices.map((service) => {
+									const draft = draftAdditionalServices.find(
+										(item) => item.id === service.id,
+									);
+									return draft ? (
+										<View
+											key={draft.id}
+											className="flex-row flex-wrap gap-x-5 gap-y-3 rounded-xl border border-gray-200 bg-white p-4"
+										>
+											<EditField
+												label="Descrição do serviço"
+												value={draft.description}
+												onChangeText={(value) =>
+													updateDraftAdditionalService(draft.id, {
+														description: value,
+													})
+												}
+											/>
+											<CurrencyField
+												label="Valor do serviço"
+												value={draft.price}
+												onChangeValue={(value) =>
+													updateDraftAdditionalService(draft.id, {
+														price: value,
+													})
+												}
+											/>
+										</View>
+									) : (
+										<AdditionalServiceCard key={service.id} service={service} />
+									);
+								})
+							) : additionalServicesLoading ? (
+								<Text className="font-inter text-sm text-gray-500">
+									Carregando serviços adicionais...
+								</Text>
+							) : additionalServicesError ? (
+								<Text className="font-inter text-sm text-red-700">
+									{additionalServicesError}
+								</Text>
+							) : additionalServices.length ? (
+								additionalServices.map((service) => (
+									<AdditionalServiceCard
+										key={service.id}
+										service={service}
+										onMarkAsCompleted={() =>
+											handleCompleteAdditionalService(service)
+										}
+									/>
+								))
+							) : (
+								<Text className="font-inter text-sm text-gray-500">
+									Este orçamento ainda não possui serviços adicionais.
+								</Text>
+							)}
+							{!isEditing && (
+								<TouchableOpacity
+									accessibilityRole="button"
+									onPress={() => setShowAdditionalServiceModal(true)}
+									className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5"
+								>
+									<Plus size={15} color="#374151" />
+									<Text className="font-inter-medium text-sm text-gray-700">
+										Novo serviço adicional
+									</Text>
+								</TouchableOpacity>
+							)}
+						</View>
+					</View>
+
 					{isEditing ? (
 						<View className="flex-row flex-wrap gap-3 border-t border-gray-100 pt-4">
 							<TouchableOpacity
@@ -1053,6 +1290,12 @@ export function QuoteCard({
 					)}
 				</View>
 			)}
+
+			<AdditionalServiceFormModal
+				visible={showAdditionalServiceModal}
+				onClose={() => setShowAdditionalServiceModal(false)}
+				onSubmit={handleCreateAdditionalService}
+			/>
 
 			<CompanyFormModal
 				visible={showCreateCompany}

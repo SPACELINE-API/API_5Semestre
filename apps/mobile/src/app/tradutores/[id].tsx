@@ -27,18 +27,48 @@ import type {
 	TranslatorUpdateInput,
 } from '../../modules/translators/types/translator';
 import { TranslatorEditModal } from '../../modules/translators/components/TranslatorEditModal';
+import { CertificateRequestsList } from '../../modules/translators/components/CertificateRequestsList';
+import { CertificateReviewModal } from '../../modules/translators/components/CertificateReviewModal';
 import { LanguagesList } from '../../modules/translators/components/LanguagesList';
+import { useTranslatorCertificates } from '../../modules/translators/hooks/useTranslatorCertificates';
+import type { TranslatorCertificate } from '../../modules/translators/types/certificate';
 import { TabBar } from '../../shared/components/TabBar';
 import { Toast } from '../../shared/components/Toast';
 import { useToast } from '../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog';
 
-type TranslatorTab = 'info' | 'languages';
+type TranslatorTab = 'info' | 'languages' | 'requests';
 
-const TABS: { key: TranslatorTab; label: string }[] = [
-	{ key: 'info', label: 'Informações' },
-	{ key: 'languages', label: 'Idiomas e fluência' },
-];
+function hasTranslatorProfileChanges(
+	translator: Translator,
+	data: TranslatorUpdateInput,
+) {
+	const sorted = (values: string[]) => [...values].sort().join('|');
+	const phoneDigits = (value: string) => value.replace(/\D/g, '');
+	const languages = (rows: TranslatorUpdateInput['languages']) =>
+		rows
+			.map(
+				({ language_id, proficiency_level }) =>
+					`${language_id}:${proficiency_level}`,
+			)
+			.sort()
+			.join('|');
+
+	return (
+		data.name !== translator.name ||
+		data.email !== translator.email ||
+		phoneDigits(data.phone) !== phoneDigits(translator.phone) ||
+		sorted(data.qualification_ids) !==
+			sorted(translator.qualifications.map(({ id }) => id)) ||
+		languages(data.languages) !==
+			languages(
+				translator.languages.map(({ language_id, proficiency_level }) => ({
+					language_id,
+					proficiency_level,
+				})),
+			)
+	);
+}
 
 export default function TranslatorDetailsScreen() {
 	const router = useRouter();
@@ -51,6 +81,19 @@ export default function TranslatorDetailsScreen() {
 	const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 	const { toast, showToast } = useToast();
 	const [activeTab, setActiveTab] = useState<TranslatorTab>('info');
+	const certificates = useTranslatorCertificates(id as string | undefined);
+	const [selectedRequest, setSelectedRequest] =
+		useState<TranslatorCertificate | null>(null);
+	// O CONTADOR MOSTRA QUANTOS CERTIFICADOS AGUARDAM AVALIACAO DO ADMINISTRADOR
+	const tabs: { key: TranslatorTab; label: string; badge?: number }[] = [
+		{ key: 'info', label: 'Informações' },
+		{ key: 'languages', label: 'Idiomas e fluência' },
+		{
+			key: 'requests',
+			label: 'Solicitações',
+			badge: certificates.pendingCount,
+		},
+	];
 
 	useEffect(() => {
 		if (!id) return;
@@ -80,12 +123,31 @@ export default function TranslatorDetailsScreen() {
 		if (!translator) return;
 
 		const { is_active, ...updateData } = data;
-		let updated = await updateTranslator(translator.id, updateData);
+		let updated = translator;
 		if (is_active !== translator.is_active) {
 			updated = await setTranslatorActive(translator.id, is_active);
 		}
+
+		if (hasTranslatorProfileChanges(translator, updateData)) {
+			updated = await updateTranslator(translator.id, updateData);
+		}
+
 		setTranslator(updated);
 		showToast('Tradutor atualizado com sucesso.', 'success');
+	}
+
+	// APROVAR ADICIONA O IDIOMA AO PERFIL: RECARREGA O TRADUTOR E AS SOLICITACOES
+	async function handleReviewed(reviewed: TranslatorCertificate) {
+		void certificates.refresh();
+		if (reviewed.status === 'approved' && translator) {
+			setTranslator(await getTranslator(translator.id));
+		}
+		showToast(
+			reviewed.status === 'approved'
+				? `Certificado aprovado. ${reviewed.language_name} foi adicionado ao perfil.`
+				: 'Certificado recusado. O tradutor verá o motivo informado.',
+			'success',
+		);
 	}
 
 	if (isLoading) {
@@ -181,7 +243,7 @@ export default function TranslatorDetailsScreen() {
 					</Text>
 				</TouchableOpacity>
 
-				<TabBar tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
+				<TabBar tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
 				<View className="gap-4 py-6">
 					{activeTab === 'info' && (
@@ -233,6 +295,16 @@ export default function TranslatorDetailsScreen() {
 					{activeTab === 'languages' && (
 						<LanguagesList languages={translator.languages} />
 					)}
+
+					{activeTab === 'requests' && (
+						<CertificateRequestsList
+							certificates={certificates.certificates}
+							isLoading={certificates.isLoading}
+							error={certificates.error}
+							onRetry={() => void certificates.refresh()}
+							onSelect={setSelectedRequest}
+						/>
+					)}
 				</View>
 			</ScrollView>
 
@@ -249,6 +321,13 @@ export default function TranslatorDetailsScreen() {
 				isLoading={isDeleting}
 				onConfirm={handleDelete}
 				onCancel={() => setIsDeleteConfirmVisible(false)}
+			/>
+
+			<CertificateReviewModal
+				translatorId={translator.id}
+				certificate={selectedRequest}
+				onClose={() => setSelectedRequest(null)}
+				onReviewed={(reviewed) => void handleReviewed(reviewed)}
 			/>
 
 			<TranslatorEditModal

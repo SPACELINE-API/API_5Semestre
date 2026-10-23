@@ -37,3 +37,39 @@ export async function loginAsTranslator(page: Page) {
 		},
 	);
 }
+
+export async function loginAsAdmin(page: Page) {
+	await page.route('**/api/auth/me', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				user: { id: 'admin-id', email: 'admin@spaceline.com.br' },
+				roles: [{ id: 'admin-role', name: 'Administrador' }],
+				permissions: [
+					'translators.read',
+					'translators.write',
+					'dashboard.read',
+				],
+			}),
+		}),
+	);
+
+	const session = {
+		access_token: 'admin-access-token',
+		token_type: 'bearer',
+		expires_in: 3600,
+		user: { id: 'admin-id', email: 'admin@spaceline.com.br', role: 'admin' },
+	};
+
+	await page.goto('/login');
+	await page.evaluate(
+		(value) => {
+			document.cookie = `${value.name}=${value.encoded}; path=/; SameSite=Lax`;
+		},
+		{
+			name: SESSION_COOKIE,
+			encoded: encodeURIComponent(JSON.stringify(session)),
+		},
+	);
+}

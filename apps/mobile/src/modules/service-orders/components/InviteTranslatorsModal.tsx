@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
 	Modal,
 	View,
@@ -6,6 +6,8 @@ import {
 	TextInput,
 	TouchableOpacity,
 	ScrollView,
+	Platform,
+	useWindowDimensions,
 } from 'react-native';
 import { X, Check, Search, Users } from 'lucide-react-native';
 import type { Translator } from '../types/serviceOrder';
@@ -22,20 +24,23 @@ type InviteTranslatorsModalProps = {
 
 function Checkbox({
 	checked,
+	disabled = false,
 	onPress,
 	accessibilityLabel,
 }: {
 	checked: boolean;
+	disabled?: boolean;
 	onPress: () => void;
 	accessibilityLabel: string;
 }) {
 	return (
 		<TouchableOpacity
+			disabled={disabled}
 			onPress={onPress}
 			activeOpacity={0.7}
 			hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
 			accessibilityRole="checkbox"
-			accessibilityState={{ checked }}
+			accessibilityState={{ checked, disabled }}
 			accessibilityLabel={accessibilityLabel}
 			className={`h-[18px] w-[18px] items-center justify-center rounded border ${
 				checked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'
@@ -59,6 +64,8 @@ export function InviteTranslatorsModal({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [search, setSearch] = useState('');
 	const [isConfirmingAll, setIsConfirmingAll] = useState(false);
+	const { width } = useWindowDimensions();
+	const isWideWeb = Platform.OS === 'web' && width >= 560;
 
 	const filteredTranslators = useMemo(() => {
 		const query = search.trim().toLowerCase();
@@ -79,7 +86,18 @@ export function InviteTranslatorsModal({
 		[translators, pendingTranslatorIds],
 	);
 
+	useEffect(() => {
+		const eligibleIds = new Set(eligibleTranslators.map(({ id }) => id));
+		setSelectedIds((current) => {
+			const next = new Set([...current].filter((id) => eligibleIds.has(id)));
+			return next.size === current.size ? current : next;
+		});
+	}, [eligibleTranslators]);
+
 	function toggleSelect(id: string) {
+		const translator = translators.find((item) => item.id === id);
+		if (!translator?.is_active || pendingTranslatorIds.has(id)) return;
+
 		setSelectedIds((current) => {
 			const next = new Set(current);
 			if (next.has(id)) {
@@ -101,16 +119,18 @@ export function InviteTranslatorsModal({
 
 	async function handleSubmit(ids: string[] = Array.from(selectedIds)) {
 		setError(null);
+		const eligibleIds = new Set(eligibleTranslators.map(({ id }) => id));
+		const selectableIds = ids.filter((id) => eligibleIds.has(id));
 
-		if (ids.length === 0) {
-			setError('Selecione ao menos um tradutor.');
+		if (selectableIds.length === 0) {
+			setError('Selecione ao menos um tradutor ativo sem convite pendente.');
 			return;
 		}
 
 		setIsSubmitting(true);
 
 		try {
-			await onSubmit(ids);
+			await onSubmit(selectableIds);
 			handleClose();
 		} catch (submitError) {
 			setError(
@@ -161,29 +181,36 @@ export function InviteTranslatorsModal({
 						{filteredTranslators.map((translator) => {
 							const isSelected = selectedIds.has(translator.id);
 							const hasPendingInvite = pendingTranslatorIds.has(translator.id);
+							const isInactive = !translator.is_active;
+							const isDisabled = hasPendingInvite || isInactive;
 
 							return (
 								<TouchableOpacity
 									key={translator.id}
+									disabled={isDisabled}
 									onPress={() => {
-										if (hasPendingInvite) return;
+										if (isDisabled) return;
 										toggleSelect(translator.id);
 									}}
-									activeOpacity={hasPendingInvite ? 1 : 0.7}
-									accessibilityState={{ disabled: hasPendingInvite }}
+									activeOpacity={isDisabled ? 1 : 0.7}
+									accessibilityState={{ disabled: isDisabled }}
+									accessibilityLabel={`Selecionar tradutor ${translator.name}${
+										isInactive ? ' (tradutor inativo)' : ''
+									}${hasPendingInvite ? ' (convite pendente)' : ''}`}
 									className={`flex-row items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5 ${
-										hasPendingInvite ? 'opacity-50' : ''
+										isDisabled ? 'opacity-50' : ''
 									}`}
 								>
 									<Checkbox
 										checked={isSelected}
+										disabled={isDisabled}
 										onPress={() => {
-											if (hasPendingInvite) return;
+											if (isDisabled) return;
 											toggleSelect(translator.id);
 										}}
 										accessibilityLabel={`Selecionar tradutor ${translator.name}${
-											hasPendingInvite ? ' (convite pendente)' : ''
-										}`}
+											isInactive ? ' (tradutor inativo)' : ''
+										}${hasPendingInvite ? ' (convite pendente)' : ''}`}
 									/>
 
 									<View className="flex-1">
@@ -193,7 +220,11 @@ export function InviteTranslatorsModal({
 										<Text
 											className={`font-inter text-xs ${hasPendingInvite ? 'font-medium text-red-900' : 'text-gray-400'}`}
 										>
-											{hasPendingInvite ? 'Convite pendente' : translator.email}
+											{hasPendingInvite
+												? 'Convite pendente'
+												: isInactive
+													? 'Tradutor inativo'
+													: translator.email}
 										</Text>
 									</View>
 								</TouchableOpacity>
@@ -248,39 +279,75 @@ export function InviteTranslatorsModal({
 						</View>
 					)}
 
-					<View className="flex-row flex-wrap items-center justify-end gap-3 border-t border-gray-300 px-6 py-4">
+					<View
+						className={`${
+							isWideWeb
+								? 'flex-row flex-nowrap items-center justify-between gap-2'
+								: 'flex-col items-center gap-2'
+						} border-t border-gray-300 px-6 py-4`}
+					>
+						<TouchableOpacity
+							onPress={handleClose}
+							style={
+								isWideWeb
+									? undefined
+									: { alignItems: 'center', justifyContent: 'center' }
+							}
+							className={`rounded-lg border border-gray-300 ${isWideWeb ? 'px-3' : 'w-full items-center justify-center px-5'} py-2.5`}
+						>
+							<Text
+								style={isWideWeb ? undefined : { textAlign: 'center' }}
+								className="font-inter font-medium text-gray-800 text-sm"
+							>
+								Cancelar
+							</Text>
+						</TouchableOpacity>
+
 						<TouchableOpacity
 							onPress={() => setIsConfirmingAll(true)}
 							disabled={isSubmitting || eligibleTranslators.length === 0}
 							accessibilityRole="button"
 							accessibilityLabel="Enviar convite para todos os tradutores"
-							className={`mr-auto flex-row items-center gap-2 rounded-lg border border-blue-600 px-4 py-2.5 ${
+							className={`${
+								isWideWeb ? '' : 'relative w-full justify-center'
+							} flex-row items-center gap-2 rounded-lg border border-blue-600 ${
+								isWideWeb ? 'px-3' : 'px-4'
+							} py-2.5 ${
 								isSubmitting || eligibleTranslators.length === 0
 									? 'opacity-50'
 									: ''
 							}`}
+							style={
+								isWideWeb
+									? undefined
+									: { alignItems: 'center', justifyContent: 'center' }
+							}
 						>
-							<Users size={14} color="#2563EB" />
-							<Text className="font-inter font-semibold text-blue-600 text-sm">
+							<View className={isWideWeb ? '' : 'absolute left-4'}>
+								<Users size={14} color="#2563EB" />
+							</View>
+							<Text
+								style={isWideWeb ? undefined : { flex: 1, textAlign: 'center' }}
+								className={`font-inter font-semibold text-blue-600 text-sm ${isWideWeb ? '' : 'flex-1 text-center'}`}
+							>
 								Enviar para todos ({eligibleTranslators.length})
-							</Text>
-						</TouchableOpacity>
-
-						<TouchableOpacity
-							onPress={handleClose}
-							className="rounded-lg border border-gray-300 px-5 py-2.5"
-						>
-							<Text className="font-inter font-medium text-gray-800 text-sm">
-								Cancelar
 							</Text>
 						</TouchableOpacity>
 
 						<TouchableOpacity
 							onPress={() => void handleSubmit()}
 							disabled={isSubmitting}
-							className={`rounded-lg bg-blue-300 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+							className={`rounded-lg bg-blue-300 ${isWideWeb ? 'px-3' : 'w-full items-center justify-center px-5'} py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+							style={
+								isWideWeb
+									? undefined
+									: { alignItems: 'center', justifyContent: 'center' }
+							}
 						>
-							<Text className="font-inter font-semibold text-blue-900 text-sm">
+							<Text
+								style={isWideWeb ? undefined : { textAlign: 'center' }}
+								className="font-inter font-semibold text-blue-900 text-sm"
+							>
 								{isSubmitting ? 'Enviando…' : 'Enviar convites'}
 							</Text>
 						</TouchableOpacity>

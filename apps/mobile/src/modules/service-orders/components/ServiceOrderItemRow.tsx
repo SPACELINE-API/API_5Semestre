@@ -3,7 +3,7 @@ import { ExternalLink, UserPlus } from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { InviteStatusBadge } from './InviteStatusBadge';
 import { openDocument } from '../../../shared/components/FilePreview';
-import { getFileName } from '../../../shared/utils/file';
+import { getTruncatedFileName } from '../../../shared/utils/file';
 import { formatDate, formatPrice } from '../utils/format';
 import { useItemInvites } from '../hooks/useItemInvites';
 
@@ -68,13 +68,13 @@ export function ServiceOrderItemRow({
 						<TouchableOpacity
 							accessibilityRole="link"
 							onPress={() => openDocument(item.file_url!)}
-							className="flex-row items-center gap-1.5 self-start"
+							className="min-w-0 max-w-full flex-row items-center gap-1 self-start"
 						>
 							<Text
-								className="font-inter-medium text-blue-700 text-sm"
+								className="min-w-0 flex-shrink font-inter-medium text-blue-700 text-xs"
 								numberOfLines={1}
 							>
-								{getFileName(item.file_url)}
+								{getTruncatedFileName(item.file_url)}
 							</Text>
 							<ExternalLink size={13} color="#1d4ed8" />
 						</TouchableOpacity>
