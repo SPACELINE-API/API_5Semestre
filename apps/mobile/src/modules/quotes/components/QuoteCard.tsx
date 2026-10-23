@@ -762,7 +762,7 @@ export function QuoteCard({
 
 			{expanded && (
 				<View className="gap-6 p-5 md:p-6">
-					{quote.status === 'approved' && quote.service_order_id ? (
+					{quote.status === 'approved' && !quote.service_order_id ? (
 						<TouchableOpacity
 							accessibilityRole="button"
 							accessibilityLabel={`Abrir ordem de serviço do orçamento ${shortId(quote.id)}`}
