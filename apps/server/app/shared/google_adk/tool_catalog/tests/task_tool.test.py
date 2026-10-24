@@ -55,7 +55,9 @@ def add_translator(db):
     return translator
 
 
-def test_task_tool_returns_persisted_proposal_without_creating_task(isolated_db_session, monkeypatch):
+def test_task_tool_returns_persisted_proposal_without_creating_task(
+    isolated_db_session, monkeypatch
+):
     db = isolated_db_session
     keep_loaded_instances(db)
     user = add_user(db)
