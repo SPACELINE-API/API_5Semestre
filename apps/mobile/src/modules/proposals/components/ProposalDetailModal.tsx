@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { AppModal } from '../../../shared/components/AppModal';
 import type { Proposal } from '../types/proposal';
 import {
@@ -22,17 +22,20 @@ function DetailField({ label, value }: { label: string; value: string }) {
 export function ProposalDetailModal({
 	proposal,
 	onClose,
+	onOpenQuote,
 }: {
 	proposal: Proposal | null;
 	onClose: () => void;
+	onOpenQuote: (proposal: Proposal) => void;
 }) {
 	return (
 		<AppModal
 			visible={Boolean(proposal)}
 			title="Detalhes da proposta"
 			closeLabel="Fechar"
-		size="md"
-		onClose={onClose}
+			hideCloseButton
+			size="md"
+			onClose={onClose}
 		>
 			{proposal && (
 				<View className="px-5 pb-5 md:px-7">
@@ -59,6 +62,21 @@ export function ProposalDetailModal({
 						label="Criada em"
 						value={formatProposalDate(proposal.created_at)}
 					/>
+					{proposal.status === 'reproved' && (
+						<DetailField
+							label="Motivo da reprovação"
+							value={proposal.reproval_reason?.trim() || 'Motivo não informado'}
+						/>
+					)}
+					<TouchableOpacity
+						accessibilityRole="button"
+						onPress={() => onOpenQuote(proposal)}
+						className="mt-5 items-center rounded-lg bg-blue-600 px-4 py-3"
+					>
+						<Text className="font-inter font-semibold text-white text-sm">
+							Abrir orçamento
+						</Text>
+					</TouchableOpacity>
 				</View>
 			)}
 		</AppModal>

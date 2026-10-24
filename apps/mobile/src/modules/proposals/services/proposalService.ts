@@ -3,6 +3,11 @@ import type { ProposalPage, ProposalFilters } from '../types/proposal';
 
 const PROPOSALS_PATH = '/api/quotes/proposals';
 const PAGE_SIZE = 10;
+const PROPOSAL_COMPANIES_PATH = '/api/quotes/proposals/companies';
+
+export function listProposalCompanies(): Promise<string[]> {
+	return apiGetAuth<string[]>(PROPOSAL_COMPANIES_PATH);
+}
 
 export function listProposals(
 	filters: ProposalFilters,
@@ -19,6 +24,7 @@ export function listProposals(
 	if (filters.status !== 'all' && filters.status) {
 		query.set('status', filters.status);
 	}
+	if (filters.enterprise) query.set('enterprise', filters.enterprise);
 
 	return apiGetAuth<ProposalPage>(`${PROPOSALS_PATH}?${query.toString()}`);
 }

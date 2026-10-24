@@ -13,6 +13,7 @@ export type Proposal = {
 	translation_service: string | null;
 	total_value: number | string;
 	status: ProposalStatus;
+	reproval_reason?: string | null;
 	created_at: string;
 };
 
@@ -27,6 +28,7 @@ export type ProposalFilters = {
 	startDate: string;
 	endDate: string;
 	status: ProposalStatus | 'all';
+	enterprise: string;
 	orderBy: ProposalSortField;
 	orderDir: 'asc' | 'desc';
 	page: number;

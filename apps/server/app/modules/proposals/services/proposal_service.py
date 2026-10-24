@@ -4,9 +4,10 @@ from datetime import date
 from typing import Any
 
 from fastapi import HTTPException, status
-from sqlalchemy import asc, desc, func, select
+from sqlalchemy import asc, desc, func, or_, select
 from sqlalchemy.orm import InstrumentedAttribute, Session, selectinload
 
+from app.modules.clients.models.company import Company
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.request import Request, StatusEnum
 
@@ -31,6 +32,7 @@ class ProposalService:
         start_date: date | None = None,
         end_date: date | None = None,
         status_filter: str | None = None,
+        enterprise: str | None = None,
         order_by: str = _DEFAULT_ORDER_BY[0],
         order_dir: str = _DEFAULT_ORDER_BY[1],
     ) -> dict:
@@ -65,6 +67,11 @@ class ProposalService:
         if status_filter:
             base = base.where(Quote.status == status_filter)
 
+        if enterprise:
+            base = base.outerjoin(Company, Quote.company_id == Company.id).where(
+                or_(Quote.enterprise == enterprise, Company.trade_name == enterprise)
+            )
+
         if start_date is not None:
             base = base.where(func.date(Quote.created_at) >= start_date)
 
@@ -87,6 +94,24 @@ class ProposalService:
             "page_size": page_size,
         }
 
+    def list_enterprises(self) -> list[str]:
+        company_names = list(
+            self.db.scalars(
+                select(Company.trade_name)
+                .where(Company.is_active.is_(True))
+                .distinct()
+            )
+        )
+        legacy_enterprises = list(
+            self.db.scalars(
+                select(Quote.enterprise)
+                .join(Request, Quote.request_id == Request.id)
+                .where(Request.status == StatusEnum.APPROVED, Quote.enterprise.is_not(None))
+                .distinct()
+            )
+        )
+        return sorted({value for value in (*company_names, *legacy_enterprises) if value})
+
     @staticmethod
     def _build_translation_service(quote: Quote) -> str | None:
         if quote.original_language and quote.translation_language:
@@ -102,5 +127,6 @@ class ProposalService:
             "translation_service": ProposalService._build_translation_service(quote),
             "total_value": quote.total_value,
             "status": quote.status,
+            "reproval_reason": quote.reproval_reason,
             "created_at": quote.created_at,
         }

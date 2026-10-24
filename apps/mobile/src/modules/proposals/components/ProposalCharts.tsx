@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { EChart } from '../../../shared/components/charts/EChart';
 import type { ChartOption } from '../../../shared/components/charts/types';
 import type { Proposal, ProposalStatus } from '../types/proposal';
+import { proposalCustomerLabel } from '../utils/proposalFormat';
 import { formatCompact } from '../../productivity/utils/format';
 import {
 	formatProposalValue,
@@ -62,7 +63,7 @@ function valuesOption(proposals: Proposal[]): ChartOption {
 		yAxis: {
 			type: 'category',
 			inverse: true,
-			data: rows.map((proposal) => proposal.customer_name?.trim() || proposal.enterprise?.trim() || 'Cliente não informado'),
+			data: rows.map(proposalCustomerLabel),
 			axisLabel: { ...TEXT, fontSize: 11, width: 120, overflow: 'truncate' as const },
 			axisLine: { show: false },
 			axisTick: { show: false },

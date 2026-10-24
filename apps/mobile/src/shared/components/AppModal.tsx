@@ -28,6 +28,7 @@ type AppModalProps = {
 	confirmLabel?: string;
 	cancelLabel?: string;
 	closeLabel?: string;
+	hideCloseButton?: boolean;
 	isLoading?: boolean;
 	confirmDisabled?: boolean;
 	size?: 'sm' | 'md';
@@ -61,6 +62,7 @@ export function AppModal({
 	confirmLabel = 'Confirmar',
 	cancelLabel = 'Cancelar',
 	closeLabel = 'OK',
+	hideCloseButton = false,
 	isLoading = false,
 	confirmDisabled = false,
 	size = 'sm',
@@ -187,7 +189,7 @@ export function AppModal({
 									</Text>
 								</TouchableOpacity>
 							</>
-						) : (
+						) : hideCloseButton ? null : (
 							<TouchableOpacity
 								onPress={onClose}
 								accessibilityRole="button"

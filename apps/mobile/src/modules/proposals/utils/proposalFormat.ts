@@ -28,5 +28,8 @@ export function formatProposalDate(value: string) {
 }
 
 export function proposalCustomerLabel(proposal: Proposal) {
-	return proposal.customer_name?.trim() || proposal.enterprise?.trim() || 'Cliente não informado';
+	const customer = proposal.customer_name?.trim();
+	const enterprise = proposal.enterprise?.trim();
+	if (customer && enterprise) return `${customer} (${enterprise})`;
+	return customer || enterprise || 'Cliente não informado';
 }

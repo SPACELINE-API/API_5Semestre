@@ -24,14 +24,19 @@ const STATUS_OPTIONS: { value: ProposalStatus; label: string }[] = [
 
 export function ProposalFilters({
 	filters,
+	companies,
 	onChange,
 }: {
 	filters: Filters;
+	companies: string[];
 	onChange: (filters: Filters) => void;
 }) {
 	const [openDate, setOpenDate] = useState<'start' | 'end' | null>(null);
 	const hasFilters = Boolean(
-		filters.startDate || filters.endDate || filters.status !== 'all',
+		filters.startDate ||
+			filters.endDate ||
+			filters.status !== 'all' ||
+			filters.enterprise,
 	);
 
 	function clearFilters() {
@@ -40,6 +45,7 @@ export function ProposalFilters({
 			startDate: '',
 			endDate: '',
 			status: 'all',
+			enterprise: '',
 			page: 1,
 		});
 	}
@@ -86,6 +92,20 @@ export function ProposalFilters({
 				</View>
 				<View className="min-w-0 flex-1">
 					<SelectField
+						label="Empresa"
+						value={filters.enterprise}
+						allLabel="Todas as empresas"
+						options={companies.map((company) => ({
+							value: company,
+							label: company,
+						}))}
+						onChange={(enterprise) =>
+							onChange({ ...filters, enterprise, page: 1 })
+						}
+					/>
+				</View>
+				<View className="min-w-0 flex-1">
+					<SelectField
 						label="Situação"
 						value={filters.status}
 						allLabel="Todas as situações"
@@ -103,6 +123,7 @@ export function ProposalFilters({
 					<SelectField
 						label="Ordenar por"
 						value={filters.orderBy}
+						allLabel="Ordenar por"
 						options={SORT_OPTIONS}
 						onChange={(value) =>
 							onChange({ ...filters, orderBy: value as ProposalSortField, page: 1 })

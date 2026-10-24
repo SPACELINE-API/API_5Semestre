@@ -18,7 +18,7 @@ export function useProposals(filters: ProposalFilters) {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const requestId = useRef(0);
-	const { startDate, endDate, status, orderBy, orderDir, page } = filters;
+	const { startDate, endDate, status, enterprise, orderBy, orderDir, page } = filters;
 
 	const refresh = useCallback(async () => {
 		const current = ++requestId.current;
@@ -36,6 +36,7 @@ export function useProposals(filters: ProposalFilters) {
 				startDate,
 				endDate,
 				status,
+				enterprise,
 				orderBy,
 				orderDir,
 				page,
@@ -49,7 +50,7 @@ export function useProposals(filters: ProposalFilters) {
 		} finally {
 			if (current === requestId.current) setIsLoading(false);
 		}
-	}, [startDate, endDate, status, orderBy, orderDir, page]);
+	}, [startDate, endDate, status, enterprise, orderBy, orderDir, page]);
 
 	useEffect(() => {
 		void refresh();

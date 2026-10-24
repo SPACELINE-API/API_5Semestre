@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { ProposalCharts } from '../components/ProposalCharts';
 import { ProposalDetailModal } from '../components/ProposalDetailModal';
 import { ProposalFilters } from '../components/ProposalFilters';
@@ -12,13 +13,16 @@ import {
 import { ProposalTable } from '../components/ProposalTable';
 import { useProposals } from '../hooks/useProposals';
 import type { Proposal, ProposalFilters as Filters } from '../types/proposal';
-import { PROPOSAL_PAGE_SIZE } from '../services/proposalService';
-import { formatProposalValue } from '../utils/proposalFormat';
+import {
+	listProposalCompanies,
+	PROPOSAL_PAGE_SIZE,
+} from '../services/proposalService';
 
 const INITIAL_FILTERS: Filters = {
 	startDate: '',
 	endDate: '',
 	status: 'all',
+	enterprise: '',
 	orderBy: 'created_at',
 	orderDir: 'desc',
 	page: 1,
@@ -74,14 +78,25 @@ function ProposalPagination({
 }
 
 export function ProposalsPage() {
+	const router = useRouter();
 	const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
+	const [companies, setCompanies] = useState<string[]>([]);
 	const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
 	const { result, isLoading, error, refresh } = useProposals(filters);
 	const proposals = result?.items ?? [];
 	const total = result?.total ?? 0;
 	const hasFilters = Boolean(
-		filters.startDate || filters.endDate || filters.status !== 'all',
+		filters.startDate ||
+			filters.endDate ||
+			filters.status !== 'all' ||
+			filters.enterprise,
 	);
+
+	useEffect(() => {
+		listProposalCompanies()
+			.then(setCompanies)
+			.catch(() => setCompanies([]));
+	}, []);
 
 	useEffect(() => {
 		if (!result || result.total === 0) return;
@@ -102,12 +117,16 @@ export function ProposalsPage() {
 						Propostas comerciais
 					</Text>
 					<Text className="mt-2 font-inter text-gray-500 text-sm">
-						Acompanhe propostas por período, cliente, valor e situação.
+						Acompanhe propostas por empresa, período, cliente, valor e situação.
 					</Text>
 				</View>
 
 				<View className="gap-5">
-					<ProposalFilters filters={filters} onChange={setFilters} />
+					<ProposalFilters
+						filters={filters}
+						companies={companies}
+						onChange={setFilters}
+					/>
 
 					{isLoading ? (
 						<ProposalLoading />
@@ -124,19 +143,6 @@ export function ProposalsPage() {
 									</Text>
 									<Text className="mt-1 font-inter font-bold text-gray-900 text-xl">
 										{total}
-									</Text>
-								</View>
-								<View className="min-w-[160px] flex-1 rounded-xl border border-gray-100 bg-white p-4">
-									<Text className="font-inter text-gray-500 text-xs">
-										Valor nesta página
-									</Text>
-									<Text className="mt-1 font-inter font-bold text-gray-900 text-xl">
-										{formatProposalValue(
-											proposals.reduce(
-												(sum, proposal) => sum + (Number(proposal.total_value) || 0),
-												0,
-											),
-										)}
 									</Text>
 								</View>
 							</View>
@@ -170,6 +176,10 @@ export function ProposalsPage() {
 			<ProposalDetailModal
 				proposal={selectedProposal}
 				onClose={() => setSelectedProposal(null)}
+				onOpenQuote={(proposal) => {
+					setSelectedProposal(null);
+					router.push(`/orcamento?quoteId=${encodeURIComponent(proposal.id)}` as never);
+				}}
 			/>
 		</View>
 	);
