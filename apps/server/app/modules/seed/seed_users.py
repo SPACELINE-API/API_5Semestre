@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.modules.auth.policies.policy import LOGIN_LOCKOUT_TIMEOUT_MINUTES, LOGIN_MAX_ATTEMPTS
 from app.modules.auth.security.security import hash_password
 from app.modules.auth.services.supabase_admin_client import SupabaseAdminClient
+from app.modules.seed.database_cleaner import clear_application_tables
 from app.shared.database import get_session_factory
 from app.shared.EnvProvider import env_provider
 
@@ -38,6 +39,7 @@ def seed_users(
     )
 
     try:
+        clear_application_tables(database_session)
         seeded_emails = []
 
         for seed_user in SEED_USERS:
