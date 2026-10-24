@@ -55,7 +55,9 @@ export function ProposalEmpty({ filtered }: { filtered: boolean }) {
 				<FileText size={22} color="#2563eb" />
 			</View>
 			<Text className="font-inter font-semibold text-gray-900 text-base">
-				{filtered ? 'Nenhuma proposta encontrada' : 'Nenhuma proposta cadastrada'}
+				{filtered
+					? 'Nenhuma proposta encontrada'
+					: 'Nenhuma proposta cadastrada'}
 			</Text>
 			<Text className="mt-1 text-center font-inter text-gray-500 text-sm">
 				{filtered

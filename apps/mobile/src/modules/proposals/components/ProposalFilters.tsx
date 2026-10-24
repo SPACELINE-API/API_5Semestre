@@ -38,9 +38,9 @@ export function ProposalFilters({
 	const [openDate, setOpenDate] = useState<'start' | 'end' | null>(null);
 	const hasFilters = Boolean(
 		filters.startDate ||
-			filters.endDate ||
-			filters.status !== 'all' ||
-			filters.enterprise,
+		filters.endDate ||
+		filters.status !== 'all' ||
+		filters.enterprise,
 	);
 
 	function clearFilters() {
@@ -74,7 +74,10 @@ export function ProposalFilters({
 							onChange({
 								...filters,
 								startDate,
-								endDate: filters.endDate && startDate > filters.endDate ? '' : filters.endDate,
+								endDate:
+									filters.endDate && startDate > filters.endDate
+										? ''
+										: filters.endDate,
 								page: 1,
 							})
 						}
@@ -89,7 +92,9 @@ export function ProposalFilters({
 							value={filters.endDate}
 							placeholder="Fim"
 							minDate={filters.startDate || undefined}
-							onChangeText={(endDate) => onChange({ ...filters, endDate, page: 1 })}
+							onChangeText={(endDate) =>
+								onChange({ ...filters, endDate, page: 1 })
+							}
 							onOpenChange={trackOpen('end')}
 						/>
 					</View>
@@ -113,7 +118,10 @@ export function ProposalFilters({
 							<Text className="font-inter text-red-600 text-xs">
 								{companiesError}
 							</Text>
-							<TouchableOpacity onPress={onRetryCompanies} accessibilityRole="button">
+							<TouchableOpacity
+								onPress={onRetryCompanies}
+								accessibilityRole="button"
+							>
 								<Text className="font-inter font-semibold text-blue-600 text-xs">
 									Tentar novamente
 								</Text>
@@ -145,7 +153,11 @@ export function ProposalFilters({
 						options={SORT_OPTIONS}
 						searchable={false}
 						onChange={(value) =>
-							onChange({ ...filters, orderBy: value as ProposalSortField, page: 1 })
+							onChange({
+								...filters,
+								orderBy: value as ProposalSortField,
+								page: 1,
+							})
 						}
 					/>
 				</View>

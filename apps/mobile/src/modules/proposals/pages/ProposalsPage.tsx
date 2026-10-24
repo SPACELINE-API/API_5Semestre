@@ -82,7 +82,9 @@ export function ProposalsPage() {
 	const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
 	const [companies, setCompanies] = useState<string[]>([]);
 	const [companiesError, setCompaniesError] = useState<string | null>(null);
-	const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
+	const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(
+		null,
+	);
 	const { result, isLoading, error, refresh } = useProposals(filters);
 	const hasFocusedBefore = useRef(false);
 	const refreshProposals = useRef(refresh);
@@ -90,9 +92,9 @@ export function ProposalsPage() {
 	const total = result?.total ?? 0;
 	const hasFilters = Boolean(
 		filters.startDate ||
-			filters.endDate ||
-			filters.status !== 'all' ||
-			filters.enterprise,
+		filters.endDate ||
+		filters.status !== 'all' ||
+		filters.enterprise,
 	);
 
 	const loadCompanies = useCallback(async () => {
@@ -201,7 +203,9 @@ export function ProposalsPage() {
 				onClose={() => setSelectedProposal(null)}
 				onOpenQuote={(proposal) => {
 					setSelectedProposal(null);
-					router.push(`/orcamento?quoteId=${encodeURIComponent(proposal.id)}` as never);
+					router.push(
+						`/orcamento?quoteId=${encodeURIComponent(proposal.id)}` as never,
+					);
 				}}
 			/>
 		</View>

@@ -18,30 +18,35 @@ const STATUS_ORDER: ProposalStatus[] = ['pending', 'approved', 'reproved'];
 
 function statusOption(proposals: Proposal[]): ChartOption {
 	const counts = STATUS_ORDER.map(
-		(status) => proposals.filter((proposal) => proposal.status === status).length,
+		(status) =>
+			proposals.filter((proposal) => proposal.status === status).length,
 	);
 	return {
 		textStyle: TEXT,
 		tooltip: { trigger: 'item', confine: true },
 		legend: { bottom: 0, icon: 'circle', textStyle: { ...TEXT, fontSize: 12 } },
-		series: [{
-			name: 'Propostas',
-			type: 'pie',
-			radius: ['48%', '72%'],
-			center: ['50%', '44%'],
-			label: { show: false },
-			itemStyle: { borderColor: '#FFFFFF', borderWidth: 3 },
-			data: STATUS_ORDER.map((status, index) => ({
-				name: PROPOSAL_STATUS_LABELS[status],
-				value: counts[index],
-				itemStyle: { color: PROPOSAL_STATUS_COLORS[status] },
-			})),
-		}],
+		series: [
+			{
+				name: 'Propostas',
+				type: 'pie',
+				radius: ['48%', '72%'],
+				center: ['50%', '44%'],
+				label: { show: false },
+				itemStyle: { borderColor: '#FFFFFF', borderWidth: 3 },
+				data: STATUS_ORDER.map((status, index) => ({
+					name: PROPOSAL_STATUS_LABELS[status],
+					value: counts[index],
+					itemStyle: { color: PROPOSAL_STATUS_COLORS[status] },
+				})),
+			},
+		],
 	};
 }
 
 function valuesOption(proposals: Proposal[], isMobile: boolean): ChartOption {
-	const rows = [...proposals].sort((a, b) => Number(b.total_value) - Number(a.total_value));
+	const rows = [...proposals].sort(
+		(a, b) => Number(b.total_value) - Number(a.total_value),
+	);
 	return {
 		textStyle: TEXT,
 		grid: { left: 8, right: 16, top: 8, bottom: 8, containLabel: true },
@@ -49,7 +54,8 @@ function valuesOption(proposals: Proposal[], isMobile: boolean): ChartOption {
 			trigger: 'axis',
 			axisPointer: { type: 'shadow' },
 			confine: true,
-			valueFormatter: (value: unknown) => formatProposalValue(Number(value) || 0),
+			valueFormatter: (value: unknown) =>
+				formatProposalValue(Number(value) || 0),
 		},
 		xAxis: {
 			type: 'value',
@@ -66,17 +72,24 @@ function valuesOption(proposals: Proposal[], isMobile: boolean): ChartOption {
 			type: 'category',
 			inverse: true,
 			data: rows.map(proposalCustomerLabel),
-			axisLabel: { ...TEXT, fontSize: 11, width: 120, overflow: 'truncate' as const },
+			axisLabel: {
+				...TEXT,
+				fontSize: 11,
+				width: 120,
+				overflow: 'truncate' as const,
+			},
 			axisLine: { show: false },
 			axisTick: { show: false },
 		},
-		series: [{
-			name: 'Valor total',
-			type: 'bar',
-			barMaxWidth: 22,
-			data: rows.map((proposal) => Number(proposal.total_value) || 0),
-			itemStyle: { color: '#1C6FB0', borderRadius: [0, 4, 4, 0] },
-		}],
+		series: [
+			{
+				name: 'Valor total',
+				type: 'bar',
+				barMaxWidth: 22,
+				data: rows.map((proposal) => Number(proposal.total_value) || 0),
+				itemStyle: { color: '#1C6FB0', borderRadius: [0, 4, 4, 0] },
+			},
+		],
 	};
 }
 
@@ -95,17 +108,34 @@ export function ProposalCharts({ proposals }: ProposalChartsProps) {
 	return (
 		<View className="gap-4 md:flex-row">
 			<View className="md:flex-1">
-				<ChartCard title="Propostas por status" subtitle="Dados da página atual">
+				<ChartCard
+					title="Propostas por status"
+					subtitle="Dados da página atual"
+				>
 					{proposals.length ? (
-						<EChart option={status} height={240} accessibilityLabel="Gráfico de rosca com a distribuição das propostas da página atual por status" showLoadingIndicator={isMobile} />
-					) : <EmptyChart />}
+						<EChart
+							option={status}
+							height={240}
+							accessibilityLabel="Gráfico de rosca com a distribuição das propostas da página atual por status"
+							showLoadingIndicator={isMobile}
+						/>
+					) : (
+						<EmptyChart />
+					)}
 				</ChartCard>
 			</View>
 			<View className="md:flex-[2]">
 				<ChartCard title="Valor por proposta" subtitle="Dados da página atual">
 					{proposals.length ? (
-						<EChart option={values} height={height} accessibilityLabel="Gráfico de barras com o valor total de cada proposta da página atual" showLoadingIndicator={isMobile} />
-					) : <EmptyChart />}
+						<EChart
+							option={values}
+							height={height}
+							accessibilityLabel="Gráfico de barras com o valor total de cada proposta da página atual"
+							showLoadingIndicator={isMobile}
+						/>
+					) : (
+						<EmptyChart />
+					)}
 				</ChartCard>
 			</View>
 		</View>
@@ -113,5 +143,11 @@ export function ProposalCharts({ proposals }: ProposalChartsProps) {
 }
 
 function EmptyChart() {
-	return <View className="items-center justify-center py-10"><Text className="text-center font-inter text-gray-400 text-xs">Nenhuma proposta nesta página.</Text></View>;
+	return (
+		<View className="items-center justify-center py-10">
+			<Text className="text-center font-inter text-gray-400 text-xs">
+				Nenhuma proposta nesta página.
+			</Text>
+		</View>
+	);
 }

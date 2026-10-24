@@ -39,7 +39,10 @@ export function ProposalDetailModal({
 		>
 			{proposal && (
 				<View className="px-5 pb-5 md:px-7">
-					<DetailField label="Cliente" value={proposalCustomerLabel(proposal)} />
+					<DetailField
+						label="Cliente"
+						value={proposalCustomerLabel(proposal)}
+					/>
 					<DetailField
 						label="Empresa"
 						value={proposal.enterprise?.trim() || 'Não informada'}

@@ -18,7 +18,8 @@ export function useProposals(filters: ProposalFilters) {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const requestId = useRef(0);
-	const { startDate, endDate, status, enterprise, orderBy, orderDir, page } = filters;
+	const { startDate, endDate, status, enterprise, orderBy, orderDir, page } =
+		filters;
 
 	const refresh = useCallback(async () => {
 		const current = ++requestId.current;

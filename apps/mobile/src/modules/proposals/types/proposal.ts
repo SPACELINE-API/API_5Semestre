@@ -1,10 +1,7 @@
 export type ProposalStatus = 'pending' | 'approved' | 'reproved';
 
 export type ProposalSortField =
-	| 'created_at'
-	| 'status'
-	| 'customer_name'
-	| 'enterprise';
+	'created_at' | 'status' | 'customer_name' | 'enterprise';
 
 export type Proposal = {
 	id: string;

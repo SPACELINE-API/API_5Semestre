@@ -51,9 +51,7 @@ export function EChart({
 		<View
 			onLayout={handleLayout}
 			accessibilityRole={isLoading ? 'progressbar' : 'image'}
-			accessibilityLabel={
-				isLoading ? 'Carregando gráfico' : accessibilityLabel
-			}
+			accessibilityLabel={isLoading ? 'Carregando gráfico' : accessibilityLabel}
 			accessibilityState={{ busy: isLoading }}
 			style={{ width: '100%', height }}
 		>
@@ -65,9 +63,7 @@ export function EChart({
 					height={height}
 					onLayout={() => setRenderedSvg(svg)}
 					accessibilityElementsHidden={isLoading}
-					importantForAccessibility={
-						isLoading ? 'no-hide-descendants' : 'auto'
-					}
+					importantForAccessibility={isLoading ? 'no-hide-descendants' : 'auto'}
 				/>
 			) : null}
 			{isLoading ? (

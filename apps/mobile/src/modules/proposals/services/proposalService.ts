@@ -9,9 +9,7 @@ export function listProposalCompanies(): Promise<string[]> {
 	return apiGetAuth<string[]>(PROPOSAL_COMPANIES_PATH);
 }
 
-export function listProposals(
-	filters: ProposalFilters,
-): Promise<ProposalPage> {
+export function listProposals(filters: ProposalFilters): Promise<ProposalPage> {
 	const query = new URLSearchParams({
 		page: String(filters.page),
 		page_size: String(PAGE_SIZE),
