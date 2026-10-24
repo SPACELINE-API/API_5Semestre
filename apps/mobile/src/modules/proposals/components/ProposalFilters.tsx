@@ -25,11 +25,15 @@ const STATUS_OPTIONS: { value: ProposalStatus; label: string }[] = [
 export function ProposalFilters({
 	filters,
 	companies,
+	companiesError,
 	onChange,
+	onRetryCompanies,
 }: {
 	filters: Filters;
 	companies: string[];
+	companiesError: string | null;
 	onChange: (filters: Filters) => void;
+	onRetryCompanies: () => void;
 }) {
 	const [openDate, setOpenDate] = useState<'start' | 'end' | null>(null);
 	const hasFilters = Boolean(
@@ -99,10 +103,23 @@ export function ProposalFilters({
 							value: company,
 							label: company,
 						}))}
+						searchable
 						onChange={(enterprise) =>
 							onChange({ ...filters, enterprise, page: 1 })
 						}
 					/>
+					{companiesError && (
+						<View className="mt-2 flex-row flex-wrap items-center gap-2">
+							<Text className="font-inter text-red-600 text-xs">
+								{companiesError}
+							</Text>
+							<TouchableOpacity onPress={onRetryCompanies} accessibilityRole="button">
+								<Text className="font-inter font-semibold text-blue-600 text-xs">
+									Tentar novamente
+								</Text>
+							</TouchableOpacity>
+						</View>
+					)}
 				</View>
 				<View className="min-w-0 flex-1">
 					<SelectField
@@ -110,6 +127,7 @@ export function ProposalFilters({
 						value={filters.status}
 						allLabel="Todas as situações"
 						options={STATUS_OPTIONS}
+						searchable={false}
 						onChange={(value) =>
 							onChange({
 								...filters,
@@ -125,33 +143,12 @@ export function ProposalFilters({
 						value={filters.orderBy}
 						allLabel="Ordenar por"
 						options={SORT_OPTIONS}
+						searchable={false}
 						onChange={(value) =>
 							onChange({ ...filters, orderBy: value as ProposalSortField, page: 1 })
 						}
 					/>
 				</View>
-				<TouchableOpacity
-					accessibilityRole="button"
-					accessibilityLabel={filters.orderDir === 'desc' ? 'Ordem decrescente' : 'Ordem crescente'}
-					onPress={() =>
-						onChange({
-							...filters,
-							orderDir: filters.orderDir === 'desc' ? 'asc' : 'desc',
-							page: 1,
-						})
-					}
-					className="h-11 items-center justify-center rounded-lg border border-gray-300 px-4"
-				>
-					<Text className="font-inter font-medium text-gray-700 text-sm">
-						{filters.orderBy === 'created_at'
-							? filters.orderDir === 'desc'
-								? 'Mais recentes'
-								: 'Mais antigas'
-							: filters.orderDir === 'desc'
-								? 'Decrescente'
-								: 'Crescente'}
-					</Text>
-				</TouchableOpacity>
 			</View>
 			{hasFilters && (
 				<TouchableOpacity

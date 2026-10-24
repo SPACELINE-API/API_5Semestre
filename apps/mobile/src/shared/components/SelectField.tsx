@@ -18,6 +18,7 @@ type SelectFieldProps = {
 	options: SelectOption[];
 	onChange: (value: string) => void;
 	allLabel: string;
+	searchable?: boolean;
 };
 
 function normalize(text: string): string {
@@ -30,16 +31,18 @@ export function SelectField({
 	options,
 	onChange,
 	allLabel,
+	searchable = true,
 }: SelectFieldProps) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [query, setQuery] = useState('');
 	const selected = options.find((option) => option.value === value);
 
 	const visibleOptions = useMemo(() => {
+		if (!searchable) return [{ value: '', label: allLabel }, ...options];
 		const term = normalize(query.trim());
 		if (!term) return [{ value: '', label: allLabel }, ...options];
 		return options.filter((option) => normalize(option.label).includes(term));
-	}, [allLabel, options, query]);
+	}, [allLabel, options, query, searchable]);
 
 	function close() {
 		setIsOpen(false);
@@ -93,17 +96,19 @@ export function SelectField({
 								<X size={20} color="#5A5A5A" />
 							</TouchableOpacity>
 						</View>
-						<View className="mx-4 mt-3 flex-row items-center gap-2 rounded-lg border border-gray-300 px-3">
-							<Search size={14} color="#9CA3AF" />
-							<TextInput
-								value={query}
-								onChangeText={setQuery}
-								placeholder="Pesquisar"
-								placeholderTextColor="#9CA3AF"
-								accessibilityLabel={`Pesquisar ${label}`}
-								className="h-10 flex-1 font-inter text-gray-900 text-sm"
-							/>
-						</View>
+						{searchable && (
+							<View className="mx-4 mt-3 flex-row items-center gap-2 rounded-lg border border-gray-300 px-3">
+								<Search size={14} color="#9CA3AF" />
+								<TextInput
+									value={query}
+									onChangeText={setQuery}
+									placeholder="Pesquisar"
+									placeholderTextColor="#9CA3AF"
+									accessibilityLabel={`Pesquisar ${label}`}
+									className="h-10 flex-1 font-inter text-gray-900 text-sm"
+								/>
+							</View>
+						)}
 						<ScrollView className="px-4" keyboardShouldPersistTaps="handled">
 							{visibleOptions.length === 0 && (
 								<Text className="py-3 font-inter text-gray-400 text-sm">

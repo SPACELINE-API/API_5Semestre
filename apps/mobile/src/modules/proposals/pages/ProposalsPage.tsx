@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { ProposalCharts } from '../components/ProposalCharts';
 import { ProposalDetailModal } from '../components/ProposalDetailModal';
 import { ProposalFilters } from '../components/ProposalFilters';
@@ -81,8 +81,11 @@ export function ProposalsPage() {
 	const router = useRouter();
 	const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
 	const [companies, setCompanies] = useState<string[]>([]);
+	const [companiesError, setCompaniesError] = useState<string | null>(null);
 	const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
 	const { result, isLoading, error, refresh } = useProposals(filters);
+	const hasFocusedBefore = useRef(false);
+	const refreshProposals = useRef(refresh);
 	const proposals = result?.items ?? [];
 	const total = result?.total ?? 0;
 	const hasFilters = Boolean(
@@ -92,11 +95,29 @@ export function ProposalsPage() {
 			filters.enterprise,
 	);
 
-	useEffect(() => {
-		listProposalCompanies()
-			.then(setCompanies)
-			.catch(() => setCompanies([]));
+	const loadCompanies = useCallback(async () => {
+		try {
+			const data = await listProposalCompanies();
+			setCompanies(data);
+			setCompaniesError(null);
+		} catch {
+			setCompaniesError('Não foi possível carregar as empresas.');
+		}
 	}, []);
+	useEffect(() => {
+		refreshProposals.current = refresh;
+	}, [refresh]);
+
+	useFocusEffect(
+		useCallback(() => {
+			void loadCompanies();
+			if (hasFocusedBefore.current) {
+				void refreshProposals.current();
+			} else {
+				hasFocusedBefore.current = true;
+			}
+		}, [loadCompanies]),
+	);
 
 	useEffect(() => {
 		if (!result || result.total === 0) return;
@@ -125,7 +146,9 @@ export function ProposalsPage() {
 					<ProposalFilters
 						filters={filters}
 						companies={companies}
+						companiesError={companiesError}
 						onChange={setFilters}
+						onRetryCompanies={() => void loadCompanies()}
 					/>
 
 					{isLoading ? (

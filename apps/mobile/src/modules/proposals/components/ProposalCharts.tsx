@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Text, View } from 'react-native';
+import { Text, useWindowDimensions, View } from 'react-native';
 import { EChart } from '../../../shared/components/charts/EChart';
 import type { ChartOption } from '../../../shared/components/charts/types';
 import type { Proposal, ProposalStatus } from '../types/proposal';
@@ -40,7 +40,7 @@ function statusOption(proposals: Proposal[]): ChartOption {
 	};
 }
 
-function valuesOption(proposals: Proposal[]): ChartOption {
+function valuesOption(proposals: Proposal[], isMobile: boolean): ChartOption {
 	const rows = [...proposals].sort((a, b) => Number(b.total_value) - Number(a.total_value));
 	return {
 		textStyle: TEXT,
@@ -53,9 +53,11 @@ function valuesOption(proposals: Proposal[]): ChartOption {
 		},
 		xAxis: {
 			type: 'value',
+			splitNumber: isMobile ? 3 : undefined,
 			axisLabel: {
 				...TEXT,
 				fontSize: 11,
+				hideOverlap: true,
 				formatter: (value: number) => formatCompact(value),
 			},
 			splitLine: { lineStyle: { color: GRID } },
@@ -81,8 +83,13 @@ function valuesOption(proposals: Proposal[]): ChartOption {
 type ProposalChartsProps = { proposals: Proposal[] };
 
 export function ProposalCharts({ proposals }: ProposalChartsProps) {
+	const { width } = useWindowDimensions();
+	const isMobile = width < 768;
 	const status = useMemo(() => statusOption(proposals), [proposals]);
-	const values = useMemo(() => valuesOption(proposals), [proposals]);
+	const values = useMemo(
+		() => valuesOption(proposals, isMobile),
+		[proposals, isMobile],
+	);
 	const height = Math.max(160, Math.min(proposals.length, 8) * 40 + 56);
 
 	return (
@@ -90,14 +97,14 @@ export function ProposalCharts({ proposals }: ProposalChartsProps) {
 			<View className="md:flex-1">
 				<ChartCard title="Propostas por status" subtitle="Dados da página atual">
 					{proposals.length ? (
-						<EChart option={status} height={240} accessibilityLabel="Gráfico de rosca com a distribuição das propostas da página atual por status" />
+						<EChart option={status} height={240} accessibilityLabel="Gráfico de rosca com a distribuição das propostas da página atual por status" showLoadingIndicator={isMobile} />
 					) : <EmptyChart />}
 				</ChartCard>
 			</View>
 			<View className="md:flex-[2]">
 				<ChartCard title="Valor por proposta" subtitle="Dados da página atual">
 					{proposals.length ? (
-						<EChart option={values} height={height} accessibilityLabel="Gráfico de barras com o valor total de cada proposta da página atual" />
+						<EChart option={values} height={height} accessibilityLabel="Gráfico de barras com o valor total de cada proposta da página atual" showLoadingIndicator={isMobile} />
 					) : <EmptyChart />}
 				</ChartCard>
 			</View>
