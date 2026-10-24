@@ -80,15 +80,14 @@ test.describe('autenticação mobile unificada', () => {
 		).toBe(false);
 	});
 
-	test('oculta orçamento e bloqueia acesso direto para perfil sem quotes.read', async ({
+	test('desabilita orçamento e bloqueia acesso direto para perfil sem quotes.read', async ({
 		page,
 	}) => {
 		await useExternalProfile(page);
 		await page.goto('/visualizar-requisicoes');
-		await expect(page.getByText('Orçamento', { exact: true })).toHaveCount(0);
 		await expect(
-			page.getByText('Tarefas atribuídas', { exact: true }),
-		).toHaveCount(0);
+			page.getByRole('button', { name: 'Orçamento', exact: true }),
+		).toBeDisabled();
 		await page.goto('/orcamento/novo-orcamento');
 		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
 	});
@@ -141,14 +140,18 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(
 			page.getByText('Tarefas atribuídas', { exact: true }),
 		).toHaveCount(0);
-		await expect(page.getByText('Requisições', { exact: true })).toHaveCount(0);
+		await expect(
+			page.getByRole('button', { name: 'Requisições', exact: true }),
+		).toBeDisabled();
 
 		await page.goto('/rota-inexistente');
 		await expect(page.getByText('Página não encontrada')).toBeVisible();
 		await expect(
 			page.getByText('Tarefas atribuídas', { exact: true }),
 		).toHaveCount(0);
-		await expect(page.getByText('Requisições', { exact: true })).toHaveCount(0);
+		await expect(
+			page.getByRole('button', { name: 'Requisições', exact: true }),
+		).toBeDisabled();
 	});
 
 	test('mantém a rota pública de solicitação sem sessão', async ({ page }) => {
@@ -207,5 +210,83 @@ test.describe('autenticação mobile unificada', () => {
 		await page.getByText('ATUALIZAR SENHA', { exact: true }).click();
 		await expect(page.getByText('Senha atualizada com sucesso.')).toBeVisible();
 		expect(requestBody.access_token).toBe('mobile-token');
+	});
+});
+
+test.describe('configuração de permissões', () => {
+	test('cadastra um novo perfil sem permissões e o seleciona', async ({
+		page,
+	}) => {
+		let requestBody: Record<string, unknown> = {};
+		await useExternalProfile(page, [], 'Administrador');
+		await page.route('**/api/roles/permissions', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([
+					{ id: 'clients-read', code: 'clients.read', description: null },
+					{ id: 'clients-write', code: 'clients.write', description: null },
+				]),
+			}),
+		);
+		await page.route('**/api/roles', async (route) => {
+			if (route.request().method() === 'POST') {
+				requestBody = route.request().postDataJSON();
+				await route.fulfill({
+					status: 201,
+					contentType: 'application/json',
+					body: JSON.stringify({
+						id: 'role-comercial',
+						name: 'Comercial',
+						description: 'Acompanha propostas',
+						is_active: true,
+						permissions: [],
+					}),
+				});
+				return;
+			}
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([
+					{
+						id: 'role-atendimento',
+						name: 'Atendimento',
+						description: null,
+						is_active: true,
+						permissions: [
+							{ id: 'clients-read', code: 'clients.read', description: null },
+						],
+					},
+				]),
+			});
+		});
+
+		await page.goto('/configuracoes/permissoes');
+		await expect(page.getByText('Atendimento').first()).toBeVisible();
+
+		await page.getByRole('button', { name: 'Novo perfil' }).click();
+		await page.getByPlaceholder('Ex: Comercial').fill('Comercial');
+		await page
+			.getByPlaceholder('Ex: Acompanha propostas e clientes')
+			.fill('Acompanha propostas');
+		await page
+			.getByRole('button', { name: 'Confirmar cadastro do perfil de acesso' })
+			.click();
+
+		await expect(
+			page.getByText('Perfil cadastrado com sucesso!'),
+		).toBeVisible();
+		expect(requestBody).toEqual({
+			name: 'Comercial',
+			description: 'Acompanha propostas',
+			permission_ids: [],
+		});
+		await expect(
+			page.getByRole('button', { name: 'Selecionar perfil de acesso' }),
+		).toContainText('Comercial');
+		await expect(
+			page.getByRole('switch', { name: 'Visualização' }),
+		).not.toBeChecked();
 	});
 });

@@ -1,5 +1,6 @@
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { CircleAlert } from 'lucide-react-native';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type RequestDecisionPanelProps = {
 	error: string;
@@ -24,6 +25,8 @@ export function RequestDecisionPanel({
 	onApprove,
 	onReprove,
 }: RequestDecisionPanelProps) {
+	const canWriteRequests = usePermission('requests.write');
+
 	return (
 		<View className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
 			<Text className="font-inter-bold text-sm text-gray-900">
@@ -86,9 +89,9 @@ export function RequestDecisionPanel({
 				<View className="mt-5 flex-row flex-wrap gap-3">
 					<TouchableOpacity
 						accessibilityRole="button"
-						disabled={statusUpdating}
+						disabled={statusUpdating || !canWriteRequests}
 						onPress={onOpenRejection}
-						className="rounded-lg border border-red-200 px-4 py-3"
+						className={`rounded-lg border border-red-200 px-4 py-3 ${!canWriteRequests ? 'opacity-40' : ''}`}
 					>
 						<Text className="font-inter-medium text-sm text-red-700">
 							Reprovar solicitação
@@ -96,9 +99,9 @@ export function RequestDecisionPanel({
 					</TouchableOpacity>
 					<TouchableOpacity
 						accessibilityRole="button"
-						disabled={statusUpdating}
+						disabled={statusUpdating || !canWriteRequests}
 						onPress={onApprove}
-						className={`rounded-lg px-4 py-3 ${statusUpdating ? 'bg-gray-300' : 'bg-blue-600'}`}
+						className={`rounded-lg px-4 py-3 ${statusUpdating ? 'bg-gray-300' : 'bg-blue-600'} ${!canWriteRequests ? 'opacity-40' : ''}`}
 					>
 						<Text className="font-inter-medium text-sm text-white">
 							{statusUpdating ? 'Salvando...' : 'Aprovar solicitação'}

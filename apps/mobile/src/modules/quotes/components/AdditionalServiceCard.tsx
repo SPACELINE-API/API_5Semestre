@@ -3,6 +3,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { CheckCheck, PackagePlus, Pencil } from 'lucide-react-native';
 import type { AdditionalService } from '../services/additionalService';
 import { decimalStringToBRL } from '../../../shared/utils/currency';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 const statusStyles: Record<string, { label: string; classes: string }> = {
 	approved: { label: 'Concluído', classes: 'bg-emerald-50 text-emerald-700' },
@@ -31,6 +32,7 @@ export function AdditionalServiceCard({
 	onMarkAsCompleted?: () => Promise<void>;
 }) {
 	const [isCompleting, setIsCompleting] = useState(false);
+	const canWriteQuotes = usePermission('quotes.write');
 	const canMarkAsCompleted =
 		service.status === 'pending' && Boolean(onMarkAsCompleted);
 
@@ -88,11 +90,11 @@ export function AdditionalServiceCard({
 					{canMarkAsCompleted && (
 						<TouchableOpacity
 							onPress={handleMarkAsCompleted}
-							disabled={isCompleting}
+							disabled={isCompleting || !canWriteQuotes}
 							activeOpacity={0.7}
 							accessibilityRole="button"
 							accessibilityLabel={`Marcar serviço adicional ${service.description} como concluído`}
-							className={`flex-row items-center gap-1 py-1 ${isCompleting ? 'opacity-60' : ''}`}
+							className={`flex-row items-center gap-1 py-1 ${isCompleting ? 'opacity-60' : !canWriteQuotes ? 'opacity-40' : ''}`}
 						>
 							<CheckCheck size={14} color="#047857" />
 							<Text className="font-inter font-medium text-emerald-700 text-xs">
@@ -103,10 +105,11 @@ export function AdditionalServiceCard({
 					{onEdit && service.status !== 'approved' && (
 						<TouchableOpacity
 							onPress={onEdit}
+							disabled={!canWriteQuotes}
 							activeOpacity={0.7}
 							accessibilityRole="button"
 							accessibilityLabel={`Editar serviço adicional ${service.description}`}
-							className="flex-row items-center gap-1 py-1"
+							className={`flex-row items-center gap-1 py-1 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 						>
 							<Pencil size={14} color="#353535" />
 							<Text className="font-inter font-medium text-gray-700 text-xs">

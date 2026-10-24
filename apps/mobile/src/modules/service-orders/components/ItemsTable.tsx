@@ -12,6 +12,7 @@ import { openDocument } from '../../../shared/components/FilePreview';
 import { getTruncatedFileName } from '../../../shared/utils/file';
 import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
 import { formatDate, formatPrice } from '../utils/format';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type ItemsTableProps = {
 	items: ServiceOrderItem[];
@@ -34,15 +35,17 @@ function HeaderCell({ label, width }: { label: string; width: `${number}%` }) {
 
 function AddItemButton({ onPress }: { onPress: () => void }) {
 	const isDesktop = useIsDesktop();
+	const canWriteServiceOrders = usePermission('service_orders.write');
 
 	if (!isDesktop) {
 		return (
 			<TouchableOpacity
 				onPress={onPress}
+				disabled={!canWriteServiceOrders}
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityLabel="Adicionar item"
-				className="h-11 w-11 items-center justify-center self-end rounded-full bg-blue-300"
+				className={`h-11 w-11 items-center justify-center self-end rounded-full bg-blue-300 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 			>
 				<Plus size={20} color="#042C53" />
 			</TouchableOpacity>
@@ -52,10 +55,11 @@ function AddItemButton({ onPress }: { onPress: () => void }) {
 	return (
 		<TouchableOpacity
 			onPress={onPress}
+			disabled={!canWriteServiceOrders}
 			activeOpacity={0.7}
 			accessibilityRole="button"
 			accessibilityLabel="Adicionar item"
-			className="flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2"
+			className={`flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 		>
 			<Plus size={14} color="#353535" />
 			<Text className="font-inter font-semibold text-gray-800 text-xs">
@@ -76,6 +80,7 @@ function MobileItemCard({
 	onEdit: () => void;
 	onDelete: () => void;
 }) {
+	const canWriteServiceOrders = usePermission('service_orders.write');
 	return (
 		<View className="gap-4 rounded-xl border border-gray-200 bg-white p-4">
 			<View className="flex-row flex-wrap items-center justify-between gap-2">
@@ -142,10 +147,11 @@ function MobileItemCard({
 					<View className="flex-row flex-nowrap items-center gap-x-4">
 						<TouchableOpacity
 							onPress={onEdit}
+							disabled={!canWriteServiceOrders}
 							activeOpacity={0.7}
 							accessibilityRole="button"
 							accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
-							className="flex-row items-center gap-1 self-start py-1"
+							className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 						>
 							<Pencil size={14} color="#353535" />
 							<Text className="font-inter font-medium text-gray-700 text-xs">
@@ -154,10 +160,11 @@ function MobileItemCard({
 						</TouchableOpacity>
 						<TouchableOpacity
 							onPress={onDelete}
+							disabled={!canWriteServiceOrders}
 							activeOpacity={0.7}
 							accessibilityRole="button"
 							accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
-							className="flex-row items-center gap-1 self-start py-1"
+							className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 						>
 							<Trash2 size={14} color="#B91C1C" />
 							<Text className="font-inter font-medium text-red-700 text-xs">
@@ -179,6 +186,7 @@ export function ItemsTable({
 	onDeleteItem,
 }: ItemsTableProps) {
 	const isDesktop = useIsDesktop();
+	const canWriteServiceOrders = usePermission('service_orders.write');
 
 	if (items.length === 0) {
 		return (
@@ -304,10 +312,11 @@ export function ItemsTable({
 							<View className="md:w-[12%]">
 								<TouchableOpacity
 									onPress={() => onEditItem(item)}
+									disabled={!canWriteServiceOrders}
 									activeOpacity={0.7}
 									accessibilityRole="button"
 									accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
-									className="mb-1 flex-row items-center gap-2 self-start rounded-md px-1.5 py-1"
+									className={`mb-1 flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 								>
 									<Pencil size={14} color="#353535" />
 									<Text className="font-inter font-medium text-gray-700 text-sm">
@@ -316,10 +325,11 @@ export function ItemsTable({
 								</TouchableOpacity>
 								<TouchableOpacity
 									onPress={() => onDeleteItem(item)}
+									disabled={!canWriteServiceOrders}
 									activeOpacity={0.7}
 									accessibilityRole="button"
 									accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
-									className="flex-row items-center gap-2 self-start rounded-md px-1.5 py-1"
+									className={`flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 								>
 									<Trash2 size={14} color="#B91C1C" />
 									<Text className="font-inter font-medium text-red-700 text-sm">

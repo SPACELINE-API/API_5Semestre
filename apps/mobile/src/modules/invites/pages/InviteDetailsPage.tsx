@@ -26,6 +26,7 @@ import { formatDate, formatPrice } from '../utils/format';
 import { acceptInvite, declineInvite } from '../services/inviteService';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type InviteDetailsPageProps = {
 	id: string;
@@ -36,6 +37,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 	const { invite, item, isLoading, error, setInvite } = useInviteDetails(id);
 	const { toast, showToast } = useToast();
 	const [isResponding, setIsResponding] = useState(false);
+	const canRespondInvites = usePermission('assignments.respond');
 
 	useEffect(() => {
 		if (!getSession()) {
@@ -237,11 +239,15 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 								<>
 									<TouchableOpacity
 										onPress={handleAccept}
-										disabled={isResponding}
+										disabled={isResponding || !canRespondInvites}
 										accessibilityRole="button"
 										accessibilityLabel="Aceitar convite"
 										className={`flex-row items-center gap-1.5 rounded-lg bg-green-600 px-5 py-2.5 ${
-											isResponding ? 'opacity-60' : ''
+											isResponding
+												? 'opacity-60'
+												: !canRespondInvites
+													? 'opacity-40'
+													: ''
 										}`}
 									>
 										<Check size={15} color="#FFFFFF" />
@@ -252,11 +258,15 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 
 									<TouchableOpacity
 										onPress={handleDecline}
-										disabled={isResponding}
+										disabled={isResponding || !canRespondInvites}
 										accessibilityRole="button"
 										accessibilityLabel="Recusar convite"
 										className={`flex-row items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-5 py-2.5 ${
-											isResponding ? 'opacity-60' : ''
+											isResponding
+												? 'opacity-60'
+												: !canRespondInvites
+													? 'opacity-40'
+													: ''
 										}`}
 									>
 										<X size={15} color="#791F1F" />

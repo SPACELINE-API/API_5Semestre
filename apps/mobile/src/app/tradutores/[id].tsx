@@ -36,6 +36,7 @@ import { TabBar } from '../../shared/components/TabBar';
 import { Toast } from '../../shared/components/Toast';
 import { useToast } from '../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog';
+import { usePermission } from '../../modules/auth/hooks/usePermission';
 
 type TranslatorTab = 'info' | 'languages' | 'requests';
 
@@ -79,6 +80,7 @@ export default function TranslatorDetailsScreen() {
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+	const canWriteTranslators = usePermission('translators.write');
 	const { toast, showToast } = useToast();
 	const [activeTab, setActiveTab] = useState<TranslatorTab>('info');
 	const certificates = useTranslatorCertificates(id as string | undefined);
@@ -225,8 +227,9 @@ export default function TranslatorDetailsScreen() {
 					</View>
 					<TouchableOpacity
 						onPress={() => setIsDeleteConfirmVisible(true)}
+						disabled={!canWriteTranslators}
 						activeOpacity={0.7}
-						className="h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50"
+						className={`h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 ${!canWriteTranslators ? 'opacity-40' : ''}`}
 					>
 						<Trash2 size={16} color="#DC2626" />
 					</TouchableOpacity>
@@ -234,8 +237,9 @@ export default function TranslatorDetailsScreen() {
 
 				<TouchableOpacity
 					onPress={() => setIsEditModalVisible(true)}
+					disabled={!canWriteTranslators}
 					activeOpacity={0.7}
-					className="mb-6 flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2"
+					className={`mb-6 flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${!canWriteTranslators ? 'opacity-40' : ''}`}
 				>
 					<Pencil size={14} color="#353535" />
 					<Text className="font-inter font-semibold text-gray-800 text-xs">

@@ -1,6 +1,7 @@
 import { Pencil, Trash2, UserPlus } from 'lucide-react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import type { Contact } from '../../contacts/types/contact';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type ContactAction = (contact: Contact) => void;
 
@@ -31,6 +32,8 @@ function ContactRow({
 	onEdit: ContactAction;
 	onDelete: ContactAction;
 }) {
+	const canWriteContacts = usePermission('contacts.write');
+
 	return (
 		<View
 			className={`flex-row items-center py-3.5 ${
@@ -80,6 +83,8 @@ function ContactRow({
 			<View className="w-[60px] flex-row items-center justify-end gap-3">
 				<TouchableOpacity
 					onPress={() => onEdit(contact)}
+					disabled={!canWriteContacts}
+					style={{ opacity: canWriteContacts ? 1 : 0.4 }}
 					activeOpacity={0.7}
 					hitSlop={8}
 				>
@@ -87,6 +92,8 @@ function ContactRow({
 				</TouchableOpacity>
 				<TouchableOpacity
 					onPress={() => onDelete(contact)}
+					disabled={!canWriteContacts}
+					style={{ opacity: canWriteContacts ? 1 : 0.4 }}
 					activeOpacity={0.7}
 					hitSlop={8}
 				>
@@ -108,13 +115,16 @@ export function CompanyDetailsContactsTab({
 	onEdit: ContactAction;
 	onDelete: ContactAction;
 }) {
+	const canWriteContacts = usePermission('contacts.write');
+
 	return (
 		<View>
 			<View className="flex-row items-center justify-end pb-3">
 				<TouchableOpacity
 					onPress={onAdd}
+					disabled={!canWriteContacts}
 					activeOpacity={0.7}
-					className="flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2"
+					className={`flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 ${!canWriteContacts ? 'opacity-40' : ''}`}
 				>
 					<UserPlus size={14} color="#353535" />
 					<Text className="font-inter font-semibold text-gray-800 text-xs">

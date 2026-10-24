@@ -27,6 +27,7 @@ import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { deleteServiceOrder } from '../services/serviceOrderService';
 import { exportServiceOrdersAsJson } from '../utils/export';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 export function ServiceOrdersPage() {
 	const { width } = useWindowDimensions();
@@ -43,6 +44,7 @@ export function ServiceOrdersPage() {
 	const [isBulkDeleteConfirmVisible, setIsBulkDeleteConfirmVisible] =
 		useState(false);
 	const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+	const canWriteServiceOrders = usePermission('service_orders.write');
 	const { toast, showToast } = useToast();
 
 	useEffect(() => {
@@ -181,10 +183,11 @@ export function ServiceOrdersPage() {
 
 							<TouchableOpacity
 								onPress={() => setIsFormVisible(true)}
+								disabled={!canWriteServiceOrders}
 								activeOpacity={0.8}
 								accessibilityRole="button"
 								accessibilityLabel="Gerar ordem de serviço a partir de um orçamento"
-								className="shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3"
+								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 							>
 								<Plus size={18} color="#ffffff" />
 								<Text className="font-inter-medium text-sm text-white">
@@ -248,8 +251,9 @@ export function ServiceOrdersPage() {
 
 									<TouchableOpacity
 										onPress={() => setIsBulkDeleteConfirmVisible(true)}
+										disabled={!canWriteServiceOrders}
 										activeOpacity={0.7}
-										className="flex-row items-center gap-1.5"
+										className={`flex-row items-center gap-1.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 									>
 										<Trash2 size={14} color="#791F1F" />
 										<Text className="font-inter font-semibold text-red-900 text-xs">

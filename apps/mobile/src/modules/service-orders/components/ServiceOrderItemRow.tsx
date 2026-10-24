@@ -6,6 +6,7 @@ import { openDocument } from '../../../shared/components/FilePreview';
 import { getTruncatedFileName } from '../../../shared/utils/file';
 import { formatDate, formatPrice } from '../utils/format';
 import { useItemInvites } from '../hooks/useItemInvites';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type ServiceOrderItemRowProps = {
 	item: ServiceOrderItem;
@@ -20,6 +21,7 @@ export function ServiceOrderItemRow({
 	onInviteTranslators,
 	refreshToken,
 }: ServiceOrderItemRowProps) {
+	const canWriteAssignments = usePermission('assignments.write');
 	const { invites, isLoading: isLoadingInvites } = useItemInvites(
 		item.id,
 		refreshToken,
@@ -89,10 +91,11 @@ export function ServiceOrderItemRow({
 			{!item.translator_id && (
 				<TouchableOpacity
 					onPress={() => onInviteTranslators(item)}
+					disabled={!canWriteAssignments}
 					activeOpacity={0.7}
 					accessibilityRole="button"
 					accessibilityLabel={`Convidar tradutores para ${item.source_language} para ${item.target_language}`}
-					className="flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2"
+					className={`flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${!canWriteAssignments ? 'opacity-40' : ''}`}
 				>
 					<UserPlus size={14} color="#353535" />
 					<Text className="font-inter font-semibold text-gray-800 text-xs">

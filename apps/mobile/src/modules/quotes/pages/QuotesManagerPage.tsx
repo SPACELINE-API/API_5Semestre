@@ -20,6 +20,7 @@ import {
 	QuoteStatusFilterPanel,
 } from '../components/QuoteListControls';
 import { NewQuoteModal } from './translation-itens/index';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 export default function QuotesManagerPage() {
 	const router = useRouter();
@@ -36,6 +37,7 @@ export default function QuotesManagerPage() {
 	const [totalPages, setTotalPages] = useState(0);
 	const [showFilters, setShowFilters] = useState(false);
 	const [showNewQuoteModal, setShowNewQuoteModal] = useState(false);
+	const canWriteQuotes = usePermission('quotes.write');
 
 	const loadQuotes = useCallback(async () => {
 		setLoading(true);
@@ -128,7 +130,8 @@ export default function QuotesManagerPage() {
 					<TouchableOpacity
 						accessibilityRole="button"
 						onPress={() => setShowNewQuoteModal(true)}
-						className="flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3"
+						disabled={!canWriteQuotes}
+						className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 					>
 						<Plus size={18} color="#ffffff" />
 						<Text className="font-inter-medium text-sm text-white">

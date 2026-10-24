@@ -27,6 +27,7 @@ import {
 	decimalStringToBRL,
 	maskCurrencyDigits,
 } from '../../../../shared/utils/currency';
+import { usePermission } from '../../../auth/hooks/usePermission';
 
 const { width } = Dimensions.get('window');
 const isDesktop = Platform.OS === 'web' && width > 768;
@@ -66,6 +67,7 @@ export function NewQuoteModal({
 	const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState('');
+	const canWriteDocuments = usePermission('documents.write');
 	const [bannerMessage, setBannerMessage] = useState<string | null>(null);
 
 	const handleAddItem = () => {
@@ -275,8 +277,10 @@ export function NewQuoteModal({
 												</Text>
 												<TouchableOpacity
 													accessibilityRole="button"
-													disabled={uploadingItemId === item.id}
-													className="h-[46px] flex-row items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white p-3"
+													disabled={
+														uploadingItemId === item.id || !canWriteDocuments
+													}
+													className={`h-[46px] flex-row items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white p-3 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 													onPress={() => void handlePickFile(item.id)}
 												>
 													<Paperclip size={14} color="#6b7280" />

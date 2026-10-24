@@ -25,6 +25,7 @@ import {
 } from '../components/TranslatorFilters';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 export function TranslatorsPage() {
 	const { width } = useWindowDimensions();
@@ -36,6 +37,7 @@ export function TranslatorsPage() {
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 	const [isFormVisible, setIsFormVisible] = useState(false);
 	const [showFilters, setShowFilters] = useState(false);
+	const canWriteTranslators = usePermission('translators.write');
 
 	const { toast, showToast } = useToast();
 
@@ -102,10 +104,11 @@ export function TranslatorsPage() {
 
 							<TouchableOpacity
 								onPress={() => setIsFormVisible(true)}
+								disabled={!canWriteTranslators}
 								activeOpacity={0.8}
 								accessibilityRole="button"
 								accessibilityLabel="Novo tradutor"
-								className="shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3"
+								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteTranslators ? 'opacity-40' : ''}`}
 							>
 								<Plus size={18} color="#ffffff" />
 								<Text className="font-inter-medium text-sm text-white">
