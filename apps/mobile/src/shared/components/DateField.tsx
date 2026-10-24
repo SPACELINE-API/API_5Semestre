@@ -11,6 +11,7 @@ type DateFieldProps = {
 	onChangeText: (value: string) => void;
 	placeholder?: string;
 	minDate?: string;
+	isOpen?: boolean;
 	onOpenChange?: (open: boolean) => void;
 };
 
@@ -214,10 +215,17 @@ export function DateField({
 	onChangeText,
 	placeholder,
 	minDate,
+	isOpen,
 	onOpenChange,
 }: DateFieldProps) {
-	const [isPickerVisible, setIsPickerVisible] = useState(false);
+	const [internalPickerVisible, setInternalPickerVisible] = useState(false);
+	const isPickerVisible = isOpen ?? internalPickerVisible;
 	const minimumDate = minDate ? parseDateValue(minDate) : undefined;
+
+	function updatePickerVisibility(visible: boolean) {
+		if (isOpen === undefined) setInternalPickerVisible(visible);
+		onOpenChange?.(visible);
+	}
 
 	useEffect(() => {
 		if (Platform.OS !== 'web' || !isPickerVisible) return;
@@ -228,26 +236,21 @@ export function DateField({
 				target instanceof Element &&
 				!target.closest('[data-date-field-root]')
 			) {
-				setIsPickerVisible(false);
-				onOpenChange?.(false);
+				updatePickerVisibility(false);
 			}
 		}
 
 		document.addEventListener('pointerdown', handleOutsidePointerDown);
 		return () =>
 			document.removeEventListener('pointerdown', handleOutsidePointerDown);
-	}, [isPickerVisible, onOpenChange]);
+	}, [isPickerVisible, updatePickerVisibility]);
 
 	function openCalendar() {
-		setIsPickerVisible((visible) => {
-			onOpenChange?.(!visible);
-			return !visible;
-		});
+		updatePickerVisibility(!isPickerVisible);
 	}
 
 	function closeCalendar() {
-		setIsPickerVisible(false);
-		onOpenChange?.(false);
+		updatePickerVisibility(false);
 	}
 
 	if (Platform.OS === 'web') {

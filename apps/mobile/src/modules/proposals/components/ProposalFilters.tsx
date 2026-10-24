@@ -44,6 +44,7 @@ export function ProposalFilters({
 	);
 
 	function clearFilters() {
+		setOpenDate(null);
 		onChange({
 			...filters,
 			startDate: '',
@@ -64,15 +65,23 @@ export function ProposalFilters({
 			className="gap-4 rounded-xl border border-gray-100 bg-white p-4 md:p-5"
 			style={openDate ? { position: 'relative', zIndex: 50 } : undefined}
 		>
-			<View className="flex-col gap-3 md:flex-row md:flex-wrap md:items-end">
+			<View
+				className="flex-col gap-3 md:flex-row md:flex-wrap md:items-end"
+				style={openDate ? { position: 'relative', zIndex: 50 } : undefined}
+			>
 				<View
 					className="min-w-0 flex-1 flex-row gap-3"
-					style={{ zIndex: openDate ? 50 : 2 }}
+					style={
+						openDate
+							? { position: 'relative', zIndex: 50 }
+							: { position: 'relative', zIndex: 2 }
+					}
 				>
 					<DateField
 						label="De"
 						value={filters.startDate}
 						placeholder="Início"
+						isOpen={Platform.OS === 'web' ? openDate === 'start' : undefined}
 						onChangeText={(startDate) =>
 							onChange({
 								...filters,
@@ -88,12 +97,16 @@ export function ProposalFilters({
 					/>
 					<View
 						className="min-w-0 flex-1 flex-row"
-						style={{ zIndex: openDate === 'end' ? 50 : 2 }}
+						style={{
+							position: 'relative',
+							zIndex: openDate === 'end' ? 50 : 2,
+						}}
 					>
 						<DateField
 							label="Até"
 							value={filters.endDate}
 							placeholder="Fim"
+							isOpen={Platform.OS === 'web' ? openDate === 'end' : undefined}
 							minDate={filters.startDate || undefined}
 							onChangeText={(endDate) =>
 								onChange({ ...filters, endDate, page: 1 })
@@ -171,6 +184,7 @@ export function ProposalFilters({
 					activeOpacity={0.7}
 					accessibilityRole="button"
 					className="flex-row items-center gap-1.5 self-start"
+					style={openDate ? { position: 'relative', zIndex: 1 } : undefined}
 				>
 					<FilterX size={14} color="#1C6FB0" />
 					<Text className="font-inter font-semibold text-blue-600 text-sm">
