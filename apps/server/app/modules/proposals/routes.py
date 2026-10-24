@@ -13,6 +13,14 @@ router = APIRouter(prefix="/quotes/proposals", tags=["proposals"])
 proposals_read_permission = require_permission("proposals.read", allow_full_access=False)
 
 
+@router.get("/companies", response_model=list[str])
+def list_proposal_companies(
+    _user=Depends(proposals_read_permission),
+    db: Session = Depends(get_db),
+) -> list[str]:
+    return ProposalService(db).list_enterprises()
+
+
 @router.get("", response_model=ProposalListResponse)
 def list_proposals(
     page: int = Query(default=1, ge=1),
@@ -22,6 +30,7 @@ def list_proposals(
     status_filter: str | None = Query(
         default=None, alias="status", pattern="^(pending|approved|reproved)$"
     ),
+    enterprise: str | None = Query(default=None, min_length=1, max_length=155),
     order_by: str = Query(default="created_at"),
     order_dir: str = Query(default="desc"),
     _user=Depends(proposals_read_permission),
@@ -35,6 +44,7 @@ def list_proposals(
             start_date=start_date,
             end_date=end_date,
             status_filter=status_filter,
+            enterprise=enterprise,
             order_by=order_by,
             order_dir=order_dir,
         )

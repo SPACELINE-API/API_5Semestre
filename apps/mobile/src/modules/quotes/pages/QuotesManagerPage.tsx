@@ -6,7 +6,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CircleAlert, FileText, Plus, RefreshCw, X } from 'lucide-react-native';
 import { listQuotes, updateQuoteStatus } from '../services/quotesService';
 import type {
@@ -24,6 +24,7 @@ import { usePermission } from '../../auth/hooks/usePermission';
 
 export default function QuotesManagerPage() {
 	const router = useRouter();
+	const { quoteId } = useLocalSearchParams<{ quoteId?: string }>();
 	const [quotes, setQuotes] = useState<ManagedQuote[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
@@ -94,6 +95,14 @@ export default function QuotesManagerPage() {
 	useEffect(() => {
 		void loadQuotes();
 	}, [loadQuotes]);
+
+	useEffect(() => {
+		if (!quoteId) return;
+		setPage(1);
+		setStatusFilter('all');
+		setSearchInput(quoteId);
+		setAppliedSearch(quoteId);
+	}, [quoteId]);
 
 	return (
 		<View className="relative flex-1 bg-white">

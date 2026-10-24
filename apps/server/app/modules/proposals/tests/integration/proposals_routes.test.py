@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.main import app
 from app.modules.auth.models.user import User
+from app.modules.clients.models.company import Company
 from app.modules.quotes.models.additional_service import AdditionalService
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.request import Request, StatusEnum
@@ -98,10 +99,13 @@ def _create_approved_request_with_quote(
     *,
     quote_status: str = "pending",
     created_at: datetime | None = None,
+    enterprise: str = "Empresa Teste",
+    company_id: uuid.UUID | None = None,
 ) -> Quote:
     req = Request(
+        company_id=company_id,
         customer_name="Cliente Teste",
-        enterprise="Empresa Teste",
+        enterprise=enterprise,
         email="cliente@teste.com",
         original_language="Português",
         translation_language="Inglês",
@@ -113,6 +117,7 @@ def _create_approved_request_with_quote(
 
     quote = Quote(
         request_id=req.id,
+        company_id=company_id,
         customer_name=req.customer_name,
         enterprise=req.enterprise,
         email=req.email,
@@ -120,7 +125,6 @@ def _create_approved_request_with_quote(
         translation_language=req.translation_language,
         customer_need=req.customer_need,
         status=quote_status,
-        company_id=None,
         contact_id=None,
     )
     db.add(quote)
@@ -134,6 +138,27 @@ def _create_approved_request_with_quote(
         db.flush()
 
     return quote
+
+
+def _create_company(db: Session, trade_name: str) -> Company:
+    company = Company(
+        legal_name=f"{trade_name} Ltda",
+        trade_name=trade_name,
+        cnpj="12345678000195",
+        is_active=True,
+        industry="Tecnologia",
+        phone="11999990000",
+        email="company@example.com",
+        zip_code="01001000",
+        street="Rua da Empresa",
+        number="100",
+        neighborhood="Centro",
+        city="São Paulo",
+        state="SP",
+    )
+    db.add(company)
+    db.flush()
+    return company
 
 
 def _create_pending_request_with_quote(db: Session) -> Quote:
@@ -330,6 +355,56 @@ def test_status_filter_returns_only_matching_proposals(api_client) -> None:
         assert response.json()["total"] == expected_count, f"Failed for status={status_val}"
 
 
+def test_enterprise_filter_returns_only_matching_proposals(api_client) -> None:
+    client, db = _setup_authorized_client(api_client)
+    matching = _create_approved_request_with_quote(db, enterprise="Microsoft")
+    _create_approved_request_with_quote(db, enterprise="Nexus Tech")
+
+    response = client.get("/api/quotes/proposals", params={"enterprise": "Microsoft"})
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["total"] == 1
+    assert body["items"][0]["id"] == str(matching.id)
+    assert body["items"][0]["enterprise"] == "Microsoft"
+
+
+def test_companies_endpoint_lists_distinct_enterprises_from_approved_requests(api_client) -> None:
+    client, db = _setup_authorized_client(api_client)
+    _create_approved_request_with_quote(db, enterprise="Microsoft")
+    _create_approved_request_with_quote(db, enterprise="Microsoft")
+    _create_approved_request_with_quote(db, enterprise="Nexus Tech")
+    _create_pending_request_with_quote(db)
+
+    response = client.get("/api/quotes/proposals/companies")
+
+    assert response.status_code == 200, response.text
+    assert response.json() == ["Microsoft", "Nexus Tech"]
+
+
+def test_companies_endpoint_includes_company_catalog_and_filter_uses_company_name(
+    api_client,
+) -> None:
+    client, db = _setup_authorized_client(api_client)
+    company = _create_company(db, "Aurora Sistemas")
+    quote = _create_approved_request_with_quote(
+        db,
+        enterprise="Nome legado da empresa",
+        company_id=company.id,
+    )
+
+    companies_response = client.get("/api/quotes/proposals/companies")
+    proposals_response = client.get(
+        "/api/quotes/proposals", params={"enterprise": "Aurora Sistemas"}
+    )
+
+    assert companies_response.status_code == 200, companies_response.text
+    assert "Aurora Sistemas" in companies_response.json()
+    assert proposals_response.status_code == 200, proposals_response.text
+    assert proposals_response.json()["total"] == 1
+    assert proposals_response.json()["items"][0]["id"] == str(quote.id)
+
+
 def test_status_filter_combined_with_date(api_client) -> None:
     client, db = _setup_authorized_client(api_client)
 
@@ -465,9 +540,23 @@ def test_response_contains_required_fields(api_client) -> None:
         "translation_service",
         "total_value",
         "status",
+        "reproval_reason",
         "created_at",
     ):
         assert field in item, f"Missing field: {field}"
+
+
+def test_reproved_proposal_response_contains_reason(api_client) -> None:
+    client, db = _setup_authorized_client(api_client)
+    quote = _create_approved_request_with_quote(db, quote_status="reproved")
+    quote.reproval_reason = "O prazo solicitado não é viável."
+    db.flush()
+
+    response = client.get("/api/quotes/proposals", params={"status": "reproved"})
+
+    assert response.status_code == 200
+    proposal = next(item for item in response.json()["items"] if item["id"] == str(quote.id))
+    assert proposal["reproval_reason"] == "O prazo solicitado não é viável."
 
 
 def test_total_value_includes_additional_services(api_client) -> None:

@@ -14,6 +14,7 @@ import {
 import type { LucideIcon } from 'lucide-react-native';
 import {
 	BarChart3 as ProdutividadeIcon,
+	FileBarChart as ProposalsIcon,
 	X as CloseIcon,
 } from 'lucide-react-native';
 import {
@@ -128,6 +129,7 @@ export function SideBar({
 	const isSupportAgentActive = pathname.startsWith('/support-agent');
 	const isTradutoresActive = pathname.startsWith('/tradutores');
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
+	const isProposalsActive = pathname.startsWith('/propostas');
 	const isMyItemsActive = pathname.startsWith('/meus-itens');
 	const isProfileActive = pathname.startsWith('/meu-perfil');
 	const showExpanded = isOpen || mobileOpen;
@@ -282,6 +284,14 @@ export function SideBar({
 											active={isOrcamentoActive}
 											disabled={!can('quotes.read')}
 											onPress={() => navigate('/orcamento')}
+										/>
+										<NavItem
+											icon={ProposalsIcon}
+											label="Propostas"
+											isOpen={showExpanded}
+											active={isProposalsActive}
+											disabled={!can('proposals.read')}
+											onPress={() => navigate('/propostas')}
 										/>
 										<NavItem
 											icon={OrdemServicoIcon}

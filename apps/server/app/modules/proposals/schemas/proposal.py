@@ -14,6 +14,7 @@ class ProposalItemResponse(BaseModel):
     translation_service: str | None
     total_value: Decimal
     status: str
+    reproval_reason: str | None = None
     created_at: datetime
 
 
