@@ -60,11 +60,14 @@ export function ProposalFilters({
 	}
 
 	return (
-		<View className="gap-4 rounded-xl border border-gray-100 bg-white p-4 md:p-5">
+		<View
+			className="gap-4 rounded-xl border border-gray-100 bg-white p-4 md:p-5"
+			style={openDate ? { position: 'relative', zIndex: 50 } : undefined}
+		>
 			<View className="flex-col gap-3 md:flex-row md:flex-wrap md:items-end">
 				<View
 					className="min-w-0 flex-1 flex-row gap-3"
-					style={{ zIndex: openDate === 'start' ? 50 : 2 }}
+					style={{ zIndex: openDate ? 50 : 2 }}
 				>
 					<DateField
 						label="De"
