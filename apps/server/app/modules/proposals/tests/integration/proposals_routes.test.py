@@ -382,7 +382,9 @@ def test_companies_endpoint_lists_distinct_enterprises_from_approved_requests(ap
     assert response.json() == ["Microsoft", "Nexus Tech"]
 
 
-def test_companies_endpoint_includes_company_catalog_and_filter_uses_company_name(api_client) -> None:
+def test_companies_endpoint_includes_company_catalog_and_filter_uses_company_name(
+    api_client,
+) -> None:
     client, db = _setup_authorized_client(api_client)
     company = _create_company(db, "Aurora Sistemas")
     quote = _create_approved_request_with_quote(

@@ -42,7 +42,12 @@ def seed_demo_operations(db: Session) -> dict[str, int]:
             counts["translators"] += 1
         translator_ids.append(existing.id)
 
-    quote = db.query(Quote).options(selectinload(Quote.items)).filter(Quote.id == SEED_DEMO_QUOTE_ID).first()
+    quote = (
+        db.query(Quote)
+        .options(selectinload(Quote.items))
+        .filter(Quote.id == SEED_DEMO_QUOTE_ID)
+        .first()
+    )
     if quote is None or quote.status != "approved" or not quote.items:
         return counts
     order = db.query(ServiceOrder).filter(ServiceOrder.id == SEED_DEMO_ORDER_ID).first()
@@ -63,11 +68,16 @@ def seed_demo_operations(db: Session) -> dict[str, int]:
         item = next((row for row in items if row.quote_translation_item_id == source.id), None)
         if item is None:
             item = ServiceOrderItem(
-                id=_id(f"item:{order.id}:{source.id}"), service_order_id=order.id,
-                quote_translation_item_id=source.id, source_language=source.source_language,
-                target_language=source.target_language, document_type=source.document_type,
-                file_url=source.file_url, price=source.estimated_value,
-                status="pendente", deadline=order.deadline,
+                id=_id(f"item:{order.id}:{source.id}"),
+                service_order_id=order.id,
+                quote_translation_item_id=source.id,
+                source_language=source.source_language,
+                target_language=source.target_language,
+                document_type=source.document_type,
+                file_url=source.file_url,
+                price=source.estimated_value,
+                status="pendente",
+                deadline=order.deadline,
             )
             db.add(item)
             db.flush()
@@ -85,15 +95,20 @@ def seed_demo_operations(db: Session) -> dict[str, int]:
             if row.status == "concluida":
                 row.completed_at = datetime.now(UTC) - timedelta(days=2)
     for index, translator_id in enumerate(translator_ids):
-        exists = db.query(ServiceOrderItemInvite).filter_by(
-            service_order_item_id=item.id, translator_id=translator_id
-        ).first()
+        exists = (
+            db.query(ServiceOrderItemInvite)
+            .filter_by(service_order_item_id=item.id, translator_id=translator_id)
+            .first()
+        )
         if exists is None:
-            db.add(ServiceOrderItemInvite(
-                id=_id(f"invite:{item.id}:{translator_id}"),
-                service_order_item_id=item.id, translator_id=translator_id,
-                status="aceito" if index == 0 else "pendente",
-            ))
+            db.add(
+                ServiceOrderItemInvite(
+                    id=_id(f"invite:{item.id}:{translator_id}"),
+                    service_order_item_id=item.id,
+                    translator_id=translator_id,
+                    status="aceito" if index == 0 else "pendente",
+                )
+            )
             if index == 0:
                 item.translator_id = translator_id
                 item.status = "em_andamento"
@@ -103,31 +118,47 @@ def seed_demo_operations(db: Session) -> dict[str, int]:
     document = db.get(ServiceOrderFile, file_id)
     if document is None:
         document = ServiceOrderFile(
-            id=file_id, service_order_id=order.id, service_order_item_id=item.id,
+            id=file_id,
+            service_order_id=order.id,
+            service_order_item_id=item.id,
             filename="traducao-revisada.pdf",
             file_url="https://example.com/documentos/traducao-revisada.pdf",
-            content_type="application/pdf", direction="saida", delivery_status="sent",
-            review_status="approved", review_note="Documento revisado para apresentação.",
+            content_type="application/pdf",
+            direction="saida",
+            delivery_status="sent",
+            review_status="approved",
+            review_note="Documento revisado para apresentação.",
         )
         db.add(document)
         db.flush()
         counts["files"] += 1
     if db.query(ServiceOrderDelivery).filter_by(document_file_id=file_id).first() is None:
-        db.add(ServiceOrderDelivery(
-            id=_id(f"delivery:{file_id}"), service_order_id=order.id,
-            document_file_id=file_id, status="sent", sent_at=datetime.now(UTC),
-        ))
+        db.add(
+            ServiceOrderDelivery(
+                id=_id(f"delivery:{file_id}"),
+                service_order_id=order.id,
+                document_file_id=file_id,
+                status="sent",
+                sent_at=datetime.now(UTC),
+            )
+        )
         counts["deliveries"] += 1
     for index, row in enumerate(items[1:], start=1):
         extra_id = _id(f"file:{order.id}:arquivo-{index}")
         if db.get(ServiceOrderFile, extra_id) is None:
-            db.add(ServiceOrderFile(
-                id=extra_id, service_order_id=order.id, service_order_item_id=row.id,
-                filename=f"traducao-item-{index}.pdf",
-                file_url=f"https://example.com/documentos/traducao-item-{index}.pdf",
-                content_type="application/pdf", direction="saida",
-                delivery_status="pending", review_status="pending",
-            ))
+            db.add(
+                ServiceOrderFile(
+                    id=extra_id,
+                    service_order_id=order.id,
+                    service_order_item_id=row.id,
+                    filename=f"traducao-item-{index}.pdf",
+                    file_url=f"https://example.com/documentos/traducao-item-{index}.pdf",
+                    content_type="application/pdf",
+                    direction="saida",
+                    delivery_status="pending",
+                    review_status="pending",
+                )
+            )
             counts["files"] += 1
     db.commit()
     return counts

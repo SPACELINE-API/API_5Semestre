@@ -97,9 +97,7 @@ class ProposalService:
     def list_enterprises(self) -> list[str]:
         company_names = list(
             self.db.scalars(
-                select(Company.trade_name)
-                .where(Company.is_active.is_(True))
-                .distinct()
+                select(Company.trade_name).where(Company.is_active.is_(True)).distinct()
             )
         )
         legacy_enterprises = list(

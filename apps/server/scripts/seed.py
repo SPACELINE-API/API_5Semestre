@@ -21,12 +21,8 @@ seed_service_order_email_template = import_module(
     "app.modules.seed.seed_service_order_email_template"
 ).seed_service_order_email_template
 seed_invites = import_module("app.modules.seed.seed_invites").seed_invites
-seed_demo_complement = import_module(
-    "app.modules.seed.seed_demo_complement"
-).seed_demo_complement
-seed_demo_operations = import_module(
-    "app.modules.seed.seed_demo_operations"
-).seed_demo_operations
+seed_demo_complement = import_module("app.modules.seed.seed_demo_complement").seed_demo_complement
+seed_demo_operations = import_module("app.modules.seed.seed_demo_operations").seed_demo_operations
 apply_migrations = import_module("scripts.apply_migrations").apply_migrations
 
 if __name__ == "__main__":
