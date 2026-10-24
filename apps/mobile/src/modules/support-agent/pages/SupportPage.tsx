@@ -20,6 +20,7 @@ import { ChatInputBar } from '../components/ChatInputBar';
 import { ChatMessageBubble } from '../components/ChatMessageBubble';
 import { QuickReplyButton } from '../components/QuickReplyButton';
 import { useSupportChat } from '../hooks/useSupportChat';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 const WELCOME_MESSAGE =
 	'Olá! Eu sou o assistente virtual da nossa equipe de suporte. Posso te ajudar com dúvidas sobre serviços, prazos, configurações e muito mais.\n\nComo posso te ajudar hoje?';
@@ -46,6 +47,7 @@ export function SupportPage() {
 	const inputRef = useRef<TextInput>(null);
 	const scrollRef = useRef<ScrollView>(null);
 	const previousStatusRef = useRef<'idle' | 'loading' | 'error'>('idle');
+	const canWriteSupport = usePermission('support.write');
 
 	const {
 		messages,
@@ -228,6 +230,7 @@ export function SupportPage() {
 									icon={reply.icon}
 									label={reply.label}
 									onPress={() => handleQuickReply(reply.label)}
+									disabled={!canWriteSupport}
 								/>
 							))}
 						</View>
@@ -240,8 +243,8 @@ export function SupportPage() {
 						value={draft}
 						onChangeText={setDraft}
 						onSend={handleSend}
-						disabled={status === 'loading'}
-						canSend={canSend}
+						disabled={status === 'loading' || !canWriteSupport}
+						canSend={canSend && canWriteSupport}
 						maxLength={maxLength}
 					/>
 					{isOverLimit ? (

@@ -32,6 +32,18 @@ function notifySessionChange(userId: string | null) {
 let nativeSession: LoginResponse | null = null;
 let authorizationContext: AuthorizationContext | null = null;
 const SESSION_COOKIE = 'spaceline_session';
+const authorizationListeners = new Set<() => void>();
+
+function notifyAuthorizationChange() {
+	authorizationListeners.forEach((listener) => listener());
+}
+
+export function subscribeAuthorizationContext(listener: () => void) {
+	authorizationListeners.add(listener);
+	return () => {
+		authorizationListeners.delete(listener);
+	};
+}
 
 function isBrowser() {
 	return typeof document !== 'undefined';
@@ -110,6 +122,7 @@ export function setAuthorizationContext(context: AuthorizationContext) {
 		...context,
 		permissions: Array.isArray(context.permissions) ? context.permissions : [],
 	};
+	notifyAuthorizationChange();
 }
 
 export async function loadAuthorizationContext() {
@@ -123,7 +136,13 @@ export async function loadAuthorizationContext() {
 		...context,
 		permissions: Array.isArray(context.permissions) ? context.permissions : [],
 	};
+	notifyAuthorizationChange();
 	return authorizationContext;
+}
+
+export function refreshAuthorizationContext() {
+	authorizationContext = null;
+	return loadAuthorizationContext();
 }
 
 export function getAuthorizationContext() {

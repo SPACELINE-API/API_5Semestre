@@ -26,6 +26,7 @@ import {
 	getSession,
 	loadAuthorizationContext,
 	getAuthorizationContext,
+	subscribeAuthorizationContext,
 	clearSession,
 } from '../modules/auth/services/auth';
 import { ApiError } from '../shared/services/publicApiClient';
@@ -72,6 +73,14 @@ export default function AppLayout() {
 	useEffect(() => {
 		setIsMobileNavOpen(false);
 	}, [pathname]);
+
+	useEffect(
+		() =>
+			subscribeAuthorizationContext(() =>
+				setAuthorizationVersion((version) => version + 1),
+			),
+		[],
+	);
 
 	useEffect(() => {
 		let active = true;

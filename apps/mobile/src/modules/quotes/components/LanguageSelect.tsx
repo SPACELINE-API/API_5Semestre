@@ -15,6 +15,7 @@ import {
 	createLanguage,
 	Language,
 } from '../services/languageService';
+import { usePermission } from '../../auth/hooks/usePermission';
 import { getLanguageDropdownLayout } from '../utils/languageDropdownLayout';
 
 interface LanguageSelectProps {
@@ -43,6 +44,7 @@ export function LanguageSelect({
 	const [newLangId, setNewLangId] = useState('');
 	const [newLangName, setNewLangName] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const canWriteSettings = usePermission('settings.write');
 
 	useEffect(() => {
 		loadLanguages();
@@ -137,11 +139,12 @@ export function LanguageSelect({
 								</TouchableOpacity>
 							))}
 							<TouchableOpacity
-								className="py-2 px-3 bg-gray-50 border-t border-gray-100"
+								className={`py-2 px-3 bg-gray-50 border-t border-gray-100 ${!canWriteSettings ? 'opacity-40' : ''}`}
 								onPress={() => {
 									setIsOpen(false);
 									setIsModalVisible(true);
 								}}
+								disabled={!canWriteSettings}
 							>
 								<Text className="font-inter-medium text-xs text-gray-900">
 									+ Adicionar outro idioma

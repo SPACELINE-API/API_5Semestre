@@ -45,6 +45,7 @@ import {
 } from '../../clients/services/companyService';
 import type { Company, CompanyCreateInput } from '../../clients/types/company';
 import { CompanyFormModal } from '../../clients/components/CompanyFormModal';
+import { usePermission } from '../../auth/hooks/usePermission';
 import type {
 	AdditionalService,
 	AdditionalServiceFormData,
@@ -163,6 +164,7 @@ function CompanyLinkField({
 	onSelectCompany: (id: string) => void;
 	onRequestCreate: (searchText: string) => void;
 }) {
+	const canWriteClients = usePermission('clients.write');
 	const [isOpen, setIsOpen] = useState(false);
 	const [search, setSearch] = useState('');
 	const triggerRef = useRef<View>(null);
@@ -293,7 +295,8 @@ function CompanyLinkField({
 								onRequestCreate(search.trim());
 								closePicker();
 							}}
-							className="flex-row items-center gap-2 border-t border-gray-100 bg-gray-50 px-3 py-2.5"
+							disabled={!canWriteClients}
+							className={`flex-row items-center gap-2 border-t border-gray-100 bg-gray-50 px-3 py-2.5 ${!canWriteClients ? 'opacity-40' : ''}`}
 						>
 							<Plus size={14} color="#1d4ed8" />
 							<Text className="font-inter-medium text-xs text-blue-700">
@@ -375,6 +378,9 @@ export function QuoteCard({
 	const [rejectionFormOpen, setRejectionFormOpen] = useState(false);
 	const [reprovalReason, setReprovalReason] = useState('');
 	const [decisionError, setDecisionError] = useState('');
+	const canWriteQuotes = usePermission('quotes.write');
+	const canApproveQuotes = usePermission('quotes.approve');
+	const canWriteDocuments = usePermission('documents.write');
 
 	const [isEditing, setIsEditing] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
@@ -845,13 +851,13 @@ export function QuoteCard({
 										{quote.company_id ? (
 											<TouchableOpacity
 												accessibilityRole="button"
-												disabled={updating}
+												disabled={updating || !canApproveQuotes}
 												onPress={() =>
 													void onDecide('approved').then((message) => {
 														if (message) setDecisionError(message);
 													})
 												}
-												className={`rounded-lg px-4 py-2.5 ${updating ? 'bg-gray-300' : 'bg-emerald-600'}`}
+												className={`rounded-lg px-4 py-2.5 ${updating ? 'bg-gray-300' : 'bg-emerald-600'} ${!canApproveQuotes ? 'opacity-40' : ''}`}
 											>
 												<Text className="font-inter-medium text-sm text-white">
 													{updating ? 'Salvando...' : 'Aprovar orçamento'}
@@ -861,7 +867,8 @@ export function QuoteCard({
 											<TouchableOpacity
 												accessibilityRole="button"
 												onPress={startEditing}
-												className="rounded-lg bg-blue-600 px-4 py-2.5"
+												disabled={!canWriteQuotes}
+												className={`rounded-lg bg-blue-600 px-4 py-2.5 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 											>
 												<Text className="font-inter-medium text-sm text-white">
 													Vincular empresa
@@ -870,9 +877,9 @@ export function QuoteCard({
 										)}
 										<TouchableOpacity
 											accessibilityRole="button"
-											disabled={updating}
+											disabled={updating || !canApproveQuotes}
 											onPress={() => setRejectionFormOpen(true)}
-											className="rounded-lg border border-red-200 px-4 py-2.5"
+											className={`rounded-lg border border-red-200 px-4 py-2.5 ${!canApproveQuotes ? 'opacity-40' : ''}`}
 										>
 											<Text className="font-inter-medium text-sm text-red-700">
 												Reprovar orçamento
@@ -928,7 +935,8 @@ export function QuoteCard({
 									accessibilityRole="button"
 									accessibilityLabel="Editar orçamento"
 									onPress={startEditing}
-									className="h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
+									disabled={!canWriteQuotes}
+									className={`h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 								>
 									<Pencil size={14} color="#6B7280" />
 								</TouchableOpacity>
@@ -1054,9 +1062,11 @@ export function QuoteCard({
 										<View className="flex-row flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3">
 											<TouchableOpacity
 												accessibilityRole="button"
-												disabled={uploadingItemId === item.id}
+												disabled={
+													uploadingItemId === item.id || !canWriteDocuments
+												}
 												onPress={() => void handlePickItemFile(item.id)}
-												className="flex-row items-center gap-2"
+												className={`flex-row items-center gap-2 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 											>
 												<Paperclip size={14} color="#1d4ed8" />
 												<Text className="font-inter-medium text-sm text-blue-700">
@@ -1215,7 +1225,8 @@ export function QuoteCard({
 								<TouchableOpacity
 									accessibilityRole="button"
 									onPress={() => setShowAdditionalServiceModal(true)}
-									className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5"
+									disabled={!canWriteQuotes}
+									className={`flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 								>
 									<Plus size={15} color="#374151" />
 									<Text className="font-inter-medium text-sm text-gray-700">

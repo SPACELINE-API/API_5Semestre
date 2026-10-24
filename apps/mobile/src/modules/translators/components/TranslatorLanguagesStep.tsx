@@ -23,6 +23,7 @@ import {
 	type TranslatorLanguageFormRow,
 } from '../types/translator';
 import { getLanguageFlag } from '../utils/languageFlag';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 function normalizeSearch(value: string) {
 	return value
@@ -70,6 +71,7 @@ export function TranslatorLanguagesStep({
 	const [newLanguageId, setNewLanguageId] = useState('');
 	const [newLanguageName, setNewLanguageName] = useState('');
 	const [creatingLanguage, setCreatingLanguage] = useState(false);
+	const canWriteSettings = usePermission('settings.write');
 	const [languageSearch, setLanguageSearch] = useState('');
 	const filteredLanguages = useMemo(() => {
 		const query = normalizeSearch(languageSearch.trim());
@@ -283,8 +285,9 @@ export function TranslatorLanguagesStep({
 									</Text>
 								)}
 								<TouchableOpacity
-									className="flex-row items-center justify-center border-t border-gray-200 bg-gray-50 px-3 py-3"
+									className={`flex-row items-center justify-center border-t border-gray-200 bg-gray-50 px-3 py-3 ${!canWriteSettings ? 'opacity-40' : ''}`}
 									onPress={openCreateLanguage}
+									disabled={!canWriteSettings}
 								>
 									<Plus size={16} color="#1C6FB0" />
 									<Text className="ml-2 font-inter font-medium text-blue-800 text-sm">

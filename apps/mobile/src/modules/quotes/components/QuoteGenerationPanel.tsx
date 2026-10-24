@@ -1,5 +1,6 @@
 import { Text, TouchableOpacity, View } from 'react-native';
 import { CircleAlert } from 'lucide-react-native';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type MissingField = { key: string; label: string };
 
@@ -18,6 +19,9 @@ export function QuoteGenerationPanel({
 	generating,
 	onGenerate,
 }: QuoteGenerationPanelProps) {
+	const canWriteQuotes = usePermission('quotes.write');
+	const isDisabled = !canGenerate || generating || !canWriteQuotes;
+
 	return (
 		<>
 			{missingFields.length > 0 && (
@@ -55,10 +59,10 @@ export function QuoteGenerationPanel({
 				</View>
 				<TouchableOpacity
 					accessibilityRole="button"
-					accessibilityState={{ disabled: !canGenerate || generating }}
-					disabled={!canGenerate || generating}
+					accessibilityState={{ disabled: isDisabled }}
+					disabled={isDisabled}
 					onPress={onGenerate}
-					className={`w-full items-center rounded-lg px-6 py-3 md:w-auto ${canGenerate && !generating ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300'}`}
+					className={`w-full items-center rounded-lg px-6 py-3 md:w-auto ${isDisabled ? 'bg-gray-300' : 'bg-blue-600 hover:bg-blue-700'}`}
 				>
 					<Text className="font-inter-medium text-sm text-white">
 						{generating ? 'Gerando orçamento...' : 'Confirmar geração'}
