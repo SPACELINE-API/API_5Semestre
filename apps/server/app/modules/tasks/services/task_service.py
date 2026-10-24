@@ -228,7 +228,9 @@ class TaskService:
             commit=True,
         )
 
-    def _record_existing_attempt(self, existing: Task, data: TaskCreate, requester: Usuario) -> None:
+    def _record_existing_attempt(
+        self, existing: Task, data: TaskCreate, requester: Usuario
+    ) -> None:
         existing_translator_ids = {translator.id for translator in existing.translators}
         if (
             existing.description != data.description
