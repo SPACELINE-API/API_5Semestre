@@ -17,7 +17,7 @@ from app.shared.google_adk.guardrail import (
     TopicRestrictionBlocked,
     acheck_input,
 )
-from app.shared.google_adk.tool_catalog.catalogo_leitura import obter_catalogo_leitura
+from app.shared.google_adk.tool_catalog.catalogo_tarefas import obter_catalogo_tarefas
 from app.shared.google_adk.tool_catalog.verificacao_previa import (
     AssuntoNaoPermitido,
     UsuarioNaoAutorizado,
@@ -63,7 +63,7 @@ async def validar_permissao_assunto(texto: str, user_id: str | None) -> None:
     if user_id is None:
         return
     try:
-        await verificar_assunto(texto, user_id, obter_catalogo_leitura())
+        await verificar_assunto(texto, user_id, obter_catalogo_tarefas())
     except AssuntoNaoPermitido as exc:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
