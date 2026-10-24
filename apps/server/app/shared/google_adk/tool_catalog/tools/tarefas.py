@@ -73,7 +73,11 @@ def _handler(entrada: CriarTarefaEntrada, usuario: Usuario) -> dict[str, Any]:
         service = TaskService(db)
         if entrada.confirmation_token is None:
             _, token = service.propose(data, requester=usuario)
-            prazo = "sem prazo" if entrada.sem_prazo else entrada.due_date.isoformat()
+            prazo = (
+                "sem prazo"
+                if entrada.sem_prazo or entrada.due_date is None
+                else entrada.due_date.isoformat()
+            )
             tradutores = ", ".join(str(item) for item in data.translator_ids)
             return {
                 "status": "confirmation_required",

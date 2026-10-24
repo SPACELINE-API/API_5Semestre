@@ -7,19 +7,19 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.modules.auth.models.user import User
 from app.modules.tasks.models.task import Task, TaskStatus
 from app.modules.tasks.models.task_execution_audit import TaskExecutionAudit
 from app.modules.tasks.models.task_proposal import TaskProposal, TaskProposalStatus
 from app.modules.tasks.schemas.task import TaskCreate
 from app.modules.translators.models.translator import Translator
+from app.shared.google_adk.tool_catalog.contract import Usuario
 
 
 class TaskService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, data: TaskCreate, *, requester: User) -> Task:
+    def create(self, data: TaskCreate, *, requester: Usuario) -> Task:
         existing = (
             self.db.query(Task)
             .filter(
@@ -86,7 +86,7 @@ class TaskService:
                 return existing
             raise
 
-    def propose(self, data: TaskCreate, *, requester: User) -> tuple[TaskProposal, str]:
+    def propose(self, data: TaskCreate, *, requester: Usuario) -> tuple[TaskProposal, str]:
         token = secrets.token_urlsafe(32)
         proposal = TaskProposal(
             token_hash=self._token_hash(token),
@@ -108,7 +108,7 @@ class TaskService:
         self.db.refresh(proposal)
         return proposal, token
 
-    def confirm_proposal(self, token: str, data: TaskCreate, *, requester: User) -> Task:
+    def confirm_proposal(self, token: str, data: TaskCreate, *, requester: Usuario) -> Task:
         proposal = (
             self.db.query(TaskProposal)
             .filter(
@@ -215,7 +215,7 @@ class TaskService:
         self,
         data: TaskCreate,
         *,
-        requester: User,
+        requester: Usuario,
         result: str,
         details: dict[str, object],
     ) -> None:
@@ -228,7 +228,7 @@ class TaskService:
             commit=True,
         )
 
-    def _record_existing_attempt(self, existing: Task, data: TaskCreate, requester: User) -> None:
+    def _record_existing_attempt(self, existing: Task, data: TaskCreate, requester: Usuario) -> None:
         existing_translator_ids = {translator.id for translator in existing.translators}
         if (
             existing.description != data.description
@@ -260,7 +260,7 @@ class TaskService:
         *,
         task_id: UUID | None,
         data: TaskCreate,
-        requester: User,
+        requester: Usuario,
         result: str,
         details: dict[str, object],
         commit: bool = False,
