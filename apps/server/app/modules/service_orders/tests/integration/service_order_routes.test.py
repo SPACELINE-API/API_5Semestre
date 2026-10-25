@@ -137,7 +137,9 @@ def test_send_translated_documents_route_requires_authentication(client: TestCli
     assert response.status_code == 401
 
 
-def test_create_manual_service_order_route(client: TestClient, isolated_db_session: Session) -> None:
+def test_create_manual_service_order_route(
+    client: TestClient, isolated_db_session: Session
+) -> None:
     company = Company(
         legal_name="Empresa Manual Ltda",
         trade_name="Empresa Manual",
