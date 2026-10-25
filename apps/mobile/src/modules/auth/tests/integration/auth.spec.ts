@@ -109,6 +109,26 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
 	});
 
+	test('atualiza a aba selecionada ao trocar de orçamento para propostas', async ({
+		page,
+	}) => {
+		await useExternalProfile(page, [], 'Administrador');
+		await page.goto('/orcamento');
+
+		await expect(
+			page.getByRole('button', { name: 'Orçamento', exact: true }),
+		).toHaveAttribute('aria-selected', 'true');
+
+		await page.getByRole('button', { name: 'Propostas', exact: true }).click();
+		await expect(page).toHaveURL(/\/propostas$/);
+		await expect(
+			page.getByRole('button', { name: 'Orçamento', exact: true }),
+		).toHaveAttribute('aria-selected', 'false');
+		await expect(
+			page.getByRole('button', { name: 'Propostas', exact: true }),
+		).toHaveAttribute('aria-selected', 'true');
+	});
+
 	for (const roleName of ['Administrador']) {
 		test(`${roleName} acessa todas as rotas disponíveis na sidebar`, async ({
 			page,
