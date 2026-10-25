@@ -27,6 +27,13 @@ import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 import { formatDateInputValue } from '../utils/format';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
+function getTodayInputValue() {
+	const today = new Date();
+	const month = String(today.getMonth() + 1).padStart(2, '0');
+	const day = String(today.getDate()).padStart(2, '0');
+	return `${today.getFullYear()}-${month}-${day}`;
+}
+
 type EditItemModalProps = {
 	item: ServiceOrderItem | null;
 	onClose: () => void;
@@ -81,6 +88,10 @@ export function EditItemModal({
 
 		if (!sourceLanguage.trim() || !targetLanguage.trim()) {
 			setError('Informe o idioma de origem e o idioma de destino.');
+			return;
+		}
+		if (deadline && deadline < getTodayInputValue()) {
+			setError('O prazo não pode ser anterior à data de hoje.');
 			return;
 		}
 
@@ -178,6 +189,7 @@ export function EditItemModal({
 						<DateField
 							label="Prazo"
 							value={deadline}
+							minDate={getTodayInputValue()}
 							onChangeText={setDeadline}
 						/>
 

@@ -70,6 +70,7 @@ class QuoteManagerResponse(BaseModel):
     total_value: Decimal
     customer_name: str | None
     enterprise: str | None
+    company_name: str | None = None
     email: str | None
     original_language: str | None
     translation_language: str | None
@@ -79,7 +80,6 @@ class QuoteManagerResponse(BaseModel):
     items: list[QuoteTranslationItemResponse]
 
     model_config = ConfigDict(from_attributes=True)
-
 
 class QuoteListResponse(BaseModel):
     items: list[QuoteManagerResponse]

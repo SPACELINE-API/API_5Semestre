@@ -17,6 +17,13 @@ import { FormField } from '../../clients/components/FormField';
 import { DateField } from '../../../shared/components/DateField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+function getTodayInputValue() {
+	const today = new Date();
+	const month = String(today.getMonth() + 1).padStart(2, '0');
+	const day = String(today.getDate()).padStart(2, '0');
+	return `${today.getFullYear()}-${month}-${day}`;
+}
+
 type GenerateOrderModalProps = {
 	visible: boolean;
 	companies: Company[];
@@ -143,6 +150,7 @@ export function GenerateOrderModal({
 		company?: string;
 		quote?: string;
 		project_name?: string;
+		deadline?: string;
 	}>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [companySearch, setCompanySearch] = useState('');
@@ -239,6 +247,10 @@ export function GenerateOrderModal({
 		}
 		if (!form.project_name.trim()) {
 			nextFieldErrors.project_name = 'Informe o nome do projeto.';
+		}
+		if (form.deadline && form.deadline < getTodayInputValue()) {
+			nextFieldErrors.deadline =
+				'O prazo não pode ser anterior à data de hoje.';
 		}
 
 		setFieldErrors(nextFieldErrors);
@@ -521,6 +533,7 @@ export function GenerateOrderModal({
 							<DateField
 								label="Prazo (opcional)"
 								value={form.deadline}
+								minDate={getTodayInputValue()}
 								onChangeText={(value) => setField('deadline', value)}
 							/>
 

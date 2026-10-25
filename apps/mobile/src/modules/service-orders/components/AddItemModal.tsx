@@ -22,6 +22,13 @@ import { DateField } from '../../../shared/components/DateField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
+function getTodayInputValue() {
+	const today = new Date();
+	const month = String(today.getMonth() + 1).padStart(2, '0');
+	const day = String(today.getDate()).padStart(2, '0');
+	return `${today.getFullYear()}-${month}-${day}`;
+}
+
 type AddItemModalProps = {
 	visible: boolean;
 	onClose: () => void;
@@ -76,6 +83,10 @@ export function AddItemModal({
 
 		if (!file) {
 			setError('Selecione um arquivo para adicionar o item.');
+			return;
+		}
+		if (deadline && deadline < getTodayInputValue()) {
+			setError('O prazo não pode ser anterior à data de hoje.');
 			return;
 		}
 
@@ -172,6 +183,7 @@ export function AddItemModal({
 						<DateField
 							label="Prazo"
 							value={deadline}
+							minDate={getTodayInputValue()}
 							onChangeText={setDeadline}
 						/>
 
