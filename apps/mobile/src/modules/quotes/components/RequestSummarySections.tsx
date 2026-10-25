@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { FileText, ExternalLink } from 'lucide-react-native';
+import { FileText } from 'lucide-react-native';
 
 import type { RequestItem } from '../../requests/services/requests';
 import { openRequestDocument } from '../../requests/services/requests';
@@ -56,10 +56,7 @@ function RequestDocumentButton({ request }: { request: RequestItem }) {
 				{opening ? (
 					<ActivityIndicator size="small" color="#2563eb" />
 				) : (
-					<>
-						<FileText size={20} color="#2563eb" />
-						<ExternalLink size={20} color="#2563eb" />
-					</>
+					<FileText size={20} color="#2563eb" />
 				)}
 				<Text
 					className="font-inter-medium text-sm text-blue-700"

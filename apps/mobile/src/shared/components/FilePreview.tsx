@@ -27,10 +27,21 @@ function getNativeDocumentUrl(fileUrl: string) {
 	);
 }
 
-export function openDocument(fileUrl: string) {
+export async function openDocument(fileUrl: string) {
 	if (Platform.OS === 'web') {
 		const viewer = window.open('about:blank', '_blank');
-		if (viewer) viewer.location.href = fileUrl;
+		if (!viewer) return;
+
+		try {
+			const response = await fetch(fileUrl);
+			if (!response.ok)
+				throw new Error(`Falha ao abrir o documento (${response.status}).`);
+			const blobUrl = URL.createObjectURL(await response.blob());
+			viewer.location.href = blobUrl;
+			window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+		} catch {
+			viewer.location.href = fileUrl;
+		}
 		return;
 	}
 

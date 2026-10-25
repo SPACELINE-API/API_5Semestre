@@ -94,3 +94,7 @@ class Quote(Base):
         )
         additional_total = sum((item.price for item in self.additional_services), Decimal("0.00"))
         return translation_total + additional_total
+
+    @property
+    def company_name(self) -> str | None:
+        return (self.company.trade_name if self.company else None) or self.enterprise

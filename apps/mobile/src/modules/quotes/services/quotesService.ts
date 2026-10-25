@@ -88,6 +88,7 @@ export type ManagedQuote = QuoteResponse & {
 	request_id: string | null;
 	customer_name: string | null;
 	enterprise: string | null;
+	company_name?: string | null;
 	email: string | null;
 	original_language: string | null;
 	translation_language: string | null;

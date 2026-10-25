@@ -27,6 +27,7 @@ def test_env_provider_uses_defaults_for_optional_values() -> None:
 
     assert provider.get_server_app_port() == 3333
     assert provider.get_supabase_url() == "http://localhost:8000"
+    assert provider.get_site_url() == "http://localhost:8081"
     assert provider.get_supabase_anon_key() == ""
 
 

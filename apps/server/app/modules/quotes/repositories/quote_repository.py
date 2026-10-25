@@ -45,7 +45,11 @@ class QuoteRepository:
 
         total = query.with_entities(func.count(func.distinct(Quote.id))).scalar() or 0
         quotes = (
-            query.options(selectinload(Quote.items), selectinload(Quote.service_orders))
+            query.options(
+                selectinload(Quote.items),
+                selectinload(Quote.service_orders),
+                selectinload(Quote.company),
+            )
             .distinct()
             .order_by(Quote.created_at.desc())
             .offset((page - 1) * page_size)

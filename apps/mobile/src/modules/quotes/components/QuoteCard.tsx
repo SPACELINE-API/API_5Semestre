@@ -58,6 +58,7 @@ import {
 } from '../services/additionalService';
 import { AdditionalServiceCard } from './AdditionalServiceCard';
 import { AdditionalServiceFormModal } from './AdditionalServiceFormModal';
+import { LanguageSelect } from './LanguageSelect';
 
 const statusStyles: Record<string, { label: string; classes: string }> = {
 	approved: { label: 'Aprovado', classes: 'bg-emerald-50 text-emerald-700' },
@@ -380,6 +381,7 @@ export function QuoteCard({
 	const [decisionError, setDecisionError] = useState('');
 	const canWriteQuotes = usePermission('quotes.write');
 	const canApproveQuotes = usePermission('quotes.approve');
+	const canApproveQuote = Boolean(quote.company_id && quote.items.length > 0);
 	const canWriteDocuments = usePermission('documents.write');
 
 	const [isEditing, setIsEditing] = useState(false);
@@ -727,6 +729,14 @@ export function QuoteCard({
 						<Text className="font-inter-bold text-base text-gray-900">
 							Orçamento #{shortId(quote.id)}
 						</Text>
+						<Text
+							className="font-inter-medium text-sm text-gray-700"
+							numberOfLines={1}
+						>
+							{quote.company_name ||
+								quote.enterprise ||
+								'Empresa não vinculada'}
+						</Text>
 						<View className="flex-row items-center gap-2">
 							<View
 								className={`rounded-full px-2.5 py-1 ${status.classes.split(' ')[0]}`}
@@ -762,7 +772,7 @@ export function QuoteCard({
 
 			{expanded && (
 				<View className="gap-6 p-5 md:p-6">
-					{quote.status === 'approved' && !quote.service_order_id ? (
+					{quote.status === 'approved' && quote.service_order_id ? (
 						<TouchableOpacity
 							accessibilityRole="button"
 							accessibilityLabel={`Abrir ordem de serviço do orçamento ${shortId(quote.id)}`}
@@ -847,17 +857,28 @@ export function QuoteCard({
 											</Text>
 										</View>
 									)}
+									{quote.company_id && quote.items.length === 0 && (
+										<View className="flex-row items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+											<CircleAlert size={16} color="#b45309" />
+											<Text className="flex-1 font-inter text-sm text-amber-800">
+												Adicione ao menos um documento ao orçamento antes de
+												aprová-lo.
+											</Text>
+										</View>
+									)}
 									<View className="flex-row flex-wrap gap-3">
 										{quote.company_id ? (
 											<TouchableOpacity
 												accessibilityRole="button"
-												disabled={updating || !canApproveQuotes}
+												disabled={
+													updating || !canApproveQuotes || !canApproveQuote
+												}
 												onPress={() =>
 													void onDecide('approved').then((message) => {
 														if (message) setDecisionError(message);
 													})
 												}
-												className={`rounded-lg px-4 py-2.5 ${updating ? 'bg-gray-300' : 'bg-emerald-600'} ${!canApproveQuotes ? 'opacity-40' : ''}`}
+												className={`rounded-lg px-4 py-2.5 ${updating || !canApproveQuote ? 'bg-gray-300' : 'bg-emerald-600'} ${!canApproveQuotes || !canApproveQuote ? 'opacity-40' : ''}`}
 											>
 												<Text className="font-inter-medium text-sm text-white">
 													{updating ? 'Salvando...' : 'Aprovar orçamento'}
@@ -984,16 +1005,24 @@ export function QuoteCard({
 						<SectionTitle>Solicitação de tradução</SectionTitle>
 						{isEditing ? (
 							<View className="flex-row flex-wrap gap-x-5 gap-y-4">
-								<EditField
-									label="Idioma de origem"
-									value={originalLanguage}
-									onChangeText={setOriginalLanguage}
-								/>
-								<EditField
-									label="Idioma de destino"
-									value={translationLanguage}
-									onChangeText={setTranslationLanguage}
-								/>
+								<View className="w-full gap-1 md:w-[47%]">
+									<Text className="font-inter-medium text-xs text-gray-500">
+										Idioma de origem
+									</Text>
+									<LanguageSelect
+										value={originalLanguage}
+										onChange={setOriginalLanguage}
+									/>
+								</View>
+								<View className="w-full gap-1 md:w-[47%]">
+									<Text className="font-inter-medium text-xs text-gray-500">
+										Idioma de destino
+									</Text>
+									<LanguageSelect
+										value={translationLanguage}
+										onChange={setTranslationLanguage}
+									/>
+								</View>
 								<EditField
 									label="Necessidade"
 									value={customerNeed}
@@ -1030,20 +1059,28 @@ export function QuoteCard({
 										className="gap-3 rounded-xl border border-gray-200 bg-white p-4"
 									>
 										<View className="flex-row flex-wrap gap-x-5 gap-y-3">
-											<EditField
-												label="Idioma de origem"
-												value={item.source_language}
-												onChangeText={(value) =>
-													updateDraftItem(item.id, { source_language: value })
-												}
-											/>
-											<EditField
-												label="Idioma de destino"
-												value={item.target_language}
-												onChangeText={(value) =>
-													updateDraftItem(item.id, { target_language: value })
-												}
-											/>
+											<View className="w-full gap-1 md:w-[47%]">
+												<Text className="font-inter-medium text-xs text-gray-500">
+													Idioma de origem
+												</Text>
+												<LanguageSelect
+													value={item.source_language}
+													onChange={(value) =>
+														updateDraftItem(item.id, { source_language: value })
+													}
+												/>
+											</View>
+											<View className="w-full gap-1 md:w-[47%]">
+												<Text className="font-inter-medium text-xs text-gray-500">
+													Idioma de destino
+												</Text>
+												<LanguageSelect
+													value={item.target_language}
+													onChange={(value) =>
+														updateDraftItem(item.id, { target_language: value })
+													}
+												/>
+											</View>
 											<EditField
 												label="Tipo de documento"
 												value={item.document_type}
@@ -1132,13 +1169,20 @@ export function QuoteCard({
 											{item.file_url ? (
 												<TouchableOpacity
 													accessibilityRole="link"
+													accessibilityLabel={`Abrir documento ${getFileName(item.file_url)}`}
 													onPress={() => openDocument(item.file_url!)}
-													className="flex-row items-center gap-2 self-start"
+													className="min-w-0 flex-1 flex-row items-center gap-2"
 												>
-													<Text className="font-inter-medium text-sm text-blue-700">
+													<Text
+														className="min-w-0 flex-1 font-inter-medium text-sm text-blue-700"
+														numberOfLines={2}
+														ellipsizeMode="tail"
+													>
 														{getFileName(item.file_url)}
 													</Text>
-													<ExternalLink size={14} color="#1d4ed8" />
+													<View className="flex-shrink-0">
+														<ExternalLink size={14} color="#1d4ed8" />
+													</View>
 												</TouchableOpacity>
 											) : (
 												<Text className="font-inter text-sm text-gray-400">

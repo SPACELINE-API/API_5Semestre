@@ -206,8 +206,8 @@ class QuoteService:
                 detail="A requisição possui dados obrigatórios inválidos.",
             )
 
-        document_file_url = None
-        if request.document:
+        document_file_url = request.document_url
+        if document_file_url is None and request.document:
             document_file_url = upload_quote_document(
                 filename=request.document_filename or "documento",
                 file_data=io.BytesIO(request.document),

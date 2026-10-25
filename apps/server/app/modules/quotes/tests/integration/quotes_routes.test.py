@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.main import app
+from app.modules.clients.models.company import Company
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.request import Request, StatusEnum
 from app.modules.quotes.routes import (
@@ -60,6 +61,42 @@ def test_create_quote_endpoint_persists_quote(db_client: TestClient, isolated_db
 def test_create_quote_endpoint_invalid_schema(client: TestClient):
     response = client.post("/api/quotes", json="invalid_payload")
     assert response.status_code == 422
+
+
+def test_list_quotes_includes_linked_company_name_and_legacy_fallback(
+    db_client: TestClient, isolated_db_session: Session
+):
+    company = Company(
+        legal_name="Empresa Legal Ltda",
+        trade_name="Empresa Atual",
+        cnpj="12.345.678/0001-90",
+        industry="Serviços",
+        phone="11999999999",
+        email="empresa@teste.com",
+        zip_code="01000-000",
+        street="Rua Um",
+        number="1",
+        neighborhood="Centro",
+        city="São Paulo",
+        state="SP",
+    )
+    linked_quote = Quote(
+        company=company,
+        enterprise="Nome antigo",
+        status="pending",
+    )
+    legacy_quote = Quote(enterprise="Empresa legada", status="pending")
+    empty_quote = Quote(status="pending")
+    isolated_db_session.add_all([linked_quote, legacy_quote, empty_quote])
+    isolated_db_session.commit()
+
+    response = db_client.get("/api/quotes")
+
+    assert response.status_code == 200
+    names_by_id = {item["id"]: item["company_name"] for item in response.json()["items"]}
+    assert names_by_id[str(linked_quote.id)] == "Empresa Atual"
+    assert names_by_id[str(legacy_quote.id)] == "Empresa legada"
+    assert names_by_id[str(empty_quote.id)] is None
 
 
 def test_generate_quote_from_request_endpoint_uses_approved_request(

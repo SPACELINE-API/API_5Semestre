@@ -25,7 +25,18 @@ import { LanguageSelect } from '../../quotes/components/LanguageSelect';
 import { DateField } from '../../../shared/components/DateField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 import { formatDateInputValue } from '../utils/format';
+import {
+	decimalStringToBRL,
+	maskCurrencyDigits,
+} from '../../../shared/utils/currency';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+
+function getTodayInputValue() {
+	const today = new Date();
+	const month = String(today.getMonth() + 1).padStart(2, '0');
+	const day = String(today.getDate()).padStart(2, '0');
+	return `${today.getFullYear()}-${month}-${day}`;
+}
 
 type EditItemModalProps = {
 	item: ServiceOrderItem | null;
@@ -63,7 +74,7 @@ export function EditItemModal({
 		setSourceLanguage(item.source_language);
 		setTargetLanguage(item.target_language);
 		setDocumentType(item.document_type ?? '');
-		setPrice(item.price ?? '');
+		setPrice(item.price ? Number(item.price).toFixed(2) : '');
 		setDeadline(formatDateInputValue(item.deadline));
 		setFile(null);
 		setError(null);
@@ -81,6 +92,10 @@ export function EditItemModal({
 
 		if (!sourceLanguage.trim() || !targetLanguage.trim()) {
 			setError('Informe o idioma de origem e o idioma de destino.');
+			return;
+		}
+		if (deadline && deadline < getTodayInputValue()) {
+			setError('O prazo não pode ser anterior à data de hoje.');
 			return;
 		}
 
@@ -170,14 +185,15 @@ export function EditItemModal({
 
 						<FormField
 							label="Preço"
-							value={price}
-							onChangeText={(value) => setPrice(value.replace(/[^0-9.,]/g, ''))}
-							placeholder="Ex: 500.00"
+							value={price ? decimalStringToBRL(price) : ''}
+							onChangeText={(value) => setPrice(maskCurrencyDigits(value))}
+							placeholder="R$ 0,00"
 						/>
 
 						<DateField
 							label="Prazo"
 							value={deadline}
+							minDate={getTodayInputValue()}
 							onChangeText={setDeadline}
 						/>
 

@@ -57,7 +57,7 @@ function NavItem({
 			disabled={disabled}
 			accessibilityRole="button"
 			accessibilityLabel={label}
-			accessibilityState={{ disabled }}
+			accessibilityState={{ disabled, selected: active }}
 			className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${
 				active ? 'bg-blue-50' : disabled ? '' : 'hover:bg-gray-50'
 			} ${!isOpen ? 'justify-center px-0' : ''}`}
