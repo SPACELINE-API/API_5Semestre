@@ -113,16 +113,24 @@ export function LoginPage() {
 	}>();
 
 	useEffect(() => {
-		if (params.type === 'recovery' && params.access_token)
-			setToken(params.access_token);
-		if (typeof window !== 'undefined' && window.location.hash) {
-			const hashParams = new URLSearchParams(window.location.hash.slice(1));
-			if (
-				hashParams.get('type') === 'recovery' &&
-				hashParams.get('access_token')
-			)
-				setToken(hashParams.get('access_token') ?? '');
+		const queryToken =
+			params.type === 'recovery' ? params.access_token : undefined;
+		if (queryToken) {
+			setToken(queryToken);
+			return;
 		}
+
+		if (typeof window === 'undefined') return;
+		const searchParams = new URLSearchParams(window.location.search);
+		const hashParams = new URLSearchParams(window.location.hash.slice(1));
+		const recoveryToken = [searchParams, hashParams]
+			.find(
+				(searchParams) =>
+					searchParams.get('type') === 'recovery' &&
+					searchParams.get('access_token'),
+			)
+			?.get('access_token');
+		if (recoveryToken) setToken(recoveryToken);
 	}, [params.access_token, params.type]);
 	useEffect(() => {
 		if (!recoveryCooldown) return;

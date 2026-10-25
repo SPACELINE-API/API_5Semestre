@@ -231,6 +231,26 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(page.getByText('Senha atualizada com sucesso.')).toBeVisible();
 		expect(requestBody.access_token).toBe('mobile-token');
 	});
+
+	test('redefine a senha quando o token chega na query string', async ({
+		page,
+	}) => {
+		let requestBody: Record<string, string> = {};
+		await page.route('**/api/auth/password-reset', async (route) => {
+			requestBody = route.request().postDataJSON() as Record<string, string>;
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ message: 'Senha atualizada com sucesso.' }),
+			});
+		});
+		await page.goto('/login?access_token=query-token&type=recovery');
+		await page.getByPlaceholder('Digite sua nova senha').fill('nova-senha');
+		await page.getByPlaceholder('Digite a senha novamente').fill('nova-senha');
+		await page.getByText('ATUALIZAR SENHA', { exact: true }).click();
+		await expect(page.getByText('Senha atualizada com sucesso.')).toBeVisible();
+		expect(requestBody.access_token).toBe('query-token');
+	});
 });
 
 test.describe('configuração de permissões', () => {

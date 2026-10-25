@@ -16,7 +16,7 @@ class Env(BaseModel):
     supabase_url: str = Field(default="http://localhost:8000", alias="SUPABASE_URL")
     supabase_anon_key: str = Field(default="", alias="ANON_KEY")
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")
-    site_url: str = Field(default="http://localhost:5173", alias="SITE_URL")
+    site_url: str = Field(default="http://localhost:8081", alias="SITE_URL")
     smtp_host: str = Field(default="localhost", alias="SMTP_HOST")
     smtp_port: int = Field(default=1025, alias="SMTP_PORT")
     smtp_user: str = Field(default="", alias="SMTP_USER")
