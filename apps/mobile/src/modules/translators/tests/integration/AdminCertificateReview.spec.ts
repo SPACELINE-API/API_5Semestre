@@ -151,7 +151,7 @@ test('aprova o certificado e o idioma passa a fazer parte do perfil', async ({
 	await openRequestsTab(page);
 
 	await page.getByLabel(/Solicitação de Árabe \(Egito\)/).click();
-	await expect(page.getByText('Solicitação pendente')).toBeVisible();
+	await expect(page.getByText('Aguardando avaliação').first()).toBeVisible();
 	await page.getByText('Aprovar', { exact: true }).click();
 
 	await expect(page.getByText('Aprovar certificado?')).toBeVisible();
@@ -198,7 +198,7 @@ test('certificado aprovado só permite visualizar o documento', async ({
 	await page.getByLabel(/Solicitação de Espanhol/).click();
 
 	await expect(page.getByText('Certificado aprovado')).toBeVisible();
-	await expect(page.getByText('Visualizar arquivo')).toBeVisible();
+	await expect(page.getByText('Visualizar documento')).toBeVisible();
 	await expect(page.getByText('Aprovar', { exact: true })).toHaveCount(0);
 	await expect(page.getByText('Recusar', { exact: true })).toHaveCount(0);
 });
@@ -211,7 +211,7 @@ test('certificado recusado mostra o motivo e só permite visualizar', async ({
 
 	await page.getByLabel(/Solicitação de Francês/).click();
 
-	await expect(page.getByText('Documento ilegível')).toBeVisible();
+	await expect(page.getByText('Motivo da recusa:')).toBeVisible();
 	await expect(page.getByText('Aprovar', { exact: true })).toHaveCount(0);
 });
 
@@ -224,7 +224,7 @@ test('visualiza o arquivo por link temporário', async ({ page }) => {
 	const signedRequest = page
 		.context()
 		.waitForEvent('request', (request) => request.url() === SIGNED_URL);
-	await page.getByText('Visualizar arquivo').click();
+	await page.getByText('Visualizar documento').click();
 
 	await popupPromise;
 	expect((await signedRequest).url()).toBe(SIGNED_URL);

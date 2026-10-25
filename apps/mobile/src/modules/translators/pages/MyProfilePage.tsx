@@ -6,7 +6,14 @@ import {
 	View,
 	Platform,
 } from 'react-native';
-import { useState, type ComponentProps, type ComponentType } from 'react';
+import {
+	useCallback,
+	useRef,
+	useState,
+	type ComponentProps,
+	type ComponentType,
+} from 'react';
+import { useFocusEffect } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { AlertCircle } from 'lucide-react-native';
 import { TabBar } from '../../../shared/components/TabBar';
@@ -46,6 +53,29 @@ export function MyProfilePage() {
 	const [unavailableIds, setUnavailableIds] = useState<ReadonlySet<string>>(
 		new Set(),
 	);
+
+	const hasFocusedOnce = useRef(false);
+	const refreshProfile = refresh;
+	const refreshCertificates = certificates.refresh;
+
+	useFocusEffect(
+		useCallback(() => {
+			if (!hasFocusedOnce.current) {
+				hasFocusedOnce.current = true;
+				return;
+			}
+			void refreshProfile();
+			void refreshCertificates();
+		}, [refreshProfile, refreshCertificates]),
+	);
+
+	function handleTabChange(tab: ProfileTab) {
+		setActiveTab(tab);
+		if (tab === 'languages' || tab === 'certificates') {
+			void refreshProfile();
+			void refreshCertificates();
+		}
+	}
 
 	if (isLoading && !profile) {
 		return (
@@ -100,7 +130,11 @@ export function MyProfilePage() {
 					</Text>
 				</View>
 
-				<TabBar tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
+				<TabBar
+					tabs={TABS}
+					activeTab={activeTab}
+					onTabChange={handleTabChange}
+				/>
 
 				<View className="py-6">
 					<View className={`gap-4 ${activeTab === 'data' ? '' : 'hidden'}`}>

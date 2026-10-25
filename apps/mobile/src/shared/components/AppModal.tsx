@@ -32,6 +32,7 @@ type AppModalProps = {
 	isLoading?: boolean;
 	confirmDisabled?: boolean;
 	size?: 'sm' | 'md';
+	footer?: ReactNode;
 	/** Quando informado, exibe as ações Cancelar e Confirmar. */
 	onConfirm?: () => void;
 	onClose: () => void;
@@ -66,6 +67,7 @@ export function AppModal({
 	isLoading = false,
 	confirmDisabled = false,
 	size = 'sm',
+	footer,
 	onConfirm,
 	onClose,
 }: AppModalProps) {
@@ -150,59 +152,65 @@ export function AppModal({
 						</ScrollView>
 					) : null}
 
-					<View
-						className={`flex-row gap-3 px-6 pb-6 pt-5 md:px-7 md:pb-7 ${
-							isCentered ? '' : 'justify-end'
-						}`}
-					>
-						{hasConfirm ? (
-							<>
+					{footer ? (
+						<View className="flex-row gap-3 px-6 pb-6 pt-5 md:px-7 md:pb-7">
+							{footer}
+						</View>
+					) : (
+						<View
+							className={`flex-row gap-3 px-6 pb-6 pt-5 md:px-7 md:pb-7 ${
+								isCentered ? '' : 'justify-end'
+							}`}
+						>
+							{hasConfirm ? (
+								<>
+									<TouchableOpacity
+										onPress={onClose}
+										disabled={isLoading}
+										accessibilityRole="button"
+										className={`items-center rounded-lg border border-gray-300 px-4 py-2.5 ${
+											isCentered ? 'flex-1' : ''
+										}`}
+									>
+										<Text className="font-inter font-medium text-gray-800 text-sm">
+											{cancelLabel}
+										</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										onPress={onConfirm}
+										disabled={isLoading || confirmDisabled}
+										accessibilityRole="button"
+										accessibilityState={{
+											disabled: isLoading || confirmDisabled,
+											busy: isLoading,
+										}}
+										className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${
+											isCentered ? 'flex-1' : ''
+										} ${isLoading || confirmDisabled ? 'opacity-50' : ''}`}
+									>
+										{isLoading && (
+											<ActivityIndicator size="small" color="#FFFFFF" />
+										)}
+										<Text className="font-inter font-semibold text-sm text-white">
+											{isLoading ? 'Aguarde…' : confirmLabel}
+										</Text>
+									</TouchableOpacity>
+								</>
+							) : hideCloseButton ? null : (
 								<TouchableOpacity
 									onPress={onClose}
-									disabled={isLoading}
 									accessibilityRole="button"
-									className={`items-center rounded-lg border border-gray-300 px-4 py-2.5 ${
+									className={`items-center rounded-lg bg-blue-600 px-4 py-2.5 ${
 										isCentered ? 'flex-1' : ''
 									}`}
 								>
-									<Text className="font-inter font-medium text-gray-800 text-sm">
-										{cancelLabel}
-									</Text>
-								</TouchableOpacity>
-								<TouchableOpacity
-									onPress={onConfirm}
-									disabled={isLoading || confirmDisabled}
-									accessibilityRole="button"
-									accessibilityState={{
-										disabled: isLoading || confirmDisabled,
-										busy: isLoading,
-									}}
-									className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${
-										isCentered ? 'flex-1' : ''
-									} ${isLoading || confirmDisabled ? 'opacity-50' : ''}`}
-								>
-									{isLoading && (
-										<ActivityIndicator size="small" color="#FFFFFF" />
-									)}
 									<Text className="font-inter font-semibold text-sm text-white">
-										{isLoading ? 'Aguarde…' : confirmLabel}
+										{closeLabel}
 									</Text>
 								</TouchableOpacity>
-							</>
-						) : hideCloseButton ? null : (
-							<TouchableOpacity
-								onPress={onClose}
-								accessibilityRole="button"
-								className={`items-center rounded-lg bg-blue-600 px-4 py-2.5 ${
-									isCentered ? 'flex-1' : ''
-								}`}
-							>
-								<Text className="font-inter font-semibold text-sm text-white">
-									{closeLabel}
-								</Text>
-							</TouchableOpacity>
-						)}
-					</View>
+							)}
+						</View>
+					)}
 				</View>
 			</View>
 		</Modal>

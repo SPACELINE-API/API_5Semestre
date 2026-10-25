@@ -26,6 +26,7 @@ import type {
 	Translator,
 	TranslatorUpdateInput,
 } from '../../modules/translators/types/translator';
+import { maskPhone } from '../../modules/clients/utils/mask';
 import { TranslatorEditModal } from '../../modules/translators/components/TranslatorEditModal';
 import { CertificateRequestsList } from '../../modules/translators/components/CertificateRequestsList';
 import { CertificateReviewModal } from '../../modules/translators/components/CertificateReviewModal';
@@ -265,7 +266,7 @@ export default function TranslatorDetailsScreen() {
 								<View className="flex-row items-center gap-3">
 									<Phone size={16} color="#6B7280" />
 									<Text className="font-inter text-gray-700 text-sm">
-										{translator.phone}
+										{maskPhone(translator.phone)}
 									</Text>
 								</View>
 							</View>
