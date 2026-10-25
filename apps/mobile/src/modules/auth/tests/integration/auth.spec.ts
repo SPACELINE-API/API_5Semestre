@@ -117,16 +117,16 @@ test.describe('autenticação mobile unificada', () => {
 
 		await expect(
 			page.getByRole('button', { name: 'Orçamento', exact: true }),
-		).toHaveAttribute('aria-selected', 'true');
+		).toHaveClass(/bg-blue-50/);
 
 		await page.getByRole('button', { name: 'Propostas', exact: true }).click();
 		await expect(page).toHaveURL(/\/propostas$/);
 		await expect(
 			page.getByRole('button', { name: 'Orçamento', exact: true }),
-		).toHaveAttribute('aria-selected', 'false');
+		).not.toHaveClass(/bg-blue-50/);
 		await expect(
 			page.getByRole('button', { name: 'Propostas', exact: true }),
-		).toHaveAttribute('aria-selected', 'true');
+		).toHaveClass(/bg-blue-50/);
 	});
 
 	for (const roleName of ['Administrador']) {
