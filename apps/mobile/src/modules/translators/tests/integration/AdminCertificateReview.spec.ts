@@ -220,14 +220,13 @@ test('visualiza o arquivo por link temporário', async ({ page }) => {
 	await openRequestsTab(page);
 	await page.getByLabel(/Solicitação de Árabe \(Egito\)/).click();
 
-	const popupPromise = page.waitForEvent('popup');
 	const signedRequest = page
 		.context()
 		.waitForEvent('request', (request) => request.url() === SIGNED_URL);
 	await page.getByText('Visualizar documento').click();
 
-	await popupPromise;
 	expect((await signedRequest).url()).toBe(SIGNED_URL);
+	await expect(page.getByText('Abrir em nova aba')).toBeVisible();
 });
 
 test('sem solicitações exibe estado vazio', async ({ page }) => {
