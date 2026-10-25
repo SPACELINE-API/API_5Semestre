@@ -17,6 +17,7 @@ import {
 } from '../services/languageService';
 import { usePermission } from '../../auth/hooks/usePermission';
 import { getLanguageDropdownLayout } from '../utils/languageDropdownLayout';
+import { getLanguageFlag } from '../../translators/utils/languageFlag';
 
 interface LanguageSelectProps {
 	value?: string;
@@ -87,17 +88,28 @@ export function LanguageSelect({
 		<View className="relative z-50">
 			<TouchableOpacity
 				ref={triggerRef}
+				accessibilityRole="button"
+				accessibilityLabel={selectedLanguage?.name ?? placeholder}
 				className="flex-row items-center justify-between gap-2 rounded-md border border-gray-200 bg-white p-3"
 				onPress={openDropdown}
 			>
-				<Text
-					className={`min-w-0 flex-1 font-inter text-sm ${selectedLanguage ? 'text-gray-900' : 'text-gray-400'}`}
-					numberOfLines={1}
-				>
-					{selectedLanguage
-						? `${selectedLanguage.name} (${selectedLanguage.id})`
-						: placeholder}
-				</Text>
+				{selectedLanguage ? (
+					<View className="min-w-0 flex-1 flex-row items-center gap-2">
+						<Text className="text-base">
+							{getLanguageFlag(selectedLanguage)}
+						</Text>
+						<Text
+							className="min-w-0 flex-1 font-inter text-sm text-gray-900"
+							numberOfLines={1}
+						>
+							{selectedLanguage.name} ({selectedLanguage.id})
+						</Text>
+					</View>
+				) : (
+					<Text className="min-w-0 flex-1 font-inter text-sm text-gray-400">
+						{placeholder}
+					</Text>
+				)}
 				<ChevronDown size={16} color="#9ca3af" />
 			</TouchableOpacity>
 
@@ -124,12 +136,15 @@ export function LanguageSelect({
 							{languages.map((item) => (
 								<TouchableOpacity
 									key={item.id}
-									className={`py-2 px-3 border-b border-gray-50 ${value === item.id ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`}
+									accessibilityRole="button"
+									accessibilityLabel={item.name}
+									className={`flex-row items-center gap-2 py-2 px-3 border-b border-gray-50 ${value === item.id ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`}
 									onPress={() => {
 										onChange(item.id);
 										setIsOpen(false);
 									}}
 								>
+									<Text className="text-base">{getLanguageFlag(item)}</Text>
 									<Text
 										className={`font-inter text-sm ${value === item.id ? 'text-blue-700 font-inter-medium' : 'text-gray-700'}`}
 										numberOfLines={1}

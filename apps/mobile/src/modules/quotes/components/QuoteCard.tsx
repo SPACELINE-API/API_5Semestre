@@ -58,6 +58,7 @@ import {
 } from '../services/additionalService';
 import { AdditionalServiceCard } from './AdditionalServiceCard';
 import { AdditionalServiceFormModal } from './AdditionalServiceFormModal';
+import { LanguageSelect } from './LanguageSelect';
 
 const statusStyles: Record<string, { label: string; classes: string }> = {
 	approved: { label: 'Aprovado', classes: 'bg-emerald-50 text-emerald-700' },
@@ -984,16 +985,24 @@ export function QuoteCard({
 						<SectionTitle>Solicitação de tradução</SectionTitle>
 						{isEditing ? (
 							<View className="flex-row flex-wrap gap-x-5 gap-y-4">
-								<EditField
-									label="Idioma de origem"
-									value={originalLanguage}
-									onChangeText={setOriginalLanguage}
-								/>
-								<EditField
-									label="Idioma de destino"
-									value={translationLanguage}
-									onChangeText={setTranslationLanguage}
-								/>
+								<View className="w-full gap-1 md:w-[47%]">
+									<Text className="font-inter-medium text-xs text-gray-500">
+										Idioma de origem
+									</Text>
+									<LanguageSelect
+										value={originalLanguage}
+										onChange={setOriginalLanguage}
+									/>
+								</View>
+								<View className="w-full gap-1 md:w-[47%]">
+									<Text className="font-inter-medium text-xs text-gray-500">
+										Idioma de destino
+									</Text>
+									<LanguageSelect
+										value={translationLanguage}
+										onChange={setTranslationLanguage}
+									/>
+								</View>
 								<EditField
 									label="Necessidade"
 									value={customerNeed}
@@ -1030,20 +1039,28 @@ export function QuoteCard({
 										className="gap-3 rounded-xl border border-gray-200 bg-white p-4"
 									>
 										<View className="flex-row flex-wrap gap-x-5 gap-y-3">
-											<EditField
-												label="Idioma de origem"
-												value={item.source_language}
-												onChangeText={(value) =>
-													updateDraftItem(item.id, { source_language: value })
-												}
-											/>
-											<EditField
-												label="Idioma de destino"
-												value={item.target_language}
-												onChangeText={(value) =>
-													updateDraftItem(item.id, { target_language: value })
-												}
-											/>
+											<View className="w-full gap-1 md:w-[47%]">
+												<Text className="font-inter-medium text-xs text-gray-500">
+													Idioma de origem
+												</Text>
+												<LanguageSelect
+													value={item.source_language}
+													onChange={(value) =>
+														updateDraftItem(item.id, { source_language: value })
+													}
+												/>
+											</View>
+											<View className="w-full gap-1 md:w-[47%]">
+												<Text className="font-inter-medium text-xs text-gray-500">
+													Idioma de destino
+												</Text>
+												<LanguageSelect
+													value={item.target_language}
+													onChange={(value) =>
+														updateDraftItem(item.id, { target_language: value })
+													}
+												/>
+											</View>
 											<EditField
 												label="Tipo de documento"
 												value={item.document_type}
