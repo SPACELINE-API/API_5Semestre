@@ -1001,52 +1001,6 @@ export function QuoteCard({
 						)}
 					</View>
 
-					<View className="rounded-xl bg-gray-50 p-4">
-						<SectionTitle>Solicitação de tradução</SectionTitle>
-						{isEditing ? (
-							<View className="flex-row flex-wrap gap-x-5 gap-y-4">
-								<View className="w-full gap-1 md:w-[47%]">
-									<Text className="font-inter-medium text-xs text-gray-500">
-										Idioma de origem
-									</Text>
-									<LanguageSelect
-										value={originalLanguage}
-										onChange={setOriginalLanguage}
-									/>
-								</View>
-								<View className="w-full gap-1 md:w-[47%]">
-									<Text className="font-inter-medium text-xs text-gray-500">
-										Idioma de destino
-									</Text>
-									<LanguageSelect
-										value={translationLanguage}
-										onChange={setTranslationLanguage}
-									/>
-								</View>
-								<EditField
-									label="Necessidade"
-									value={customerNeed}
-									onChangeText={setCustomerNeed}
-								/>
-							</View>
-						) : (
-							<View className="flex-row flex-wrap gap-x-5 gap-y-4">
-								<QuoteField
-									label="Idioma de origem"
-									value={display(quote.original_language)}
-								/>
-								<QuoteField
-									label="Idioma de destino"
-									value={display(quote.translation_language)}
-								/>
-								<QuoteField
-									label="Necessidade"
-									value={display(quote.customer_need)}
-								/>
-							</View>
-						)}
-					</View>
-
 					<View>
 						<SectionTitle>
 							Documentos ({isEditing ? draftItems.length : quote.items.length})
@@ -1096,24 +1050,42 @@ export function QuoteCard({
 												}
 											/>
 										</View>
-										<View className="flex-row flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3">
-											<TouchableOpacity
-												accessibilityRole="button"
-												disabled={
-													uploadingItemId === item.id || !canWriteDocuments
-												}
-												onPress={() => void handlePickItemFile(item.id)}
-												className={`flex-row items-center gap-2 ${!canWriteDocuments ? 'opacity-40' : ''}`}
-											>
-												<Paperclip size={14} color="#1d4ed8" />
-												<Text className="font-inter-medium text-sm text-blue-700">
-													{uploadingItemId === item.id
-														? 'Enviando...'
-														: item.file_url
-															? getFileName(item.file_url)
+										<View className="flex-row items-center gap-3 border-t border-gray-100 pt-3">
+											{!item.file_url && (
+												<TouchableOpacity
+													accessibilityRole="button"
+													accessibilityLabel="Anexar arquivo"
+													disabled={
+														uploadingItemId === item.id || !canWriteDocuments
+													}
+													onPress={() => void handlePickItemFile(item.id)}
+													className={`shrink-0 flex-row items-center gap-2 ${!canWriteDocuments ? 'opacity-40' : ''}`}
+												>
+													<Paperclip size={14} color="#1d4ed8" />
+													<Text className="font-inter-medium text-sm text-blue-700">
+														{uploadingItemId === item.id
+															? 'Enviando...'
 															: 'Anexar arquivo'}
-												</Text>
-											</TouchableOpacity>
+													</Text>
+												</TouchableOpacity>
+											)}
+											{item.file_url && (
+												<TouchableOpacity
+													accessibilityRole="link"
+													accessibilityLabel={`Visualizar arquivo ${getFileName(item.file_url)}`}
+													onPress={() => openDocument(item.file_url!)}
+													className="min-w-0 flex-1 flex-row items-center gap-2"
+												>
+													<Text
+														className="min-w-0 flex-1 font-inter-medium text-sm text-blue-700"
+														numberOfLines={1}
+														ellipsizeMode="tail"
+													>
+														{getFileName(item.file_url)}
+													</Text>
+													<ExternalLink size={14} color="#1d4ed8" />
+												</TouchableOpacity>
+											)}
 											<TouchableOpacity
 												accessibilityRole="button"
 												accessibilityLabel="Remover item"

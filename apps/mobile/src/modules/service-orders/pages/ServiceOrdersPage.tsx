@@ -22,6 +22,7 @@ import { useCompanies } from '../../clients/hooks/useCompanies';
 import { useContacts } from '../hooks/useContacts';
 import { ServiceOrderTable } from '../components/ServiceOrderTable';
 import { GenerateOrderModal } from '../components/GenerateOrderModal';
+import { updateServiceOrderItem } from '../services/serviceOrderService';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
@@ -186,7 +187,7 @@ export function ServiceOrdersPage() {
 								disabled={!canWriteServiceOrders}
 								activeOpacity={0.8}
 								accessibilityRole="button"
-								accessibilityLabel="Gerar ordem de serviço a partir de um orçamento"
+								accessibilityLabel="Gerar ordem de serviço manual"
 								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 							>
 								<Plus size={18} color="#ffffff" />
@@ -323,9 +324,20 @@ export function ServiceOrdersPage() {
 				companies={companies}
 				contacts={contacts}
 				onClose={() => setIsFormVisible(false)}
-				onSubmit={async (data) => {
+				onSubmit={async (data, files) => {
 					try {
-						await create(data);
+						const serviceOrder = await create(data);
+						await Promise.all(
+							files.map((file, index) =>
+								file && serviceOrder.items[index]
+									? updateServiceOrderItem(
+											serviceOrder.items[index].id,
+											data.items[index],
+											file,
+										)
+									: Promise.resolve(),
+							),
+						);
 						setIsFormVisible(false);
 						showToast('Ordem de serviço gerada com sucesso!', 'success');
 					} catch (submitError) {

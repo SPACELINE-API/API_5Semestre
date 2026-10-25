@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
 	generateServiceOrderFromQuote,
+	createManualServiceOrder,
 	listServiceOrders,
 } from '../services/serviceOrderService';
 import type {
 	GenerateServiceOrderInput,
+	ManualServiceOrderInput,
 	ServiceOrder,
 } from '../types/serviceOrder';
 
@@ -33,11 +35,17 @@ export function useServiceOrders() {
 		refresh();
 	}, [refresh]);
 
-	const create = useCallback(async (data: GenerateServiceOrderInput) => {
-		const serviceOrder = await generateServiceOrderFromQuote(data);
-		setServiceOrders((current) => [serviceOrder, ...current]);
-		return serviceOrder;
-	}, []);
+	const create = useCallback(
+		async (data: GenerateServiceOrderInput | ManualServiceOrderInput) => {
+			const serviceOrder =
+				'quote_id' in data
+					? await generateServiceOrderFromQuote(data)
+					: await createManualServiceOrder(data);
+			setServiceOrders((current) => [serviceOrder, ...current]);
+			return serviceOrder;
+		},
+		[],
+	);
 
 	const removeMany = useCallback((ids: string[]) => {
 		const idSet = new Set(ids);

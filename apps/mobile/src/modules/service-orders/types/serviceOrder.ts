@@ -64,7 +64,7 @@ export type ServiceOrderEmailTemplate = {
 
 export type ServiceOrder = {
 	id: string;
-	quote_id: string;
+	quote_id: string | null;
 	company_id: string;
 	project_name: string;
 	deadline: string | null;
@@ -88,6 +88,26 @@ export type GenerateServiceOrderInput = {
 	price_category?: string | null;
 	internal_notes?: string | null;
 	external_notes?: string | null;
+};
+
+export type ManualServiceOrderItemInput = {
+	source_language: string;
+	target_language: string;
+	document_type?: string | null;
+	word_count?: number | null;
+	price?: number | null;
+	deadline?: string | null;
+};
+
+export type ManualServiceOrderInput = {
+	company_id: string;
+	project_name: string;
+	deadline?: string | null;
+	domain_area?: string | null;
+	internal_notes?: string | null;
+	external_notes?: string | null;
+	total_price: number;
+	items: ManualServiceOrderItemInput[];
 };
 
 export type UpdateServiceOrderInput = {

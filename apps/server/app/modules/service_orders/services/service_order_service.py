@@ -23,6 +23,7 @@ from app.modules.service_orders.models.service_order_item import (
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
+    ManualServiceOrderRequest,
     ServiceOrderFileResponse,
     ServiceOrderItemResponse,
     ServiceOrderResponse,
@@ -86,8 +87,8 @@ class ServiceOrderService:
         service_order = (
             self.db.query(ServiceOrder)
             .options(selectinload(ServiceOrder.items), selectinload(ServiceOrder.files))
-            .join(Quote, ServiceOrder.quote_id == Quote.id)
-            .filter(Quote.status == "approved")
+            .outerjoin(Quote, ServiceOrder.quote_id == Quote.id)
+            .filter((ServiceOrder.quote_id.is_(None)) | (Quote.status == "approved"))
             .filter(ServiceOrder.id == service_order_id)
             .first()
         )
@@ -147,6 +148,38 @@ class ServiceOrderService:
                 )
             )
 
+        self.db.add(service_order)
+        self.db.commit()
+        self.db.refresh(service_order)
+
+        return to_response(service_order)
+
+    def create_manual(self, data: ManualServiceOrderRequest) -> ServiceOrderResponse:
+        company = self.db.query(Company).filter(Company.id == data.company_id).first()
+        if not company:
+            raise HTTPException(status_code=404, detail="Empresa não encontrada")
+
+        service_order = ServiceOrder(
+            quote_id=None,
+            company_id=data.company_id,
+            project_name=data.project_name,
+            deadline=data.deadline,
+            domain_area=data.domain_area,
+            price_category=data.price_category,
+            internal_notes=data.internal_notes,
+            external_notes=data.external_notes,
+        )
+        service_order.items.extend(
+            ServiceOrderItem(
+                source_language=item.source_language,
+                target_language=item.target_language,
+                document_type=item.document_type,
+                word_count=item.word_count,
+                price=item.price,
+                deadline=item.deadline,
+            )
+            for item in data.items
+        )
         self.db.add(service_order)
         self.db.commit()
         self.db.refresh(service_order)
@@ -427,8 +460,8 @@ class ServiceOrderService:
         service_orders = (
             self.db.query(ServiceOrder)
             .options(selectinload(ServiceOrder.items), selectinload(ServiceOrder.files))
-            .join(Quote, ServiceOrder.quote_id == Quote.id)
-            .filter(Quote.status == "approved")
+            .outerjoin(Quote, ServiceOrder.quote_id == Quote.id)
+            .filter((ServiceOrder.quote_id.is_(None)) | (Quote.status == "approved"))
             .all()
         )
         return [to_response(service_order) for service_order in service_orders]

@@ -72,6 +72,23 @@ class CreateServiceOrderItemRequest(BaseModel):
     deadline: datetime | None = None
 
 
+class ManualServiceOrderRequest(BaseModel):
+    company_id: uuid.UUID
+    project_name: str = Field(min_length=1, max_length=150)
+    deadline: datetime | None = None
+    domain_area: str | None = None
+    price_category: str | None = None
+    internal_notes: str | None = None
+    external_notes: str | None = None
+    total_price: Decimal | None = Field(default=None, ge=0)
+    items: list[CreateServiceOrderItemRequest] = Field(min_length=1)
+
+    @field_validator("deadline")
+    @classmethod
+    def validate_deadline(cls, value: datetime | None) -> datetime | None:
+        return _validate_deadline_not_in_past(value)
+
+
 class UpdateServiceOrderItemRequest(BaseModel):
     source_language: str | None = Field(default=None, min_length=1, max_length=10)
     target_language: str | None = Field(default=None, min_length=1, max_length=10)
@@ -133,7 +150,7 @@ class ServiceOrderDeliveryRequest(BaseModel):
 
 class ServiceOrderResponse(BaseModel):
     id: uuid.UUID
-    quote_id: uuid.UUID
+    quote_id: uuid.UUID | None
     company_id: uuid.UUID
     project_name: str
     deadline: datetime | None
