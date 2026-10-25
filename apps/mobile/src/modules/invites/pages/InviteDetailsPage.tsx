@@ -6,22 +6,13 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 } from 'react-native';
-import {
-	ArrowLeft,
-	AlertCircle,
-	Download,
-	Check,
-	X,
-} from 'lucide-react-native';
+import { ArrowLeft, AlertCircle, Check, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { getSession } from '../../auth/services/auth';
 import { useInviteDetails } from '../hooks/useInviteDetails';
 import { InviteStatusBadge } from '../components/InviteStatusBadge';
 import { InviteItemProgress } from '../components/InviteItemProgress';
-import {
-	FilePreview,
-	openDocument,
-} from '../../../shared/components/FilePreview';
+import { FilePreview } from '../../../shared/components/FilePreview';
 import { formatDate, formatPrice } from '../utils/format';
 import { acceptInvite, declineInvite } from '../services/inviteService';
 import { Toast } from '../../../shared/components/Toast';
@@ -199,26 +190,6 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 									{item.file_url ? (
 										<>
 											<FilePreview fileUrl={item.file_url} openInNewPage />
-
-											{invite.status === 'aceito' ? (
-												<TouchableOpacity
-													onPress={() => openDocument(item.file_url as string)}
-													activeOpacity={0.7}
-													accessibilityRole="link"
-													accessibilityLabel="Baixar documento"
-													className="flex-row items-center gap-1.5 self-start"
-												>
-													<Download size={14} color="#1C6FB0" />
-													<Text className="font-inter font-medium text-blue-600 text-sm">
-														Baixar arquivo
-													</Text>
-												</TouchableOpacity>
-											) : (
-												<Text className="font-inter text-gray-400 text-xs">
-													O download do arquivo só é liberado após você aceitar
-													o convite.
-												</Text>
-											)}
 										</>
 									) : (
 										<Text className="font-inter font-medium text-gray-400 text-sm">

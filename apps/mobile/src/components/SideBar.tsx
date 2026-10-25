@@ -345,14 +345,16 @@ export function SideBar({
 				</ScrollView>
 
 				<View className="relative flex-col gap-1 pt-4 mt-2 border-t border-gray-100">
-					<NavItem
-						icon={ConfiguracoesIcon}
-						label="Configurações"
-						isOpen={showExpanded}
-						active={pathname.startsWith('/configuracoes')}
-						disabled={!can('roles.read')}
-						onPress={() => navigate('/configuracoes/permissoes')}
-					/>
+					{!isTranslator && (
+						<NavItem
+							icon={ConfiguracoesIcon}
+							label="Configurações"
+							isOpen={showExpanded}
+							active={pathname.startsWith('/configuracoes')}
+							disabled={!can('roles.read')}
+							onPress={() => navigate('/configuracoes/permissoes')}
+						/>
+					)}
 					<TouchableOpacity
 						accessibilityRole="button"
 						accessibilityLabel="Sair do sistema"

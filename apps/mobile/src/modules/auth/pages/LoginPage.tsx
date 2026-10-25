@@ -1,21 +1,14 @@
+import { useEffect, useRef, useState } from 'react';
 import {
-	useEffect,
-	useRef,
-	useState,
-	type ComponentProps,
-	type ComponentType,
-} from 'react';
-import {
+	Image,
 	Platform,
 	Pressable,
 	Text,
 	TextInput,
 	View,
-	useWindowDimensions,
 } from 'react-native';
 import { Check } from 'lucide-react-native';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import {
 	clearSession,
@@ -28,9 +21,11 @@ import {
 	saveSession,
 } from '../services/auth';
 import { isTranslatorProfile } from '../services/authorization';
-import { DecorativeBackground } from '../components/DecorativeBackground';
+import logoAlianca from '../../../shared/assets/logo-alianca.png';
+import { GradientButton } from '../components/GradientButton';
+import { LoginBackground } from '../components/LoginBackground';
 import { LoginFields } from '../components/LoginFields';
-import { LoginHero } from '../components/LoginHero';
+import { LoginScroll } from '../components/LoginScroll';
 
 type LoginError = {
 	code: string;
@@ -96,12 +91,7 @@ function getLoginError(cause: unknown): LoginError {
 
 export function LoginPage() {
 	const router = useRouter();
-	const { width } = useWindowDimensions();
-	const isMobileLayout = width < 768;
 	const passwordInputRef = useRef<TextInput>(null);
-	const KeyboardContainer = (
-		Platform.OS === 'web' ? View : KeyboardAwareScrollView
-	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState<LoginError | null>(null);
@@ -117,7 +107,6 @@ export function LoginPage() {
 	const [showConfirmation, setShowConfirmation] = useState(false);
 	const [remember, setRemember] = useState(false);
 	const [recoveryCooldown, setRecoveryCooldown] = useState(0);
-	const contentClassName = `grow px-5 py-8 sm:px-6 md:px-[7.5%] md:py-5 ${token ? 'items-center justify-center' : 'flex-col justify-start gap-8 md:flex-row md:items-center md:justify-between'}`;
 	const params = useLocalSearchParams<{
 		access_token?: string;
 		type?: string;
@@ -233,134 +222,167 @@ export function LoginPage() {
 		setError(null);
 		setMessage('');
 	}
+	const heading = token
+		? 'Crie uma nova senha'
+		: recovery
+			? 'Recupere seu acesso'
+			: 'Acesse sua conta';
+	const subheading = token
+		? 'Defina uma nova senha para continuar.'
+		: recovery
+			? 'Informe o e-mail da sua conta para receber o link de redefinição de senha.'
+			: 'Bem-vindo de volta. Entre para continuar.';
+	const submitLabel = redirecting
+		? 'REDIRECIONANDO...'
+		: loading
+			? 'AGUARDE...'
+			: token
+				? 'ATUALIZAR SENHA'
+				: recoveryCooldown
+					? `AGUARDE ${recoveryCooldown}s`
+					: recovery
+						? 'ENVIAR LINK'
+						: 'ENTRAR';
+
 	return (
-		<KeyboardContainer
+		<View
 			className={
 				Platform.OS === 'web'
-					? 'min-h-screen flex-1 overflow-y-auto bg-[#dceeff]'
-					: 'flex-1 bg-[#dceeff]'
+					? 'min-h-screen flex-1 bg-[#f6faff]'
+					: 'flex-1 bg-[#f6faff]'
 			}
-			{...(Platform.OS === 'web'
-				? {}
-				: {
-						bottomOffset: 20,
-						keyboardShouldPersistTaps: 'handled',
-						contentContainerClassName: 'grow',
-					})}
 		>
-			<DecorativeBackground />
-			<View className={`z-10 flex-1 ${contentClassName}`}>
-				{!token ? (
-					<LoginHero showRequestServiceButton={!isMobileLayout} />
-				) : null}
-				<View className="w-full items-center justify-center md:w-[46%] md:py-0">
-					<View className="w-full max-w-[450px] rounded-[28px] border border-white/80 bg-white/90 px-5 py-6 shadow-2xl shadow-[#173a68]/15 sm:px-9 sm:py-8">
-						<View className="mb-6">
-							<Text className="text-[26px] font-extrabold tracking-[-0.8px] text-[#101b35]">
-								{token ? 'Crie uma nova senha' : 'Acesse sua conta'}
+			<LoginBackground />
+			<LoginScroll>
+				<View className="z-10 grow justify-center gap-8 px-6 py-8 sm:px-10 md:flex-row md:items-stretch md:justify-between md:gap-10 md:px-[7%] md:py-10">
+					<View className="items-center md:flex-1 md:items-start md:justify-between md:py-1">
+						<Image
+							source={logoAlianca}
+							style={{ width: 170, height: 44 }}
+							resizeMode="contain"
+							accessibilityLabel="Aliança Traduções"
+						/>
+						<View className="hidden max-w-[520px] md:flex">
+							<Text className="text-[52px] font-extrabold leading-[1.05] tracking-[-1.5px] text-[#0f1b33]">
+								Traduções com <Text className="text-[#2783d4]">clareza</Text>,
+								prazo e controle.
 							</Text>
-							<Text className="mt-1 text-sm text-[#506481]">
-								{token
-									? 'Defina uma nova senha para continuar.'
-									: 'Bem-vindo de volta.'}
+							<Text className="mt-6 max-w-[430px] text-lg leading-7 text-[#52647e]">
+								Acompanhe orçamentos, solicitações e documentos de tradução em
+								um só lugar.
 							</Text>
 						</View>
-						<LoginFields
-							token={token}
-							recovery={recovery}
-							email={email}
-							password={password}
-							newPassword={newPassword}
-							confirmation={confirmation}
-							showPassword={showPassword}
-							showNewPassword={showNewPassword}
-							showConfirmation={showConfirmation}
-							passwordInputRef={passwordInputRef}
-							onEmailChange={setEmail}
-							onPasswordChange={setPassword}
-							onNewPasswordChange={setNewPassword}
-							onConfirmationChange={setConfirmation}
-							onTogglePassword={() => setShowPassword(!showPassword)}
-							onToggleNewPassword={() => setShowNewPassword(!showNewPassword)}
-							onToggleConfirmation={() =>
-								setShowConfirmation(!showConfirmation)
-							}
-							onSubmitEditing={
-								recovery ? submit : () => passwordInputRef.current?.focus()
-							}
-						/>
-						{!recovery && !token ? (
-							<View className="mb-6 mt-5 flex-row flex-wrap items-center justify-between gap-y-4">
-								<Pressable
-									className="flex-row items-center gap-3"
-									accessibilityRole="checkbox"
-									accessibilityState={{ checked: remember }}
-									onPress={() => setRemember(!remember)}
-								>
-									<View
-										className={`h-6 w-6 items-center justify-center rounded-md border-2 ${remember ? 'border-sky-500 bg-sky-400' : 'border-sky-300 bg-white'}`}
+						<View className="hidden h-11 md:flex" />
+					</View>
+
+					<View className="w-full self-center md:w-[46%] md:max-w-[480px] md:justify-center">
+						<View className="w-full rounded-[22px] border border-[#e1ebf5] bg-white px-6 py-7 shadow-xl shadow-[#173a68]/10 sm:px-8">
+							<Text className="text-[28px] font-extrabold tracking-[-0.8px] text-[#0f1b33]">
+								{heading}
+							</Text>
+							<Text className="mb-6 mt-1 text-sm text-[#52647e]">
+								{subheading}
+							</Text>
+							<LoginFields
+								token={token}
+								recovery={recovery}
+								email={email}
+								password={password}
+								newPassword={newPassword}
+								confirmation={confirmation}
+								showPassword={showPassword}
+								showNewPassword={showNewPassword}
+								showConfirmation={showConfirmation}
+								passwordInputRef={passwordInputRef}
+								onEmailChange={setEmail}
+								onPasswordChange={setPassword}
+								onNewPasswordChange={setNewPassword}
+								onConfirmationChange={setConfirmation}
+								onTogglePassword={() => setShowPassword(!showPassword)}
+								onToggleNewPassword={() => setShowNewPassword(!showNewPassword)}
+								onToggleConfirmation={() =>
+									setShowConfirmation(!showConfirmation)
+								}
+								onSubmitEditing={
+									recovery ? submit : () => passwordInputRef.current?.focus()
+								}
+							/>
+							{!recovery && !token ? (
+								<View className="mb-6 mt-5 flex-row flex-wrap items-center justify-between gap-y-3">
+									<Pressable
+										className="flex-row items-center gap-2.5"
+										accessibilityRole="checkbox"
+										accessibilityState={{ checked: remember }}
+										onPress={() => setRemember(!remember)}
 									>
-										{remember ? (
-											<Check color="#ffffff" size={16} strokeWidth={3} />
-										) : null}
-									</View>
-									<Text className="text-sm text-[#52647e]">Lembrar-me</Text>
-								</Pressable>
-								<Pressable onPress={startRecovery}>
-									<Text className="text-xs font-bold text-[#176ed0]">
-										Esqueci minha senha
+										<View
+											className={`h-[22px] w-[22px] items-center justify-center rounded-md border-[1.5px] ${remember ? 'border-[#2d83cd] bg-[#2d83cd]' : 'border-[#7db9e8] bg-white'}`}
+										>
+											{remember ? (
+												<Check color="#ffffff" size={14} strokeWidth={3} />
+											) : null}
+										</View>
+										<Text className="text-[13px] text-[#52647e]">
+											Lembrar-me
+										</Text>
+									</Pressable>
+									<Pressable onPress={startRecovery}>
+										<Text className="text-[13px] font-bold text-[#176ed0]">
+											Esqueci minha senha
+										</Text>
+									</Pressable>
+								</View>
+							) : null}
+							{error ? (
+								<View
+									className="mb-4 mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3"
+									accessibilityRole="alert"
+									accessibilityLiveRegion="assertive"
+								>
+									<Text className="text-[10px] font-bold uppercase tracking-wider text-red-700">
+										{error.code}
+									</Text>
+									<Text className="mt-1 text-sm font-bold text-red-900">
+										{error.title}
+									</Text>
+									<Text className="mt-1 text-sm text-red-800">
+										{error.description}
+									</Text>
+									<Text className="mt-2 text-xs text-red-700">
+										{error.action}
+									</Text>
+								</View>
+							) : null}
+							<GradientButton
+								label={submitLabel}
+								onPress={submit}
+								disabled={loading || redirecting || Boolean(recoveryCooldown)}
+								className={token ? 'mt-3' : recovery ? 'mt-6' : ''}
+							/>
+							{recovery ? (
+								<Pressable
+									className="mt-3 h-11 items-center justify-center rounded-full border border-[#2d83cd] bg-transparent"
+									onPress={returnToLogin}
+								>
+									<Text className="text-sm font-bold text-[#176ed0]">
+										Voltar para o login
 									</Text>
 								</Pressable>
-							</View>
-						) : null}
-						{error ? (
-							<View
-								className="mb-4 mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3"
-								accessibilityRole="alert"
-								accessibilityLiveRegion="assertive"
-							>
-								<Text className="text-[10px] font-bold uppercase tracking-wider text-red-700">
-									{error.code}
+							) : null}
+							{message ? (
+								<Text className="mt-5 text-center text-sm font-semibold text-emerald-600">
+									{message}
 								</Text>
-								<Text className="mt-1 text-sm font-bold text-red-900">
-									{error.title}
+							) : null}
+						</View>
+
+						{!recovery && !token ? (
+							<View className="mt-6 items-center gap-3">
+								<Text className="text-center text-[13px] text-[#4d6483]">
+									Ainda não tem acesso? Solicite seu cadastro.
 								</Text>
-								<Text className="mt-1 text-sm text-red-800">
-									{error.description}
-								</Text>
-								<Text className="mt-2 text-xs text-red-700">
-									{error.action}
-								</Text>
-							</View>
-						) : null}
-						<Pressable
-							className={`h-12 items-center justify-center rounded-full bg-[#2d83cd] shadow-md shadow-blue-600/30 ${token ? 'mt-3' : recovery ? 'mt-6' : ''}`}
-							disabled={loading || redirecting || Boolean(recoveryCooldown)}
-							onPress={submit}
-						>
-							<Text className="font-bold text-white">
-								{redirecting
-									? 'REDIRECIONANDO...'
-									: loading
-										? 'AGUARDE...'
-										: token
-											? 'ATUALIZAR SENHA'
-											: recoveryCooldown
-												? `AGUARDE ${recoveryCooldown}s`
-												: recovery
-													? 'ENVIAR LINK'
-													: 'ENTRAR'}
-							</Text>
-						</Pressable>
-						{!recovery && !token && isMobileLayout ? (
-							<View className="mt-5">
-								<View className="mb-4 flex-row items-center gap-3">
-									<View className="h-px flex-1 bg-[#d7e2ef]" />
-									<Text className="text-xs font-medium text-[#7b8da7]">ou</Text>
-									<View className="h-px flex-1 bg-[#d7e2ef]" />
-								</View>
 								<Link href="/solicitar-servico" asChild>
-									<Pressable className="h-12 items-center justify-center rounded-full border border-[#2d83cd]/40 bg-white/70">
+									<Pressable className="h-12 w-full items-center justify-center rounded-full border border-[#2d83cd]/50 bg-white/85 sm:w-60">
 										<Text className="font-bold text-[#176ed0]">
 											Solicitar serviço
 										</Text>
@@ -368,24 +390,9 @@ export function LoginPage() {
 								</Link>
 							</View>
 						) : null}
-						{recovery ? (
-							<Pressable
-								className="mt-3 h-11 items-center justify-center rounded-full border border-[#2d83cd] bg-transparent"
-								onPress={returnToLogin}
-							>
-								<Text className="text-sm font-bold text-[#176ed0]">
-									Voltar para o login
-								</Text>
-							</Pressable>
-						) : null}
-						{message ? (
-							<Text className="mt-5 text-center text-sm font-semibold text-emerald-600">
-								{message}
-							</Text>
-						) : null}
 					</View>
 				</View>
-			</View>
-		</KeyboardContainer>
+			</LoginScroll>
+		</View>
 	);
 }

@@ -13,13 +13,15 @@ export const PasswordField = forwardRef<TextInput, PasswordFieldProps>(
 		return (
 			<View>
 				{label ? (
-					<Text className="mb-2 text-sm font-bold text-[#101b35]">{label}</Text>
+					<Text className="mb-2 text-sm font-semibold text-[#0f1b33]">
+						{label}
+					</Text>
 				) : null}
 				<View className="relative">
 					<TextInput
 						ref={ref}
 						{...props}
-						className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 pr-14 text-sm text-[#12233c]"
+						className="h-12 rounded-xl border border-[#d5e3f1] bg-[#f5f9fd] px-4 pr-14 text-sm text-[#12233c]"
 						placeholderTextColor="#94a3b8"
 						secureTextEntry={!visible}
 					/>
