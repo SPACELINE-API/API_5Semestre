@@ -1169,13 +1169,20 @@ export function QuoteCard({
 											{item.file_url ? (
 												<TouchableOpacity
 													accessibilityRole="link"
+													accessibilityLabel={`Abrir documento ${getFileName(item.file_url)}`}
 													onPress={() => openDocument(item.file_url!)}
-													className="flex-row items-center gap-2 self-start"
+													className="min-w-0 flex-1 flex-row items-center gap-2"
 												>
-													<Text className="font-inter-medium text-sm text-blue-700">
+													<Text
+														className="min-w-0 flex-1 font-inter-medium text-sm text-blue-700"
+														numberOfLines={2}
+														ellipsizeMode="tail"
+													>
 														{getFileName(item.file_url)}
 													</Text>
-													<ExternalLink size={14} color="#1d4ed8" />
+													<View className="flex-shrink-0">
+														<ExternalLink size={14} color="#1d4ed8" />
+													</View>
 												</TouchableOpacity>
 											) : (
 												<Text className="font-inter text-sm text-gray-400">

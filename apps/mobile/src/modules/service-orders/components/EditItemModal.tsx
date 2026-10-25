@@ -25,6 +25,10 @@ import { LanguageSelect } from '../../quotes/components/LanguageSelect';
 import { DateField } from '../../../shared/components/DateField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 import { formatDateInputValue } from '../utils/format';
+import {
+	decimalStringToBRL,
+	maskCurrencyDigits,
+} from '../../../shared/utils/currency';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 function getTodayInputValue() {
@@ -70,7 +74,7 @@ export function EditItemModal({
 		setSourceLanguage(item.source_language);
 		setTargetLanguage(item.target_language);
 		setDocumentType(item.document_type ?? '');
-		setPrice(item.price ?? '');
+		setPrice(item.price ? Number(item.price).toFixed(2) : '');
 		setDeadline(formatDateInputValue(item.deadline));
 		setFile(null);
 		setError(null);
@@ -181,9 +185,9 @@ export function EditItemModal({
 
 						<FormField
 							label="Preço"
-							value={price}
-							onChangeText={(value) => setPrice(value.replace(/[^0-9.,]/g, ''))}
-							placeholder="Ex: 500.00"
+							value={price ? decimalStringToBRL(price) : ''}
+							onChangeText={(value) => setPrice(maskCurrencyDigits(value))}
+							placeholder="R$ 0,00"
 						/>
 
 						<DateField
