@@ -81,6 +81,7 @@ class QuoteManagerResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class QuoteListResponse(BaseModel):
     items: list[QuoteManagerResponse]
     total: int
