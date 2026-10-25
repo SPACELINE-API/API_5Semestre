@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { getPreviewDocumentUrl } from './FilePreview';
+import { getPreviewDocumentUrl } from '../FilePreview';
 
 test.describe('getPreviewDocumentUrl', () => {
 	test('removes the download parameter from preview URLs', () => {
