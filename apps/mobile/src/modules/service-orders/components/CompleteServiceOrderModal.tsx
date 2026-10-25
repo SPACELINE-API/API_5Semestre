@@ -12,7 +12,6 @@ import {
 	TextInput,
 	TouchableOpacity,
 	View,
-	Linking,
 	Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -220,11 +219,7 @@ export function CompleteServiceOrderModal({
 
 	async function handleOpenDocument(fileUrl: string) {
 		if (!fileUrl) return;
-		if (Platform.OS === 'web') {
-			await Linking.openURL(fileUrl);
-			return;
-		}
-		openDocument(fileUrl);
+		await openDocument(fileUrl);
 	}
 
 	return (

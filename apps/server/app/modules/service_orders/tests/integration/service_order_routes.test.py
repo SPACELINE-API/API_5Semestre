@@ -15,6 +15,7 @@ from app.modules.service_orders.models.service_order_email_template import (
 )
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
 from app.modules.service_orders.models.service_order_item import ServiceOrderItem
+from app.modules.service_orders.routes import service_orders_write_permission
 from app.modules.service_orders.services import delivery_service as delivery_service_module
 from app.shared.database import get_db
 
@@ -134,6 +135,58 @@ def test_send_translated_documents_route_requires_authentication(client: TestCli
     response = client.post(f"/api/service-orders/{uuid.uuid4()}/deliveries")
 
     assert response.status_code == 401
+
+
+def test_create_manual_service_order_route(client: TestClient, isolated_db_session: Session) -> None:
+    company = Company(
+        legal_name="Empresa Manual Ltda",
+        trade_name="Empresa Manual",
+        cnpj=f"{uuid.uuid4().int % 10**14:014d}",
+        industry="juridico",
+        phone="11987654321",
+        email=f"manual-{uuid.uuid4().hex[:10]}@example.com",
+        zip_code="01310-100",
+        street="Avenida Paulista",
+        number="1000",
+        neighborhood="Bela Vista",
+        city="Sao Paulo",
+        state="SP",
+    )
+    isolated_db_session.add(company)
+    isolated_db_session.commit()
+    isolated_db_session.refresh(company)
+    app.dependency_overrides[get_db] = lambda: isolated_db_session
+    app.dependency_overrides[service_orders_write_permission] = lambda: SupabaseAuthenticatedUser(
+        id=str(uuid.uuid4()), email="operador@example.com"
+    )
+
+    try:
+        response = client.post(
+            "/api/service-orders/manual",
+            json={
+                "company_id": str(company.id),
+                "project_name": "Projeto manual pela API",
+                "total_price": "250.00",
+                "items": [
+                    {
+                        "source_language": "pt-BR",
+                        "target_language": "en-US",
+                        "document_type": "Contrato",
+                        "word_count": 1000,
+                        "price": "250.00",
+                    }
+                ],
+            },
+        )
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+        app.dependency_overrides.pop(service_orders_write_permission, None)
+
+    assert response.status_code == 201
+    payload = response.json()
+    assert payload["quote_id"] is None
+    assert payload["company_id"] == str(company.id)
+    assert payload["items"][0]["price"] == "250.00"
 
 
 def test_admin_can_preview_and_override_email_for_one_delivery_only(

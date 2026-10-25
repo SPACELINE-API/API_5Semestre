@@ -23,6 +23,7 @@ from app.modules.service_orders.schemas.invite import (
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
+    ManualServiceOrderRequest,
     ServiceOrderDeliveryRequest,
     ServiceOrderDeliveryResponse,
     ServiceOrderEmailTemplateResponse,
@@ -142,6 +143,15 @@ def generate_from_quote(
 ):
     service = ServiceOrderService(db)
     return service.generate_from_quote(data)
+
+
+@router.post("/manual", response_model=ServiceOrderResponse, status_code=201)
+def create_manual_service_order(
+    data: ManualServiceOrderRequest,
+    _user=Depends(service_orders_write_permission),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderService(db).create_manual(data)
 
 
 @router.get("", response_model=list[ServiceOrderResponse])

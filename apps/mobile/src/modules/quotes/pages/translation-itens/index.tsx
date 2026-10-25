@@ -23,6 +23,7 @@ import {
 	uploadQuoteDocument,
 } from '../../services/quotesService';
 import { pickDocument } from '../../../../shared/utils/pickDocument';
+import { openDocument } from '../../../../shared/components/FilePreview';
 import {
 	decimalStringToBRL,
 	maskCurrencyDigits,
@@ -275,24 +276,43 @@ export function NewQuoteModal({
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Arquivo
 												</Text>
-												<TouchableOpacity
-													accessibilityRole="button"
-													disabled={
-														uploadingItemId === item.id || !canWriteDocuments
-													}
-													className={`h-[46px] flex-row items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white p-3 ${!canWriteDocuments ? 'opacity-40' : ''}`}
-													onPress={() => void handlePickFile(item.id)}
-												>
-													<Paperclip size={14} color="#6b7280" />
-													<Text
-														className="font-inter text-xs text-gray-500"
-														numberOfLines={1}
-													>
-														{uploadingItemId === item.id
-															? 'Enviando...'
-															: item.fileName || 'Anexar arquivo'}
-													</Text>
-												</TouchableOpacity>
+												<View className="h-[46px] flex-row gap-2">
+													{item.fileUrl && (
+														<TouchableOpacity
+															accessibilityRole="link"
+															accessibilityLabel={`Visualizar arquivo ${item.fileName}`}
+															onPress={() => void openDocument(item.fileUrl!)}
+															className="min-w-0 flex-1 flex-row items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3"
+														>
+															<Text
+																className="min-w-0 flex-1 font-inter text-xs text-blue-700"
+																numberOfLines={1}
+																ellipsizeMode="tail"
+															>
+																{item.fileName}
+															</Text>
+														</TouchableOpacity>
+													)}
+													{!item.fileUrl && (
+														<TouchableOpacity
+															accessibilityRole="button"
+															accessibilityLabel="Anexar arquivo"
+															disabled={
+																uploadingItemId === item.id ||
+																!canWriteDocuments
+															}
+															className={`flex-1 flex-row items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white p-3 ${!canWriteDocuments ? 'opacity-40' : ''}`}
+															onPress={() => void handlePickFile(item.id)}
+														>
+															<Paperclip size={14} color="#6b7280" />
+															<Text className="font-inter text-xs text-gray-500">
+																{uploadingItemId === item.id
+																	? 'Enviando...'
+																	: 'Anexar arquivo'}
+															</Text>
+														</TouchableOpacity>
+													)}
+												</View>
 											</View>
 											<View
 												className={isDesktop ? 'w-[32%]' : 'w-full'}

@@ -550,6 +550,13 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 							await updateAdditionalService(editingAdditionalService.id, data);
 							showToast('Serviço adicional atualizado com sucesso!', 'success');
 						} else {
+							if (!serviceOrder.quote_id) {
+								showToast(
+									'Serviços adicionais exigem uma ordem vinculada a orçamento.',
+									'error',
+								);
+								return;
+							}
 							await createAdditionalService({
 								...data,
 								quote_id: serviceOrder.quote_id,

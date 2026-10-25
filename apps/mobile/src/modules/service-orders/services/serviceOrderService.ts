@@ -11,6 +11,7 @@ import { getSession } from '../../auth/services/auth';
 import type {
 	CreateServiceOrderItemInput,
 	GenerateServiceOrderInput,
+	ManualServiceOrderInput,
 	ServiceOrder,
 	ServiceOrderEmailTemplate,
 	ServiceOrderFile,
@@ -136,6 +137,15 @@ export function generateServiceOrderFromQuote(
 ): Promise<ServiceOrder> {
 	return apiPostAuth<ServiceOrder, GenerateServiceOrderInput>(
 		`${SERVICE_ORDERS_PATH}/generate-from-quote`,
+		data,
+	);
+}
+
+export function createManualServiceOrder(
+	data: ManualServiceOrderInput,
+): Promise<ServiceOrder> {
+	return apiPostAuth<ServiceOrder, ManualServiceOrderInput>(
+		`${SERVICE_ORDERS_PATH}/manual`,
 		data,
 	);
 }

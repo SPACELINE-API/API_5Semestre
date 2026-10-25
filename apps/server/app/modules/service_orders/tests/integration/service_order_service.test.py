@@ -26,6 +26,7 @@ from app.modules.service_orders.models.service_order_item import (
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
+    ManualServiceOrderRequest,
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
@@ -152,6 +153,34 @@ def test_generate_from_quote_creates_one_item_per_translation_item(db_session: S
     assert len(response.items) == 3
     assert response.status == STATUS_PENDENTE
     assert {item.status for item in response.items} == {STATUS_PENDENTE}
+
+
+def test_create_manual_creates_order_without_quote_and_with_items(db_session: Session) -> None:
+    company = make_company(db_session)
+    service = ServiceOrderService(db_session)
+
+    response = service.create_manual(
+        ManualServiceOrderRequest(
+            company_id=company.id,
+            project_name="Projeto manual",
+            total_price=Decimal("250.00"),
+            items=[
+                {
+                    "source_language": "pt-BR",
+                    "target_language": "en-US",
+                    "document_type": "Contrato",
+                    "word_count": 1000,
+                    "price": Decimal("250.00"),
+                }
+            ],
+        )
+    )
+
+    assert response.quote_id is None
+    assert response.company_id == company.id
+    assert len(response.items) == 1
+    assert response.items[0].word_count == 1000
+    assert response.items[0].price == Decimal("250.00")
 
 
 def test_generate_from_quote_without_items_raises_422(db_session: Session) -> None:

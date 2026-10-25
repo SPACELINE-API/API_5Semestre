@@ -21,26 +21,37 @@ type FilePreviewProps = {
 
 function getNativeDocumentUrl(fileUrl: string) {
 	return resolveNativeResourceUrl(
-		fileUrl,
+		getPreviewDocumentUrl(fileUrl),
 		Constants.expoConfig?.hostUri,
 		Platform.OS,
 	);
+}
+
+export function getPreviewDocumentUrl(fileUrl: string) {
+	try {
+		const previewUrl = new URL(fileUrl);
+		previewUrl.searchParams.delete('download');
+		return previewUrl.toString();
+	} catch {
+		return fileUrl;
+	}
 }
 
 export async function openDocument(fileUrl: string) {
 	if (Platform.OS === 'web') {
 		const viewer = window.open('about:blank', '_blank');
 		if (!viewer) return;
+		const previewUrl = getPreviewDocumentUrl(fileUrl);
 
 		try {
-			const response = await fetch(fileUrl);
+			const response = await fetch(previewUrl);
 			if (!response.ok)
 				throw new Error(`Falha ao abrir o documento (${response.status}).`);
 			const blobUrl = URL.createObjectURL(await response.blob());
 			viewer.location.href = blobUrl;
 			window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 		} catch {
-			viewer.location.href = fileUrl;
+			viewer.location.href = previewUrl;
 		}
 		return;
 	}
@@ -154,7 +165,7 @@ export function FilePreview({
 			<TouchableOpacity
 				onPress={() =>
 					openInNewPage
-						? Linking.openURL(getNativeDocumentUrl(fileUrl))
+						? openDocument(fileUrl)
 						: WebBrowser.openBrowserAsync(getNativeDocumentUrl(fileUrl))
 				}
 				activeOpacity={0.7}
@@ -193,7 +204,7 @@ export function FilePreview({
 			style={{ height }}
 		>
 			<iframe
-				src={fileUrl}
+				src={getPreviewDocumentUrl(fileUrl)}
 				title="Pré-visualização do documento"
 				style={{ width: '100%', height: '100%', border: 'none' }}
 			/>

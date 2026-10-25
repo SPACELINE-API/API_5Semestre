@@ -23,10 +23,10 @@ class ServiceOrder(Base):
         default=uuid.uuid4,
     )
 
-    quote_id: Mapped[uuid.UUID] = mapped_column(
+    quote_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("quotes.id"),
-        nullable=False,
+        nullable=True,
         index=True,
     )
     company_id: Mapped[uuid.UUID] = mapped_column(
