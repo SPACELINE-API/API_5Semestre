@@ -37,6 +37,7 @@ import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { deleteCompany } from '../services/companyService';
 import { exportCompaniesAsJson } from '../utils/export';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 export function ClientsPage() {
 	const { width } = useWindowDimensions();
@@ -57,6 +58,7 @@ export function ClientsPage() {
 	const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
 	const { toast, showToast } = useToast();
+	const canWriteClients = usePermission('clients.write');
 
 	useEffect(() => {
 		if (deleted === '1') {
@@ -212,10 +214,11 @@ export function ClientsPage() {
 
 							<TouchableOpacity
 								onPress={() => setIsFormVisible(true)}
+								disabled={!canWriteClients}
 								activeOpacity={0.8}
 								accessibilityRole="button"
 								accessibilityLabel="Novo cliente"
-								className="shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3"
+								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteClients ? 'opacity-40' : ''}`}
 							>
 								<Plus size={18} color="#ffffff" />
 								<Text className="font-inter-medium text-sm text-white">
@@ -239,7 +242,7 @@ export function ClientsPage() {
 											: 'Buscar por nome, CNPJ...'
 									}
 									placeholderTextColor="#9CA3AF"
-									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
+									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
 								/>
 
 								{search.length > 0 && (
@@ -322,8 +325,9 @@ export function ClientsPage() {
 
 									<TouchableOpacity
 										onPress={() => setIsBulkDeleteConfirmVisible(true)}
+										disabled={!canWriteClients}
 										activeOpacity={0.7}
-										className="flex-row items-center gap-1.5"
+										className={`flex-row items-center gap-1.5 ${!canWriteClients ? 'opacity-40' : ''}`}
 									>
 										<Trash2 size={14} color="#791F1F" />
 										<Text className="font-inter font-semibold text-red-900 text-xs">

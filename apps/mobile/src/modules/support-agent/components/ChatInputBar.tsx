@@ -36,7 +36,8 @@ export const ChatInputBar = forwardRef<TextInput, ChatInputBarProps>(
 				</Pressable>
 				<TextInput
 					ref={ref}
-					className="h-9 flex-1 text-sm text-[#12233c] outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
+					className="min-h-[44px] flex-1 py-2 text-sm text-[#12233c] outline-none max-md:min-w-0 max-md:shrink"
+					style={{ lineHeight: 20, textAlignVertical: 'center' }}
 					placeholder="Digite sua mensagem..."
 					placeholderTextColor="#94a3b8"
 					value={value}

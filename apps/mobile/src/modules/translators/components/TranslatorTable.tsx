@@ -2,6 +2,7 @@ import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { ChevronRight, UserRound } from 'lucide-react-native';
 import type { Translator } from '../types/translator';
 import { PROFICIENCY_LABELS } from '../types/translator';
+import { maskPhone } from '../../clients/utils/mask';
 
 type Props = {
 	translators: Translator[];
@@ -121,7 +122,7 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 								className="mt-0.5 font-inter text-gray-400 text-xs"
 								numberOfLines={1}
 							>
-								{t.phone}
+								{maskPhone(t.phone)}
 							</Text>
 						</View>
 

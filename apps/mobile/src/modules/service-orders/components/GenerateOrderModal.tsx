@@ -9,59 +9,70 @@ import {
 	Platform,
 	useWindowDimensions,
 } from 'react-native';
-import { X, Search, Check, User, FileText } from 'lucide-react-native';
+import { X, Search, Check, User, Upload, FileText } from 'lucide-react-native';
 import type { ReactNode } from 'react';
+import { useRef } from 'react';
 import type { Company } from '../../clients/types/company';
-import type { Contact, GenerateServiceOrderInput } from '../types/serviceOrder';
+import type { Contact, ManualServiceOrderInput } from '../types/serviceOrder';
 import { FormField } from '../../clients/components/FormField';
+import { LanguageSelect } from '../../quotes/components/LanguageSelect';
 import { DateField } from '../../../shared/components/DateField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
+import {
+	decimalStringToBRL,
+	maskCurrencyDigits,
+} from '../../../shared/utils/currency';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { pickDocument } from '../../../shared/utils/pickDocument';
+import type { UploadableFile } from '../../../shared/types/file';
+
+function getTodayInputValue() {
+	const today = new Date();
+	const month = String(today.getMonth() + 1).padStart(2, '0');
+	const day = String(today.getDate()).padStart(2, '0');
+	return `${today.getFullYear()}-${month}-${day}`;
+}
 
 type GenerateOrderModalProps = {
 	visible: boolean;
 	companies: Company[];
 	contacts: Contact[];
 	onClose: () => void;
-	onSubmit: (data: GenerateServiceOrderInput) => Promise<void>;
+	onSubmit: (
+		data: ManualServiceOrderInput,
+		files: (UploadableFile | null)[],
+	) => Promise<void>;
 	toast?: ToastData | null;
 };
 
 type FormState = {
-	quote_id: string;
 	company_id: string;
 	project_name: string;
 	deadline: string;
 	domain_area: string;
-	price_category: string;
 	internal_notes: string;
 	external_notes: string;
 };
 
+type ManualItemState = {
+	id: string;
+	source_language: string;
+	target_language: string;
+	document_type: string;
+	word_count: string;
+	price: string;
+	deadline: string;
+	file: UploadableFile | null;
+};
+
 const EMPTY_FORM: FormState = {
-	quote_id: '',
 	company_id: '',
 	project_name: '',
 	deadline: '',
 	domain_area: '',
-	price_category: '',
 	internal_notes: '',
 	external_notes: '',
 };
-
-const MOCK_APPROVED_QUOTES = [
-	{
-		id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-		label: 'Orçamento #1024 - Contrato societário (PT-BR > EN-US)',
-	},
-	{
-		id: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
-		label: 'Orçamento #1031 - Certidão de nascimento (ES > PT-BR)',
-	},
-	{
-		id: 'e4eaaaf2-d142-11e1-b3e4-080027620cdd',
-		label: 'Orçamento #1042 - Termo de confidencialidade (EN-US > PT-BR)',
-	},
-];
 
 function SectionLabel({ step, label }: { step: number; label: string }) {
 	return (
@@ -76,6 +87,19 @@ function SectionLabel({ step, label }: { step: number; label: string }) {
 			</Text>
 		</View>
 	);
+}
+
+function createManualItem(): ManualItemState {
+	return {
+		id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+		source_language: '',
+		target_language: '',
+		document_type: '',
+		word_count: '',
+		price: '',
+		deadline: '',
+		file: null,
+	};
 }
 
 function DropdownPanel({ children }: { children: ReactNode }) {
@@ -114,9 +138,7 @@ function DropdownRow({
 			accessibilityRole="radio"
 			accessibilityState={{ checked: selected }}
 			accessibilityLabel={accessibilityLabel}
-			className={`flex-row items-center justify-between gap-2.5 border-b border-gray-50 px-3.5 py-3 last:border-b-0 ${
-				selected ? 'bg-blue-50' : 'hover:bg-gray-50'
-			}`}
+			className={`flex-row items-center justify-between gap-2.5 border-b border-gray-50 px-3.5 py-3 last:border-b-0 ${selected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
 		>
 			{children}
 			{selected && (
@@ -137,26 +159,24 @@ export function GenerateOrderModal({
 	toast,
 }: GenerateOrderModalProps) {
 	const { width } = useWindowDimensions();
+	const KeyboardContainer = (
+		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
+	) as typeof ScrollView;
 	const [form, setForm] = useState<FormState>(EMPTY_FORM);
+	const [manualItems, setManualItems] = useState<ManualItemState[]>([
+		createManualItem(),
+	]);
 	const [error, setError] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<{
 		company?: string;
-		quote?: string;
 		project_name?: string;
+		deadline?: string;
+		items?: string;
 	}>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [companySearch, setCompanySearch] = useState('');
 	const [isCompanyPickerOpen, setIsCompanyPickerOpen] = useState(false);
-	const [isQuotePickerOpen, setIsQuotePickerOpen] = useState(false);
-
-	const mockQuotesByCompanyId = useMemo(() => {
-		const map = new Map<string, typeof MOCK_APPROVED_QUOTES>();
-		companies.forEach((company, index) => {
-			const quote = MOCK_APPROVED_QUOTES[index % MOCK_APPROVED_QUOTES.length];
-			map.set(company.id, [quote]);
-		});
-		return map;
-	}, [companies]);
+	const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
 	const filteredCompanies = useMemo(() => {
 		const query = companySearch.trim().toLowerCase();
@@ -180,51 +200,36 @@ export function GenerateOrderModal({
 		[companies, form.company_id],
 	);
 
-	const availableQuotes = form.company_id
-		? (mockQuotesByCompanyId.get(form.company_id) ?? [])
-		: [];
-
-	const selectedQuote = useMemo(
-		() => availableQuotes.find((quote) => quote.id === form.quote_id) ?? null,
-		[availableQuotes, form.quote_id],
-	);
-
 	function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
 		setForm((current) => ({ ...current, [key]: value }));
 	}
 
 	function handleClose() {
 		setForm(EMPTY_FORM);
+		setManualItems([createManualItem()]);
 		setError(null);
 		setFieldErrors({});
 		setCompanySearch('');
 		setIsCompanyPickerOpen(false);
-		setIsQuotePickerOpen(false);
 		onClose();
 	}
 
+	function updateManualItem(id: string, changes: Partial<ManualItemState>) {
+		setManualItems((current) =>
+			current.map((item) => (item.id === id ? { ...item, ...changes } : item)),
+		);
+	}
+
 	function handleSelectCompany(companyId: string) {
-		setForm((current) => ({ ...current, company_id: companyId, quote_id: '' }));
+		setForm((current) => ({ ...current, company_id: companyId }));
 		setFieldErrors((current) => ({ ...current, company: undefined }));
 		setCompanySearch('');
 		setIsCompanyPickerOpen(false);
-		setIsQuotePickerOpen(true);
 	}
 
 	function handleChangeCompany() {
-		setForm((current) => ({ ...current, company_id: '', quote_id: '' }));
+		setForm((current) => ({ ...current, company_id: '' }));
 		setIsCompanyPickerOpen(true);
-	}
-
-	function handleSelectQuote(quoteId: string) {
-		setField('quote_id', quoteId);
-		setFieldErrors((current) => ({ ...current, quote: undefined }));
-		setIsQuotePickerOpen(false);
-	}
-
-	function handleChangeQuote() {
-		setField('quote_id', '');
-		setIsQuotePickerOpen(true);
 	}
 
 	async function handleSubmit() {
@@ -234,11 +239,25 @@ export function GenerateOrderModal({
 		if (!form.company_id) {
 			nextFieldErrors.company = 'Selecione a empresa.';
 		}
-		if (!form.quote_id) {
-			nextFieldErrors.quote = 'Selecione o orçamento aprovado.';
-		}
 		if (!form.project_name.trim()) {
 			nextFieldErrors.project_name = 'Informe o nome do projeto.';
+		}
+		if (form.deadline && form.deadline < getTodayInputValue()) {
+			nextFieldErrors.deadline =
+				'O prazo não pode ser anterior à data de hoje.';
+		}
+		if (
+			manualItems.some((item) => !item.source_language || !item.target_language)
+		) {
+			nextFieldErrors.items = 'Informe os idiomas de todos os itens.';
+		}
+		if (
+			manualItems.some(
+				(item) => item.deadline && item.deadline < getTodayInputValue(),
+			)
+		) {
+			nextFieldErrors.items =
+				'O prazo dos itens não pode ser anterior à data de hoje.';
 		}
 
 		setFieldErrors(nextFieldErrors);
@@ -251,18 +270,34 @@ export function GenerateOrderModal({
 		setIsSubmitting(true);
 
 		try {
-			await onSubmit({
-				quote_id: form.quote_id.trim(),
+			const payload: ManualServiceOrderInput = {
 				company_id: form.company_id,
 				project_name: form.project_name.trim(),
 				deadline: form.deadline.trim()
 					? new Date(form.deadline).toISOString()
 					: null,
 				domain_area: form.domain_area.trim() || null,
-				price_category: form.price_category.trim() || null,
 				internal_notes: form.internal_notes.trim() || null,
 				external_notes: form.external_notes.trim() || null,
-			});
+				total_price: manualItems.reduce(
+					(total, item) => total + (item.price ? Number(item.price) : 0),
+					0,
+				),
+				items: manualItems.map((item) => ({
+					source_language: item.source_language,
+					target_language: item.target_language,
+					document_type: item.document_type.trim() || null,
+					word_count: item.word_count ? Number(item.word_count) : null,
+					price: item.price ? Number(item.price) : null,
+					deadline: item.deadline
+						? new Date(item.deadline).toISOString()
+						: null,
+				})),
+			};
+			await onSubmit(
+				payload,
+				manualItems.map((item) => item.file),
+			);
 			handleClose();
 		} catch (submitError) {
 			setError(
@@ -290,7 +325,7 @@ export function GenerateOrderModal({
 								Gerar ordem de serviço
 							</Text>
 							<Text className="mt-0.5 font-inter text-gray-400 text-xs">
-								Crie manualmente uma ordem a partir de um orçamento aprovado
+								Crie uma ordem de serviço manual
 							</Text>
 						</View>
 						<TouchableOpacity
@@ -302,7 +337,7 @@ export function GenerateOrderModal({
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView
+					<KeyboardContainer
 						className="px-6 py-5"
 						contentContainerClassName="gap-5 pb-6"
 						keyboardShouldPersistTaps="handled"
@@ -426,80 +461,165 @@ export function GenerateOrderModal({
 							</View>
 						)}
 
-						{Boolean(form.company_id) && (
-							<View className="gap-2">
-								<SectionLabel step={2} label="Selecione o orçamento aprovado" />
-
-								{selectedQuote && !isQuotePickerOpen ? (
-									<TouchableOpacity
-										onPress={handleChangeQuote}
-										activeOpacity={0.7}
-										className="flex-row items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5"
-									>
-										<View className="min-w-0 flex-1 flex-row items-center gap-2.5">
-											<FileText size={16} color="#2563EB" />
+						<View className="gap-3">
+							<SectionLabel step={2} label="Itens da ordem" />
+							{manualItems.map((item, index) => (
+								<View
+									key={item.id}
+									className="gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4"
+								>
+									<View className="flex-row items-center justify-between">
+										<Text className="font-inter font-semibold text-gray-800 text-sm">
+											Item {index + 1}
+										</Text>
+										{manualItems.length > 1 && (
+											<TouchableOpacity
+												onPress={() =>
+													setManualItems((current) =>
+														current.filter(
+															(candidate) => candidate.id !== item.id,
+														),
+													)
+												}
+											>
+												<Text className="font-inter font-semibold text-red-600 text-xs">
+													Remover
+												</Text>
+											</TouchableOpacity>
+										)}
+									</View>
+									<View className="flex-col gap-3 md:flex-row">
+										<View className="min-w-0 md:flex-1">
+											<Text className="mb-1 font-inter font-semibold text-gray-800 text-xs">
+												Idioma de origem
+											</Text>
+											<LanguageSelect
+												value={item.source_language}
+												onChange={(value) =>
+													updateManualItem(item.id, {
+														source_language: value,
+													})
+												}
+												placeholder="Selecione um idioma"
+											/>
+										</View>
+										<View className="min-w-0 md:flex-1">
+											<Text className="mb-1 font-inter font-semibold text-gray-800 text-xs">
+												Idioma de destino
+											</Text>
+											<LanguageSelect
+												value={item.target_language}
+												onChange={(value) =>
+													updateManualItem(item.id, {
+														target_language: value,
+													})
+												}
+												placeholder="Selecione um idioma"
+											/>
+										</View>
+									</View>
+									<View className="gap-1.5">
+										<Text className="font-inter font-semibold text-gray-800 text-xs">
+											Arquivo (opcional)
+										</Text>
+										<TouchableOpacity
+											onPress={async () => {
+												if (Platform.OS === 'web') {
+													fileInputRefs.current[item.id]?.click();
+													return;
+												}
+												const picked = await pickDocument();
+												if (picked) updateManualItem(item.id, { file: picked });
+											}}
+											className="flex-row items-center gap-2 rounded-lg border border-gray-300 px-3 py-2.5"
+										>
+											{item.file ? (
+												<FileText size={16} color="#1C6FB0" />
+											) : (
+												<Upload size={16} color="#353535" />
+											)}
 											<Text
-												className="flex-1 font-inter font-medium text-gray-800 text-sm"
+												className="flex-1 font-inter text-gray-700 text-sm"
 												numberOfLines={1}
 											>
-												{selectedQuote.label}
-											</Text>
-										</View>
-										<Text className="shrink-0 font-inter font-semibold text-blue-600 text-xs">
-											Trocar
-										</Text>
-									</TouchableOpacity>
-								) : (
-									<>
-										<TouchableOpacity
-											onPress={() => setIsQuotePickerOpen(true)}
-											activeOpacity={0.7}
-											className={`flex-row items-center gap-2 rounded-lg border bg-gray-50 px-3 py-2.5 ${
-												fieldErrors.quote ? 'border-red-900' : 'border-gray-200'
-											}`}
-										>
-											<Search size={16} color="#9CA3AF" />
-											<Text className="flex-1 font-inter text-sm text-gray-400">
-												Selecionar orçamento
+												{item.file ? item.file.name : 'Selecionar arquivo'}
 											</Text>
 										</TouchableOpacity>
-
-										{fieldErrors.quote && (
-											<Text className="font-inter text-red-900 text-xs">
-												{fieldErrors.quote}
-											</Text>
+										{Platform.OS === 'web' && (
+											<input
+												ref={(element) => {
+													fileInputRefs.current[item.id] = element;
+												}}
+												type="file"
+												style={{ display: 'none' }}
+												onChange={(event: {
+													target: { files: FileList | null };
+												}) =>
+													updateManualItem(item.id, {
+														file: event.target.files?.[0] ?? null,
+													})
+												}
+											/>
 										)}
-
-										{isQuotePickerOpen && (
-											<DropdownPanel>
-												{availableQuotes.map((quote) => {
-													const isSelected = form.quote_id === quote.id;
-
-													return (
-														<DropdownRow
-															key={quote.id}
-															selected={isSelected}
-															onPress={() => handleSelectQuote(quote.id)}
-															accessibilityLabel={`Selecionar orçamento ${quote.label}`}
-														>
-															<View className="flex-1 flex-row items-center gap-2.5">
-																<FileText
-																	size={16}
-																	color={isSelected ? '#2563EB' : '#9CA3AF'}
-																/>
-																<Text className="flex-1 font-inter font-medium text-gray-800 text-sm">
-																	{quote.label}
-																</Text>
-															</View>
-														</DropdownRow>
-													);
-												})}
-											</DropdownPanel>
-										)}
-									</>
-								)}
-							</View>
-						)}
+									</View>
+									<View className="flex-col gap-3 md:flex-row">
+										<FormField
+											label="Tipo de documento"
+											value={item.document_type}
+											onChangeText={(value) =>
+												updateManualItem(item.id, { document_type: value })
+											}
+											placeholder="Ex: Contrato"
+										/>
+										<FormField
+											label="Quantidade de palavras"
+											value={item.word_count}
+											onChangeText={(value) =>
+												updateManualItem(item.id, {
+													word_count: value.replace(/\D/g, ''),
+												})
+											}
+											placeholder="Ex: 1000"
+										/>
+									</View>
+									<View className="flex-col gap-3 md:flex-row">
+										<FormField
+											label="Preço"
+											value={item.price ? decimalStringToBRL(item.price) : ''}
+											onChangeText={(value) =>
+												updateManualItem(item.id, {
+													price: maskCurrencyDigits(value),
+												})
+											}
+											placeholder="R$ 0,00"
+										/>
+										<DateField
+											label="Prazo do item"
+											value={item.deadline}
+											minDate={getTodayInputValue()}
+											onChangeText={(value) =>
+												updateManualItem(item.id, { deadline: value })
+											}
+										/>
+									</View>
+								</View>
+							))}
+							{fieldErrors.items && (
+								<Text className="font-inter text-red-900 text-xs">
+									{fieldErrors.items}
+								</Text>
+							)}
+							<TouchableOpacity
+								onPress={() =>
+									setManualItems((current) => [...current, createManualItem()])
+								}
+								className="self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5"
+							>
+								<Text className="font-inter font-semibold text-gray-700 text-sm">
+									Adicionar item
+								</Text>
+							</TouchableOpacity>
+						</View>
 
 						<View className="gap-3">
 							<SectionLabel step={3} label="Detalhes do projeto" />
@@ -521,21 +641,16 @@ export function GenerateOrderModal({
 							<DateField
 								label="Prazo (opcional)"
 								value={form.deadline}
+								minDate={getTodayInputValue()}
 								onChangeText={(value) => setField('deadline', value)}
 							/>
 
-							<View className="flex-row flex-wrap gap-3">
+							<View className="min-w-0 md:w-1/2 md:pr-1.5">
 								<FormField
 									label="Área de domínio (opcional)"
 									value={form.domain_area}
 									onChangeText={(value) => setField('domain_area', value)}
 									placeholder="Ex: Jurídico, Financeira"
-								/>
-								<FormField
-									label="Categoria de preço (opcional)"
-									value={form.price_category}
-									onChangeText={(value) => setField('price_category', value)}
-									placeholder="Ex: Preços de Tradução Juramentada"
 								/>
 							</View>
 
@@ -575,7 +690,7 @@ export function GenerateOrderModal({
 								<Text className="font-inter text-red-900 text-sm">{error}</Text>
 							</View>
 						)}
-					</ScrollView>
+					</KeyboardContainer>
 
 					<View className="flex-row items-center justify-end gap-3 border-t border-gray-100 px-6 py-4">
 						<TouchableOpacity

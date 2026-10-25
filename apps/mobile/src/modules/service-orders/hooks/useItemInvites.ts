@@ -8,6 +8,14 @@ export function useItemInvites(itemId: string, refreshToken: number) {
 
 	useEffect(() => {
 		let cancelled = false;
+		if (!itemId) {
+			setInvites([]);
+			setIsLoading(false);
+			return () => {
+				cancelled = true;
+			};
+		}
+
 		setIsLoading(true);
 
 		listItemInvites(itemId)

@@ -22,15 +22,55 @@ import {
 	updateTranslator,
 	setTranslatorActive,
 } from '../../modules/translators/services/translatorService';
-import { PROFICIENCY_LABELS } from '../../modules/translators/types/translator';
 import type {
 	Translator,
 	TranslatorUpdateInput,
 } from '../../modules/translators/types/translator';
+import { maskPhone } from '../../modules/clients/utils/mask';
 import { TranslatorEditModal } from '../../modules/translators/components/TranslatorEditModal';
+import { CertificateRequestsList } from '../../modules/translators/components/CertificateRequestsList';
+import { CertificateReviewModal } from '../../modules/translators/components/CertificateReviewModal';
+import { LanguagesList } from '../../modules/translators/components/LanguagesList';
+import { useTranslatorCertificates } from '../../modules/translators/hooks/useTranslatorCertificates';
+import type { TranslatorCertificate } from '../../modules/translators/types/certificate';
+import { TabBar } from '../../shared/components/TabBar';
 import { Toast } from '../../shared/components/Toast';
 import { useToast } from '../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog';
+import { usePermission } from '../../modules/auth/hooks/usePermission';
+
+type TranslatorTab = 'info' | 'languages' | 'requests';
+
+function hasTranslatorProfileChanges(
+	translator: Translator,
+	data: TranslatorUpdateInput,
+) {
+	const sorted = (values: string[]) => [...values].sort().join('|');
+	const phoneDigits = (value: string) => value.replace(/\D/g, '');
+	const languages = (rows: TranslatorUpdateInput['languages']) =>
+		rows
+			.map(
+				({ language_id, proficiency_level }) =>
+					`${language_id}:${proficiency_level}`,
+			)
+			.sort()
+			.join('|');
+
+	return (
+		data.name !== translator.name ||
+		data.email !== translator.email ||
+		phoneDigits(data.phone) !== phoneDigits(translator.phone) ||
+		sorted(data.qualification_ids) !==
+			sorted(translator.qualifications.map(({ id }) => id)) ||
+		languages(data.languages) !==
+			languages(
+				translator.languages.map(({ language_id, proficiency_level }) => ({
+					language_id,
+					proficiency_level,
+				})),
+			)
+	);
+}
 
 export default function TranslatorDetailsScreen() {
 	const router = useRouter();
@@ -41,7 +81,22 @@ export default function TranslatorDetailsScreen() {
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+	const canWriteTranslators = usePermission('translators.write');
 	const { toast, showToast } = useToast();
+	const [activeTab, setActiveTab] = useState<TranslatorTab>('info');
+	const certificates = useTranslatorCertificates(id as string | undefined);
+	const [selectedRequest, setSelectedRequest] =
+		useState<TranslatorCertificate | null>(null);
+	// O CONTADOR MOSTRA QUANTOS CERTIFICADOS AGUARDAM AVALIACAO DO ADMINISTRADOR
+	const tabs: { key: TranslatorTab; label: string; badge?: number }[] = [
+		{ key: 'info', label: 'Informações' },
+		{ key: 'languages', label: 'Idiomas e fluência' },
+		{
+			key: 'requests',
+			label: 'Solicitações',
+			badge: certificates.pendingCount,
+		},
+	];
 
 	useEffect(() => {
 		if (!id) return;
@@ -71,12 +126,31 @@ export default function TranslatorDetailsScreen() {
 		if (!translator) return;
 
 		const { is_active, ...updateData } = data;
-		let updated = await updateTranslator(translator.id, updateData);
+		let updated = translator;
 		if (is_active !== translator.is_active) {
 			updated = await setTranslatorActive(translator.id, is_active);
 		}
+
+		if (hasTranslatorProfileChanges(translator, updateData)) {
+			updated = await updateTranslator(translator.id, updateData);
+		}
+
 		setTranslator(updated);
 		showToast('Tradutor atualizado com sucesso.', 'success');
+	}
+
+	// APROVAR ADICIONA O IDIOMA AO PERFIL: RECARREGA O TRADUTOR E AS SOLICITACOES
+	async function handleReviewed(reviewed: TranslatorCertificate) {
+		void certificates.refresh();
+		if (reviewed.status === 'approved' && translator) {
+			setTranslator(await getTranslator(translator.id));
+		}
+		showToast(
+			reviewed.status === 'approved'
+				? `Certificado aprovado. ${reviewed.language_name} foi adicionado ao perfil.`
+				: 'Certificado recusado. O tradutor verá o motivo informado.',
+			'success',
+		);
 	}
 
 	if (isLoading) {
@@ -111,7 +185,7 @@ export default function TranslatorDetailsScreen() {
 		<View className="relative flex-1 bg-white">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
-				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[800px] md:w-full md:self-center"
+				contentContainerClassName="px-5 py-6 md:px-10 md:py-8"
 			>
 				<TouchableOpacity
 					onPress={() => router.back()}
@@ -154,8 +228,9 @@ export default function TranslatorDetailsScreen() {
 					</View>
 					<TouchableOpacity
 						onPress={() => setIsDeleteConfirmVisible(true)}
+						disabled={!canWriteTranslators}
 						activeOpacity={0.7}
-						className="h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50"
+						className={`h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 ${!canWriteTranslators ? 'opacity-40' : ''}`}
 					>
 						<Trash2 size={16} color="#DC2626" />
 					</TouchableOpacity>
@@ -163,8 +238,9 @@ export default function TranslatorDetailsScreen() {
 
 				<TouchableOpacity
 					onPress={() => setIsEditModalVisible(true)}
+					disabled={!canWriteTranslators}
 					activeOpacity={0.7}
-					className="mb-6 flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2"
+					className={`mb-6 flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${!canWriteTranslators ? 'opacity-40' : ''}`}
 				>
 					<Pencil size={14} color="#353535" />
 					<Text className="font-inter font-semibold text-gray-800 text-xs">
@@ -172,75 +248,67 @@ export default function TranslatorDetailsScreen() {
 					</Text>
 				</TouchableOpacity>
 
-				<View className="mb-4 gap-3 rounded-xl border border-gray-100 p-4">
-					<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
-						Contato
-					</Text>
-					<View className="flex-row items-center gap-3">
-						<Mail size={16} color="#6B7280" />
-						<Text className="font-inter text-gray-700 text-sm">
-							{translator.email}
-						</Text>
-					</View>
-					<View className="flex-row items-center gap-3">
-						<Phone size={16} color="#6B7280" />
-						<Text className="font-inter text-gray-700 text-sm">
-							{translator.phone}
-						</Text>
-					</View>
-				</View>
+				<TabBar tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
-				<View className="mb-4 gap-3 rounded-xl border border-gray-100 p-4">
-					<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
-						Idiomas falados
-					</Text>
-					{translator.languages.length === 0 ? (
-						<Text className="font-inter text-gray-400 text-sm">
-							Nenhum idioma cadastrado.
-						</Text>
-					) : (
-						translator.languages.map((language) => (
-							<View
-								key={language.id}
-								className="flex-row items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2.5"
-							>
-								<Text
-									className="flex-1 font-inter font-medium text-gray-800 text-sm"
-									numberOfLines={2}
-								>
-									{language.language_name}
+				<View className="gap-4 py-6">
+					{activeTab === 'info' && (
+						<>
+							<View className="gap-3 rounded-xl border border-gray-100 p-4">
+								<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
+									Contato
 								</Text>
-								<View className="shrink-0 rounded-full bg-blue-100 px-2.5 py-0.5">
-									<Text className="font-inter font-medium text-blue-800 text-xs">
-										{PROFICIENCY_LABELS[language.proficiency_level]}
+								<View className="flex-row items-center gap-3">
+									<Mail size={16} color="#6B7280" />
+									<Text className="font-inter text-gray-700 text-sm">
+										{translator.email}
+									</Text>
+								</View>
+								<View className="flex-row items-center gap-3">
+									<Phone size={16} color="#6B7280" />
+									<Text className="font-inter text-gray-700 text-sm">
+										{maskPhone(translator.phone)}
 									</Text>
 								</View>
 							</View>
-						))
-					)}
-				</View>
 
-				<View className="mb-4 gap-3 rounded-xl border border-gray-100 p-4">
-					<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
-						Qualificacoes Tecnicas
-					</Text>
-					{translator.qualifications.length === 0 ? (
-						<Text className="font-inter text-gray-400 text-sm">
-							Nenhuma qualificacao cadastrada.
-						</Text>
-					) : (
-						<View className="flex-row flex-wrap gap-2">
-							{translator.qualifications.map((q) => (
-								<View
-									key={q.id}
-									className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5"
-								>
-									<Text className="font-inter font-medium text-gray-700 text-sm">
-										{q.name}
+							<View className="gap-3 rounded-xl border border-gray-100 p-4">
+								<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
+									Qualificacoes Tecnicas
+								</Text>
+								{translator.qualifications.length === 0 ? (
+									<Text className="font-inter text-gray-400 text-sm">
+										Nenhuma qualificacao cadastrada.
 									</Text>
-								</View>
-							))}
-						</View>
+								) : (
+									<View className="flex-row flex-wrap gap-2">
+										{translator.qualifications.map((q) => (
+											<View
+												key={q.id}
+												className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5"
+											>
+												<Text className="font-inter font-medium text-gray-700 text-sm">
+													{q.name}
+												</Text>
+											</View>
+										))}
+									</View>
+								)}
+							</View>
+						</>
+					)}
+
+					{activeTab === 'languages' && (
+						<LanguagesList languages={translator.languages} />
+					)}
+
+					{activeTab === 'requests' && (
+						<CertificateRequestsList
+							certificates={certificates.certificates}
+							isLoading={certificates.isLoading}
+							error={certificates.error}
+							onRetry={() => void certificates.refresh()}
+							onSelect={setSelectedRequest}
+						/>
 					)}
 				</View>
 			</ScrollView>
@@ -258,6 +326,13 @@ export default function TranslatorDetailsScreen() {
 				isLoading={isDeleting}
 				onConfirm={handleDelete}
 				onCancel={() => setIsDeleteConfirmVisible(false)}
+			/>
+
+			<CertificateReviewModal
+				translatorId={translator.id}
+				certificate={selectedRequest}
+				onClose={() => setSelectedRequest(null)}
+				onReviewed={(reviewed) => void handleReviewed(reviewed)}
 			/>
 
 			<TranslatorEditModal

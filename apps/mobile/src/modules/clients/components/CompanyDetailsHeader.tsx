@@ -4,6 +4,7 @@ import type { Company } from '../types/company';
 import { companyInitials } from '../utils/format';
 import { StatusBadge } from './StatusBadge';
 import { COMPANY_PROJECT_COUNT } from './CompanyDetailsProjectsTab';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type CompanyDetailsHeaderProps = {
 	company: Company;
@@ -18,6 +19,8 @@ export function CompanyDetailsHeader({
 	onEdit,
 	onDelete,
 }: CompanyDetailsHeaderProps) {
+	const canWriteClients = usePermission('clients.write');
+
 	return (
 		<View className="border-b border-gray-200 pb-7">
 			<View className="flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -49,8 +52,9 @@ export function CompanyDetailsHeader({
 					<View className="flex-row items-center gap-2">
 						<TouchableOpacity
 							onPress={onEdit}
+							disabled={!canWriteClients}
 							activeOpacity={0.7}
-							className="flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2"
+							className={`flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 ${!canWriteClients ? 'opacity-40' : ''}`}
 						>
 							<Pencil size={14} color="#353535" />
 							<Text className="font-inter font-semibold text-gray-800 text-xs">
@@ -59,8 +63,9 @@ export function CompanyDetailsHeader({
 						</TouchableOpacity>
 						<TouchableOpacity
 							onPress={onDelete}
+							disabled={!canWriteClients}
 							activeOpacity={0.7}
-							className="flex-row items-center gap-1.5 rounded-lg border border-red-50 bg-red-50 px-3 py-2"
+							className={`flex-row items-center gap-1.5 rounded-lg border border-red-50 bg-red-50 px-3 py-2 ${!canWriteClients ? 'opacity-40' : ''}`}
 						>
 							<Trash2 size={14} color="#791F1F" />
 							<Text className="font-inter font-semibold text-red-900 text-xs">

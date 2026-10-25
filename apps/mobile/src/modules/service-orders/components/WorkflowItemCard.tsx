@@ -5,9 +5,10 @@ import { StatusBadge } from './StatusBadge';
 import { InviteStatusBadge } from './InviteStatusBadge';
 import { WorkflowPipeline } from './WorkflowPipeline';
 import { openDocument } from '../../../shared/components/FilePreview';
-import { getFileName } from '../../../shared/utils/file';
+import { getTruncatedFileName } from '../../../shared/utils/file';
 import { formatDate, formatPrice } from '../utils/format';
 import { useItemInvites } from '../hooks/useItemInvites';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type WorkflowItemCardProps = {
 	item: ServiceOrderItem;
@@ -22,6 +23,7 @@ export function WorkflowItemCard({
 	onInviteTranslators,
 	refreshToken,
 }: WorkflowItemCardProps) {
+	const canWriteAssignments = usePermission('assignments.write');
 	const { invites, isLoading: isLoadingInvites } = useItemInvites(
 		item.id,
 		refreshToken,
@@ -81,13 +83,13 @@ export function WorkflowItemCard({
 						<TouchableOpacity
 							accessibilityRole="link"
 							onPress={() => openDocument(item.file_url!)}
-							className="flex-row items-center gap-1.5 self-start"
+							className="min-w-0 max-w-full flex-row items-center gap-1 self-start"
 						>
 							<Text
-								className="font-inter-medium text-blue-700 text-sm"
+								className="min-w-0 flex-shrink font-inter-medium text-blue-700 text-xs"
 								numberOfLines={1}
 							>
-								{getFileName(item.file_url)}
+								{getTruncatedFileName(item.file_url)}
 							</Text>
 							<ExternalLink size={13} color="#1d4ed8" />
 						</TouchableOpacity>
@@ -102,10 +104,11 @@ export function WorkflowItemCard({
 			{isAssigned ? null : (
 				<TouchableOpacity
 					onPress={() => onInviteTranslators(item)}
+					disabled={!canWriteAssignments}
 					activeOpacity={0.7}
 					accessibilityRole="button"
 					accessibilityLabel={`Convidar tradutores para ${item.source_language} para ${item.target_language} no workflow`}
-					className="flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2"
+					className={`flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${!canWriteAssignments ? 'opacity-40' : ''}`}
 				>
 					<UserPlus size={14} color="#353535" />
 					<Text className="font-inter font-semibold text-gray-800 text-xs">

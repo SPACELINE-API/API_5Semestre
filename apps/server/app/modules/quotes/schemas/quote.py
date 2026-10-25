@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -66,8 +67,10 @@ class QuoteManagerResponse(BaseModel):
     reproved_by_email: str | None
     reproval_reason: str | None
     service_order_id: uuid.UUID | None = None
+    total_value: Decimal
     customer_name: str | None
     enterprise: str | None
+    company_name: str | None = None
     email: str | None
     original_language: str | None
     translation_language: str | None

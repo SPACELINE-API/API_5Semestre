@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import {
+	Platform,
+	Dimensions,
 	View,
 	Text,
 	TextInput,
@@ -21,10 +23,15 @@ import {
 	uploadQuoteDocument,
 } from '../../services/quotesService';
 import { pickDocument } from '../../../../shared/utils/pickDocument';
+import { openDocument } from '../../../../shared/components/FilePreview';
 import {
 	decimalStringToBRL,
 	maskCurrencyDigits,
 } from '../../../../shared/utils/currency';
+import { usePermission } from '../../../auth/hooks/usePermission';
+
+const { width } = Dimensions.get('window');
+const isDesktop = Platform.OS === 'web' && width > 768;
 
 type QuoteItem = {
 	id: string;
@@ -61,6 +68,7 @@ export function NewQuoteModal({
 	const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState('');
+	const canWriteDocuments = usePermission('documents.write');
 	const [bannerMessage, setBannerMessage] = useState<string | null>(null);
 
 	const handleAddItem = () => {
@@ -145,26 +153,25 @@ export function NewQuoteModal({
 		<Modal
 			visible={visible}
 			transparent
-			animationType="fade"
+			animationType="none"
 			onRequestClose={resetAndClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/50 p-4">
-				<View className="max-h-[90%] w-full max-w-3xl rounded-xl bg-white shadow-lg">
-					<View className="flex-row items-center justify-between border-b border-gray-100 px-6 py-4">
-						<Text className="font-poppins-bold text-xl text-gray-900">
+			<View className="flex-1 items-center justify-center bg-black/40 px-4">
+				<View className="w-full max-w-[520px] max-h-[85%] rounded-xl bg-white overflow-hidden">
+					<View className="flex-row items-center justify-between border-b border-gray-300 px-6 py-4">
+						<Text className="font-inter font-bold text-gray-900 text-lg">
 							Novo orçamento
 						</Text>
-						<TouchableOpacity
-							accessibilityRole="button"
-							accessibilityLabel="Fechar"
-							onPress={resetAndClose}
-							className="h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-50"
-						>
-							<X size={18} color="#374151" />
+						<TouchableOpacity onPress={resetAndClose}>
+							<X size={20} color="#5A5A5A" />
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView contentContainerClassName="p-6 gap-4">
+					<ScrollView
+						className="px-6 py-4"
+						contentContainerClassName="gap-4 pb-6"
+						keyboardShouldPersistTaps="handled"
+					>
 						{submitError ? (
 							<View className="flex-row items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
 								<CircleAlert size={19} color="#dc2626" />
@@ -212,8 +219,15 @@ export function NewQuoteModal({
 												<Trash2 size={13} color="#b91c1c" />
 											</TouchableOpacity>
 										)}
-										<View className="gap-4 md:flex-row">
-											<View className="flex-1" style={{ zIndex: 50 }}>
+										<View
+											className={
+												isDesktop ? 'flex-row flex-wrap gap-4' : 'gap-4'
+											}
+										>
+											<View
+												className={isDesktop ? 'w-[48%]' : 'w-full'}
+												style={{ zIndex: 50 }}
+											>
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Idioma origem
 												</Text>
@@ -224,7 +238,10 @@ export function NewQuoteModal({
 													}
 												/>
 											</View>
-											<View className="flex-1" style={{ zIndex: 40 }}>
+											<View
+												className={isDesktop ? 'w-[48%]' : 'w-full'}
+												style={{ zIndex: 40 }}
+											>
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Idioma destino
 												</Text>
@@ -235,7 +252,10 @@ export function NewQuoteModal({
 													}
 												/>
 											</View>
-											<View className="flex-1" style={{ zIndex: 30 }}>
+											<View
+												className={isDesktop ? 'w-[48%]' : 'w-full'}
+												style={{ zIndex: 30 }}
+											>
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Tipo de documento
 												</Text>
@@ -249,28 +269,55 @@ export function NewQuoteModal({
 													}
 												/>
 											</View>
-											<View className="flex-1" style={{ zIndex: 20 }}>
+											<View
+												className={isDesktop ? 'w-[48%]' : 'w-full'}
+												style={{ zIndex: 20 }}
+											>
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Arquivo
 												</Text>
-												<TouchableOpacity
-													accessibilityRole="button"
-													disabled={uploadingItemId === item.id}
-													className="h-[46px] flex-row items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white p-3"
-													onPress={() => void handlePickFile(item.id)}
-												>
-													<Paperclip size={14} color="#6b7280" />
-													<Text
-														className="font-inter text-xs text-gray-500"
-														numberOfLines={1}
-													>
-														{uploadingItemId === item.id
-															? 'Enviando...'
-															: item.fileName || 'Anexar arquivo'}
-													</Text>
-												</TouchableOpacity>
+												<View className="h-[46px] flex-row gap-2">
+													{item.fileUrl && (
+														<TouchableOpacity
+															accessibilityRole="link"
+															accessibilityLabel={`Visualizar arquivo ${item.fileName}`}
+															onPress={() => void openDocument(item.fileUrl!)}
+															className="min-w-0 flex-1 flex-row items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3"
+														>
+															<Text
+																className="min-w-0 flex-1 font-inter text-xs text-blue-700"
+																numberOfLines={1}
+																ellipsizeMode="tail"
+															>
+																{item.fileName}
+															</Text>
+														</TouchableOpacity>
+													)}
+													{!item.fileUrl && (
+														<TouchableOpacity
+															accessibilityRole="button"
+															accessibilityLabel="Anexar arquivo"
+															disabled={
+																uploadingItemId === item.id ||
+																!canWriteDocuments
+															}
+															className={`flex-1 flex-row items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white p-3 ${!canWriteDocuments ? 'opacity-40' : ''}`}
+															onPress={() => void handlePickFile(item.id)}
+														>
+															<Paperclip size={14} color="#6b7280" />
+															<Text className="font-inter text-xs text-gray-500">
+																{uploadingItemId === item.id
+																	? 'Enviando...'
+																	: 'Anexar arquivo'}
+															</Text>
+														</TouchableOpacity>
+													)}
+												</View>
 											</View>
-											<View className="w-full md:w-32" style={{ zIndex: 10 }}>
+											<View
+												className={isDesktop ? 'w-[32%]' : 'w-full'}
+												style={{ zIndex: 10 }}
+											>
 												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
 													Valor
 												</Text>
@@ -297,43 +344,53 @@ export function NewQuoteModal({
 								Informe o valor manualmente para cada item do orçamento.
 							</Text>
 						</View>
-
-						<View className="flex-col items-center justify-between gap-4 border-t border-gray-100 pt-4 md:flex-row">
-							<View className="w-full md:w-auto">
-								<Text className="mb-1 font-inter text-xs text-gray-500">
-									Total do orçamento
-								</Text>
-								<Text className="font-poppins-bold text-2xl text-gray-900">
-									{decimalStringToBRL(String(total))}
-								</Text>
-							</View>
-							<View className="w-full flex-col gap-3 md:w-auto md:flex-row">
-								<TouchableOpacity
-									accessibilityRole="button"
-									onPress={resetAndClose}
-									className="w-full items-center rounded-lg border border-gray-300 px-6 py-2.5 md:w-auto"
-								>
-									<Text className="font-inter-medium text-sm text-gray-700">
-										Cancelar
-									</Text>
-								</TouchableOpacity>
-								<TouchableOpacity
-									accessibilityRole="button"
-									disabled={isSubmitting}
-									onPress={() => void handleSubmitQuote()}
-									className={`w-full items-center rounded-lg px-6 py-2.5 md:w-auto ${
-										isSubmitting
-											? 'bg-gray-300'
-											: 'bg-blue-600 hover:bg-blue-700'
-									}`}
-								>
-									<Text className="font-inter-medium text-sm text-white">
-										{isSubmitting ? 'Criando...' : 'Criar orçamento'}
-									</Text>
-								</TouchableOpacity>
-							</View>
-						</View>
 					</ScrollView>
+
+					<View
+						className={
+							isDesktop
+								? 'flex-row items-center justify-between border-t border-gray-300 px-6 py-4'
+								: 'flex-col gap-4 border-t border-gray-300 px-6 py-4'
+						}
+					>
+						<View className={isDesktop ? 'w-auto' : 'w-full'}>
+							<Text className="mb-1 font-inter text-xs text-gray-500">
+								Total do orçamento
+							</Text>
+							<Text className="font-inter-bold text-2xl text-gray-900">
+								{decimalStringToBRL(String(total))}
+							</Text>
+						</View>
+						<View
+							className={isDesktop ? 'flex-row gap-3' : 'w-full flex-col gap-3'}
+						>
+							<TouchableOpacity
+								accessibilityRole="button"
+								onPress={resetAndClose}
+								className={
+									isDesktop
+										? 'rounded-lg border border-gray-300 px-5 py-2.5'
+										: 'w-full min-h-[44px] items-center justify-center rounded-lg border border-gray-300 px-5 py-2.5'
+								}
+							>
+								<Text className="font-inter font-medium text-gray-800 text-sm">
+									Cancelar
+								</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								accessibilityRole="button"
+								disabled={isSubmitting}
+								onPress={() => void handleSubmitQuote()}
+								className={`${isDesktop ? 'rounded-lg px-5 py-2.5' : 'w-full min-h-[44px] items-center justify-center rounded-lg px-5 py-2.5'} ${
+									isSubmitting ? 'bg-gray-300 opacity-60' : 'bg-blue-600'
+								}`}
+							>
+								<Text className="font-inter font-semibold text-white text-sm">
+									{isSubmitting ? 'Criando…' : 'Criar orçamento'}
+								</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
 
 					{bannerMessage && (
 						<View

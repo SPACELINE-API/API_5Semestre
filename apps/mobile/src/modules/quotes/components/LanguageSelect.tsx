@@ -7,6 +7,7 @@ import {
 	ScrollView,
 	TextInput,
 	Pressable,
+	useWindowDimensions,
 } from 'react-native';
 import { ChevronDown } from 'lucide-react-native';
 import {
@@ -14,6 +15,9 @@ import {
 	createLanguage,
 	Language,
 } from '../services/languageService';
+import { usePermission } from '../../auth/hooks/usePermission';
+import { getLanguageDropdownLayout } from '../utils/languageDropdownLayout';
+import { getLanguageFlag } from '../../translators/utils/languageFlag';
 
 interface LanguageSelectProps {
 	value?: string;
@@ -26,6 +30,7 @@ export function LanguageSelect({
 	onChange,
 	placeholder = 'Selecione um idioma',
 }: LanguageSelectProps) {
+	const viewport = useWindowDimensions();
 	const [languages, setLanguages] = useState<Language[]>([]);
 	const [isOpen, setIsOpen] = useState(false);
 	const [isModalVisible, setIsModalVisible] = useState(false);
@@ -40,6 +45,7 @@ export function LanguageSelect({
 	const [newLangId, setNewLangId] = useState('');
 	const [newLangName, setNewLangName] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const canWriteSettings = usePermission('settings.write');
 
 	useEffect(() => {
 		loadLanguages();
@@ -67,6 +73,9 @@ export function LanguageSelect({
 	};
 
 	const selectedLanguage = languages.find((l) => l.id === value);
+	const dropdownLayout = anchor
+		? getLanguageDropdownLayout(anchor, viewport)
+		: null;
 
 	const openDropdown = () => {
 		triggerRef.current?.measureInWindow((x, y, width, height) => {
@@ -79,16 +88,28 @@ export function LanguageSelect({
 		<View className="relative z-50">
 			<TouchableOpacity
 				ref={triggerRef}
-				className="border border-gray-200 rounded-md p-3 bg-white flex-row justify-between items-center"
+				accessibilityRole="button"
+				accessibilityLabel={selectedLanguage?.name ?? placeholder}
+				className="flex-row items-center justify-between gap-2 rounded-md border border-gray-200 bg-white p-3"
 				onPress={openDropdown}
 			>
-				<Text
-					className={`text-sm font-inter ${selectedLanguage ? 'text-gray-900' : 'text-gray-400'}`}
-				>
-					{selectedLanguage
-						? `${selectedLanguage.name} (${selectedLanguage.id})`
-						: placeholder}
-				</Text>
+				{selectedLanguage ? (
+					<View className="min-w-0 flex-1 flex-row items-center gap-2">
+						<Text className="text-base">
+							{getLanguageFlag(selectedLanguage)}
+						</Text>
+						<Text
+							className="min-w-0 flex-1 font-inter text-sm text-gray-900"
+							numberOfLines={1}
+						>
+							{selectedLanguage.name} ({selectedLanguage.id})
+						</Text>
+					</View>
+				) : (
+					<Text className="min-w-0 flex-1 font-inter text-sm text-gray-400">
+						{placeholder}
+					</Text>
+				)}
 				<ChevronDown size={16} color="#9ca3af" />
 			</TouchableOpacity>
 
@@ -103,14 +124,11 @@ export function LanguageSelect({
 					onPress={() => setIsOpen(false)}
 				/>
 
-				{anchor && (
+				{anchor && dropdownLayout && (
 					<View
 						className="absolute bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
 						style={{
-							top: anchor.y + anchor.height + 4,
-							left: anchor.x,
-							width: anchor.width,
-							maxHeight: 192,
+							...dropdownLayout,
 							backgroundColor: 'white',
 						}}
 					>
@@ -118,25 +136,30 @@ export function LanguageSelect({
 							{languages.map((item) => (
 								<TouchableOpacity
 									key={item.id}
-									className={`py-2 px-3 border-b border-gray-50 ${value === item.id ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`}
+									accessibilityRole="button"
+									accessibilityLabel={item.name}
+									className={`flex-row items-center gap-2 py-2 px-3 border-b border-gray-50 ${value === item.id ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`}
 									onPress={() => {
 										onChange(item.id);
 										setIsOpen(false);
 									}}
 								>
+									<Text className="text-base">{getLanguageFlag(item)}</Text>
 									<Text
 										className={`font-inter text-sm ${value === item.id ? 'text-blue-700 font-inter-medium' : 'text-gray-700'}`}
+										numberOfLines={1}
 									>
 										{item.name} ({item.id})
 									</Text>
 								</TouchableOpacity>
 							))}
 							<TouchableOpacity
-								className="py-2 px-3 bg-gray-50 border-t border-gray-100"
+								className={`py-2 px-3 bg-gray-50 border-t border-gray-100 ${!canWriteSettings ? 'opacity-40' : ''}`}
 								onPress={() => {
 									setIsOpen(false);
 									setIsModalVisible(true);
 								}}
+								disabled={!canWriteSettings}
 							>
 								<Text className="font-inter-medium text-xs text-gray-900">
 									+ Adicionar outro idioma

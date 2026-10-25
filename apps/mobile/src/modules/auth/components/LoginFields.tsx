@@ -68,11 +68,11 @@ export function LoginFields({
 
 	return (
 		<>
-			<Text className="mb-2 text-sm font-bold text-[#101b35]">
+			<Text className="mb-2 text-sm font-semibold text-[#0f1b33]">
 				{recovery ? 'E-mail para recuperação' : 'E-mail'}
 			</Text>
 			<TextInput
-				className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
+				className="h-12 rounded-xl border border-[#d5e3f1] bg-[#f5f9fd] px-4 text-sm text-[#12233c]"
 				placeholder={recovery ? 'Digite seu e-mail' : 'seuemail@exemplo.com'}
 				placeholderTextColor="#94a3b8"
 				keyboardType="email-address"
@@ -84,7 +84,7 @@ export function LoginFields({
 			/>
 			{!recovery ? (
 				<>
-					<Text className="mb-2 mt-5 text-sm font-bold text-[#101b35]">
+					<Text className="mb-2 mt-5 text-sm font-semibold text-[#0f1b33]">
 						Senha
 					</Text>
 					<PasswordField

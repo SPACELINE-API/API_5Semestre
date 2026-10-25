@@ -10,6 +10,7 @@ import { InfoField } from './InfoField';
 import { FormField } from '../../clients/components/FormField';
 import { DateField } from '../../../shared/components/DateField';
 import { formatDate, formatDateInputValue } from '../utils/format';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 function getTodayInputValue() {
 	const today = new Date();
@@ -25,6 +26,7 @@ type GeneralInfoTabProps = {
 
 export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 	const [isEditing, setIsEditing] = useState(false);
+	const canWriteServiceOrders = usePermission('service_orders.write');
 	const [projectName, setProjectName] = useState(serviceOrder.project_name);
 	const [deadline, setDeadline] = useState(
 		formatDateInputValue(serviceOrder.deadline),
@@ -91,10 +93,11 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 				{!isEditing && (
 					<TouchableOpacity
 						onPress={() => setIsEditing(true)}
+						disabled={!canWriteServiceOrders}
 						activeOpacity={0.7}
 						accessibilityRole="button"
 						accessibilityLabel="Editar dados gerais"
-						className="h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
+						className={`h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 					>
 						<Settings size={16} color="#6B7280" />
 					</TouchableOpacity>

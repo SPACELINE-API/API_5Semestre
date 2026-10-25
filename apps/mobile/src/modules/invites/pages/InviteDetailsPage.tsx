@@ -5,24 +5,19 @@ import {
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator,
-	Linking,
 } from 'react-native';
-import {
-	ArrowLeft,
-	AlertCircle,
-	Download,
-	Check,
-	X,
-} from 'lucide-react-native';
+import { ArrowLeft, AlertCircle, Check, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { getSession } from '../../auth/services/auth';
 import { useInviteDetails } from '../hooks/useInviteDetails';
 import { InviteStatusBadge } from '../components/InviteStatusBadge';
+import { InviteItemProgress } from '../components/InviteItemProgress';
 import { FilePreview } from '../../../shared/components/FilePreview';
 import { formatDate, formatPrice } from '../utils/format';
 import { acceptInvite, declineInvite } from '../services/inviteService';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type InviteDetailsPageProps = {
 	id: string;
@@ -33,6 +28,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 	const { invite, item, isLoading, error, setInvite } = useInviteDetails(id);
 	const { toast, showToast } = useToast();
 	const [isResponding, setIsResponding] = useState(false);
+	const canRespondInvites = usePermission('assignments.respond');
 
 	useEffect(() => {
 		if (!getSession()) {
@@ -91,9 +87,6 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 					py-6
 					md:px-10
 					md:py-8
-					md:max-w-[720px]
-					md:w-full
-					md:self-center
 				"
 			>
 				<TouchableOpacity
@@ -148,6 +141,10 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 									{item.source_language} → {item.target_language}
 								</Text>
 
+								{invite.status === 'aceito' && (
+									<InviteItemProgress status={item.status} />
+								)}
+
 								<View className="flex-row flex-wrap gap-x-10 gap-y-4">
 									<View className="gap-0.5">
 										<Text className="font-inter text-gray-400 text-xs">
@@ -192,29 +189,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 									</Text>
 									{item.file_url ? (
 										<>
-											<FilePreview fileUrl={item.file_url} height={420} />
-
-											{invite.status === 'aceito' ? (
-												<TouchableOpacity
-													onPress={() =>
-														Linking.openURL(item.file_url as string)
-													}
-													activeOpacity={0.7}
-													accessibilityRole="link"
-													accessibilityLabel="Baixar documento"
-													className="flex-row items-center gap-1.5 self-start"
-												>
-													<Download size={14} color="#1C6FB0" />
-													<Text className="font-inter font-medium text-blue-600 text-sm">
-														Baixar arquivo
-													</Text>
-												</TouchableOpacity>
-											) : (
-												<Text className="font-inter text-gray-400 text-xs">
-													O download do arquivo só é liberado após você aceitar
-													o convite.
-												</Text>
-											)}
+											<FilePreview fileUrl={item.file_url} openInNewPage />
 										</>
 									) : (
 										<Text className="font-inter font-medium text-gray-400 text-sm">
@@ -235,11 +210,15 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 								<>
 									<TouchableOpacity
 										onPress={handleAccept}
-										disabled={isResponding}
+										disabled={isResponding || !canRespondInvites}
 										accessibilityRole="button"
 										accessibilityLabel="Aceitar convite"
 										className={`flex-row items-center gap-1.5 rounded-lg bg-green-600 px-5 py-2.5 ${
-											isResponding ? 'opacity-60' : ''
+											isResponding
+												? 'opacity-60'
+												: !canRespondInvites
+													? 'opacity-40'
+													: ''
 										}`}
 									>
 										<Check size={15} color="#FFFFFF" />
@@ -250,11 +229,15 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 
 									<TouchableOpacity
 										onPress={handleDecline}
-										disabled={isResponding}
+										disabled={isResponding || !canRespondInvites}
 										accessibilityRole="button"
 										accessibilityLabel="Recusar convite"
 										className={`flex-row items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-5 py-2.5 ${
-											isResponding ? 'opacity-60' : ''
+											isResponding
+												? 'opacity-60'
+												: !canRespondInvites
+													? 'opacity-40'
+													: ''
 										}`}
 									>
 										<X size={15} color="#791F1F" />

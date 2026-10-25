@@ -50,6 +50,16 @@ const SERVICE_ORDER = {
 };
 
 test.describe('Service orders list', () => {
+	test.beforeEach(async ({ page }) => {
+		await page.route('**/api/contacts', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: '[]',
+			});
+		});
+	});
+
 	test('loads and renders service orders with resolved company name', async ({
 		page,
 	}) => {
@@ -111,7 +121,7 @@ test.describe('Service orders list', () => {
 		).toBeVisible();
 	});
 
-	test('generates a new service order from a quote id', async ({ page }) => {
+	test('generates a manual service order', async ({ page }) => {
 		let requestBody: Record<string, unknown> = {};
 
 		await page.route('**/api/clients', async (route) => {
@@ -121,7 +131,7 @@ test.describe('Service orders list', () => {
 				body: JSON.stringify([COMPANY]),
 			});
 		});
-		await page.route('**/generate-from-quote**', async (route) => {
+		await page.route('**/api/service-orders/manual', async (route) => {
 			requestBody = route.request().postDataJSON() as Record<string, unknown>;
 			await route.fulfill({
 				status: 201,
@@ -147,19 +157,27 @@ test.describe('Service orders list', () => {
 		await page.getByText('Gerar ordem de serviço').click();
 		await page.getByLabel('Buscar empresa').fill('Rezende');
 		await page.getByLabel('Selecionar empresa Rezende Advogados').click();
-		await page.getByLabel(/Selecionar orçamento Orçamento #1024/).click();
 		await page
 			.getByPlaceholder('Ex: Tradução de contratos comerciais')
 			.fill('Tradução de contratos comerciais');
+		await page.getByText('Selecione um idioma').first().click();
+		await page.getByText('Português (Brasil)').click();
+		await page.getByText('Selecione um idioma').nth(1).click();
+		await page.getByText('Inglês (Estados Unidos)').click();
 		await page.getByText('Gerar ordem', { exact: true }).click();
 
 		await expect(
 			page.getByText('Ordem de serviço gerada com sucesso!'),
 		).toBeVisible();
 		expect(requestBody).toMatchObject({
-			quote_id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
 			company_id: 'company-1',
 			project_name: 'Tradução de contratos comerciais',
+			items: [
+				{
+					source_language: 'pt-BR',
+					target_language: 'en-US',
+				},
+			],
 		});
 	});
 });

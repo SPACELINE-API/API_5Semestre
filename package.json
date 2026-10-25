@@ -7,6 +7,7 @@
 		"dev": "pnpm --parallel --filter @api/server --filter mobile dev",
 		"dev:mobile": "pnpm --filter mobile start",
 		"dev:server": "pnpm --filter @api/server dev",
+		"db:seed": "pnpm --filter @api/server db:seed",
 		"supabase:keys": "node scripts/generate-supabase-keys.js",
 		"test:supabase:keys": "node --test scripts/generate-supabase-keys.test.js",
 		"prepare": "husky",

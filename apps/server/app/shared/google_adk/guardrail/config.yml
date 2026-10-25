@@ -1,0 +1,7 @@
+models:
+  - type: main
+    engine: openai
+    model: ${GUARDRAIL_MODEL_NAME}
+    parameters:
+      base_url: ${GUARDRAIL_BASE_URL}
+      api_key: ${GUARDRAIL_API_KEY}

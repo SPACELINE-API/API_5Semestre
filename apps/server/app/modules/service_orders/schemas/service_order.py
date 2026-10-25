@@ -72,6 +72,23 @@ class CreateServiceOrderItemRequest(BaseModel):
     deadline: datetime | None = None
 
 
+class ManualServiceOrderRequest(BaseModel):
+    company_id: uuid.UUID
+    project_name: str = Field(min_length=1, max_length=150)
+    deadline: datetime | None = None
+    domain_area: str | None = None
+    price_category: str | None = None
+    internal_notes: str | None = None
+    external_notes: str | None = None
+    total_price: Decimal | None = Field(default=None, ge=0)
+    items: list[CreateServiceOrderItemRequest] = Field(min_length=1)
+
+    @field_validator("deadline")
+    @classmethod
+    def validate_deadline(cls, value: datetime | None) -> datetime | None:
+        return _validate_deadline_not_in_past(value)
+
+
 class UpdateServiceOrderItemRequest(BaseModel):
     source_language: str | None = Field(default=None, min_length=1, max_length=10)
     target_language: str | None = Field(default=None, min_length=1, max_length=10)
@@ -84,17 +101,56 @@ class UpdateServiceOrderItemRequest(BaseModel):
 class ServiceOrderFileResponse(BaseModel):
     id: uuid.UUID
     service_order_id: uuid.UUID
+    service_order_item_id: uuid.UUID | None = None
     filename: str
     file_url: str
     direction: str
+    delivery_status: str
+    review_status: str
+    review_note: str | None = None
+    reviewed_at: datetime | None = None
     uploaded_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
+class ServiceOrderFileReviewRequest(BaseModel):
+    note: str = Field(min_length=3, max_length=1000)
+
+
+class ServiceOrderDeliveryResponse(BaseModel):
+    id: uuid.UUID
+    service_order_id: uuid.UUID
+    document_file_id: uuid.UUID
+    recipient_email: str | None
+    template_key: str | None
+    status: str
+    error_message: str | None
+    attempted_at: datetime
+    sent_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceOrderEmailTemplateResponse(BaseModel):
+    key: str
+    subject: str
+    body_html: str
+    updated_at: datetime
+    available_placeholders: list[str] = Field(default_factory=lambda: ["{{nome_cliente}}"])
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceOrderDeliveryRequest(BaseModel):
+    file_ids: list[uuid.UUID] | None = None
+    subject_override: str | None = Field(default=None, min_length=1, max_length=255)
+    body_html_override: str | None = Field(default=None, min_length=1)
+
+
 class ServiceOrderResponse(BaseModel):
     id: uuid.UUID
-    quote_id: uuid.UUID
+    quote_id: uuid.UUID | None
     company_id: uuid.UUID
     project_name: str
     deadline: datetime | None

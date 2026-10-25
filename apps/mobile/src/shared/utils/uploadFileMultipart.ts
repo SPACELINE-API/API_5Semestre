@@ -1,4 +1,5 @@
 import type { UploadableFile } from '../types/file';
+import { getSession } from '../../modules/auth/services/auth';
 
 export class MultipartUploadError extends Error {
 	constructor(
@@ -45,7 +46,12 @@ export async function uploadFileMultipart<TResponse>(
 	fields: Record<string, string>,
 	httpMethod: 'POST' | 'PATCH' = 'POST',
 	fileFieldName = 'file',
+	includeSession = true,
 ): Promise<TResponse> {
+	const token = includeSession ? getSession()?.access_token : undefined;
+	const headers: Record<string, string> = token
+		? { Authorization: `Bearer ${token}` }
+		: {};
 	if (
 		typeof document !== 'undefined' ||
 		(typeof Blob !== 'undefined' && file instanceof Blob)
@@ -54,9 +60,21 @@ export async function uploadFileMultipart<TResponse>(
 		Object.entries(fields).forEach(([name, value]) =>
 			formData.append(name, value),
 		);
-		formData.append(fileFieldName, file as globalThis.File);
 
-		const response = await fetch(url, { method: httpMethod, body: formData });
+		if (typeof Blob !== 'undefined' && file instanceof Blob) {
+			formData.append(fileFieldName, file as globalThis.File);
+		} else {
+			const nativeFile = file as { uri: string; name: string };
+			const fileResponse = await fetch(nativeFile.uri);
+			const blob = await fileResponse.blob();
+			formData.append(fileFieldName, blob, nativeFile.name);
+		}
+
+		const response = await fetch(url, {
+			method: httpMethod,
+			headers,
+			body: formData,
+		});
 		if (!response.ok) {
 			const body = await response.text();
 			throw new MultipartUploadError(
@@ -77,6 +95,7 @@ export async function uploadFileMultipart<TResponse>(
 			fieldName: fileFieldName,
 			mimeType: nativeFile.type,
 			httpMethod,
+			headers,
 			parameters: fields,
 		});
 	} catch (error) {

@@ -119,6 +119,22 @@ def test_generate_quote_transfers_request_document_to_new_item(mock_db_session, 
     assert item.target_language == request.translation_language
 
 
+def test_generate_quote_reuses_uploaded_request_document_url(mock_db_session):
+    request = approved_request()
+    request.document_filename = "diploma.pdf"
+    request.document_url = "https://storage.test/requests/diploma.pdf"
+
+    service = QuoteService(mock_db_session)
+    service.request_repository.get_by_id = MagicMock(return_value=request)
+    service.quote_repository.get_by_request_id = MagicMock(return_value=None)
+    mock_db_session.refresh.side_effect = lambda obj: None
+
+    result = service.generate_from_approved_request(request.id)
+
+    assert len(result.items) == 1
+    assert result.items[0].file_url == request.document_url
+
+
 def test_generate_quote_without_document_creates_no_item(mock_db_session):
     request = approved_request()
     service = QuoteService(mock_db_session)

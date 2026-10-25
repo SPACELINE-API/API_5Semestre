@@ -1,4 +1,9 @@
-import { useRef, useState } from 'react';
+import {
+	useRef,
+	useState,
+	type ComponentProps,
+	type ComponentType,
+} from 'react';
 import {
 	Modal,
 	View,
@@ -12,8 +17,17 @@ import type { CreateServiceOrderItemInput } from '../types/serviceOrder';
 import type { UploadableFile } from '../../../shared/types/file';
 import { pickDocument } from '../../../shared/utils/pickDocument';
 import { FormField } from '../../clients/components/FormField';
+import { LanguageSelect } from '../../quotes/components/LanguageSelect';
 import { DateField } from '../../../shared/components/DateField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+
+function getTodayInputValue() {
+	const today = new Date();
+	const month = String(today.getMonth() + 1).padStart(2, '0');
+	const day = String(today.getDate()).padStart(2, '0');
+	return `${today.getFullYear()}-${month}-${day}`;
+}
 
 type AddItemModalProps = {
 	visible: boolean;
@@ -31,10 +45,12 @@ export function AddItemModal({
 	onSubmit,
 	toast,
 }: AddItemModalProps) {
+	const KeyboardContainer = (
+		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
+	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const [sourceLanguage, setSourceLanguage] = useState('');
 	const [targetLanguage, setTargetLanguage] = useState('');
 	const [documentType, setDocumentType] = useState('');
-	const [wordCount, setWordCount] = useState('');
 	const [price, setPrice] = useState('');
 	const [deadline, setDeadline] = useState('');
 	const [file, setFile] = useState<UploadableFile | null>(null);
@@ -46,7 +62,6 @@ export function AddItemModal({
 		setSourceLanguage('');
 		setTargetLanguage('');
 		setDocumentType('');
-		setWordCount('');
 		setPrice('');
 		setDeadline('');
 		setFile(null);
@@ -66,6 +81,15 @@ export function AddItemModal({
 			return;
 		}
 
+		if (!file) {
+			setError('Selecione um arquivo para adicionar o item.');
+			return;
+		}
+		if (deadline && deadline < getTodayInputValue()) {
+			setError('O prazo não pode ser anterior à data de hoje.');
+			return;
+		}
+
 		setIsSubmitting(true);
 
 		try {
@@ -74,7 +98,6 @@ export function AddItemModal({
 					source_language: sourceLanguage.trim(),
 					target_language: targetLanguage.trim(),
 					document_type: documentType.trim() || null,
-					word_count: wordCount.trim() ? Number(wordCount.trim()) : null,
 					price: price.trim() ? Number(price.trim()) : null,
 					deadline: deadline ? new Date(deadline).toISOString() : null,
 				},
@@ -110,24 +133,37 @@ export function AddItemModal({
 						</TouchableOpacity>
 					</View>
 
-					<ScrollView
+					<KeyboardContainer
 						className="px-6 py-4"
 						contentContainerClassName="gap-4 pb-6"
-						keyboardShouldPersistTaps="handled"
+						{...(Platform.OS === 'web'
+							? { keyboardShouldPersistTaps: 'handled' as const }
+							: {
+									bottomOffset: 20,
+									keyboardShouldPersistTaps: 'handled' as const,
+								})}
 					>
-						<View className="flex-row gap-3">
-							<FormField
-								label="Idioma de origem"
-								value={sourceLanguage}
-								onChangeText={setSourceLanguage}
-								placeholder="Ex: Português"
-							/>
-							<FormField
-								label="Idioma de destino"
-								value={targetLanguage}
-								onChangeText={setTargetLanguage}
-								placeholder="Ex: Inglês"
-							/>
+						<View className="flex-col gap-3 md:flex-row">
+							<View className="min-w-0 md:flex-1">
+								<Text className="mb-1 font-inter font-semibold text-gray-800 text-xs">
+									Idioma de origem
+								</Text>
+								<LanguageSelect
+									value={sourceLanguage}
+									onChange={setSourceLanguage}
+									placeholder="Selecione um idioma"
+								/>
+							</View>
+							<View className="min-w-0 md:flex-1">
+								<Text className="mb-1 font-inter font-semibold text-gray-800 text-xs">
+									Idioma de destino
+								</Text>
+								<LanguageSelect
+									value={targetLanguage}
+									onChange={setTargetLanguage}
+									placeholder="Selecione um idioma"
+								/>
+							</View>
 						</View>
 
 						<FormField
@@ -137,26 +173,17 @@ export function AddItemModal({
 							placeholder="Ex: Contrato"
 						/>
 
-						<View className="flex-row gap-3">
-							<FormField
-								label="Quantidade de palavras"
-								value={wordCount}
-								onChangeText={(value) => setWordCount(value.replace(/\D/g, ''))}
-								placeholder="Ex: 1500"
-							/>
-							<FormField
-								label="Preço"
-								value={price}
-								onChangeText={(value) =>
-									setPrice(value.replace(/[^0-9.,]/g, ''))
-								}
-								placeholder="Ex: 500.00"
-							/>
-						</View>
+						<FormField
+							label="Preço"
+							value={price}
+							onChangeText={(value) => setPrice(value.replace(/[^0-9.,]/g, ''))}
+							placeholder="Ex: 500.00"
+						/>
 
 						<DateField
 							label="Prazo"
 							value={deadline}
+							minDate={getTodayInputValue()}
 							onChangeText={setDeadline}
 						/>
 
@@ -186,7 +213,7 @@ export function AddItemModal({
 									className="flex-1 font-inter text-sm text-gray-700"
 									numberOfLines={1}
 								>
-									{file ? file.name : 'Selecionar arquivo (opcional)'}
+									{file ? file.name : 'Selecionar arquivo'}
 								</Text>
 							</TouchableOpacity>
 
@@ -207,7 +234,7 @@ export function AddItemModal({
 								<Text className="font-inter text-red-900 text-sm">{error}</Text>
 							</View>
 						)}
-					</ScrollView>
+					</KeyboardContainer>
 
 					<View className="flex-row items-center justify-end gap-3 border-t border-gray-300 px-6 py-4">
 						<TouchableOpacity

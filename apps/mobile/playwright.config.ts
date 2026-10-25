@@ -1,9 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const installedBrowserChannel = process.env.PLAYWRIGHT_CHANNEL;
+
 export default defineConfig({
 	testDir: './src',
 	testMatch: '**/*.spec.ts',
-	testIgnore: '**/node_modules/**',
+	testIgnore: ['**/node_modules/**', '**/unit/*.spec.ts'],
 	fullyParallel: true,
 	forbidOnly: Boolean(process.env.CI),
 	retries: process.env.CI ? 2 : 0,
@@ -17,7 +19,13 @@ export default defineConfig({
 	projects: [
 		{
 			name: 'chromium',
-			use: { ...devices['Desktop Chrome'] },
+			use: {
+				...devices['Desktop Chrome'],
+				...(installedBrowserChannel === 'chrome' ||
+				installedBrowserChannel === 'msedge'
+					? { channel: installedBrowserChannel }
+					: {}),
+			},
 		},
 	],
 	webServer: {

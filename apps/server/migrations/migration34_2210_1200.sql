@@ -1,0 +1,1 @@
+ALTER TABLE public.request ADD COLUMN IF NOT EXISTS document_url VARCHAR(500);

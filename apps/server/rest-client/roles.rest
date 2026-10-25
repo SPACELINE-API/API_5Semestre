@@ -1,0 +1,87 @@
+@serverUrl = http://localhost:3333
+
+### Execute as requisições nesta ordem:
+### 1) loginAdmin
+### 2) listRoles
+### 3) createRole
+### 4) getCreatedRole
+### 5) editar role
+### 6) deactivateRole
+### 7) reativar role
+###
+### O cliente REST precisa manter o histórico das respostas para resolver
+### loginAdmin.response.body e createRole.response.body.
+
+### Login automático
+# @name loginAdmin
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@spaceline.com.br",
+  "password": "123456"
+}
+
+### O REST Client resolve automaticamente o token da resposta anterior.
+@adminToken = {{loginAdmin.response.body.$.access_token}}
+
+### Listar roles
+# A resposta deve conter as roles criadas pelo seed.
+# @name listRoles
+GET {{serverUrl}}/api/roles
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Criar role
+# @name createRole
+POST {{serverUrl}}/api/roles
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Operação",
+  "description": "Role usada nos testes de acesso",
+  "permission_ids": []
+}
+
+### Captura automática do ID criado.
+### Execute createRole antes desta requisição, após aplicar migrations e seed.
+@roleId = {{createRole.response.body.$.id}}
+
+### Consultar a role criada
+# @name getCreatedRole
+GET {{serverUrl}}/api/roles/{{roleId}}
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Editar role
+# O mesmo ID capturado no createRole é reutilizado automaticamente.
+PATCH {{serverUrl}}/api/roles/{{roleId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "description": "Descrição atualizada",
+  "permission_ids": []
+}
+
+### Desativar role
+# A associação com os usuários deve permanecer; somente as permissões efetivas
+# devem deixar de ser consideradas nas validações.
+# @name deactivateRole
+PATCH {{serverUrl}}/api/roles/{{roleId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "is_active": false
+}
+
+### Reativar role
+PATCH {{serverUrl}}/api/roles/{{roleId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "is_active": true
+}

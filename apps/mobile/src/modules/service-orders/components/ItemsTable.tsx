@@ -1,17 +1,25 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { ClipboardList, ExternalLink, Plus, Pencil } from 'lucide-react-native';
+import {
+	ClipboardList,
+	ExternalLink,
+	Plus,
+	Pencil,
+	Trash2,
+} from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { StatusBadge } from './StatusBadge';
 import { openDocument } from '../../../shared/components/FilePreview';
-import { getFileName } from '../../../shared/utils/file';
+import { getTruncatedFileName } from '../../../shared/utils/file';
 import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
 import { formatDate, formatPrice } from '../utils/format';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type ItemsTableProps = {
 	items: ServiceOrderItem[];
 	translatorsById: Map<string, Translator>;
 	onAddItem: () => void;
 	onEditItem: (item: ServiceOrderItem) => void;
+	onDeleteItem: (item: ServiceOrderItem) => void;
 };
 
 function HeaderCell({ label, width }: { label: string; width: `${number}%` }) {
@@ -27,15 +35,17 @@ function HeaderCell({ label, width }: { label: string; width: `${number}%` }) {
 
 function AddItemButton({ onPress }: { onPress: () => void }) {
 	const isDesktop = useIsDesktop();
+	const canWriteServiceOrders = usePermission('service_orders.write');
 
 	if (!isDesktop) {
 		return (
 			<TouchableOpacity
 				onPress={onPress}
+				disabled={!canWriteServiceOrders}
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityLabel="Adicionar item"
-				className="h-11 w-11 items-center justify-center self-end rounded-full bg-blue-300"
+				className={`h-11 w-11 items-center justify-center self-end rounded-full bg-blue-300 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 			>
 				<Plus size={20} color="#042C53" />
 			</TouchableOpacity>
@@ -45,10 +55,11 @@ function AddItemButton({ onPress }: { onPress: () => void }) {
 	return (
 		<TouchableOpacity
 			onPress={onPress}
+			disabled={!canWriteServiceOrders}
 			activeOpacity={0.7}
 			accessibilityRole="button"
 			accessibilityLabel="Adicionar item"
-			className="flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2"
+			className={`flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 		>
 			<Plus size={14} color="#353535" />
 			<Text className="font-inter font-semibold text-gray-800 text-xs">
@@ -62,11 +73,14 @@ function MobileItemCard({
 	item,
 	translatorName,
 	onEdit,
+	onDelete,
 }: {
 	item: ServiceOrderItem;
 	translatorName: string;
 	onEdit: () => void;
+	onDelete: () => void;
 }) {
+	const canWriteServiceOrders = usePermission('service_orders.write');
 	return (
 		<View className="gap-4 rounded-xl border border-gray-200 bg-white p-4">
 			<View className="flex-row flex-wrap items-center justify-between gap-2">
@@ -83,11 +97,6 @@ function MobileItemCard({
 						<Text className="font-inter text-gray-700 text-sm">
 							{item.document_type ?? 'Não informado'}
 						</Text>
-						{item.word_count != null && (
-							<Text className="font-inter text-gray-400 text-xs">
-								{item.word_count} palavras
-							</Text>
-						)}
 					</View>
 					<View className="min-w-0 flex-1 gap-1">
 						<Text className="font-inter text-gray-400 text-xs">Preço</Text>
@@ -115,38 +124,54 @@ function MobileItemCard({
 					</View>
 				</View>
 
-				<View className="flex-row items-center justify-between gap-4 border-t border-gray-100 pt-3">
+				<View className="flex-row flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-gray-100 pt-3">
 					{item.file_url ? (
 						<TouchableOpacity
 							accessibilityRole="link"
 							onPress={() => openDocument(item.file_url!)}
-							className="min-w-0 max-w-[70%] flex-row items-center gap-1.5"
+							className="min-w-0 max-w-full flex-row items-center gap-1 self-start"
 						>
 							<Text
 								className="min-w-0 flex-shrink font-inter-medium text-blue-700 text-xs"
 								numberOfLines={1}
 							>
-								{getFileName(item.file_url)}
+								{getTruncatedFileName(item.file_url)}
 							</Text>
 							<ExternalLink size={12} color="#1d4ed8" />
 						</TouchableOpacity>
 					) : (
-						<Text className="font-inter text-gray-400 text-xs">
+						<Text className="min-w-0 flex-1 font-inter text-gray-400 text-xs">
 							Nenhum documento
 						</Text>
 					)}
-					<TouchableOpacity
-						onPress={onEdit}
-						activeOpacity={0.7}
-						accessibilityRole="button"
-						accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
-						className="flex-row items-center gap-1 self-start py-1"
-					>
-						<Pencil size={14} color="#353535" />
-						<Text className="font-inter font-medium text-gray-700 text-xs">
-							Editar
-						</Text>
-					</TouchableOpacity>
+					<View className="flex-row flex-nowrap items-center gap-x-4">
+						<TouchableOpacity
+							onPress={onEdit}
+							disabled={!canWriteServiceOrders}
+							activeOpacity={0.7}
+							accessibilityRole="button"
+							accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
+							className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+						>
+							<Pencil size={14} color="#353535" />
+							<Text className="font-inter font-medium text-gray-700 text-xs">
+								Editar
+							</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							onPress={onDelete}
+							disabled={!canWriteServiceOrders}
+							activeOpacity={0.7}
+							accessibilityRole="button"
+							accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
+							className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+						>
+							<Trash2 size={14} color="#B91C1C" />
+							<Text className="font-inter font-medium text-red-700 text-xs">
+								Excluir
+							</Text>
+						</TouchableOpacity>
+					</View>
 				</View>
 			</View>
 		</View>
@@ -158,8 +183,10 @@ export function ItemsTable({
 	translatorsById,
 	onAddItem,
 	onEditItem,
+	onDeleteItem,
 }: ItemsTableProps) {
 	const isDesktop = useIsDesktop();
+	const canWriteServiceOrders = usePermission('service_orders.write');
 
 	if (items.length === 0) {
 		return (
@@ -193,6 +220,7 @@ export function ItemsTable({
 							item={item}
 							translatorName={translator?.name ?? 'Não atribuído'}
 							onEdit={() => onEditItem(item)}
+							onDelete={() => onDeleteItem(item)}
 						/>
 					);
 				})}
@@ -222,7 +250,7 @@ export function ItemsTable({
 				return (
 					<View
 						key={item.id}
-						className={`py-4 ${index === 0 ? '' : 'border-t border-gray-100'}`}
+						className={`${index === 0 ? 'pt-2 pb-4' : 'border-t border-gray-100 py-4'}`}
 					>
 						<View className="flex-col gap-2 md:flex-row md:flex-wrap md:items-center md:gap-x-0 md:gap-y-2">
 							<View className="md:w-[16%]">
@@ -231,15 +259,10 @@ export function ItemsTable({
 								</Text>
 							</View>
 
-							<View className="md:w-[14%]">
+							<View className="md:w-[12%]">
 								<Text className="font-inter text-gray-500 text-xs md:text-sm">
 									{item.document_type ?? 'Não informado'}
 								</Text>
-								{item.word_count != null && (
-									<Text className="font-inter text-gray-400 text-xs">
-										{item.word_count} palavras
-									</Text>
-								)}
 							</View>
 
 							<View className="md:w-[10%]">
@@ -269,13 +292,13 @@ export function ItemsTable({
 									<TouchableOpacity
 										accessibilityRole="link"
 										onPress={() => openDocument(item.file_url!)}
-										className="min-w-0 max-w-full flex-row items-center gap-1.5"
+										className="min-w-0 max-w-full flex-row items-center gap-1"
 									>
 										<Text
 											className="min-w-0 flex-shrink font-inter-medium text-blue-700 text-xs"
 											numberOfLines={1}
 										>
-											{getFileName(item.file_url)}
+											{getTruncatedFileName(item.file_url)}
 										</Text>
 										<ExternalLink size={12} color="#1d4ed8" />
 									</TouchableOpacity>
@@ -286,17 +309,31 @@ export function ItemsTable({
 								)}
 							</View>
 
-							<View className="md:w-[10%]">
+							<View className="md:w-[12%]">
 								<TouchableOpacity
 									onPress={() => onEditItem(item)}
+									disabled={!canWriteServiceOrders}
 									activeOpacity={0.7}
 									accessibilityRole="button"
 									accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
-									className="flex-row items-center gap-1 self-start"
+									className={`mb-1 flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 								>
 									<Pencil size={14} color="#353535" />
-									<Text className="font-inter font-medium text-gray-700 text-xs">
+									<Text className="font-inter font-medium text-gray-700 text-sm">
 										Editar
+									</Text>
+								</TouchableOpacity>
+								<TouchableOpacity
+									onPress={() => onDeleteItem(item)}
+									disabled={!canWriteServiceOrders}
+									activeOpacity={0.7}
+									accessibilityRole="button"
+									accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
+									className={`flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+								>
+									<Trash2 size={14} color="#B91C1C" />
+									<Text className="font-inter font-medium text-red-700 text-sm">
+										Excluir
 									</Text>
 								</TouchableOpacity>
 							</View>

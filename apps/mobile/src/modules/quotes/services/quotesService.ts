@@ -1,9 +1,11 @@
 import { env } from '../../../shared/env';
 import {
-	apiDelete,
-	apiPatch,
+	apiDeleteAuth,
 	apiPatchAuth,
+	authHeaders,
 } from '../../../shared/services/apiClient';
+import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
+import type { UploadableFile } from '../../../shared/types/file';
 
 const API_BASE_URL = env.apiUrl;
 
@@ -33,7 +35,10 @@ export async function generateQuoteFromRequest(
 	try {
 		const response = await fetch(
 			`${API_BASE_URL}/api/quotes/from-request/${encodeURIComponent(requestId)}`,
-			{ method: 'POST' },
+			{
+				method: 'POST',
+				headers: authHeaders(),
+			},
 		);
 		const data = await response.json().catch(() => null);
 
@@ -83,6 +88,7 @@ export type ManagedQuote = QuoteResponse & {
 	request_id: string | null;
 	customer_name: string | null;
 	enterprise: string | null;
+	company_name?: string | null;
 	email: string | null;
 	original_language: string | null;
 	translation_language: string | null;
@@ -142,7 +148,9 @@ export async function listQuotes(params: {
 	if (params.status !== 'all') query.set('status', params.status);
 	let response: Response;
 	try {
-		response = await fetch(`${API_BASE_URL}/api/quotes?${query.toString()}`);
+		response = await fetch(`${API_BASE_URL}/api/quotes?${query.toString()}`, {
+			headers: authHeaders(),
+		});
 	} catch (error) {
 		console.error('Error loading quotes:', error);
 		throw new Error(quoteLoadErrorMessage(), { cause: error });
@@ -180,7 +188,7 @@ export async function updateQuote(
 	data: QuoteUpdateInput,
 ): Promise<QuoteEditResult> {
 	try {
-		const result = await apiPatch<ManagedQuote, QuoteUpdateInput>(
+		const result = await apiPatchAuth<ManagedQuote, QuoteUpdateInput>(
 			`/api/quotes/${encodeURIComponent(quoteId)}`,
 			data,
 		);
@@ -213,7 +221,7 @@ export async function updateQuoteItem(
 	data: QuoteTranslationItemUpdateInput,
 ): Promise<QuoteItemEditResult> {
 	try {
-		const result = await apiPatch<
+		const result = await apiPatchAuth<
 			QuoteManagerItem,
 			QuoteTranslationItemUpdateInput
 		>(
@@ -235,7 +243,7 @@ export async function deleteQuoteItem(
 	quoteId: string,
 	itemId: string,
 ): Promise<void> {
-	return apiDelete(
+	return apiDeleteAuth(
 		`/api/quotes/${encodeURIComponent(quoteId)}/translation-items/${encodeURIComponent(itemId)}`,
 	);
 }
@@ -252,7 +260,7 @@ export async function createQuote(): Promise<QuoteResponse | null> {
 	try {
 		const response = await fetch(`${API_BASE_URL}/api/quotes`, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json', ...authHeaders() },
 			body: JSON.stringify({}),
 		});
 
@@ -303,7 +311,7 @@ export async function createQuoteItem(
 			`${API_BASE_URL}/api/quotes/${quoteId}/translation-items`,
 			{
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'application/json', ...authHeaders() },
 				body: JSON.stringify(itemData),
 			},
 		);
@@ -330,35 +338,31 @@ export async function uploadQuoteDocument(
 	fileName: string,
 ): Promise<string | null> {
 	try {
-		const formData = new FormData();
 		const isWeb =
 			typeof window !== 'undefined' && typeof window.document !== 'undefined';
 
+		let file: UploadableFile;
 		if (isWeb) {
 			const fetchResponse = await fetch(fileUri);
 			const blob = await fetchResponse.blob();
-			formData.append('file', blob, fileName);
+			file = blob as UploadableFile;
 		} else {
-			formData.append('file', {
+			file = {
 				uri: fileUri,
 				name: fileName,
 				type: 'application/octet-stream',
-			} as unknown as Blob);
+			} as UploadableFile;
 		}
 
-		const response = await fetch(`${API_BASE_URL}/api/quotes/upload-document`, {
-			method: 'POST',
-			body: formData,
-		});
+		const data = await uploadFileMultipart<{ file_url: string }>(
+			`${API_BASE_URL}/api/quotes/upload-document`,
+			file,
+			{},
+			'POST',
+			'file',
+			true,
+		);
 
-		if (!response.ok) {
-			const errorText = await response.text();
-			throw new Error(
-				`Failed to upload document: ${response.status}. Details: ${errorText}`,
-			);
-		}
-
-		const data = await response.json();
 		return data.file_url;
 	} catch (error) {
 		console.error('Error uploading document:', error);

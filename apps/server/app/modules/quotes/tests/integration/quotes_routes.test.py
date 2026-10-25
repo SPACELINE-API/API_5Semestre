@@ -1,59 +1,129 @@
-from unittest.mock import patch
+import uuid
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
+from app.main import app
+from app.modules.clients.models.company import Company
+from app.modules.quotes.models.quote import Quote
+from app.modules.quotes.models.request import Request, StatusEnum
+from app.modules.quotes.routes import (
+    documents_write_permission,
+    quotes_approve_permission,
+    quotes_read_permission,
+    quotes_write_permission,
+    requests_read_permission,
+    requests_write_permission,
+)
+from app.shared.database import get_db
 
 
-def test_create_quote_endpoint(client, override_get_db):
-    with patch("app.modules.quotes.routes.QuoteService") as MockQuoteService:
-        instance = MockQuoteService.return_value
+@pytest.fixture(autouse=True)
+def allow_route_permissions_for_legacy_endpoint_tests():
+    for permission_dependency in (
+        documents_write_permission,
+        quotes_approve_permission,
+        quotes_read_permission,
+        quotes_write_permission,
+        requests_read_permission,
+        requests_write_permission,
+    ):
+        app.dependency_overrides[permission_dependency] = lambda: None
+    yield
+    for permission_dependency in (
+        documents_write_permission,
+        quotes_approve_permission,
+        quotes_read_permission,
+        quotes_write_permission,
+        requests_read_permission,
+        requests_write_permission,
+    ):
+        app.dependency_overrides.pop(permission_dependency, None)
 
-        class MockQuote:
-            id = "123e4567-e89b-12d3-a456-426614174000"
-            status = "pending"
-            created_at = "2026-09-17T10:00:00Z"
-            updated_at = "2026-09-17T10:00:00Z"
 
-        instance.create_quote.return_value = MockQuote()
-
-        response = client.post("/api/quotes", json={})
-
-        assert response.status_code == 201
-        data = response.json()
-        assert data["id"] == "123e4567-e89b-12d3-a456-426614174000"
-        assert data["status"] == "pending"
+@pytest.fixture
+def db_client(client: TestClient, isolated_db_session: Session):
+    app.dependency_overrides[get_db] = lambda: isolated_db_session
+    yield client
+    app.dependency_overrides.pop(get_db, None)
 
 
-def test_create_quote_endpoint_invalid_schema(client):
+def test_create_quote_endpoint_persists_quote(db_client: TestClient, isolated_db_session: Session):
+    response = db_client.post("/api/quotes", json={})
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["status"] == "pending"
+    assert isolated_db_session.get(Quote, uuid.UUID(data["id"])) is not None
+
+
+def test_create_quote_endpoint_invalid_schema(client: TestClient):
     response = client.post("/api/quotes", json="invalid_payload")
     assert response.status_code == 422
 
 
-def test_generate_quote_from_request_endpoint(client):
-    request_id = "123e4567-e89b-12d3-a456-426614174000"
-    with patch("app.modules.quotes.routes.QuoteService") as MockQuoteService:
-        instance = MockQuoteService.return_value
+def test_list_quotes_includes_linked_company_name_and_legacy_fallback(
+    db_client: TestClient, isolated_db_session: Session
+):
+    company = Company(
+        legal_name="Empresa Legal Ltda",
+        trade_name="Empresa Atual",
+        cnpj="12.345.678/0001-90",
+        industry="Serviços",
+        phone="11999999999",
+        email="empresa@teste.com",
+        zip_code="01000-000",
+        street="Rua Um",
+        number="1",
+        neighborhood="Centro",
+        city="São Paulo",
+        state="SP",
+    )
+    linked_quote = Quote(
+        company=company,
+        enterprise="Nome antigo",
+        status="pending",
+    )
+    legacy_quote = Quote(enterprise="Empresa legada", status="pending")
+    empty_quote = Quote(status="pending")
+    isolated_db_session.add_all([linked_quote, legacy_quote, empty_quote])
+    isolated_db_session.commit()
 
-        class MockQuote:
-            id = "223e4567-e89b-12d3-a456-426614174000"
-            request_id = "123e4567-e89b-12d3-a456-426614174000"
-            status = "pending"
-            customer_name = "João Silva"
-            enterprise = "Empresa X"
-            email = "joao@teste.com"
-            original_language = "Português"
-            translation_language = "Inglês"
-            customer_need = "Contrato social"
-            created_at = "2026-09-22T10:00:00Z"
-            updated_at = "2026-09-22T10:00:00Z"
+    response = db_client.get("/api/quotes")
 
-        instance.generate_from_approved_request.return_value = MockQuote()
+    assert response.status_code == 200
+    names_by_id = {item["id"]: item["company_name"] for item in response.json()["items"]}
+    assert names_by_id[str(linked_quote.id)] == "Empresa Atual"
+    assert names_by_id[str(legacy_quote.id)] == "Empresa legada"
+    assert names_by_id[str(empty_quote.id)] is None
 
-        response = client.post(f"/api/quotes/from-request/{request_id}")
+
+def test_generate_quote_from_request_endpoint_uses_approved_request(
+    db_client: TestClient, isolated_db_session: Session
+):
+    request = Request(
+        customer_name="João Silva",
+        enterprise="Empresa X",
+        email="joao@teste.com",
+        original_language="Português",
+        translation_language="Inglês",
+        customer_need="Contrato social",
+        status=StatusEnum.APPROVED,
+    )
+    isolated_db_session.add(request)
+    isolated_db_session.flush()
+
+    response = db_client.post(f"/api/quotes/from-request/{request.id}")
 
     assert response.status_code == 201
-    assert response.json()["request_id"] == request_id
-    assert response.json()["status"] == "pending"
+    data = response.json()
+    assert data["request_id"] == str(request.id)
+    assert data["status"] == "pending"
+    assert data["customer_name"] == request.customer_name
 
 
-def test_generate_quote_from_request_endpoint_rejects_invalid_uuid(client):
+def test_generate_quote_from_request_endpoint_rejects_invalid_uuid(client: TestClient):
     response = client.post("/api/quotes/from-request/not-an-uuid")
 
     assert response.status_code == 422

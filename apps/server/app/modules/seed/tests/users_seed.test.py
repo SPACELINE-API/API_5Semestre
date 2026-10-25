@@ -63,7 +63,7 @@ def test_seed_users_creates_auth_users_and_upserts_local_users() -> None:
     assert [params["email"] for params in insert_statements] == seeded_emails
     password_hashes = [params["password_hash"] for params in insert_statements]
 
-    assert password_hashes != ["123456", "123456", "123456"]
+    assert password_hashes != ["123456"] * len(SEED_USERS)
     assert all(isinstance(password_hash, str) for password_hash in password_hashes)
     assert all(verify_password("123456", password_hash) for password_hash in password_hashes)
     assert db.committed is True

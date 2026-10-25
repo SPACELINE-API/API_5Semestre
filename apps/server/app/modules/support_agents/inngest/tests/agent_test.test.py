@@ -5,6 +5,10 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.modules.support_agents.inngest.router.support_router import (
+    support_read_permission,
+    support_write_permission,
+)
 from app.modules.support_agents.inngest.services import support_agent_services
 from app.shared.inngest.functions import (
     process_chat_message,
@@ -14,6 +18,30 @@ from app.shared.inngest.functions import (
 )
 
 client = TestClient(app)
+
+
+class FakeUser:
+    email = "teste@exemplo.com"
+
+
+@pytest.fixture(autouse=True)
+def allow_support_permissions(monkeypatch):
+    # Sobrescreve as dependências usando a função que retorna diretamente o FakeUser
+    async def mock_permission():
+        return FakeUser()
+
+    async def mock_topic_permission(texto, user_id):
+        return None
+
+    app.dependency_overrides[support_read_permission] = mock_permission
+    app.dependency_overrides[support_write_permission] = mock_permission
+    monkeypatch.setattr(
+        support_agent_services,
+        "validar_permissao_assunto",
+        mock_topic_permission,
+    )
+    yield
+    app.dependency_overrides.clear()
 
 
 def test_todas_as_functions_estao_registradas():
@@ -66,7 +94,10 @@ def test_agente_teste_retorna_502_quando_inngest_falha(monkeypatch):
 def test_criar_pergunta_chat_enfileira_evento_e_retorna_event_id(monkeypatch):
     async def fake_send(event):
         assert event.name == "support/chat.ask"
-        assert event.data == {"texto": "Quais usuários estão cadastrados?"}
+        assert event.data == {
+            "texto": "Quais usuários estão cadastrados?",
+            "user_id": "teste@exemplo.com",
+        }
         return ["event-chat-123"]
 
     monkeypatch.setattr(support_agent_services.inngest_client, "send", fake_send)

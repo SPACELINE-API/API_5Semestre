@@ -22,11 +22,13 @@ import { useCompanies } from '../../clients/hooks/useCompanies';
 import { useContacts } from '../hooks/useContacts';
 import { ServiceOrderTable } from '../components/ServiceOrderTable';
 import { GenerateOrderModal } from '../components/GenerateOrderModal';
+import { updateServiceOrderItem } from '../services/serviceOrderService';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { deleteServiceOrder } from '../services/serviceOrderService';
 import { exportServiceOrdersAsJson } from '../utils/export';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 export function ServiceOrdersPage() {
 	const { width } = useWindowDimensions();
@@ -43,6 +45,7 @@ export function ServiceOrdersPage() {
 	const [isBulkDeleteConfirmVisible, setIsBulkDeleteConfirmVisible] =
 		useState(false);
 	const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+	const canWriteServiceOrders = usePermission('service_orders.write');
 	const { toast, showToast } = useToast();
 
 	useEffect(() => {
@@ -181,10 +184,11 @@ export function ServiceOrdersPage() {
 
 							<TouchableOpacity
 								onPress={() => setIsFormVisible(true)}
+								disabled={!canWriteServiceOrders}
 								activeOpacity={0.8}
 								accessibilityRole="button"
-								accessibilityLabel="Gerar ordem de serviço a partir de um orçamento"
-								className="shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3"
+								accessibilityLabel="Gerar ordem de serviço manual"
+								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 							>
 								<Plus size={18} color="#ffffff" />
 								<Text className="font-inter-medium text-sm text-white">
@@ -207,7 +211,7 @@ export function ServiceOrdersPage() {
 										: 'Buscar por projeto, empresa...'
 								}
 								placeholderTextColor="#9CA3AF"
-								className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
+								className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
 							/>
 
 							{search.length > 0 && (
@@ -248,8 +252,9 @@ export function ServiceOrdersPage() {
 
 									<TouchableOpacity
 										onPress={() => setIsBulkDeleteConfirmVisible(true)}
+										disabled={!canWriteServiceOrders}
 										activeOpacity={0.7}
-										className="flex-row items-center gap-1.5"
+										className={`flex-row items-center gap-1.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 									>
 										<Trash2 size={14} color="#791F1F" />
 										<Text className="font-inter font-semibold text-red-900 text-xs">
@@ -319,9 +324,20 @@ export function ServiceOrdersPage() {
 				companies={companies}
 				contacts={contacts}
 				onClose={() => setIsFormVisible(false)}
-				onSubmit={async (data) => {
+				onSubmit={async (data, files) => {
 					try {
-						await create(data);
+						const serviceOrder = await create(data);
+						await Promise.all(
+							files.map((file, index) =>
+								file && serviceOrder.items[index]
+									? updateServiceOrderItem(
+											serviceOrder.items[index].id,
+											data.items[index],
+											file,
+										)
+									: Promise.resolve(),
+							),
+						);
 						setIsFormVisible(false);
 						showToast('Ordem de serviço gerada com sucesso!', 'success');
 					} catch (submitError) {

@@ -1,16 +1,19 @@
 import {
-	apiDelete,
-	apiGet,
-	apiPatch,
-	apiPost,
+	apiDeleteAuth,
+	apiGetAuth,
+	apiPatchAuth,
+	apiPostAuth,
 	apiUrl,
 } from '../../../shared/services/apiClient';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
 import type { UploadableFile } from '../../../shared/types/file';
+import { getSession } from '../../auth/services/auth';
 import type {
 	CreateServiceOrderItemInput,
 	GenerateServiceOrderInput,
+	ManualServiceOrderInput,
 	ServiceOrder,
+	ServiceOrderEmailTemplate,
 	ServiceOrderFile,
 	ServiceOrderFileDirection,
 	ServiceOrderItem,
@@ -21,39 +24,128 @@ import type {
 
 const SERVICE_ORDERS_PATH = '/api/service-orders';
 
+function authorizationHeaders(): Record<string, string> {
+	const token = getSession()?.access_token;
+	return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export function listServiceOrders(): Promise<ServiceOrder[]> {
-	return apiGet<ServiceOrder[]>(SERVICE_ORDERS_PATH);
+	return apiGetAuth<ServiceOrder[]>(SERVICE_ORDERS_PATH);
 }
 
 export function getServiceOrder(id: string): Promise<ServiceOrder> {
-	return apiGet<ServiceOrder>(`${SERVICE_ORDERS_PATH}/${id}`);
+	return apiGetAuth<ServiceOrder>(`${SERVICE_ORDERS_PATH}/${id}`);
+}
+
+export function getServiceOrderEmailTemplate(): Promise<ServiceOrderEmailTemplate> {
+	return apiGetAuth<ServiceOrderEmailTemplate>(
+		`${SERVICE_ORDERS_PATH}/email-template`,
+	);
+}
+
+export type ServiceOrderDeliveryInput = {
+	file_ids: string[];
+	subject_override: string;
+	body_html_override: string;
+};
+
+export type ServiceOrderDelivery = {
+	id: string;
+	service_order_id: string;
+	document_file_id: string;
+	recipient_email: string | null;
+	template_key: string | null;
+	status: string;
+	error_message: string | null;
+	attempted_at: string;
+	sent_at: string | null;
+};
+
+export function approveServiceOrderFile(
+	serviceOrderId: string,
+	fileId: string,
+): Promise<ServiceOrderFile> {
+	return apiPostAuth<ServiceOrderFile, Record<string, never>>(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/files/${fileId}/approve`,
+		{},
+	);
+}
+
+export function requestServiceOrderFileChanges(
+	serviceOrderId: string,
+	fileId: string,
+	note: string,
+): Promise<ServiceOrderFile> {
+	return apiPostAuth<ServiceOrderFile, { note: string }>(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/files/${fileId}/request-changes`,
+		{ note },
+	);
+}
+
+export function sendServiceOrderDeliveries(
+	serviceOrderId: string,
+	data: ServiceOrderDeliveryInput,
+): Promise<ServiceOrderDelivery[]> {
+	return apiPostAuth<ServiceOrderDelivery[], ServiceOrderDeliveryInput>(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/deliveries`,
+		data,
+	);
+}
+
+export function finalizeAlreadySentServiceOrder(
+	serviceOrderId: string,
+): Promise<ServiceOrder> {
+	return apiPostAuth<ServiceOrder, Record<string, never>>(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/complete`,
+		{},
+	);
 }
 
 export function deleteServiceOrder(id: string): Promise<void> {
-	return apiDelete(`${SERVICE_ORDERS_PATH}/${id}`);
+	return apiDeleteAuth(`${SERVICE_ORDERS_PATH}/${id}`);
 }
 
 export function deleteServiceOrderFile(
 	serviceOrderId: string,
 	fileId: string,
 ): Promise<void> {
-	return apiDelete(`${SERVICE_ORDERS_PATH}/${serviceOrderId}/files/${fileId}`);
+	return apiDeleteAuth(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/files/${fileId}`,
+	);
 }
 
 export function deleteServiceOrderItemFile(
 	serviceOrderId: string,
 	itemId: string,
 ): Promise<void> {
-	return apiDelete(
+	return apiDeleteAuth(
 		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/items/${itemId}/file`,
+	);
+}
+
+export function deleteServiceOrderItem(
+	serviceOrderId: string,
+	itemId: string,
+): Promise<void> {
+	return apiDeleteAuth(
+		`${SERVICE_ORDERS_PATH}/${serviceOrderId}/items/${itemId}`,
 	);
 }
 
 export function generateServiceOrderFromQuote(
 	data: GenerateServiceOrderInput,
 ): Promise<ServiceOrder> {
-	return apiPost<ServiceOrder, GenerateServiceOrderInput>(
+	return apiPostAuth<ServiceOrder, GenerateServiceOrderInput>(
 		`${SERVICE_ORDERS_PATH}/generate-from-quote`,
+		data,
+	);
+}
+
+export function createManualServiceOrder(
+	data: ManualServiceOrderInput,
+): Promise<ServiceOrder> {
+	return apiPostAuth<ServiceOrder, ManualServiceOrderInput>(
+		`${SERVICE_ORDERS_PATH}/manual`,
 		data,
 	);
 }
@@ -62,7 +154,7 @@ export function updateServiceOrder(
 	id: string,
 	data: UpdateServiceOrderInput,
 ): Promise<ServiceOrder> {
-	return apiPatch<ServiceOrder, UpdateServiceOrderInput>(
+	return apiPatchAuth<ServiceOrder, UpdateServiceOrderInput>(
 		`${SERVICE_ORDERS_PATH}/${id}`,
 		data,
 	);
@@ -110,7 +202,7 @@ export async function createServiceOrderItem(
 
 	const response = await fetch(
 		`${apiUrl}${SERVICE_ORDERS_PATH}/${serviceOrderId}/items`,
-		{ method: 'POST', body: formData },
+		{ method: 'POST', body: formData, headers: authorizationHeaders() },
 	);
 
 	if (!response.ok) {
@@ -155,7 +247,7 @@ export async function updateServiceOrderItem(
 
 	const response = await fetch(
 		`${apiUrl}${SERVICE_ORDERS_PATH}/items/${itemId}`,
-		{ method: 'PATCH', body: formData },
+		{ method: 'PATCH', body: formData, headers: authorizationHeaders() },
 	);
 
 	if (!response.ok) {
@@ -173,7 +265,7 @@ export function sendItemInvites(
 	itemId: string,
 	translatorIds: string[],
 ): Promise<ServiceOrderItemInvite[]> {
-	return apiPost<ServiceOrderItemInvite[], { translator_ids: string[] }>(
+	return apiPostAuth<ServiceOrderItemInvite[], { translator_ids: string[] }>(
 		`${SERVICE_ORDERS_PATH}/items/${itemId}/invites`,
 		{ translator_ids: translatorIds },
 	);
@@ -182,7 +274,7 @@ export function sendItemInvites(
 export function listItemInvites(
 	itemId: string,
 ): Promise<ServiceOrderItemInvite[]> {
-	return apiGet<ServiceOrderItemInvite[]>(
+	return apiGetAuth<ServiceOrderItemInvite[]>(
 		`${SERVICE_ORDERS_PATH}/items/${itemId}/invites`,
 	);
 }

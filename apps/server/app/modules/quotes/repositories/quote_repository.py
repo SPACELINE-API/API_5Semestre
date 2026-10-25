@@ -12,6 +12,9 @@ class QuoteRepository:
     def __init__(self, db: Session):
         self.db = db
 
+    def get_by_id(self, quote_id: uuid.UUID) -> Quote | None:
+        return self.db.get(Quote, quote_id)
+
     def get_by_request_id(self, request_id: uuid.UUID) -> Quote | None:
         return self.db.query(Quote).filter(Quote.request_id == request_id).first()
 
@@ -42,7 +45,11 @@ class QuoteRepository:
 
         total = query.with_entities(func.count(func.distinct(Quote.id))).scalar() or 0
         quotes = (
-            query.options(selectinload(Quote.items), selectinload(Quote.service_orders))
+            query.options(
+                selectinload(Quote.items),
+                selectinload(Quote.service_orders),
+                selectinload(Quote.company),
+            )
             .distinct()
             .order_by(Quote.created_at.desc())
             .offset((page - 1) * page_size)

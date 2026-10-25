@@ -6,7 +6,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CircleAlert, FileText, Plus, RefreshCw, X } from 'lucide-react-native';
 import { listQuotes, updateQuoteStatus } from '../services/quotesService';
 import type {
@@ -20,9 +20,11 @@ import {
 	QuoteStatusFilterPanel,
 } from '../components/QuoteListControls';
 import { NewQuoteModal } from './translation-itens/index';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 export default function QuotesManagerPage() {
 	const router = useRouter();
+	const { quoteId } = useLocalSearchParams<{ quoteId?: string }>();
 	const [quotes, setQuotes] = useState<ManagedQuote[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
@@ -35,6 +37,7 @@ export default function QuotesManagerPage() {
 	const [totalPages, setTotalPages] = useState(0);
 	const [showFilters, setShowFilters] = useState(false);
 	const [showNewQuoteModal, setShowNewQuoteModal] = useState(false);
+	const canWriteQuotes = usePermission('quotes.write');
 
 	const loadQuotes = useCallback(async () => {
 		setLoading(true);
@@ -93,6 +96,14 @@ export default function QuotesManagerPage() {
 		void loadQuotes();
 	}, [loadQuotes]);
 
+	useEffect(() => {
+		if (!quoteId) return;
+		setPage(1);
+		setStatusFilter('all');
+		setSearchInput(quoteId);
+		setAppliedSearch(quoteId);
+	}, [quoteId]);
+
 	return (
 		<View className="relative flex-1 bg-white">
 			<ScrollView
@@ -119,7 +130,8 @@ export default function QuotesManagerPage() {
 					<TouchableOpacity
 						accessibilityRole="button"
 						onPress={() => setShowNewQuoteModal(true)}
-						className="flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3"
+						disabled={!canWriteQuotes}
+						className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 					>
 						<Plus size={18} color="#ffffff" />
 						<Text className="font-inter-medium text-sm text-white">

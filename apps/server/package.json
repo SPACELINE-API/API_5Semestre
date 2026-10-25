@@ -16,6 +16,7 @@
 		"db:schema:reset": "python scripts/reset_public_schema.py",
 		"db:seed": "python scripts/seed.py",
 		"test": "python -m pytest",
-		"pact:merge": "python scripts/merge_pacts.py"
+		"pact:merge": "python scripts/merge_pacts.py",
+		"pact:roles:generate": "python scripts/generate_roles_pact.py"
 	}
 }

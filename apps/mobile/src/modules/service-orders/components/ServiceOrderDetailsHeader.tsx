@@ -1,4 +1,4 @@
-import { RefreshCw, Trash2 } from 'lucide-react-native';
+import { CheckCheck, Trash2 } from 'lucide-react-native';
 import {
 	Platform,
 	ScrollView,
@@ -9,6 +9,7 @@ import {
 import { StatusBadge } from './StatusBadge';
 import { formatDate } from '../utils/format';
 import type { ServiceOrder } from '../types/serviceOrder';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 export type ServiceOrderView = 'detalhes' | 'workflow';
 
@@ -21,19 +22,21 @@ export function ServiceOrderDetailsHeader({
 	serviceOrder,
 	companyName,
 	view,
-	isLoading,
-	onRefresh,
 	onDelete,
+	canComplete,
+	onComplete,
 	onViewChange,
 }: {
 	serviceOrder: ServiceOrder;
 	companyName: string;
 	view: ServiceOrderView;
-	isLoading: boolean;
-	onRefresh: () => void;
 	onDelete: () => void;
+	canComplete: boolean;
+	onComplete: () => void;
 	onViewChange: (view: ServiceOrderView) => void;
 }) {
+	const canWriteServiceOrders = usePermission('service_orders.write');
+
 	return (
 		<View className="flex-row flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-7">
 			<View className="flex-1 min-w-[220px]">
@@ -63,22 +66,28 @@ export function ServiceOrderDetailsHeader({
 			</View>
 
 			<View className="flex-row flex-wrap items-start gap-3 self-start md:flex-nowrap">
-				<TouchableOpacity
-					onPress={onRefresh}
-					disabled={isLoading}
-					activeOpacity={0.7}
-					accessibilityRole="button"
-					accessibilityLabel="Atualizar dados da ordem de serviço"
-					className={`h-9 w-9 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 ${isLoading ? 'opacity-60' : ''}`}
-				>
-					<RefreshCw size={16} color="#6B7280" />
-				</TouchableOpacity>
+				{canComplete && (
+					<TouchableOpacity
+						onPress={onComplete}
+						disabled={!canWriteServiceOrders}
+						activeOpacity={0.85}
+						accessibilityRole="button"
+						accessibilityLabel="Concluir Ordem de Serviço"
+						className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+					>
+						<CheckCheck size={16} color="#FFFFFF" />
+						<Text className="font-inter font-semibold text-white text-xs">
+							Concluir Ordem de Serviço
+						</Text>
+					</TouchableOpacity>
+				)}
 				<TouchableOpacity
 					onPress={onDelete}
+					disabled={!canWriteServiceOrders}
 					activeOpacity={0.7}
 					accessibilityRole="button"
 					accessibilityLabel="Excluir ordem de serviço"
-					className="h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100"
+					className={`h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 				>
 					<Trash2 size={16} color="#791F1F" />
 				</TouchableOpacity>
@@ -112,7 +121,14 @@ export function ServiceOrderDetailsHeader({
 }
 
 export type ServiceOrderDetailTab =
-	'equipe' | 'cliente' | 'geral' | 'itens' | 'arquivos' | 'tradutores';
+	| 'equipe'
+	| 'cliente'
+	| 'geral'
+	| 'itens'
+	| 'adicionais'
+	| 'revisao'
+	| 'arquivos'
+	| 'tradutores';
 
 const detailTabOptions: { key: ServiceOrderDetailTab; label: string }[] = [
 	{ key: 'geral', label: 'Geral' },
@@ -120,15 +136,19 @@ const detailTabOptions: { key: ServiceOrderDetailTab; label: string }[] = [
 	{ key: 'tradutores', label: 'Tradutores' },
 	{ key: 'cliente', label: 'Cliente' },
 	{ key: 'itens', label: 'Itens' },
+	{ key: 'adicionais', label: 'Serviços adicionais' },
+	{ key: 'revisao', label: 'Revisão' },
 	{ key: 'arquivos', label: 'Arquivos' },
 ];
 
 export function ServiceOrderDetailTabs({
 	selected,
 	onSelect,
+	reviewCount = 0,
 }: {
 	selected: ServiceOrderDetailTab;
 	onSelect: (tab: ServiceOrderDetailTab) => void;
+	reviewCount?: number;
 }) {
 	return (
 		<ScrollView
@@ -149,12 +169,21 @@ export function ServiceOrderDetailTabs({
 						accessibilityLabel={`Ver aba ${tab.label}`}
 						className={`border-b-2 py-3 ${active ? 'border-blue-600' : 'border-transparent'}`}
 					>
-						<Text
-							className={`font-inter text-sm ${active ? 'font-semibold text-blue-600' : 'font-medium text-gray-400'}`}
-							numberOfLines={1}
-						>
-							{tab.label}
-						</Text>
+						<View className="flex-row items-center gap-1.5">
+							<Text
+								className={`font-inter text-sm ${active ? 'font-semibold text-blue-600' : 'font-medium text-gray-400'}`}
+								numberOfLines={1}
+							>
+								{tab.label}
+							</Text>
+							{tab.key === 'revisao' && reviewCount > 0 && (
+								<View className="min-w-[18px] items-center rounded-full bg-amber-100 px-1.5 py-0.5">
+									<Text className="font-inter font-semibold text-amber-900 text-xs">
+										{reviewCount}
+									</Text>
+								</View>
+							)}
+						</View>
 					</TouchableOpacity>
 				);
 			})}
