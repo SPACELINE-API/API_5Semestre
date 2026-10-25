@@ -1,10 +1,4 @@
-import {
-	useEffect,
-	useRef,
-	useState,
-	type ComponentProps,
-	type ComponentType,
-} from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
 	Image,
 	Platform,
@@ -15,7 +9,6 @@ import {
 } from 'react-native';
 import { Check } from 'lucide-react-native';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import {
 	clearSession,
@@ -32,6 +25,7 @@ import logoAlianca from '../../../shared/assets/logo-alianca.png';
 import { GradientButton } from '../components/GradientButton';
 import { LoginBackground } from '../components/LoginBackground';
 import { LoginFields } from '../components/LoginFields';
+import { LoginScroll } from '../components/LoginScroll';
 
 type LoginError = {
 	code: string;
@@ -98,9 +92,6 @@ function getLoginError(cause: unknown): LoginError {
 export function LoginPage() {
 	const router = useRouter();
 	const passwordInputRef = useRef<TextInput>(null);
-	const KeyboardContainer = (
-		Platform.OS === 'web' ? View : KeyboardAwareScrollView
-	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState<LoginError | null>(null);
@@ -262,22 +253,9 @@ export function LoginPage() {
 			}
 		>
 			<LoginBackground />
-			<KeyboardContainer
-				className={
-					Platform.OS === 'web'
-						? 'min-h-screen flex-1 overflow-y-auto'
-						: 'flex-1'
-				}
-				{...(Platform.OS === 'web'
-					? {}
-					: {
-							bottomOffset: 20,
-							keyboardShouldPersistTaps: 'handled',
-							contentContainerClassName: 'grow',
-						})}
-			>
-				<View className="z-10 grow gap-8 px-6 py-8 sm:px-10 md:flex-row md:items-stretch md:justify-between md:gap-10 md:px-[7%] md:py-10">
-					<View className="md:flex-1 md:justify-between md:py-1">
+			<LoginScroll>
+				<View className="z-10 grow justify-center gap-8 px-6 py-8 sm:px-10 md:flex-row md:items-stretch md:justify-between md:gap-10 md:px-[7%] md:py-10">
+					<View className="items-center md:flex-1 md:items-start md:justify-between md:py-1">
 						<Image
 							source={logoAlianca}
 							style={{ width: 170, height: 44 }}
@@ -414,7 +392,7 @@ export function LoginPage() {
 						) : null}
 					</View>
 				</View>
-			</KeyboardContainer>
+			</LoginScroll>
 		</View>
 	);
 }
