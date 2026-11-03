@@ -158,16 +158,30 @@ jobs:
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
+        id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: apps/mobile
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Validate cached Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: apps/mobile
+        run: |
+          pnpm exec playwright install chromium
+          if node --input-type=module -e "import { chromium } from '@playwright/test'; const browser = await chromium.launch(); await browser.close();"; then
+            exit 0
+          fi
+          pnpm exec playwright install-deps chromium
+
       - name: Run mobile tests
         working-directory: apps/mobile
+        env:
+          PLAYWRIGHT_WORKERS: 3
         run: pnpm test
 
       - name: Typecheck mobile
