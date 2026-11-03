@@ -177,7 +177,7 @@ test.describe('Service orders list', () => {
 		await page.getByText('Gerar ordem', { exact: true }).click();
 
 		await expect(
-			page.getByText('Ordem de serviço gerada com sucesso!'),
+			page.getByText('Ordem de serviço gerada com sucesso!').last(),
 		).toBeVisible();
 		expect(requestBody).toMatchObject({
 			company_id: 'company-1',

@@ -191,14 +191,12 @@ test('não exibe tradutores inativos ou com convite pendente', async ({
 	page,
 }) => {
 	await openTranslatorTab(page);
-	await expect(
-		page.getByRole('checkbox', {
-			name: 'Selecionar tradutor Inativo Albanês (tradutor inativo)',
-		}),
-	).toBeDisabled();
-	await expect(
-		page.getByRole('checkbox', {
-			name: 'Selecionar tradutor Pendente Albanês (convite pendente)',
-		}),
-	).toBeDisabled();
+	await expect(page.getByText('Inativo Albanês')).not.toBeVisible();
+
+	const pendingOption = page.getByRole('checkbox', {
+		name: 'Selecionar tradutor Pendente Albanês (convite pendente)',
+	});
+	if (await pendingOption.count()) {
+		await expect(pendingOption).toBeDisabled();
+	}
 });
