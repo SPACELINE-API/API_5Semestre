@@ -172,7 +172,7 @@ test.describe('Service orders list', () => {
 			.fill('Tradução de contratos comerciais');
 		await page.getByText('Selecione um idioma').first().click();
 		await page.getByText('Português (Brasil)').click();
-		await page.getByText('Selecione um idioma').nth(1).click();
+		await page.getByText('Selecione um idioma').last().click();
 		await page.getByText('Inglês (Estados Unidos)').click();
 		await page.getByText('Gerar ordem', { exact: true }).click();
 
