@@ -86,7 +86,10 @@ export function TranslatorsInviteTab({
 	);
 
 	const languageOptions = useMemo(() => {
-		const languagesById = new Map<string, { value: string; label: string }>();
+		const languagesById = new Map<
+			string,
+			{ value: string; name: string; code: string }
+		>();
 
 		for (const translator of translators) {
 			if (!translator.is_active) continue;
@@ -94,14 +97,17 @@ export function TranslatorsInviteTab({
 				if (!languagesById.has(language.language_id)) {
 					languagesById.set(language.language_id, {
 						value: language.language_id,
-						label: language.language_name,
+						name: language.language_name,
+						code: (
+							language.language_id.split('-').at(-1) ?? language.language_id
+						).toUpperCase(),
 					});
 				}
 			}
 		}
 
 		return [...languagesById.values()].sort((first, second) =>
-			first.label.localeCompare(second.label, 'pt-BR'),
+			first.name.localeCompare(second.name, 'pt-BR'),
 		);
 	}, [translators]);
 
@@ -138,12 +144,16 @@ export function TranslatorsInviteTab({
 					!query ||
 					translator.name.toLowerCase().includes(query) ||
 					translator.email.toLowerCase().includes(query);
-				const hasMatchingLanguage = translator.languages.some(
-					(language) =>
-						(!languageFilter || language.language_id === languageFilter) &&
-						(!proficiencyFilter ||
-							language.proficiency_level === proficiencyFilter),
-				);
+				const hasMatchingLanguage =
+					!languageFilter && !proficiencyFilter
+						? true
+						: (translator.languages ?? []).some(
+							(language) =>
+								(!languageFilter || language.language_id === languageFilter) &&
+								(!proficiencyFilter ||
+									String(language.proficiency_level).toLowerCase() ===
+										proficiencyFilter.toLowerCase()),
+						);
 
 				return matchesSearch && hasMatchingLanguage;
 			},
@@ -268,7 +278,7 @@ export function TranslatorsInviteTab({
 				</View>
 			)}
 
-			<View className="w-full flex-col gap-3 md:flex-row md:items-center">
+			<View className="w-full flex-row items-center gap-3">
 				<View
 					className={`min-w-0 flex-1 flex-row items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 ${
 						isItemAssigned ? 'opacity-50' : ''
@@ -295,7 +305,7 @@ export function TranslatorsInviteTab({
 					accessibilityLabel="Abrir filtros de tradutores"
 					disabled={isItemAssigned}
 					onPress={() => setIsFilterPanelOpen(true)}
-					className={`h-11 w-full flex-row items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 md:w-auto ${
+					className={`h-11 shrink-0 flex-row items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 ${
 						isItemAssigned ? 'opacity-50' : ''
 					}`}
 				>
@@ -316,8 +326,8 @@ export function TranslatorsInviteTab({
 						onPress={() => setIsFilterPanelOpen(false)}
 						accessibilityLabel="Fechar filtros"
 					/>
-					<View className="h-full w-full max-w-[360px] bg-white px-6 py-5 shadow-lg">
-						<View className="flex-row items-center justify-between border-b border-gray-100 pb-4">
+					<View className="h-full w-[280px] max-w-[80%] gap-5 border-l border-gray-200 bg-white p-5 shadow-xl">
+						<View className="flex-row items-center justify-between">
 							<Text className="font-inter font-bold text-gray-900 text-lg">
 								Filtros
 							</Text>
@@ -329,7 +339,12 @@ export function TranslatorsInviteTab({
 							</TouchableOpacity>
 						</View>
 
-						<View className="gap-2 pt-5">
+						<ScrollView
+							className="min-h-0 flex-1"
+							contentContainerClassName="gap-2 pb-8"
+							showsVerticalScrollIndicator={false}
+						>
+							<View className="gap-2 pt-5">
 							<Text className="font-inter font-semibold text-gray-500 text-xs uppercase tracking-wide">
 								PROFICIÊNCIA
 							</Text>
@@ -366,7 +381,7 @@ export function TranslatorsInviteTab({
 							))}
 						</View>
 
-						<View className="gap-2 pt-6">
+							<View className="gap-2 pt-6">
 							<Text className="font-inter font-semibold text-gray-500 text-xs uppercase tracking-wide">
 								IDIOMA
 							</Text>
@@ -391,15 +406,21 @@ export function TranslatorsInviteTab({
 										languageFilter === option.value ? 'bg-blue-50' : 'bg-white'
 									}`}
 								>
-									<Text className="font-inter text-gray-700 text-sm">
-										{option.label}
-									</Text>
+									<View className="flex-row items-baseline gap-1">
+										<Text className="w-8 font-inter font-semibold text-gray-900 text-sm">
+											{option.code}
+										</Text>
+										<Text className="font-inter text-gray-700 text-sm">
+											{option.name}
+										</Text>
+									</View>
 									{languageFilter === option.value && (
 										<Check size={16} color="#1C6FB0" />
 									)}
 								</TouchableOpacity>
 							))}
 						</View>
+						</ScrollView>
 					</View>
 				</View>
 			</Modal>
