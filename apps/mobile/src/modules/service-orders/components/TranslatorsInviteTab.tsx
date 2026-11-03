@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Search, Check, Send, Users } from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
+import type { ProficiencyLevel } from '../../translators/types/translator';
 import { InviteStatusBadge } from './InviteStatusBadge';
 import { useItemInvites } from '../hooks/useItemInvites';
 import { usePermission } from '../../auth/hooks/usePermission';
@@ -34,6 +35,10 @@ export function TranslatorsInviteTab({
 		items.find((item) => !item.translator_id)?.id ?? items[0]?.id ?? '',
 	);
 	const [search, setSearch] = useState('');
+	const [languageFilter, setLanguageFilter] = useState('');
+	const [proficiencyFilter, setProficiencyFilter] = useState<
+		ProficiencyLevel | ''
+	>('');
 	const canWriteAssignments = usePermission('assignments.write');
 	const [selectedTranslatorIds, setSelectedTranslatorIds] = useState<
 		Set<string>
@@ -77,6 +82,8 @@ export function TranslatorsInviteTab({
 
 	useEffect(() => {
 		setSelectedTranslatorIds(new Set());
+		setLanguageFilter('');
+		setProficiencyFilter('');
 	}, [selectedItemId]);
 
 	useEffect(() => {
@@ -92,13 +99,21 @@ export function TranslatorsInviteTab({
 
 	const filteredTranslators = useMemo(() => {
 		const query = search.trim().toLowerCase();
-		if (!query) return translators;
-		return translators.filter(
+		return eligibleTranslators.filter(
 			(translator) =>
-				translator.name.toLowerCase().includes(query) ||
-				translator.email.toLowerCase().includes(query),
+				(!query ||
+					translator.name.toLowerCase().includes(query) ||
+					translator.email.toLowerCase().includes(query)) &&
+				(!languageFilter ||
+					translator.languages.some(
+						(language) => language.language_id === languageFilter,
+					)) &&
+				(!proficiencyFilter ||
+					translator.languages.some(
+						(language) => language.proficiency_level === proficiencyFilter,
+					)),
 		);
-	}, [translators, search]);
+	}, [eligibleTranslators, search, languageFilter, proficiencyFilter]);
 
 	function toggleTranslator(id: string) {
 		const translator = translators.find((item) => item.id === id);
