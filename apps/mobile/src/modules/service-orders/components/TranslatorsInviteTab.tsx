@@ -138,16 +138,15 @@ export function TranslatorsInviteTab({
 
 	const filteredTranslators = useMemo(() => {
 		const query = search.trim().toLowerCase();
-		return eligibleTranslators.filter(
-			(translator) => {
-				const matchesSearch =
-					!query ||
-					translator.name.toLowerCase().includes(query) ||
-					translator.email.toLowerCase().includes(query);
-				const hasMatchingLanguage =
-					!languageFilter && !proficiencyFilter
-						? true
-						: (translator.languages ?? []).some(
+		return eligibleTranslators.filter((translator) => {
+			const matchesSearch =
+				!query ||
+				translator.name.toLowerCase().includes(query) ||
+				translator.email.toLowerCase().includes(query);
+			const hasMatchingLanguage =
+				!languageFilter && !proficiencyFilter
+					? true
+					: (translator.languages ?? []).some(
 							(language) =>
 								(!languageFilter || language.language_id === languageFilter) &&
 								(!proficiencyFilter ||
@@ -155,15 +154,9 @@ export function TranslatorsInviteTab({
 										proficiencyFilter.toLowerCase()),
 						);
 
-				return matchesSearch && hasMatchingLanguage;
-			},
-		);
-	}, [
-		eligibleTranslators,
-		search,
-		languageFilter,
-		proficiencyFilter,
-	]);
+			return matchesSearch && hasMatchingLanguage;
+		});
+	}, [eligibleTranslators, search, languageFilter, proficiencyFilter]);
 
 	function toggleTranslator(id: string) {
 		const translator = translators.find((item) => item.id === id);
@@ -345,81 +338,83 @@ export function TranslatorsInviteTab({
 							showsVerticalScrollIndicator={false}
 						>
 							<View className="gap-2 pt-5">
-							<Text className="font-inter font-semibold text-gray-500 text-xs uppercase tracking-wide">
-								PROFICIÊNCIA
-							</Text>
-							<TouchableOpacity
-								accessibilityRole="button"
-								onPress={() => setProficiencyFilter('')}
-								className={`flex-row items-center justify-between rounded-lg px-4 py-3 ${
-									!proficiencyFilter ? 'bg-blue-50' : 'bg-white'
-								}`}
-							>
-								<Text className="font-inter text-gray-700 text-sm">
-									Todos os níveis
+								<Text className="font-inter font-semibold text-gray-500 text-xs uppercase tracking-wide">
+									PROFICIÊNCIA
 								</Text>
-								{!proficiencyFilter && <Check size={16} color="#1C6FB0" />}
-							</TouchableOpacity>
-							{PROFICIENCY_OPTIONS.map((option) => (
 								<TouchableOpacity
-									key={option.value}
 									accessibilityRole="button"
-									onPress={() => setProficiencyFilter(option.value)}
+									onPress={() => setProficiencyFilter('')}
 									className={`flex-row items-center justify-between rounded-lg px-4 py-3 ${
-										proficiencyFilter === option.value
-											? 'bg-blue-50'
-											: 'bg-white'
+										!proficiencyFilter ? 'bg-blue-50' : 'bg-white'
 									}`}
 								>
 									<Text className="font-inter text-gray-700 text-sm">
-										{option.label}
+										Todos os níveis
 									</Text>
-									{proficiencyFilter === option.value && (
-										<Check size={16} color="#1C6FB0" />
-									)}
+									{!proficiencyFilter && <Check size={16} color="#1C6FB0" />}
 								</TouchableOpacity>
-							))}
-						</View>
+								{PROFICIENCY_OPTIONS.map((option) => (
+									<TouchableOpacity
+										key={option.value}
+										accessibilityRole="button"
+										onPress={() => setProficiencyFilter(option.value)}
+										className={`flex-row items-center justify-between rounded-lg px-4 py-3 ${
+											proficiencyFilter === option.value
+												? 'bg-blue-50'
+												: 'bg-white'
+										}`}
+									>
+										<Text className="font-inter text-gray-700 text-sm">
+											{option.label}
+										</Text>
+										{proficiencyFilter === option.value && (
+											<Check size={16} color="#1C6FB0" />
+										)}
+									</TouchableOpacity>
+								))}
+							</View>
 
 							<View className="gap-2 pt-6">
-							<Text className="font-inter font-semibold text-gray-500 text-xs uppercase tracking-wide">
-								IDIOMA
-							</Text>
-							<TouchableOpacity
-								accessibilityRole="button"
-								onPress={() => setLanguageFilter('')}
-								className={`flex-row items-center justify-between rounded-lg px-4 py-3 ${
-									!languageFilter ? 'bg-blue-50' : 'bg-white'
-								}`}
-							>
-								<Text className="font-inter text-gray-700 text-sm">
-									Todos os idiomas
+								<Text className="font-inter font-semibold text-gray-500 text-xs uppercase tracking-wide">
+									IDIOMA
 								</Text>
-								{!languageFilter && <Check size={16} color="#1C6FB0" />}
-							</TouchableOpacity>
-							{languageOptions.map((option) => (
 								<TouchableOpacity
-									key={option.value}
 									accessibilityRole="button"
-									onPress={() => setLanguageFilter(option.value)}
+									onPress={() => setLanguageFilter('')}
 									className={`flex-row items-center justify-between rounded-lg px-4 py-3 ${
-										languageFilter === option.value ? 'bg-blue-50' : 'bg-white'
+										!languageFilter ? 'bg-blue-50' : 'bg-white'
 									}`}
 								>
-									<View className="flex-row items-baseline gap-1">
-										<Text className="w-8 font-inter font-semibold text-gray-900 text-sm">
-											{option.code}
-										</Text>
-										<Text className="font-inter text-gray-700 text-sm">
-											{option.name}
-										</Text>
-									</View>
-									{languageFilter === option.value && (
-										<Check size={16} color="#1C6FB0" />
-									)}
+									<Text className="font-inter text-gray-700 text-sm">
+										Todos os idiomas
+									</Text>
+									{!languageFilter && <Check size={16} color="#1C6FB0" />}
 								</TouchableOpacity>
-							))}
-						</View>
+								{languageOptions.map((option) => (
+									<TouchableOpacity
+										key={option.value}
+										accessibilityRole="button"
+										onPress={() => setLanguageFilter(option.value)}
+										className={`flex-row items-center justify-between rounded-lg px-4 py-3 ${
+											languageFilter === option.value
+												? 'bg-blue-50'
+												: 'bg-white'
+										}`}
+									>
+										<View className="flex-row items-baseline gap-1">
+											<Text className="w-8 font-inter font-semibold text-gray-900 text-sm">
+												{option.code}
+											</Text>
+											<Text className="font-inter text-gray-700 text-sm">
+												{option.name}
+											</Text>
+										</View>
+										{languageFilter === option.value && (
+											<Check size={16} color="#1C6FB0" />
+										)}
+									</TouchableOpacity>
+								))}
+							</View>
 						</ScrollView>
 					</View>
 				</View>
