@@ -45,7 +45,7 @@ test.beforeEach(async ({ page }) => {
 test('filtra somente por idioma', async ({ page }) => {
 	await openTranslatorTab(page);
 	await page.getByRole('button', { name: 'Abrir filtros de tradutores' }).click();
-	await page.getByRole('button', { name: /Albanês \(sq-AL\)/ }).click();
+	await page.getByRole('button', { name: /Albanês/ }).click();
 	await expect(page.getByText('Camila Intermediária')).toBeVisible();
 	await expect(page.getByText('João Avançado')).toBeVisible();
 });
@@ -61,7 +61,7 @@ test('filtra somente por proficiência', async ({ page }) => {
 test('combina idioma e proficiência no mesmo idioma', async ({ page }) => {
 	await openTranslatorTab(page);
 	await page.getByRole('button', { name: 'Abrir filtros de tradutores' }).click();
-	await page.getByRole('button', { name: /Albanês \(sq-AL\)/ }).click();
+	await page.getByRole('button', { name: /Albanês/ }).click();
 	await page.getByRole('button', { name: 'Avançado', exact: true }).click();
 	await expect(page.getByText('João Avançado')).toBeVisible();
 	await expect(page.getByText('Camila Intermediária')).not.toBeVisible();
@@ -71,7 +71,7 @@ test('combina a busca textual com os filtros', async ({ page }) => {
 	await openTranslatorTab(page);
 	await page.getByLabel('Buscar tradutor').fill('João');
 	await page.getByRole('button', { name: 'Abrir filtros de tradutores' }).click();
-	await page.getByRole('button', { name: /Albanês \(sq-AL\)/ }).click();
+	await page.getByRole('button', { name: /Albanês/ }).click();
 	await expect(page.getByText('João Avançado')).toBeVisible();
 	await expect(page.getByText('Camila Intermediária')).not.toBeVisible();
 });
