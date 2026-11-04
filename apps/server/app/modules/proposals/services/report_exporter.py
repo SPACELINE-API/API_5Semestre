@@ -7,8 +7,8 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from openpyxl import Workbook
-from openpyxl.styles import Font
+from openpyxl import Workbook  # type: ignore[import-untyped]
+from openpyxl.styles import Font  # type: ignore[import-untyped]
 
 from app.modules.proposals.schemas.report import CompanyReportCompany, CompanyReportResponse
 
@@ -224,6 +224,7 @@ def _translate_dict(values: dict[str, Any]) -> dict[str, Any]:
     translated: dict[str, Any] = {}
     for key, value in values.items():
         translated_key = JSON_KEY_TRANSLATIONS.get(key, key)
+        translated_value: Any
         if isinstance(value, dict):
             if key in {"requests_by_status", "proposals_by_status"}:
                 translated_value = {

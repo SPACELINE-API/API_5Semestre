@@ -15,10 +15,6 @@ from app.modules.proposals.schemas.report import (
     CompanyReportCompany,
     CompanyReportRequest,
     CompanyReportResponse,
-    ExecutionDeliveryReport,
-    ExecutionFileReport,
-    ExecutionReport,
-    ServiceOrderItemReport,
     ServiceOrderReport,
 )
 from app.modules.quotes.models.quote import Quote
@@ -26,7 +22,6 @@ from app.modules.quotes.models.request import Request
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_file import ServiceOrderFile
 from app.modules.service_orders.models.service_order_item import (
-    STATUS_CONCLUIDA,
     ServiceOrderItem,
 )
 
@@ -238,84 +233,3 @@ class CompanyReportService:
     ) -> ServiceOrderReport:
         return ServiceOrderReport(service_order_id=order.id)
 
-    @staticmethod
-    def _build_item(item: ServiceOrderItem) -> ServiceOrderItemReport:
-        completed_on_time = None
-        if item.deadline is not None and item.completed_at is not None:
-            completed_on_time = item.completed_at <= item.deadline
-        return ServiceOrderItemReport(
-            item_id=item.id,
-            source_language=item.source_language,
-            target_language=item.target_language,
-            document_type=item.document_type,
-            price=item.price,
-            deadline=item.deadline,
-            status=item.status,
-            completed_at=item.completed_at,
-            completed_on_time=completed_on_time,
-            translator_id=item.translator_id,
-            translator_name=item.translator.name if item.translator else None,
-        )
-
-    def _build_execution(
-        self,
-        order_reports: list[ServiceOrderReport],
-        orders: list[ServiceOrder],
-        filters: CompanyReportRequest,
-    ) -> ExecutionReport:
-        files: list[ExecutionFileReport] = []
-        deliveries: list[ExecutionDeliveryReport] = []
-        translator_ids: set[uuid.UUID] = set()
-        completed_items = 0
-        completed_on_time = 0
-        translation_value = Decimal("0")
-
-        for report in order_reports:
-            for item in report.items:
-                if item.translator_id:
-                    translator_ids.add(item.translator_id)
-                if item.status == STATUS_CONCLUIDA:
-                    completed_items += 1
-                    completed_on_time += int(item.completed_on_time is True)
-                    translation_value += item.price or Decimal("0")
-
-        for order in orders:
-            for file in order.files:
-                if not self._in_period(file.uploaded_at, filters):
-                    continue
-                files.append(
-                    ExecutionFileReport(
-                        file_id=file.id,
-                        service_order_id=file.service_order_id,
-                        item_id=file.service_order_item_id,
-                        filename=file.filename,
-                        direction=file.direction,
-                        review_status=file.review_status,
-                        delivery_status=file.delivery_status,
-                        uploaded_at=file.uploaded_at,
-                    )
-                )
-            for delivery in order.delivery_attempts:
-                if not self._in_period(delivery.attempted_at, filters):
-                    continue
-                deliveries.append(
-                    ExecutionDeliveryReport(
-                        delivery_id=delivery.id,
-                        document_file_id=delivery.document_file_id,
-                        service_order_id=delivery.service_order_id,
-                        status=delivery.status,
-                        attempted_at=delivery.attempted_at,
-                        sent_at=delivery.sent_at,
-                        error_message=delivery.error_message,
-                    )
-                )
-
-        return ExecutionReport(
-            translation_items_value=translation_value,
-            translators=sorted(translator_ids, key=str),
-            files=files,
-            deliveries=deliveries,
-            delivered_count=sum(1 for delivery in deliveries if delivery.status == "sent"),
-            completed_items_count=completed_items,
-            completed_items_on_time_count=completed_on_time,
-        )

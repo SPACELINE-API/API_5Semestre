@@ -67,7 +67,7 @@ def generate_company_report(
     report_request: CompanyReportRequest,
     _user=Depends(proposals_read_permission),
     db: Session = Depends(get_db),
-) -> CompanyReportResponse | StreamingResponse:
+) -> CompanyReportResponse | StreamingResponse | JSONResponse:
     report = CompanyReportService(db).generate(report_request)
     if report_request.format == "csv":
         return StreamingResponse(
