@@ -185,7 +185,7 @@ jobs:
         run: pnpm test
 
       - name: Typecheck mobile
-        run: pnpm exec tsc --noEmit -p apps/mobile/tsconfig.json
+        run: pnpm --filter mobile exec tsc --noEmit
 
       - name: Lint mobile
         run: pnpm --filter mobile lint
