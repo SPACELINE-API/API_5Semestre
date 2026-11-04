@@ -69,9 +69,7 @@ class CompanyReportService:
             total_companies=len(reports),
         )
 
-    def _get_companies(
-        self, company_ids: list[uuid.UUID] | None, selection: str
-    ) -> list[Company]:
+    def _get_companies(self, company_ids: list[uuid.UUID] | None, selection: str) -> list[Company]:
         query = select(Company).order_by(Company.trade_name)
         if selection == "selected":
             assert company_ids is not None
