@@ -169,14 +169,6 @@ jobs:
           PLAYWRIGHT_WORKERS: 1
         run: pnpm exec playwright test --shard=${{ matrix.shard }}/4
 
-      - name: Upload Playwright shard report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-blob-${{ matrix.shard }}
-          path: apps/mobile/blob-report
-          if-no-files-found: ignore
-
       - name: Typecheck mobile
         run: pnpm --filter mobile exec tsc --noEmit
 
@@ -186,60 +178,6 @@ jobs:
       - name: Validate Expo configuration
         working-directory: apps/mobile
         run: pnpm exec expo config --json > /dev/null
-
-  mobile-report:
-    name: Mobile report
-    needs: mobile
-    if: always()
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.9.0
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
-
-      - name: Download Playwright shard reports
-        uses: actions/download-artifact@v4
-        with:
-          pattern: playwright-blob-*
-          path: apps/mobile/blob-reports
-
-      - name: Prepare Playwright shard reports
-        working-directory: apps/mobile
-        run: |
-          mkdir -p merged-blob-reports
-          for report in blob-reports/*/report.zip; do
-            shard=$(basename "$(dirname "$report")")
-            cp "$report" "merged-blob-reports/${shard}.zip"
-          done
-
-      - name: Merge Playwright reports
-        working-directory: apps/mobile
-        run: pnpm exec playwright merge-reports --reporter html merged-blob-reports
-
-      - name: Upload merged Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: apps/mobile/playwright-report
-          if-no-files-found: ignore
 
   # Publica o relatório de cobertura de código gerado no job backend
   code-coverage:
@@ -266,7 +204,7 @@ jobs:
 
   ci-success:
     name: CI success
-    needs: [guard, backend, mobile, mobile-report, code-coverage]
+    needs: [guard, backend, mobile, code-coverage]
     if: always()
     runs-on: ubuntu-latest
     steps:
