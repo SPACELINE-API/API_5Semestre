@@ -181,7 +181,7 @@ jobs:
       - name: Run mobile tests
         working-directory: apps/mobile
         env:
-          PLAYWRIGHT_WORKERS: 3
+          PLAYWRIGHT_WORKERS: 1
         run: pnpm test
 
       - name: Typecheck mobile
