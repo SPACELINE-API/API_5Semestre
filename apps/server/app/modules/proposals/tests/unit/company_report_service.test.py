@@ -142,3 +142,4 @@ def test_exporters_include_company_data() -> None:
     assert "Empresa Legal" in csv_content
     assert "Empresa Legal" in xlsx_values
     assert "100.00" in csv_content
+    assert "Aprovado" in csv_content

@@ -2,7 +2,7 @@ from datetime import date
 from io import BytesIO
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import require_permission
@@ -10,7 +10,11 @@ from app.modules.proposals.schemas.proposal import ProposalListResponse
 from app.modules.proposals.schemas.report import CompanyReportRequest, CompanyReportResponse
 from app.modules.proposals.services.company_report_service import CompanyReportService
 from app.modules.proposals.services.proposal_service import ProposalService
-from app.modules.proposals.services.report_exporter import build_csv, build_xlsx
+from app.modules.proposals.services.report_exporter import (
+    build_csv,
+    build_xlsx,
+    to_portuguese_payload,
+)
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/quotes/proposals", tags=["proposals"])
@@ -77,4 +81,4 @@ def generate_company_report(
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": "attachment; filename=relatorio-propostas.xlsx"},
         )
-    return report
+    return JSONResponse(content=to_portuguese_payload(report))
