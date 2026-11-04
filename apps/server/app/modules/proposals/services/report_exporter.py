@@ -277,9 +277,7 @@ def build_xlsx(report: CompanyReportResponse) -> bytes:
 
     for company in report.companies:
         row = _company_row(company)
-        worksheet.append(
-            [_format_brazilian_value(column, row[column]) for column in CSV_COLUMNS]
-        )
+        worksheet.append([_format_brazilian_value(column, row[column]) for column in CSV_COLUMNS])
 
     worksheet.freeze_panes = "A2"
     worksheet.auto_filter.ref = worksheet.dimensions
