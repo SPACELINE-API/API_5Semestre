@@ -20,6 +20,7 @@ from app.modules.quotes.schemas.quote import (
     QuoteStatusUpdate,
     QuoteUpdate,
 )
+from app.modules.quotes.schemas.receipt import QuoteReceiptDownloadResponse, QuoteReceiptResponse
 from app.modules.quotes.schemas.request import RequestCreate, RequestResponse, RequestStatusUpdate
 from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemCreate,
@@ -32,6 +33,10 @@ from app.modules.quotes.services.additional_service import (
     AdditionalServiceService,
 )
 from app.modules.quotes.services.quote_service import QuoteService
+from app.modules.quotes.services.receipt_service import (
+    QuoteReceiptNotFoundError,
+    QuoteReceiptService,
+)
 from app.modules.quotes.services.request_service import RequestService
 from app.modules.quotes.services.storage import upload_quote_document
 from app.modules.quotes.services.translation_item_service import TranslationItemService
@@ -111,6 +116,34 @@ def update_quote_status(
 ):
     service = QuoteService(db)
     return service.update_status(quote_id, data, current_user)
+
+
+@router.get("/{quote_id}/receipt", response_model=QuoteReceiptResponse)
+def get_quote_receipt(
+    quote_id: uuid.UUID,
+    _user=Depends(quotes_read_permission),
+    db: Session = Depends(get_db),
+):
+    try:
+        quote = QuoteReceiptService(db).get_receipt(quote_id)
+    except QuoteReceiptNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return QuoteReceiptResponse.from_quote(quote)
+
+
+@router.get("/{quote_id}/receipt/download", response_model=QuoteReceiptDownloadResponse)
+def download_quote_receipt(
+    quote_id: uuid.UUID,
+    _user=Depends(quotes_read_permission),
+    db: Session = Depends(get_db),
+):
+    try:
+        quote = QuoteReceiptService(db).get_receipt(quote_id)
+    except QuoteReceiptNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    if not quote.receipt_pdf_url:
+        raise HTTPException(status_code=404, detail="PDF não disponível para este comprovante.")
+    return QuoteReceiptDownloadResponse(download_url=quote.receipt_pdf_url)
 
 
 @router.post("/from-request/{request_id}", response_model=QuoteFromRequestResponse, status_code=201)
