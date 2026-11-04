@@ -167,7 +167,7 @@ jobs:
         working-directory: apps/mobile
         env:
           PLAYWRIGHT_WORKERS: 1
-        run: pnpm test -- --shard=${{ matrix.shard }}/4
+        run: pnpm exec playwright test --shard=${{ matrix.shard }}/4
 
       - name: Upload Playwright shard report
         if: always()
