@@ -219,11 +219,19 @@ jobs:
         with:
           pattern: playwright-blob-*
           path: apps/mobile/blob-reports
-          merge-multiple: true
+
+      - name: Prepare Playwright shard reports
+        working-directory: apps/mobile
+        run: |
+          mkdir -p merged-blob-reports
+          for report in blob-reports/*/report.zip; do
+            shard=$(basename "$(dirname "$report")")
+            cp "$report" "merged-blob-reports/${shard}.zip"
+          done
 
       - name: Merge Playwright reports
         working-directory: apps/mobile
-        run: pnpm exec playwright merge-reports --reporter html blob-reports
+        run: pnpm exec playwright merge-reports --reporter html merged-blob-reports
 
       - name: Upload merged Playwright report
         if: always()
