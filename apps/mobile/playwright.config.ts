@@ -15,7 +15,10 @@ export default defineConfig({
 	forbidOnly: Boolean(process.env.CI),
 	retries: process.env.CI ? 2 : 0,
 	workers,
-	reporter: [['list'], ['html', { open: 'never' }]],
+	globalTimeout: process.env.CI ? 15 * 60 * 1000 : undefined,
+	reporter: process.env.CI
+		? [['list'], ['blob', { outputDir: 'blob-report' }]]
+		: [['list'], ['html', { open: 'never' }]],
 	use: {
 		baseURL: 'http://127.0.0.1:5183',
 		trace: 'retain-on-failure',
