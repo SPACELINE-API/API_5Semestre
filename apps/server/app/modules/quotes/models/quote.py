@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -49,6 +49,13 @@ class Quote(Base):
     original_language: Mapped[str | None] = mapped_column(String(50), nullable=True)
     translation_language: Mapped[str | None] = mapped_column(String(50), nullable=True)
     customer_need: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    # Comprovante comercial gerado na aprovação
+    receipt_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    receipt_pdf_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    receipt_generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    receipt_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    receipt_error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

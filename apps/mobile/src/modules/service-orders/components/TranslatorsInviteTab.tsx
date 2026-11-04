@@ -5,10 +5,23 @@ import {
 	TextInput,
 	TouchableOpacity,
 	ScrollView,
+	Modal,
+	Pressable,
 	useWindowDimensions,
 } from 'react-native';
-import { Search, Check, Send, Users } from 'lucide-react-native';
+import {
+	Search,
+	Check,
+	Send,
+	SlidersHorizontal,
+	Users,
+	X,
+} from 'lucide-react-native';
 import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
+import {
+	PROFICIENCY_OPTIONS,
+	type ProficiencyLevel,
+} from '../../translators/types/translator';
 import { InviteStatusBadge } from './InviteStatusBadge';
 import { useItemInvites } from '../hooks/useItemInvites';
 import { usePermission } from '../../auth/hooks/usePermission';
@@ -34,6 +47,11 @@ export function TranslatorsInviteTab({
 		items.find((item) => !item.translator_id)?.id ?? items[0]?.id ?? '',
 	);
 	const [search, setSearch] = useState('');
+	const [languageFilter, setLanguageFilter] = useState('');
+	const [proficiencyFilter, setProficiencyFilter] = useState<
+		ProficiencyLevel | ''
+	>('');
+	const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 	const canWriteAssignments = usePermission('assignments.write');
 	const [selectedTranslatorIds, setSelectedTranslatorIds] = useState<
 		Set<string>
@@ -67,6 +85,32 @@ export function TranslatorsInviteTab({
 		[translators, pendingTranslatorIds],
 	);
 
+	const languageOptions = useMemo(() => {
+		const languagesById = new Map<
+			string,
+			{ value: string; name: string; code: string }
+		>();
+
+		for (const translator of translators) {
+			if (!translator.is_active) continue;
+			for (const language of translator.languages ?? []) {
+				if (!languagesById.has(language.language_id)) {
+					languagesById.set(language.language_id, {
+						value: language.language_id,
+						name: language.language_name,
+						code: (
+							language.language_id.split('-').at(-1) ?? language.language_id
+						).toUpperCase(),
+					});
+				}
+			}
+		}
+
+		return [...languagesById.values()].sort((first, second) =>
+			first.name.localeCompare(second.name, 'pt-BR'),
+		);
+	}, [translators]);
+
 	useEffect(() => {
 		const eligibleIds = new Set(eligibleTranslators.map(({ id }) => id));
 		setSelectedTranslatorIds((current) => {
@@ -77,6 +121,8 @@ export function TranslatorsInviteTab({
 
 	useEffect(() => {
 		setSelectedTranslatorIds(new Set());
+		setLanguageFilter('');
+		setProficiencyFilter('');
 	}, [selectedItemId]);
 
 	useEffect(() => {
@@ -92,13 +138,25 @@ export function TranslatorsInviteTab({
 
 	const filteredTranslators = useMemo(() => {
 		const query = search.trim().toLowerCase();
-		if (!query) return translators;
-		return translators.filter(
-			(translator) =>
+		return eligibleTranslators.filter((translator) => {
+			const matchesSearch =
+				!query ||
 				translator.name.toLowerCase().includes(query) ||
-				translator.email.toLowerCase().includes(query),
-		);
-	}, [translators, search]);
+				translator.email.toLowerCase().includes(query);
+			const hasMatchingLanguage =
+				!languageFilter && !proficiencyFilter
+					? true
+					: (translator.languages ?? []).some(
+							(language) =>
+								(!languageFilter || language.language_id === languageFilter) &&
+								(!proficiencyFilter ||
+									String(language.proficiency_level).toLowerCase() ===
+										proficiencyFilter.toLowerCase()),
+						);
+
+			return matchesSearch && hasMatchingLanguage;
+		});
+	}, [eligibleTranslators, search, languageFilter, proficiencyFilter]);
 
 	function toggleTranslator(id: string) {
 		const translator = translators.find((item) => item.id === id);
@@ -213,26 +271,154 @@ export function TranslatorsInviteTab({
 				</View>
 			)}
 
-			<View
-				className={`flex-row items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 ${
-					isItemAssigned ? 'opacity-50' : ''
-				}`}
-			>
-				<Search size={16} color="#9CA3AF" />
-				<TextInput
-					value={search}
-					onChangeText={setSearch}
-					editable={!isItemAssigned}
-					placeholder={
-						width < 768
-							? 'Buscar tradutor'
-							: 'Buscar tradutor por nome ou email'
-					}
-					placeholderTextColor="#9CA3AF"
-					className="flex-1 font-inter text-sm text-gray-900 outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
-					accessibilityLabel="Buscar tradutor"
-				/>
+			<View className="w-full flex-row items-center gap-3">
+				<View
+					className={`min-w-0 flex-1 flex-row items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 ${
+						isItemAssigned ? 'opacity-50' : ''
+					}`}
+				>
+					<Search size={16} color="#9CA3AF" />
+					<TextInput
+						value={search}
+						onChangeText={setSearch}
+						editable={!isItemAssigned}
+						placeholder={
+							width < 768
+								? 'Buscar tradutor'
+								: 'Buscar tradutor por nome ou email'
+						}
+						placeholderTextColor="#9CA3AF"
+						className="flex-1 font-inter text-sm text-gray-900 outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
+						accessibilityLabel="Buscar tradutor"
+					/>
+				</View>
+
+				<TouchableOpacity
+					accessibilityRole="button"
+					accessibilityLabel="Abrir filtros de tradutores"
+					disabled={isItemAssigned}
+					onPress={() => setIsFilterPanelOpen(true)}
+					className={`h-11 shrink-0 flex-row items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 ${
+						isItemAssigned ? 'opacity-50' : ''
+					}`}
+				>
+					<SlidersHorizontal size={16} color="#64748B" />
+					<Text className="font-inter text-gray-700 text-sm">Filtros</Text>
+				</TouchableOpacity>
 			</View>
+
+			<Modal
+				visible={isFilterPanelOpen}
+				transparent
+				animationType="none"
+				onRequestClose={() => setIsFilterPanelOpen(false)}
+			>
+				<View className="flex-1 items-end bg-black/20">
+					<Pressable
+						className="absolute inset-0"
+						onPress={() => setIsFilterPanelOpen(false)}
+						accessibilityLabel="Fechar filtros"
+					/>
+					<View className="h-full w-[280px] max-w-[80%] gap-5 border-l border-gray-200 bg-white p-5 shadow-xl">
+						<View className="flex-row items-center justify-between">
+							<Text className="font-inter font-bold text-gray-900 text-lg">
+								Filtros
+							</Text>
+							<TouchableOpacity
+								onPress={() => setIsFilterPanelOpen(false)}
+								accessibilityLabel="Fechar filtros"
+							>
+								<X size={20} color="#6B7280" />
+							</TouchableOpacity>
+						</View>
+
+						<ScrollView
+							className="min-h-0 flex-1"
+							contentContainerClassName="gap-2 pb-8"
+							showsVerticalScrollIndicator={false}
+						>
+							<View className="gap-2 pt-5">
+								<Text className="font-inter font-semibold text-gray-500 text-xs uppercase tracking-wide">
+									PROFICIÊNCIA
+								</Text>
+								<TouchableOpacity
+									accessibilityRole="button"
+									onPress={() => setProficiencyFilter('')}
+									className={`flex-row items-center justify-between rounded-lg px-4 py-3 ${
+										!proficiencyFilter ? 'bg-blue-50' : 'bg-white'
+									}`}
+								>
+									<Text className="font-inter text-gray-700 text-sm">
+										Todos os níveis
+									</Text>
+									{!proficiencyFilter && <Check size={16} color="#1C6FB0" />}
+								</TouchableOpacity>
+								{PROFICIENCY_OPTIONS.map((option) => (
+									<TouchableOpacity
+										key={option.value}
+										accessibilityRole="button"
+										onPress={() => setProficiencyFilter(option.value)}
+										className={`flex-row items-center justify-between rounded-lg px-4 py-3 ${
+											proficiencyFilter === option.value
+												? 'bg-blue-50'
+												: 'bg-white'
+										}`}
+									>
+										<Text className="font-inter text-gray-700 text-sm">
+											{option.label}
+										</Text>
+										{proficiencyFilter === option.value && (
+											<Check size={16} color="#1C6FB0" />
+										)}
+									</TouchableOpacity>
+								))}
+							</View>
+
+							<View className="gap-2 pt-6">
+								<Text className="font-inter font-semibold text-gray-500 text-xs uppercase tracking-wide">
+									IDIOMA
+								</Text>
+								<TouchableOpacity
+									accessibilityRole="button"
+									onPress={() => setLanguageFilter('')}
+									className={`flex-row items-center justify-between rounded-lg px-4 py-3 ${
+										!languageFilter ? 'bg-blue-50' : 'bg-white'
+									}`}
+								>
+									<Text className="font-inter text-gray-700 text-sm">
+										Todos os idiomas
+									</Text>
+									{!languageFilter && <Check size={16} color="#1C6FB0" />}
+								</TouchableOpacity>
+								{languageOptions.map((option) => (
+									<TouchableOpacity
+										key={option.value}
+										accessibilityRole="button"
+										onPress={() => setLanguageFilter(option.value)}
+										className={`flex-row items-center justify-between rounded-lg px-4 py-3 ${
+											languageFilter === option.value
+												? 'bg-blue-50'
+												: 'bg-white'
+										}`}
+									>
+										<View className="flex-row items-baseline gap-1">
+											<Text className="w-8 font-inter font-semibold text-gray-900 text-sm">
+												{option.code}
+											</Text>
+											<Text className="font-inter text-gray-700 text-sm">
+												{option.name}
+											</Text>
+										</View>
+										{languageFilter === option.value && (
+											<Check size={16} color="#1C6FB0" />
+										)}
+									</TouchableOpacity>
+								))}
+							</View>
+						</ScrollView>
+					</View>
+				</View>
+			</Modal>
 
 			<View
 				className={`rounded-xl border border-gray-200 overflow-hidden ${
