@@ -1,3 +1,5 @@
+import type { ProficiencyLevel } from '../../translators/types/translator';
+
 export type ServiceOrderItemStatus =
 	'pendente' | 'em_andamento' | 'em_analise' | 'concluida';
 
@@ -130,6 +132,13 @@ export type ServiceOrderItemInvite = {
 	responded_at: string | null;
 };
 
+export type ServiceOrderTranslatorLanguage = {
+	id: string;
+	language_id: string;
+	language_name: string;
+	proficiency_level: ProficiencyLevel;
+};
+
 export type Translator = {
 	id: string;
 	name: string;
@@ -138,6 +147,7 @@ export type Translator = {
 	is_active: boolean;
 	created_at: string;
 	updated_at: string;
+	languages: ServiceOrderTranslatorLanguage[];
 };
 
 export type Contact = {
