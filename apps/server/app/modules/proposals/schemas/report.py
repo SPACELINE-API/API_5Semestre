@@ -7,12 +7,14 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 ReportGranularity = Literal["days", "months", "years"]
 ReportFormat = Literal["json", "csv", "xlsx"]
+CompanySelection = Literal["selected", "all"]
 
 
 class CompanyReportRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    company_ids: list[uuid.UUID] = Field(..., min_length=1)
+    selection: CompanySelection = "selected"
+    company_ids: list[uuid.UUID] | None = Field(default=None, min_length=1)
     start_date: date
     end_date: date
     granularity: ReportGranularity = "months"
@@ -22,13 +24,11 @@ class CompanyReportRequest(BaseModel):
     def validate_period(self) -> "CompanyReportRequest":
         if self.start_date > self.end_date:
             raise ValueError("A data inicial não pode ser posterior à data final.")
+        if self.selection == "selected" and not self.company_ids:
+            raise ValueError("Informe ao menos uma empresa quando a seleção for 'selected'.")
+        if self.selection == "all" and self.company_ids:
+            raise ValueError("Não informe company_ids quando a seleção for 'all'.")
         return self
-
-
-class ReportDocumentSummary(BaseModel):
-    filename: str | None = None
-    content_type: str | None = None
-    file_url: str | None = None
 
 
 class CompanyReportCompany(BaseModel):
@@ -39,7 +39,6 @@ class CompanyReportCompany(BaseModel):
     industry: str
     city: str
     state: str
-    status: str
     registered_at: datetime
     contacts_count: int
 
@@ -47,8 +46,6 @@ class CompanyReportCompany(BaseModel):
     requests_by_status: dict[str, int]
     request_languages: list[str]
     request_needs: list[str]
-    request_documents: list[ReportDocumentSummary]
-
     proposals_total: int
     proposals_by_status: dict[str, int]
     estimated_value: Decimal
@@ -57,11 +54,8 @@ class CompanyReportCompany(BaseModel):
     proposal_created_at: list[datetime]
     proposal_approved_at: list[datetime]
     proposal_reproved_at: list[datetime]
-    reproval_reasons: list[str]
-
     service_orders_total: int
     service_orders: list["ServiceOrderReport"]
-    execution: "ExecutionReport"
 
 
 class ServiceOrderItemReport(BaseModel):
@@ -80,15 +74,6 @@ class ServiceOrderItemReport(BaseModel):
 
 class ServiceOrderReport(BaseModel):
     service_order_id: uuid.UUID
-    project_name: str
-    domain_area: str | None
-    price_category: str | None
-    deadline: datetime | None
-    created_at: datetime
-    status: str
-    items_count: int
-    completed_items_count: int
-    items: list[ServiceOrderItemReport]
 
 
 class ExecutionFileReport(BaseModel):

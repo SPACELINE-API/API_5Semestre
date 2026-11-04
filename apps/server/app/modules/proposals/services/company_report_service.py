@@ -18,7 +18,6 @@ from app.modules.proposals.schemas.report import (
     ExecutionDeliveryReport,
     ExecutionFileReport,
     ExecutionReport,
-    ReportDocumentSummary,
     ServiceOrderItemReport,
     ServiceOrderReport,
 )
@@ -30,7 +29,6 @@ from app.modules.service_orders.models.service_order_item import (
     STATUS_CONCLUIDA,
     ServiceOrderItem,
 )
-from app.modules.service_orders.services.service_order_service import compute_aggregate_status
 
 
 class CompanyReportService:
@@ -38,8 +36,9 @@ class CompanyReportService:
         self.db = db
 
     def generate(self, filters: CompanyReportRequest) -> CompanyReportResponse:
-        companies = self._get_companies(filters.company_ids)
-        contacts_count = self._get_contacts_count(filters.company_ids)
+        companies = self._get_companies(filters.company_ids, filters.selection)
+        company_ids = [company.id for company in companies]
+        contacts_count = self._get_contacts_count(company_ids)
         reports: list[CompanyReportCompany] = []
 
         for company in companies:
@@ -51,7 +50,6 @@ class CompanyReportService:
                 continue
 
             order_reports = [self._build_service_order(order, filters) for order in service_orders]
-            execution = self._build_execution(order_reports, service_orders, filters)
             reports.append(
                 self._build_company_report(
                     company,
@@ -59,7 +57,6 @@ class CompanyReportService:
                     requests,
                     quotes,
                     order_reports,
-                    execution,
                 )
             )
 
@@ -77,12 +74,19 @@ class CompanyReportService:
             total_companies=len(reports),
         )
 
-    def _get_companies(self, company_ids: list[uuid.UUID]) -> list[Company]:
-        companies = list(
-            self.db.scalars(
-                select(Company).where(Company.id.in_(company_ids)).order_by(Company.trade_name)
-            )
-        )
+    def _get_companies(
+        self, company_ids: list[uuid.UUID] | None, selection: str
+    ) -> list[Company]:
+        query = select(Company).order_by(Company.trade_name)
+        if selection == "selected":
+            assert company_ids is not None
+            query = query.where(Company.id.in_(company_ids))
+
+        companies = list(self.db.scalars(query))
+        if selection == "all":
+            return companies
+
+        assert company_ids is not None
         found_ids = {company.id for company in companies}
         missing = [str(company_id) for company_id in company_ids if company_id not in found_ids]
         if missing:
@@ -183,7 +187,6 @@ class CompanyReportService:
         requests: list[Request],
         quotes: list[Quote],
         service_orders: list[ServiceOrderReport],
-        execution: ExecutionReport,
     ) -> CompanyReportCompany:
         translation_value = sum(
             (item.estimated_value or Decimal("0") for quote in quotes for item in quote.items),
@@ -203,7 +206,6 @@ class CompanyReportService:
             industry=company.industry,
             city=company.city,
             state=company.state,
-            status="active" if company.is_active else "inactive",
             registered_at=company.created_at,
             contacts_count=contacts_count,
             requests_total=len(requests),
@@ -219,15 +221,6 @@ class CompanyReportService:
             request_needs=sorted(
                 {request.customer_need for request in requests if request.customer_need}
             ),
-            request_documents=[
-                ReportDocumentSummary(
-                    filename=request.document_filename,
-                    content_type=request.document_content_type,
-                    file_url=request.document_url,
-                )
-                for request in requests
-                if request.has_document
-            ],
             proposals_total=len(quotes),
             proposals_by_status=dict(Counter(quote.status for quote in quotes)),
             estimated_value=proposal_values,
@@ -236,35 +229,14 @@ class CompanyReportService:
             proposal_created_at=[quote.created_at for quote in quotes],
             proposal_approved_at=[quote.approved_at for quote in quotes if quote.approved_at],
             proposal_reproved_at=[quote.reproved_at for quote in quotes if quote.reproved_at],
-            reproval_reasons=[quote.reproval_reason for quote in quotes if quote.reproval_reason],
             service_orders_total=len(service_orders),
             service_orders=service_orders,
-            execution=execution,
         )
 
     def _build_service_order(
         self, order: ServiceOrder, filters: CompanyReportRequest
     ) -> ServiceOrderReport:
-        items = [
-            self._build_item(item)
-            for item in order.items
-            if self._in_period(item.created_at, filters)
-            or self._in_period(item.completed_at, filters)
-            or self._in_period(order.created_at, filters)
-        ]
-        completed = [item for item in items if item.status == STATUS_CONCLUIDA]
-        return ServiceOrderReport(
-            service_order_id=order.id,
-            project_name=order.project_name,
-            domain_area=order.domain_area,
-            price_category=order.price_category,
-            deadline=order.deadline,
-            created_at=order.created_at,
-            status=compute_aggregate_status(order.items),
-            items_count=len(items),
-            completed_items_count=len(completed),
-            items=items,
-        )
+        return ServiceOrderReport(service_order_id=order.id)
 
     @staticmethod
     def _build_item(item: ServiceOrderItem) -> ServiceOrderItemReport:

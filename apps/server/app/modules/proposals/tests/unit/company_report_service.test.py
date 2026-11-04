@@ -14,7 +14,6 @@ from app.modules.proposals.schemas.report import (
     CompanyReportCompany,
     CompanyReportRequest,
     CompanyReportResponse,
-    ExecutionReport,
 )
 from app.modules.proposals.services.company_report_service import CompanyReportService
 from app.modules.proposals.services.report_exporter import build_csv, build_xlsx
@@ -22,15 +21,6 @@ from app.modules.proposals.services.report_exporter import build_csv, build_xlsx
 
 def make_report() -> CompanyReportResponse:
     now = datetime.now(UTC)
-    execution = ExecutionReport(
-        translation_items_value=Decimal("100.00"),
-        translators=[],
-        files=[],
-        deliveries=[],
-        delivered_count=0,
-        completed_items_count=0,
-        completed_items_on_time_count=0,
-    )
     company = CompanyReportCompany(
         company_id=uuid.uuid4(),
         legal_name="Empresa Legal Ltda.",
@@ -39,14 +29,12 @@ def make_report() -> CompanyReportResponse:
         industry="Tecnologia",
         city="São Paulo",
         state="SP",
-        status="active",
         registered_at=now,
         contacts_count=2,
         requests_total=1,
         requests_by_status={"approved": 1},
         request_languages=["Português", "Inglês"],
         request_needs=["Contrato"],
-        request_documents=[],
         proposals_total=1,
         proposals_by_status={"approved": 1},
         estimated_value=Decimal("100.00"),
@@ -55,10 +43,8 @@ def make_report() -> CompanyReportResponse:
         proposal_created_at=[now],
         proposal_approved_at=[now],
         proposal_reproved_at=[],
-        reproval_reasons=[],
         service_orders_total=0,
         service_orders=[],
-        execution=execution,
     )
     return CompanyReportResponse(
         period_start=date(2026, 1, 1),
@@ -94,7 +80,27 @@ def test_report_request_rejects_inverted_period() -> None:
 def test_report_request_requires_at_least_one_company() -> None:
     with pytest.raises(ValidationError):
         CompanyReportRequest(
-            company_ids=[],
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 1, 31),
+        )
+
+
+def test_report_request_accepts_all_companies_without_ids() -> None:
+    request = CompanyReportRequest(
+        selection="all",
+        start_date=date(2026, 1, 1),
+        end_date=date(2026, 1, 31),
+    )
+
+    assert request.selection == "all"
+    assert request.company_ids is None
+
+
+def test_report_request_rejects_ids_when_selecting_all() -> None:
+    with pytest.raises(ValidationError, match="Não informe company_ids"):
+        CompanyReportRequest(
+            selection="all",
+            company_ids=[uuid.uuid4()],
             start_date=date(2026, 1, 1),
             end_date=date(2026, 1, 31),
         )
@@ -102,7 +108,7 @@ def test_report_request_requires_at_least_one_company() -> None:
 
 def test_service_rejects_when_no_company_has_data() -> None:
     service = CompanyReportService(MagicMock())
-    service._get_companies = lambda _ids: [SimpleNamespace(id=uuid.uuid4())]
+    service._get_companies = lambda _ids, _selection: [SimpleNamespace(id=uuid.uuid4())]
     service._get_contacts_count = lambda _ids: {}
     service._get_requests = lambda _company_id, _filters: []
     service._get_quotes = lambda _company_id, _filters: []

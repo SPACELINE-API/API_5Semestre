@@ -144,3 +144,20 @@ def test_report_route_returns_not_found_without_period_data(report_client) -> No
 
     assert response.status_code == 404
     assert "Nenhuma empresa" in response.json()["detail"]
+
+
+def test_report_route_supports_all_companies(report_client) -> None:
+    client, db = report_client
+    company_with_data = create_company(db, with_data=True)
+    create_company(db, with_data=False)
+
+    payload = report_payload(company_with_data.id)
+    payload.pop("company_ids")
+    payload["selection"] = "all"
+
+    response = client.post(REPORT_URL, json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total_empresas"] == 1
+    assert body["empresas"][0]["empresa_id"] == str(company_with_data.id)

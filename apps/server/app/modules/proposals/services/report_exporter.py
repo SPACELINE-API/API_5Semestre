@@ -19,14 +19,12 @@ CSV_COLUMNS = (
     "industry",
     "city",
     "state",
-    "status",
     "registered_at",
     "contacts_count",
     "requests_total",
     "requests_by_status",
     "request_languages",
     "request_needs",
-    "request_documents",
     "proposals_total",
     "proposals_by_status",
     "estimated_value",
@@ -35,10 +33,8 @@ CSV_COLUMNS = (
     "proposal_created_at",
     "proposal_approved_at",
     "proposal_reproved_at",
-    "reproval_reasons",
     "service_orders_total",
     "service_orders",
-    "execution",
 )
 
 CSV_HEADERS = (
@@ -49,14 +45,12 @@ CSV_HEADERS = (
     "Segmento",
     "Cidade",
     "Estado",
-    "Status",
     "Data de cadastro",
     "Quantidade de contatos",
     "Total de requisições",
     "Requisições por status",
     "Idiomas das requisições",
     "Necessidades das requisições",
-    "Documentos das requisições",
     "Total de propostas",
     "Propostas por status",
     "Valor estimado",
@@ -65,10 +59,8 @@ CSV_HEADERS = (
     "Datas de criação das propostas",
     "Datas de aprovação das propostas",
     "Datas de reprovação das propostas",
-    "Motivos de reprovação",
     "Total de ordens de serviço",
     "Ordens de serviço",
-    "Execução",
 )
 
 JSON_KEY_TRANSLATIONS = {
@@ -84,7 +76,6 @@ JSON_KEY_TRANSLATIONS = {
     "requests_by_status": "requisicoes_por_status",
     "request_languages": "idiomas_requisicoes",
     "request_needs": "necessidades_requisicoes",
-    "request_documents": "documentos_requisicoes",
     "proposals_total": "total_propostas",
     "proposals_by_status": "propostas_por_status",
     "estimated_value": "valor_estimado",
@@ -93,10 +84,8 @@ JSON_KEY_TRANSLATIONS = {
     "proposal_created_at": "datas_criacao_propostas",
     "proposal_approved_at": "datas_aprovacao_propostas",
     "proposal_reproved_at": "datas_reprovacao_propostas",
-    "reproval_reasons": "motivos_reprovacao",
     "service_orders_total": "total_ordens_servico",
     "service_orders": "ordens_servico",
-    "execution": "execucao",
     "period_start": "periodo_inicio",
     "period_end": "periodo_fim",
     "granularity": "granularidade",
@@ -189,10 +178,18 @@ def _format_excel_dates(value: str) -> str:
 
 def _company_row(company: CompanyReportCompany) -> dict[str, str]:
     values = _translate_dict(company.model_dump(mode="json"))
-    return {
+    row = {
         column: _serialize(values.get(JSON_KEY_TRANSLATIONS.get(column, column)))
         for column in CSV_COLUMNS
     }
+    service_orders = values.get("ordens_servico", [])
+    if isinstance(service_orders, list):
+        row["service_orders"] = ", ".join(
+            item.get("ordem_servico_id", "")
+            for item in service_orders
+            if isinstance(item, dict) and item.get("ordem_servico_id")
+        )
+    return row
 
 
 def _translate_value(value: Any, key: str | None = None) -> Any:
