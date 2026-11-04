@@ -34,7 +34,6 @@ from app.modules.service_orders.services.service_order_service import compute_ag
 
 
 class CompanyReportService:
-  
     def __init__(self, db: Session) -> None:
         self.db = db
 

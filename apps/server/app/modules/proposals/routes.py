@@ -1,11 +1,16 @@
 from datetime import date
+from io import BytesIO
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import require_permission
 from app.modules.proposals.schemas.proposal import ProposalListResponse
+from app.modules.proposals.schemas.report import CompanyReportRequest, CompanyReportResponse
+from app.modules.proposals.services.company_report_service import CompanyReportService
 from app.modules.proposals.services.proposal_service import ProposalService
+from app.modules.proposals.services.report_exporter import build_csv
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/quotes/proposals", tags=["proposals"])
@@ -51,3 +56,24 @@ def list_proposals(
     except HTTPException:
         raise
     return ProposalListResponse(**result)
+
+
+@router.post("/reports", response_model=None)
+def generate_company_report(
+    report_request: CompanyReportRequest,
+    _user=Depends(proposals_read_permission),
+    db: Session = Depends(get_db),
+) -> CompanyReportResponse | StreamingResponse:
+    report = CompanyReportService(db).generate(report_request)
+    if report_request.format == "csv":
+        return StreamingResponse(
+            BytesIO(build_csv(report)),
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": "attachment; filename=relatorio-propostas.csv"},
+        )
+    if report_request.format == "xlsx":
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="A exportação Excel será disponibilizada na próxima etapa.",
+        )
+    return report
