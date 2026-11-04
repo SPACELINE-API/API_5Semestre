@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.modules.quotes.models.request import Request, StatusEnum
-from app.modules.quotes.schemas.quote import QuoteCreate, QuoteUpdate
+from app.modules.quotes.schemas.quote import QuoteCreate, QuoteStatusUpdate, QuoteUpdate
 from app.modules.quotes.services import quote_service as quote_service_module
 from app.modules.quotes.services.quote_service import QuoteService
 
@@ -166,3 +166,56 @@ def test_update_quote_not_found_raises_404(mock_db_session):
         service.update_quote(uuid.uuid4(), QuoteUpdate(customer_name="Novo nome"))
 
     assert error.value.status_code == 404
+
+
+def pending_quote_with_service_order(mock_db_session):
+    quote = MagicMock(id=uuid.uuid4(), status="pending", service_orders=[MagicMock()])
+    query = mock_db_session.query.return_value.filter.return_value.with_for_update.return_value
+    query.first.return_value = quote
+    return quote
+
+
+def test_update_status_approved_creates_receipt(mock_db_session, monkeypatch):
+    quote = pending_quote_with_service_order(mock_db_session)
+    receipt_service = MagicMock()
+    monkeypatch.setattr(
+        quote_service_module, "QuoteReceiptService", MagicMock(return_value=receipt_service)
+    )
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    result = QuoteService(mock_db_session).update_status(
+        quote.id, QuoteStatusUpdate(status="approved"), user
+    )
+
+    assert result.status == "approved"
+    receipt_service.create_receipt.assert_called_once_with(quote)
+
+
+def test_update_status_approved_survives_receipt_failure(mock_db_session, monkeypatch):
+    quote = pending_quote_with_service_order(mock_db_session)
+    receipt_service = MagicMock()
+    receipt_service.create_receipt.side_effect = RuntimeError("smtp down")
+    monkeypatch.setattr(
+        quote_service_module, "QuoteReceiptService", MagicMock(return_value=receipt_service)
+    )
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    result = QuoteService(mock_db_session).update_status(
+        quote.id, QuoteStatusUpdate(status="approved"), user
+    )
+
+    assert result.status == "approved"
+    mock_db_session.commit.assert_called_once()
+
+
+def test_update_status_reproved_does_not_create_receipt(mock_db_session, monkeypatch):
+    quote = pending_quote_with_service_order(mock_db_session)
+    receipt_cls = MagicMock()
+    monkeypatch.setattr(quote_service_module, "QuoteReceiptService", receipt_cls)
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    QuoteService(mock_db_session).update_status(
+        quote.id, QuoteStatusUpdate(status="reproved", reproval_reason="Fora do escopo"), user
+    )
+
+    receipt_cls.assert_not_called()
