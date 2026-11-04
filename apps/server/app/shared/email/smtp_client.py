@@ -10,12 +10,16 @@ def send_email(
     subject: str,
     html_body: str,
     attachments: Sequence[tuple[str, bytes, str]] = (),
+    inline_images: Sequence[tuple[str, bytes, str]] = (),
 ) -> None:
     message = EmailMessage()
     message["Subject"] = subject
     message["From"] = env_provider.get_smtp_from_email()
     message["To"] = to
     message.set_content(html_body, subtype="html")
+    for content_id, content, content_type in inline_images:
+        maintype, _, subtype = content_type.partition("/")
+        message.add_related(content, maintype=maintype, subtype=subtype, cid=f"<{content_id}>")
     for filename, content, content_type in attachments:
         maintype, _, subtype = content_type.partition("/")
         if not maintype or not subtype:
