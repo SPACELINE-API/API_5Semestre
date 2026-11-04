@@ -230,4 +230,3 @@ class CompanyReportService:
         self, order: ServiceOrder, filters: CompanyReportRequest
     ) -> ServiceOrderReport:
         return ServiceOrderReport(service_order_id=order.id)
-
