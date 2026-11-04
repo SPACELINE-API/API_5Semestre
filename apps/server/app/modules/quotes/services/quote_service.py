@@ -1,4 +1,5 @@
 import io
+import logging
 import uuid
 from datetime import UTC, datetime
 
@@ -12,9 +13,12 @@ from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.repositories.quote_repository import QuoteRepository
 from app.modules.quotes.repositories.request_repository import RequestRepository
 from app.modules.quotes.schemas.quote import QuoteCreate, QuoteStatusUpdate, QuoteUpdate
+from app.modules.quotes.services.receipt_service import QuoteReceiptService
 from app.modules.quotes.services.storage import upload_quote_document
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import ServiceOrderItem
+
+logger = logging.getLogger(__name__)
 
 
 class QuoteService:
@@ -150,6 +154,13 @@ class QuoteService:
                 detail="Não foi possível registrar a decisão e gerar a ordem de serviço.",
             ) from None
         self.db.refresh(quote)
+
+        if data.status == "approved":
+            try:
+                QuoteReceiptService(self.db).create_receipt(quote)
+            except Exception:
+                logger.exception("Falha ao gerar comprovante do orçamento %s", quote.id)
+
         return quote
 
     def _validate_customer_links(self, company_id, contact_id) -> None:
