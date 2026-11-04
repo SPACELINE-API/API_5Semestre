@@ -4,6 +4,7 @@ import csv
 import io
 import re
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from openpyxl import Workbook
@@ -176,6 +177,21 @@ def _format_excel_dates(value: str) -> str:
     return ISO_DATE_PATTERN.sub(replace, value)
 
 
+def _format_brazilian_value(column: str, value: str) -> str:
+    if column in {
+        "estimated_value",
+        "translation_items_value",
+        "additional_services_value",
+    }:
+        try:
+            amount = Decimal(value)
+        except (InvalidOperation, ValueError):
+            return value
+        formatted = f"{amount:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
+        return f"R$ {formatted}"
+    return _format_excel_dates(value)
+
+
 def _company_row(company: CompanyReportCompany) -> dict[str, str]:
     values = _translate_dict(company.model_dump(mode="json"))
     row = {
@@ -233,9 +249,20 @@ def to_portuguese_payload(report: CompanyReportResponse) -> dict[str, Any]:
 
 def build_csv(report: CompanyReportResponse) -> bytes:
     output = io.StringIO(newline="")
-    writer = csv.DictWriter(output, fieldnames=CSV_COLUMNS, extrasaction="ignore")
+    writer = csv.DictWriter(
+        output,
+        fieldnames=CSV_COLUMNS,
+        extrasaction="ignore",
+        delimiter=";",
+    )
     writer.writerow(dict(zip(CSV_COLUMNS, CSV_HEADERS, strict=True)))
-    writer.writerows(_company_row(company) for company in report.companies)
+    writer.writerows(
+        {
+            column: _format_brazilian_value(column, value)
+            for column, value in _company_row(company).items()
+        }
+        for company in report.companies
+    )
     return ("\ufeff" + output.getvalue()).encode("utf-8")
 
 
@@ -250,7 +277,9 @@ def build_xlsx(report: CompanyReportResponse) -> bytes:
 
     for company in report.companies:
         row = _company_row(company)
-        worksheet.append([_format_excel_dates(row[column]) for column in CSV_COLUMNS])
+        worksheet.append(
+            [_format_brazilian_value(column, row[column]) for column in CSV_COLUMNS]
+        )
 
     worksheet.freeze_panes = "A2"
     worksheet.auto_filter.ref = worksheet.dimensions

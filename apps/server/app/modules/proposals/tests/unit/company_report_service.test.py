@@ -129,7 +129,7 @@ def test_service_rejects_when_no_company_has_data() -> None:
 
 def test_csv_and_xlsx_contain_the_same_report_columns() -> None:
     report = make_report()
-    csv_header = build_csv(report).decode("utf-8-sig").splitlines()[0].split(",")
+    csv_header = build_csv(report).decode("utf-8-sig").splitlines()[0].split(";")
     workbook = load_workbook(BytesIO(build_xlsx(report)), read_only=True)
     worksheet = workbook["Empresas"]
     xlsx_header = [cell.value for cell in next(worksheet.iter_rows())]
@@ -147,5 +147,5 @@ def test_exporters_include_company_data() -> None:
 
     assert "Empresa Legal" in csv_content
     assert "Empresa Legal" in xlsx_values
-    assert "100.00" in csv_content
+    assert "R$ 100,00" in csv_content
     assert "Aprovado" in csv_content
