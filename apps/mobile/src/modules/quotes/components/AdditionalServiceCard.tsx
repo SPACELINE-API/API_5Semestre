@@ -26,10 +26,12 @@ export function AdditionalServiceCard({
 	service,
 	onEdit,
 	onMarkAsCompleted,
+	isInServiceOrder = false,
 }: {
 	service: AdditionalService;
 	onEdit?: () => void;
 	onMarkAsCompleted?: () => Promise<void>;
+	isInServiceOrder?: boolean;
 }) {
 	const [isCompleting, setIsCompleting] = useState(false);
 	const canWriteQuotes = usePermission('quotes.write');
@@ -82,12 +84,12 @@ export function AdditionalServiceCard({
 					{decimalStringToBRL(service.price)}
 				</Text>
 			</View>
-			<View className="mt-3 flex-row items-center justify-between gap-3 border-t border-gray-100 pt-3">
+			<View className="mt-3 flex-row flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3">
 				<Text className="font-inter text-xs text-gray-400">
 					Criado em {formatDate(service.created_at)}
 				</Text>
 				<View className="flex-row items-center gap-4">
-					{canMarkAsCompleted && (
+					{canMarkAsCompleted && !isInServiceOrder && (
 						<TouchableOpacity
 							onPress={handleMarkAsCompleted}
 							disabled={isCompleting || !canWriteQuotes}
@@ -102,7 +104,7 @@ export function AdditionalServiceCard({
 							</Text>
 						</TouchableOpacity>
 					)}
-					{onEdit && service.status !== 'approved' && (
+					{onEdit && service.status !== 'approved' && !isInServiceOrder && (
 						<TouchableOpacity
 							onPress={onEdit}
 							disabled={!canWriteQuotes}

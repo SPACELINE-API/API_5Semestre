@@ -17,9 +17,11 @@ import { usePermission } from '../../auth/hooks/usePermission';
 type ItemsTableProps = {
 	items: ServiceOrderItem[];
 	translatorsById: Map<string, Translator>;
-	onAddItem: () => void;
-	onEditItem: (item: ServiceOrderItem) => void;
-	onDeleteItem: (item: ServiceOrderItem) => void;
+	onAddItem?: () => void;
+	onEditItem?: (item: ServiceOrderItem) => void;
+	onDeleteItem?: (item: ServiceOrderItem) => void;
+	isInServiceOrder?: boolean;
+	layout?: 'table' | 'cards';
 };
 
 function HeaderCell({ label, width }: { label: string; width: `${number}%` }) {
@@ -33,11 +35,17 @@ function HeaderCell({ label, width }: { label: string; width: `${number}%` }) {
 	);
 }
 
-function AddItemButton({ onPress }: { onPress: () => void }) {
+function AddItemButton({
+	onPress,
+	layout = 'table',
+}: {
+	onPress: () => void;
+	layout?: 'table' | 'cards';
+}) {
 	const isDesktop = useIsDesktop();
 	const canWriteServiceOrders = usePermission('service_orders.write');
 
-	if (!isDesktop) {
+	if (!isDesktop && layout === 'table') {
 		return (
 			<TouchableOpacity
 				onPress={onPress}
@@ -59,26 +67,28 @@ function AddItemButton({ onPress }: { onPress: () => void }) {
 			activeOpacity={0.7}
 			accessibilityRole="button"
 			accessibilityLabel="Adicionar item"
-			className={`flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+			className={`flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 		>
 			<Plus size={14} color="#353535" />
-			<Text className="font-inter font-semibold text-gray-800 text-xs">
+			<Text className="font-inter-medium text-sm text-gray-700">
 				Adicionar item
 			</Text>
 		</TouchableOpacity>
 	);
 }
 
-function MobileItemCard({
+function ItemCard({
 	item,
 	translatorName,
 	onEdit,
 	onDelete,
+	isInServiceOrder = false,
 }: {
 	item: ServiceOrderItem;
 	translatorName: string;
 	onEdit: () => void;
 	onDelete: () => void;
+	isInServiceOrder?: boolean;
 }) {
 	const canWriteServiceOrders = usePermission('service_orders.write');
 	return (
@@ -144,34 +154,36 @@ function MobileItemCard({
 							Nenhum documento
 						</Text>
 					)}
-					<View className="flex-row flex-nowrap items-center gap-x-4">
-						<TouchableOpacity
-							onPress={onEdit}
-							disabled={!canWriteServiceOrders}
-							activeOpacity={0.7}
-							accessibilityRole="button"
-							accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
-							className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
-						>
-							<Pencil size={14} color="#353535" />
-							<Text className="font-inter font-medium text-gray-700 text-xs">
-								Editar
-							</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							onPress={onDelete}
-							disabled={!canWriteServiceOrders}
-							activeOpacity={0.7}
-							accessibilityRole="button"
-							accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
-							className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
-						>
-							<Trash2 size={14} color="#B91C1C" />
-							<Text className="font-inter font-medium text-red-700 text-xs">
-								Excluir
-							</Text>
-						</TouchableOpacity>
-					</View>
+					{!isInServiceOrder && (
+						<View className="flex-row flex-nowrap items-center gap-x-4">
+							<TouchableOpacity
+								onPress={onEdit}
+								disabled={!canWriteServiceOrders}
+								activeOpacity={0.7}
+								accessibilityRole="button"
+								accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
+								className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+							>
+								<Pencil size={14} color="#353535" />
+								<Text className="font-inter font-medium text-gray-700 text-xs">
+									Editar
+								</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								onPress={onDelete}
+								disabled={!canWriteServiceOrders}
+								activeOpacity={0.7}
+								accessibilityRole="button"
+								accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
+								className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+							>
+								<Trash2 size={14} color="#B91C1C" />
+								<Text className="font-inter font-medium text-red-700 text-xs">
+									Excluir
+								</Text>
+							</TouchableOpacity>
+						</View>
+					)}
 				</View>
 			</View>
 		</View>
@@ -184,9 +196,24 @@ export function ItemsTable({
 	onAddItem,
 	onEditItem,
 	onDeleteItem,
+	isInServiceOrder = false,
+	layout = 'table',
 }: ItemsTableProps) {
 	const isDesktop = useIsDesktop();
 	const canWriteServiceOrders = usePermission('service_orders.write');
+
+	if (items.length === 0 && layout === 'cards') {
+		return (
+			<View className="gap-3">
+				<Text className="font-inter text-sm text-gray-500">
+					Este orçamento ainda não possui itens.
+				</Text>
+				{!isInServiceOrder && (
+					<AddItemButton onPress={onAddItem!} layout={layout} />
+				)}
+			</View>
+		);
+	}
 
 	if (items.length === 0) {
 		return (
@@ -201,36 +228,43 @@ export function ItemsTable({
 					</Text>
 				</View>
 
-				<AddItemButton onPress={onAddItem} />
+				{!isInServiceOrder && (
+					<AddItemButton onPress={onAddItem!} layout={layout} />
+				)}
 			</View>
 		);
 	}
 
-	if (!isDesktop) {
+	if (!isDesktop || layout === 'cards') {
 		return (
 			<View className="gap-4">
-				<AddItemButton onPress={onAddItem} />
 				{items.map((item) => {
 					const translator = item.translator_id
 						? translatorsById.get(item.translator_id)
 						: null;
 					return (
-						<MobileItemCard
+						<ItemCard
 							key={item.id}
 							item={item}
 							translatorName={translator?.name ?? 'Não atribuído'}
-							onEdit={() => onEditItem(item)}
-							onDelete={() => onDeleteItem(item)}
+							onEdit={() => onEditItem!(item)}
+							onDelete={() => onDeleteItem!(item)}
+							isInServiceOrder={isInServiceOrder}
 						/>
 					);
 				})}
+				{!isInServiceOrder && (
+					<AddItemButton onPress={onAddItem!} layout={layout} />
+				)}
 			</View>
 		);
 	}
 
 	return (
 		<View className="gap-4 bg-white">
-			<AddItemButton onPress={onAddItem} />
+			{!isInServiceOrder && (
+				<AddItemButton onPress={onAddItem!} layout={layout} />
+			)}
 
 			<View className="hidden h-11 flex-row items-center border-b border-gray-200 md:flex">
 				<HeaderCell label="Idiomas" width="16%" />
@@ -240,7 +274,7 @@ export function ItemsTable({
 				<HeaderCell label="Status" width="12%" />
 				<HeaderCell label="Tradutor" width="14%" />
 				<HeaderCell label="Arquivo" width="14%" />
-				<HeaderCell label="Ações" width="10%" />
+				{!isInServiceOrder && <HeaderCell label="Ações" width="10%" />}
 			</View>
 
 			{items.map((item, index) => {
@@ -309,34 +343,36 @@ export function ItemsTable({
 								)}
 							</View>
 
-							<View className="md:w-[12%]">
-								<TouchableOpacity
-									onPress={() => onEditItem(item)}
-									disabled={!canWriteServiceOrders}
-									activeOpacity={0.7}
-									accessibilityRole="button"
-									accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
-									className={`mb-1 flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
-								>
-									<Pencil size={14} color="#353535" />
-									<Text className="font-inter font-medium text-gray-700 text-sm">
-										Editar
-									</Text>
-								</TouchableOpacity>
-								<TouchableOpacity
-									onPress={() => onDeleteItem(item)}
-									disabled={!canWriteServiceOrders}
-									activeOpacity={0.7}
-									accessibilityRole="button"
-									accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
-									className={`flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
-								>
-									<Trash2 size={14} color="#B91C1C" />
-									<Text className="font-inter font-medium text-red-700 text-sm">
-										Excluir
-									</Text>
-								</TouchableOpacity>
-							</View>
+							{!isInServiceOrder && (
+								<View className="md:w-[12%]">
+									<TouchableOpacity
+										onPress={() => onEditItem!(item)}
+										disabled={!canWriteServiceOrders}
+										activeOpacity={0.7}
+										accessibilityRole="button"
+										accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
+										className={`mb-1 flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+									>
+										<Pencil size={14} color="#353535" />
+										<Text className="font-inter font-medium text-gray-700 text-sm">
+											Editar
+										</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										onPress={() => onDeleteItem!(item)}
+										disabled={!canWriteServiceOrders}
+										activeOpacity={0.7}
+										accessibilityRole="button"
+										accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
+										className={`flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+									>
+										<Trash2 size={14} color="#B91C1C" />
+										<Text className="font-inter font-medium text-red-700 text-sm">
+											Excluir
+										</Text>
+									</TouchableOpacity>
+								</View>
+							)}
 						</View>
 					</View>
 				);

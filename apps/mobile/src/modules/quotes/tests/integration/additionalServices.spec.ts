@@ -56,6 +56,22 @@ async function mockQuotesApi(
 ) {
 	const quoteUpdates: unknown[] = [];
 
+	await page.route('**/api/translators', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: '[]',
+		}),
+	);
+
+	await page.route('**/api/service-orders/order-1', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ id: 'order-1', items: [], files: [] }),
+		}),
+	);
+
 	await page.route(/\/api\/(quotes|clients)/, async (route) => {
 		const request = route.request();
 		const url = new URL(request.url());
