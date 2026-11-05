@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Check, X } from 'lucide-react-native';
 import { AppModal } from '../../../shared/components/AppModal';
@@ -7,11 +7,11 @@ import { SelectField } from '../../../shared/components/SelectField';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import {
 	downloadCompanyReport,
+	downloadJsonReport,
 	generateCompanyReport,
 	listReportCompanies,
 } from '../services/proposalService';
 import type {
-	CompanyReportResponse,
 	ReportCompanyOption,
 	ReportFormat,
 } from '../types/report';
@@ -36,11 +36,9 @@ function reportErrorMessage(error: unknown): string {
 export function CompanyReportModal({
 	visible,
 	onClose,
-	onGenerated,
 }: {
 	visible: boolean;
 	onClose: () => void;
-	onGenerated?: (report: CompanyReportResponse) => void;
 }) {
 	const [companies, setCompanies] = useState<ReportCompanyOption[]>([]);
 	const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -56,6 +54,12 @@ export function CompanyReportModal({
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState<string | null>(null);
+	const wasVisible = useRef(false);
+
+	useEffect(() => {
+		if (visible && !wasVisible.current) resetReportForm();
+		wasVisible.current = visible;
+	}, [visible]);
 
 	useEffect(() => {
 		if (!visible || companies.length > 0) return;
@@ -76,6 +80,21 @@ export function CompanyReportModal({
 
 	const selectedCompanies = companies.filter((company) => selectedIds.includes(company.id));
 	const selectedCount = selectAll ? companies.length : selectedIds.length;
+
+	function resetReportForm() {
+		setSelectedIds([]);
+		setSelectAll(false);
+		setSearch('');
+		setIsCompanyPickerOpen(false);
+		setStartDate('');
+		setEndDate('');
+		setOpenDate(null);
+		setGranularity('months');
+		setFormat('json');
+		setError(null);
+		setSuccess(null);
+	}
+
 	function toggleCompany(companyId: string) {
 		setSelectAll(false);
 		setSelectedIds((current) =>
@@ -127,14 +146,16 @@ export function CompanyReportModal({
 					...baseRequest,
 					format: 'json',
 				});
-				onGenerated?.(report);
-				setSuccess('Relatório gerado com sucesso.');
+				downloadJsonReport(report);
+				resetReportForm();
+				onClose();
 			} else {
 				await downloadCompanyReport({
 					...baseRequest,
 					format,
 				});
-				setSuccess('Download iniciado com sucesso.');
+				resetReportForm();
+				onClose();
 			}
 		} catch (cause) {
 			setError(reportErrorMessage(cause));

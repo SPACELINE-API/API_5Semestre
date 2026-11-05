@@ -58,9 +58,9 @@ export function generateCompanyReport(
 
 export async function downloadCompanyReport(
 	request: CompanyReportRequest & { format: Exclude<ReportFormat, 'json'> },
-): Promise<boolean> {
+): Promise<void> {
 	const blob = await apiPostAuthBlob(PROPOSAL_REPORT_PATH, request);
-	if (Platform.OS !== 'web') return false;
+	if (Platform.OS !== 'web') return;
 
 	const extension = request.format === 'xlsx' ? 'xlsx' : 'csv';
 	const mimeType =
@@ -76,8 +76,21 @@ export async function downloadCompanyReport(
 	link.click();
 	document.body.removeChild(link);
 	URL.revokeObjectURL(url);
+}
 
-	return true;
+export function downloadJsonReport(report: CompanyReportResponse): void {
+	if (Platform.OS !== 'web') return;
+	const blob = new Blob([JSON.stringify(report, null, 2)], {
+		type: 'application/json',
+	});
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = 'relatorio-propostas.json';
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+	URL.revokeObjectURL(url);
 }
 
 export { PAGE_SIZE as PROPOSAL_PAGE_SIZE };
