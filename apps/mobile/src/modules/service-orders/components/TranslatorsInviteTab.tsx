@@ -65,6 +65,7 @@ export function TranslatorsInviteTab({
 		refreshToken,
 	);
 	const isItemAssigned = Boolean(selectedItem?.translator_id);
+	const hasTranslatorFilters = Boolean(languageFilter || proficiencyFilter);
 
 	const pendingTranslatorIds = useMemo(
 		() =>
@@ -298,12 +299,23 @@ export function TranslatorsInviteTab({
 					accessibilityLabel="Abrir filtros de tradutores"
 					disabled={isItemAssigned}
 					onPress={() => setIsFilterPanelOpen(true)}
-					className={`h-11 shrink-0 flex-row items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 ${
-						isItemAssigned ? 'opacity-50' : ''
-					}`}
+					className={`h-11 shrink-0 flex-row items-center justify-center gap-2 rounded-lg border px-4 ${
+						hasTranslatorFilters
+							? 'border-blue-300 bg-blue-50'
+							: 'border-gray-200 bg-white'
+					} ${isItemAssigned ? 'opacity-50' : ''}`}
 				>
-					<SlidersHorizontal size={16} color="#64748B" />
-					<Text className="font-inter text-gray-700 text-sm">Filtros</Text>
+					<SlidersHorizontal
+						size={16}
+						color={hasTranslatorFilters ? '#1C6FB0' : '#64748B'}
+					/>
+					<Text
+						className={`font-inter text-sm ${
+							hasTranslatorFilters ? 'text-blue-900' : 'text-gray-700'
+						}`}
+					>
+						Filtros
+					</Text>
 				</TouchableOpacity>
 			</View>
 
