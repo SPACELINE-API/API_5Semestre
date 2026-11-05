@@ -144,8 +144,9 @@ export function AppModal({
 					{children ? (
 						<ScrollView
 							bounces={false}
-							className="shrink grow-0"
-							contentContainerClassName="gap-4 px-6 pt-4 md:px-7"
+							className="min-h-0 shrink"
+							style={{ flexShrink: 1 }}
+							contentContainerClassName="gap-4 px-6 pb-4 pt-4 md:px-7"
 							keyboardShouldPersistTaps="handled"
 						>
 							{children}

@@ -46,8 +46,10 @@ export function CompanyReportModal({
 	const [selectedIds, setSelectedIds] = useState<string[]>([]);
 	const [selectAll, setSelectAll] = useState(false);
 	const [search, setSearch] = useState('');
+	const [isCompanyPickerOpen, setIsCompanyPickerOpen] = useState(false);
 	const [startDate, setStartDate] = useState('');
 	const [endDate, setEndDate] = useState('');
+	const [openDate, setOpenDate] = useState<'start' | 'end' | null>(null);
 	const [granularity, setGranularity] = useState<'days' | 'months' | 'years'>('months');
 	const [format, setFormat] = useState<ReportFormat>('json');
 	const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
@@ -74,14 +76,6 @@ export function CompanyReportModal({
 
 	const selectedCompanies = companies.filter((company) => selectedIds.includes(company.id));
 	const selectedCount = selectAll ? companies.length : selectedIds.length;
-	const canGenerate = Boolean(
-		(selectAll || selectedIds.length > 0) &&
-		startDate &&
-		endDate &&
-		startDate <= endDate &&
-		!isGenerating,
-	);
-
 	function toggleCompany(companyId: string) {
 		setSelectAll(false);
 		setSelectedIds((current) =>
@@ -91,11 +85,13 @@ export function CompanyReportModal({
 		);
 		setError(null);
 		setSuccess(null);
+		setIsCompanyPickerOpen(false);
 	}
 
 	function toggleSelectAll() {
 		setSelectAll((current) => !current);
 		setSelectedIds([]);
+		setIsCompanyPickerOpen(false);
 		setError(null);
 		setSuccess(null);
 	}
@@ -155,7 +151,7 @@ export function CompanyReportModal({
 			confirmLabel="Gerar relatório"
 			size="md"
 			isLoading={isGenerating}
-			confirmDisabled={!canGenerate}
+			confirmDisabled={isGenerating}
 			onConfirm={() => void handleGenerate()}
 			onClose={onClose}
 		>
@@ -171,22 +167,30 @@ export function CompanyReportModal({
 					onPress={toggleSelectAll}
 					accessibilityRole="checkbox"
 					accessibilityState={{ checked: selectAll }}
-					className={`flex-row items-center justify-between rounded-lg border px-3 py-3 ${selectAll ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}`}
+					className={`flex-row items-center gap-2 rounded-lg border px-3 py-2.5 ${selectAll ? 'border-blue-200 bg-blue-50' : 'border-transparent bg-transparent'}`}
 				>
-					<Text className="font-inter font-medium text-gray-800 text-sm">Todas as empresas</Text>
-					{selectAll && <Check size={18} color="#1C6FB0" />}
+					<View className={`h-5 w-5 items-center justify-center rounded border ${selectAll ? 'border-blue-600 bg-blue-600' : 'border-gray-400 bg-white'}`}>
+						{selectAll && <Check size={14} color="#FFFFFF" />}
+					</View>
+					<Text className={`font-inter font-medium text-sm ${selectAll ? 'text-blue-800' : 'text-gray-800'}`}>
+						Selecionar todas as empresas
+					</Text>
 				</TouchableOpacity>
 
 				<TextInput
 					value={search}
-					onChangeText={setSearch}
+					onChangeText={(value) => {
+						setSearch(value);
+						setIsCompanyPickerOpen(true);
+					}}
 					placeholder="Buscar empresa"
 					placeholderTextColor="#9CA3AF"
 					accessibilityLabel="Buscar empresa"
+					onFocus={() => setIsCompanyPickerOpen(true)}
 					className="h-10 rounded-lg border border-gray-300 px-3 font-inter text-gray-900 text-sm"
 				/>
 
-				{isLoadingCompanies ? (
+				{isCompanyPickerOpen && (isLoadingCompanies ? (
 					<View className="items-center py-4"><ActivityIndicator color="#1C6FB0" /></View>
 				) : (
 					<View className="max-h-44 gap-1 overflow-hidden rounded-lg border border-gray-200 p-1">
@@ -210,7 +214,7 @@ export function CompanyReportModal({
 							})
 						)}
 					</View>
-				)}
+				))}
 
 				{selectedCompanies.length > 0 && !selectAll && (
 					<View className="flex-row flex-wrap gap-2">
@@ -229,9 +233,34 @@ export function CompanyReportModal({
 					</View>
 				)}
 
-				<View className="flex-col gap-3 md:flex-row">
-					<DateField label="Data inicial" value={startDate} placeholder="Início" onChangeText={setStartDate} />
-					<DateField label="Data final" value={endDate} placeholder="Fim" minDate={startDate || undefined} onChangeText={setEndDate} />
+				<View className="flex-col gap-3 md:flex-row" style={{ zIndex: openDate ? 20 : 1 }}>
+					<View
+						className="min-w-0 flex-1"
+						style={{ position: 'relative', zIndex: openDate === 'start' ? 30 : 1 }}
+					>
+						<DateField
+							label="Data inicial"
+							value={startDate}
+							placeholder="Início"
+							isOpen={openDate === 'start'}
+							onOpenChange={(open) => setOpenDate(open ? 'start' : null)}
+							onChangeText={setStartDate}
+						/>
+					</View>
+					<View
+						className="min-w-0 flex-1"
+						style={{ position: 'relative', zIndex: openDate === 'end' ? 30 : 1 }}
+					>
+						<DateField
+							label="Data final"
+							value={endDate}
+							placeholder="Fim"
+							minDate={startDate || undefined}
+							isOpen={openDate === 'end'}
+							onOpenChange={(open) => setOpenDate(open ? 'end' : null)}
+							onChangeText={setEndDate}
+						/>
+					</View>
 				</View>
 
 				<SelectField
