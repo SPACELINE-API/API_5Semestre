@@ -219,3 +219,16 @@ def test_update_status_reproved_does_not_create_receipt(mock_db_session, monkeyp
     )
 
     receipt_cls.assert_not_called()
+
+
+def test_update_quote_rejects_approved_quote(mock_db_session):
+    quote = MagicMock(status="approved", customer_name="Nome original")
+    mock_db_session.query.return_value.filter.return_value.first.return_value = quote
+    service = QuoteService(mock_db_session)
+
+    with pytest.raises(HTTPException) as error:
+        service.update_quote(uuid.uuid4(), QuoteUpdate(customer_name="Novo nome"))
+
+    assert error.value.status_code == 409
+    assert quote.customer_name == "Nome original"
+    mock_db_session.commit.assert_not_called()

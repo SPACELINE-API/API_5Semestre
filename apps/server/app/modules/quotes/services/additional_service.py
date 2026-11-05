@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.modules.quotes.models.additional_service import AdditionalService
+from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.repositories.additional_service_repository import (
     AdditionalServiceRepository,
 )
@@ -13,6 +14,7 @@ from app.modules.quotes.schemas.additional_service import (
     AdditionalServiceStatusUpdate,
     AdditionalServiceUpdate,
 )
+from app.modules.quotes.services.quote_lock import ensure_quote_is_editable
 
 DUPLICATED_DESCRIPTION_MESSAGE = "Já existe um serviço adicional com essa descrição neste orçamento"
 COMPLETED_SERVICE_MESSAGE = "Não é possível editar um serviço adicional concluído"
@@ -32,7 +34,7 @@ class AdditionalServiceService:
         self.quote_repository = QuoteRepository(db)
 
     def create_additional_service(self, payload: AdditionalServiceCreate) -> AdditionalService:
-        self._ensure_quote_exists(payload.quote_id)
+        ensure_quote_is_editable(self._ensure_quote_exists(payload.quote_id))
         additional_service = AdditionalService(
             quote_id=payload.quote_id,
             description=payload.description,
@@ -57,6 +59,7 @@ class AdditionalServiceService:
         self, service_id: uuid.UUID, payload: AdditionalServiceUpdate
     ) -> AdditionalService:
         additional_service = self.get_additional_service(service_id)
+        ensure_quote_is_editable(additional_service.quote)
         if additional_service.status == "approved":
             raise AdditionalServiceConflictError(COMPLETED_SERVICE_MESSAGE)
         for field, value in payload.model_dump(exclude_unset=True).items():
@@ -70,13 +73,17 @@ class AdditionalServiceService:
         self, service_id: uuid.UUID, payload: AdditionalServiceStatusUpdate
     ) -> AdditionalService:
         additional_service = self.get_additional_service(service_id)
+        ensure_quote_is_editable(additional_service.quote)
         additional_service.status = payload.status
         return self.repository.update_additional_service(additional_service)
 
     def delete_additional_service(self, service_id: uuid.UUID) -> None:
         additional_service = self.get_additional_service(service_id)
+        ensure_quote_is_editable(additional_service.quote)
         self.repository.delete_additional_service(additional_service)
 
-    def _ensure_quote_exists(self, quote_id: uuid.UUID) -> None:
-        if self.quote_repository.get_by_id(quote_id) is None:
+    def _ensure_quote_exists(self, quote_id: uuid.UUID) -> Quote:
+        quote = self.quote_repository.get_by_id(quote_id)
+        if quote is None:
             raise AdditionalServiceNotFoundError("Orçamento não encontrado")
+        return quote

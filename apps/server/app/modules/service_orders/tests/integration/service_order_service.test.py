@@ -4,12 +4,14 @@ import uuid
 from decimal import Decimal
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.modules.clients.models.company import Company
 from app.modules.clients.schemas.company import calculate_cnpj_check_digit
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
+from app.modules.quotes.services.quote_lock import APPROVED_QUOTE_LOCKED_MESSAGE
 from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
 from app.modules.service_orders.models.service_order_email_template import (
     SERVICE_ORDER_EMAIL_TEMPLATE_KEY,
@@ -241,19 +243,34 @@ def test_update_service_order_not_found_raises_404(db_session: Session) -> None:
     assert getattr(exc_info.value, "status_code", None) == 404
 
 
-def test_add_item_creates_item_without_quote_translation_item(
-    db_session: Session, fake_upload
-) -> None:
+def make_manual_order(db_session: Session, project_name: str):
+    company = make_company(db_session)
+    return ServiceOrderService(db_session).create_manual(
+        ManualServiceOrderRequest(
+            company_id=company.id,
+            project_name=project_name,
+            items=[{"source_language": "pt-BR", "target_language": "en-US"}],
+        )
+    )
+
+
+def make_order_from_approved_quote(db_session: Session):
     company = make_company(db_session)
     quote = make_quote_with_items(db_session, item_count=1)
-    service = ServiceOrderService(db_session)
-    order = service.generate_from_quote(
+    return ServiceOrderService(db_session).generate_from_quote(
         GenerateServiceOrderRequest(
             quote_id=quote.id,
             company_id=company.id,
-            project_name="Projeto com item extra",
+            project_name="Projeto do orçamento aprovado",
         )
     )
+
+
+def test_add_item_creates_item_without_quote_translation_item(
+    db_session: Session, fake_upload
+) -> None:
+    service = ServiceOrderService(db_session)
+    order = make_manual_order(db_session, "Projeto com item extra")
 
     item = service.add_item(
         order.id,
@@ -289,16 +306,8 @@ def test_add_item_not_found_raises_404(db_session: Session) -> None:
 
 
 def test_update_item_changes_fields_and_replaces_file(db_session: Session, fake_upload) -> None:
-    company = make_company(db_session)
-    quote = make_quote_with_items(db_session, item_count=1)
     service = ServiceOrderService(db_session)
-    order = service.generate_from_quote(
-        GenerateServiceOrderRequest(
-            quote_id=quote.id,
-            company_id=company.id,
-            project_name="Projeto para editar item",
-        )
-    )
+    order = make_manual_order(db_session, "Projeto para editar item")
     item_id = order.items[0].id
 
     updated = service.update_item(
@@ -329,6 +338,44 @@ def test_update_item_not_found_raises_404(db_session: Session) -> None:
         )
 
     assert getattr(exc_info.value, "status_code", None) == 404
+
+
+def test_items_of_order_from_approved_quote_cannot_be_changed(
+    db_session: Session, fake_upload
+) -> None:
+    service = ServiceOrderService(db_session)
+    order = make_order_from_approved_quote(db_session)
+    item = order.items[0]
+
+    with pytest.raises(HTTPException) as add_error:
+        service.add_item(
+            order.id,
+            CreateServiceOrderItemRequest(source_language="pt-BR", target_language="es-ES"),
+        )
+    with pytest.raises(HTTPException) as update_error:
+        service.update_item(
+            item.id,
+            UpdateServiceOrderItemRequest(source_language="pt-BR", target_language="es-ES"),
+        )
+    with pytest.raises(HTTPException) as delete_error:
+        service.delete_item(order.id, item.id)
+
+    for error in (add_error, update_error, delete_error):
+        assert error.value.status_code == 409
+        assert error.value.detail == APPROVED_QUOTE_LOCKED_MESSAGE
+    db_session.expire_all()
+    persisted = db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).all()
+    assert [(row.id, row.target_language) for row in persisted] == [(item.id, "en-US")]
+    assert fake_upload == []
+
+
+def test_items_of_manual_order_can_be_deleted(db_session: Session) -> None:
+    service = ServiceOrderService(db_session)
+    order = make_manual_order(db_session, "Projeto manual para excluir item")
+
+    service.delete_item(order.id, order.items[0].id)
+
+    assert db_session.get(ServiceOrderItem, order.items[0].id) is None
 
 
 def test_add_file_appends_to_service_order(db_session: Session, fake_upload) -> None:

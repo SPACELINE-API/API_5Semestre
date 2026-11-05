@@ -30,7 +30,9 @@ def db_session(isolated_db_session: Session) -> Session:
     return isolated_db_session
 
 
-def _make_order_and_item(db: Session) -> tuple[ServiceOrder, ServiceOrderItem]:
+def _make_order_and_item(
+    db: Session, with_quote: bool = True
+) -> tuple[ServiceOrder, ServiceOrderItem]:
     suffix = uuid.uuid4().hex[:10]
     company = Company(
         legal_name="Empresa de Teste Ltda",
@@ -49,16 +51,19 @@ def _make_order_and_item(db: Session) -> tuple[ServiceOrder, ServiceOrderItem]:
     db.add(company)
     db.flush()
 
-    quote = Quote(
-        company_id=company.id,
-        status="approved",
-        customer_name="Maria",
-        email=company.email,
-    )
-    db.add(quote)
-    db.flush()
+    quote_id = None
+    if with_quote:
+        quote = Quote(
+            company_id=company.id,
+            status="approved",
+            customer_name="Maria",
+            email=company.email,
+        )
+        db.add(quote)
+        db.flush()
+        quote_id = quote.id
 
-    order = ServiceOrder(quote_id=quote.id, company_id=company.id, project_name="Projeto")
+    order = ServiceOrder(quote_id=quote_id, company_id=company.id, project_name="Projeto")
     db.add(order)
     db.flush()
 
@@ -304,7 +309,7 @@ def test_latest_unreviewed_or_changes_requested_file_keeps_item_open(
 def test_deleting_item_with_pending_file_does_not_block_completion(
     db_session: Session,
 ) -> None:
-    order, item = _make_order_and_item(db_session)
+    order, item = _make_order_and_item(db_session, with_quote=False)
     remaining_item = ServiceOrderItem(
         service_order_id=order.id,
         source_language="pt-BR",
@@ -350,7 +355,7 @@ def test_deleting_item_with_pending_file_does_not_block_completion(
 
 
 def test_item_with_approved_unsent_file_cannot_be_deleted(db_session: Session) -> None:
-    order, item = _make_order_and_item(db_session)
+    order, item = _make_order_and_item(db_session, with_quote=False)
     _add_output_file(
         db_session,
         order,
@@ -366,6 +371,7 @@ def test_item_with_approved_unsent_file_cannot_be_deleted(db_session: Session) -
         ServiceOrderService(db_session).delete_item(order.id, item.id)
 
     assert error.value.status_code == 409
+    assert error.value.detail == "Envie os documentos aprovados deste item antes de excluí-lo."
     assert db_session.get(ServiceOrderItem, item.id) is not None
 
 

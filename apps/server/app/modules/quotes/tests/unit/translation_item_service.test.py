@@ -67,3 +67,59 @@ def test_delete_item_not_found_raises_404(mock_db_session):
         service.delete_item(uuid.uuid4(), uuid.uuid4())
 
     assert error.value.status_code == 404
+
+
+def approved_quote(mock_db_session):
+    quote = MagicMock(status="approved")
+    mock_db_session.query.return_value.filter.return_value.first.return_value = quote
+    return quote
+
+
+def test_create_item_rejects_approved_quote(mock_db_session):
+    approved_quote(mock_db_session)
+    service = TranslationItemService(mock_db_session)
+
+    with pytest.raises(HTTPException) as error:
+        service.create_item(
+            uuid.uuid4(),
+            QuoteTranslationItemCreate(source_language="pt-BR", target_language="en-US"),
+        )
+
+    assert error.value.status_code == 409
+    mock_db_session.add.assert_not_called()
+    mock_db_session.commit.assert_not_called()
+
+
+def test_update_item_rejects_approved_quote(mock_db_session):
+    approved_quote(mock_db_session)
+    service = TranslationItemService(mock_db_session)
+
+    with pytest.raises(HTTPException) as error:
+        service.update_item(
+            uuid.uuid4(),
+            uuid.uuid4(),
+            QuoteTranslationItemUpdate(source_language="es-ES"),
+        )
+
+    assert error.value.status_code == 409
+    mock_db_session.commit.assert_not_called()
+
+
+def test_delete_item_rejects_approved_quote(mock_db_session):
+    approved_quote(mock_db_session)
+    service = TranslationItemService(mock_db_session)
+
+    with pytest.raises(HTTPException) as error:
+        service.delete_item(uuid.uuid4(), uuid.uuid4())
+
+    assert error.value.status_code == 409
+    mock_db_session.delete.assert_not_called()
+    mock_db_session.commit.assert_not_called()
+
+
+def test_list_items_works_for_approved_quote(mock_db_session):
+    approved_quote(mock_db_session)
+    mock_db_session.query.return_value.filter.return_value.all.return_value = []
+    service = TranslationItemService(mock_db_session)
+
+    assert service.list_items(uuid.uuid4()) == []
