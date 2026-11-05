@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
 import {
 	ActivityIndicator,
+	Keyboard,
 	Modal,
+	Platform,
 	ScrollView,
 	Text,
 	TouchableOpacity,
@@ -89,7 +91,7 @@ export function AppModal({
 				<View
 					accessibilityViewIsModal
 					className={`max-h-[90%] w-full overflow-hidden rounded-xl bg-white ${
-						size === 'md' ? 'max-w-[520px]' : 'max-w-[400px]'
+						size === 'md' ? 'max-w-[560px]' : 'max-w-[400px]'
 					}`}
 				>
 					{isCentered && style && Icon ? (
@@ -148,6 +150,8 @@ export function AppModal({
 							style={{ flexShrink: 1 }}
 							contentContainerClassName="gap-4 px-6 pb-4 pt-4 md:px-7"
 							keyboardShouldPersistTaps="handled"
+							keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+							onScrollBeginDrag={() => Keyboard.dismiss()}
 						>
 							{children}
 						</ScrollView>

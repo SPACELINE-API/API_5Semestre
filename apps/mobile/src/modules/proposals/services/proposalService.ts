@@ -1,11 +1,16 @@
-import { Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
+import Constants from 'expo-constants';
+import { File, Paths } from 'expo-file-system';
+import * as LegacyFileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import {
 	apiGetAuth,
 	apiPostAuth,
-	apiPostAuthBlob,
 } from '../../../shared/services/apiClient';
+import { resolveNativeResourceUrl } from '../../../shared/utils/nativeResourceUrl';
 import type {
 	CompanyReportRequest,
+	CompanyReportFileResponse,
 	CompanyReportResponse,
 	ReportCompanyOption,
 	ReportFormat,
@@ -59,30 +64,36 @@ export function generateCompanyReport(
 export async function downloadCompanyReport(
 	request: CompanyReportRequest & { format: Exclude<ReportFormat, 'json'> },
 ): Promise<void> {
-	const blob = await apiPostAuthBlob(PROPOSAL_REPORT_PATH, request);
-	if (Platform.OS !== 'web') return;
-
-	const extension = request.format === 'xlsx' ? 'xlsx' : 'csv';
-	const mimeType =
-		request.format === 'xlsx'
-			? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-			: 'text/csv;charset=utf-8';
-	const downloadBlob = blob.type ? blob : new Blob([blob], { type: mimeType });
-	const url = URL.createObjectURL(downloadBlob);
-	const link = document.createElement('a');
-	link.href = url;
-	link.download = `relatorio-propostas.${extension}`;
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	URL.revokeObjectURL(url);
+	const report = await apiPostAuth<CompanyReportFileResponse, typeof request>(
+		PROPOSAL_REPORT_PATH,
+		request,
+	);
+	const reportUrl = resolveNativeResourceUrl(
+		report.url,
+		Constants.expoConfig?.hostUri,
+		Platform.OS,
+	);
+	if (Platform.OS === 'web') {
+		const frame = document.createElement('iframe');
+		frame.style.display = 'none';
+		frame.src = reportUrl;
+		document.body.appendChild(frame);
+		window.setTimeout(() => frame.remove(), 60_000);
+		return;
+	}
+	await Linking.openURL(reportUrl);
 }
 
-export function downloadJsonReport(report: CompanyReportResponse): void {
-	if (Platform.OS !== 'web') return;
+export async function downloadJsonReport(
+	report: CompanyReportResponse,
+): Promise<void> {
 	const blob = new Blob([JSON.stringify(report, null, 2)], {
 		type: 'application/json',
 	});
+	if (Platform.OS !== 'web') {
+		await shareReportBlob(blob, 'relatorio-propostas.json', 'application/json');
+		return;
+	}
 	const url = URL.createObjectURL(blob);
 	const link = document.createElement('a');
 	link.href = url;
@@ -91,6 +102,33 @@ export function downloadJsonReport(report: CompanyReportResponse): void {
 	link.click();
 	document.body.removeChild(link);
 	URL.revokeObjectURL(url);
+}
+
+async function shareReportBlob(blob: Blob, fileName: string, mimeType: string) {
+	await shareReportBuffer(await blob.arrayBuffer(), fileName, mimeType);
+}
+
+async function shareReportBuffer(
+	buffer: ArrayBuffer,
+	fileName: string,
+	mimeType: string,
+) {
+	if (Platform.OS === 'android') {
+		const file = new File(Paths.cache, `${Date.now()}-${fileName}`);
+		file.write(new Uint8Array(buffer));
+		const contentUri = await LegacyFileSystem.getContentUriAsync(file.uri);
+		await Linking.openURL(contentUri);
+		return;
+	}
+	if (!(await Sharing.isAvailableAsync())) {
+		throw new Error('O compartilhamento de arquivos não está disponível.');
+	}
+	const file = new File(Paths.cache, fileName);
+	file.write(new Uint8Array(buffer));
+	await Sharing.shareAsync(file.uri, {
+		mimeType,
+		dialogTitle: `Salvar ${fileName}`,
+	});
 }
 
 export { PAGE_SIZE as PROPOSAL_PAGE_SIZE };

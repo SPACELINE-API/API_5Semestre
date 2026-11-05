@@ -30,6 +30,7 @@ const FORMAT_OPTIONS = [
 
 function reportErrorMessage(error: unknown): string {
 	if (error instanceof ApiError) return error.message;
+	if (error instanceof Error && error.message) return error.message;
 	return 'Não foi possível gerar o relatório. Tente novamente.';
 }
 
@@ -146,7 +147,7 @@ export function CompanyReportModal({
 					...baseRequest,
 					format: 'json',
 				});
-				downloadJsonReport(report);
+				await downloadJsonReport(report);
 				resetReportForm();
 				onClose();
 			} else {
@@ -168,6 +169,7 @@ export function CompanyReportModal({
 		<AppModal
 			visible={visible}
 			title="Gerar relatório"
+			message={error ?? undefined}
 			cancelLabel="Cancelar"
 			confirmLabel="Gerar relatório"
 			size="md"
@@ -208,7 +210,12 @@ export function CompanyReportModal({
 					placeholderTextColor="#9CA3AF"
 					accessibilityLabel="Buscar empresa"
 					onFocus={() => setIsCompanyPickerOpen(true)}
-					className="h-10 rounded-lg border border-gray-300 px-3 font-inter text-gray-900 text-sm"
+					onPressIn={() => setIsCompanyPickerOpen(true)}
+					numberOfLines={1}
+					ellipsizeMode="tail"
+					textAlignVertical="center"
+					style={{ height: 44, lineHeight: 20, paddingVertical: 0 }}
+					className="w-full min-w-0 rounded-lg border border-gray-300 px-3 font-inter text-gray-900 text-sm"
 				/>
 
 				{isCompanyPickerOpen && (isLoadingCompanies ? (

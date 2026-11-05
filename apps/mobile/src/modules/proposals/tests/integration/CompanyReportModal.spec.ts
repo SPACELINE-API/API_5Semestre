@@ -106,12 +106,23 @@ test.describe('modal de relatório de propostas', () => {
 	});
 
 	test('baixa CSV com as empresas e período selecionados', async ({ page }) => {
-		await page.route('**/api/quotes/proposals/reports', (route) =>
+		await page.route('**/signed/relatorio-propostas.csv', (route) =>
 			route.fulfill({
 				status: 200,
 				contentType: 'text/csv; charset=utf-8',
 				headers: { 'Content-Disposition': 'attachment; filename=relatorio-propostas.csv' },
 				body: 'Empresa;Total\nEmpresa Alfa;1',
+			}),
+		);
+		await page.route('**/api/quotes/proposals/reports', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					url: 'http://127.0.0.1:5183/signed/relatorio-propostas.csv',
+					filename: 'relatorio-propostas.csv',
+					expires_in: 300,
+				}),
 			}),
 		);
 

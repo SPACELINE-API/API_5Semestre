@@ -55,3 +55,15 @@ export type CompanyReportResponse = {
 	empresas: CompanyReportCompany[];
 	total_empresas: number;
 };
+
+export type CompanyReportFileResponse = {
+	url: string;
+	filename: string;
+	expires_in: number;
+};
+
+export type CompanyReportFileResponse = {
+	url: string;
+	filename: string;
+	expires_in: number;
+};
