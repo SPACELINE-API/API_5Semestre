@@ -55,6 +55,27 @@ export async function request<TResponse>(path: string, init?: RequestInit) {
 	return response.json() as Promise<TResponse>;
 }
 
+export async function requestBlob(path: string, init?: RequestInit): Promise<Blob> {
+	let response: Response;
+	try {
+		response = await fetch(`${apiUrl}${path}`, {
+			...init,
+			headers: { 'Content-Type': 'application/json', ...init?.headers },
+		});
+	} catch {
+		throw new ApiError('Não foi possível conectar à API.', 'network');
+	}
+	if (!response.ok) {
+		const payload = await response.json().catch(() => null);
+		throw new ApiError(
+			extractErrorMessage(payload, response.status),
+			'http',
+			response.status,
+		);
+	}
+	return response.blob();
+}
+
 export function apiPost<TResponse, TBody>(path: string, body: TBody) {
 	return request<TResponse>(path, {
 		method: 'POST',
