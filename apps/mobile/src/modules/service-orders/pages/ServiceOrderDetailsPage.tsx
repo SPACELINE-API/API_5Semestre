@@ -30,19 +30,14 @@ import { TranslatorsInviteTab } from '../components/TranslatorsInviteTab';
 import { ItemReviewTab } from '../components/ItemReviewTab';
 import { canCompleteOrder, pendingReviewDeliveries } from '../utils/fileReview';
 import { InviteTranslatorsModal } from '../components/InviteTranslatorsModal';
-import { AddItemModal } from '../components/AddItemModal';
-import { EditItemModal } from '../components/EditItemModal';
 import {
 	approveServiceOrderFile,
-	createServiceOrderItem,
 	deleteServiceOrder,
 	deleteServiceOrderFile,
-	deleteServiceOrderItem,
 	deleteServiceOrderItemFile,
 	requestServiceOrderFileChanges,
 	sendItemInvites,
 	updateServiceOrder,
-	updateServiceOrderItem,
 	uploadServiceOrderFile,
 } from '../services/serviceOrderService';
 import { Toast } from '../../../shared/components/Toast';
@@ -51,13 +46,6 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import type { ServiceOrderItem } from '../types/serviceOrder';
 import { CompleteServiceOrderModal } from '../components/CompleteServiceOrderModal';
 import { AdditionalServicesTab } from '../components/AdditionalServicesTab';
-import { AdditionalServiceFormModal } from '../../quotes/components/AdditionalServiceFormModal';
-import {
-	createAdditionalService,
-	updateAdditionalService,
-	updateAdditionalServiceStatus,
-	type AdditionalService,
-} from '../../quotes/services/additionalService';
 
 type ServiceOrderDetailsPageProps = {
 	id: string;
@@ -78,19 +66,9 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const [inviteTargetItem, setInviteTargetItem] =
 		useState<ServiceOrderItem | null>(null);
 	const [refreshToken, setRefreshToken] = useState(0);
-	const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
-	const [isAdditionalServiceModalVisible, setIsAdditionalServiceModalVisible] =
-		useState(false);
-	const [editingAdditionalService, setEditingAdditionalService] =
-		useState<AdditionalService | null>(null);
-	const [editingItem, setEditingItem] = useState<ServiceOrderItem | null>(null);
-	const [deletingItem, setDeletingItem] = useState<ServiceOrderItem | null>(
-		null,
-	);
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 	const [isCompleteModalVisible, setIsCompleteModalVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
-	const [isDeletingItem, setIsDeletingItem] = useState(false);
 
 	const { invites: inviteTargetItemInvites } = useItemInvites(
 		inviteTargetItem?.id ?? '',
@@ -138,43 +116,6 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 			);
 			setIsDeleting(false);
 			setIsDeleteConfirmVisible(false);
-		}
-	}
-
-	async function handleCompleteAdditionalService(service: AdditionalService) {
-		try {
-			await updateAdditionalServiceStatus(service.id, 'approved');
-			showToast('Serviço adicional concluído com sucesso!', 'success');
-			setRefreshToken((current) => current + 1);
-		} catch (completeError) {
-			showToast(
-				completeError instanceof Error
-					? completeError.message
-					: 'Não foi possível concluir o serviço adicional.',
-				'error',
-			);
-			throw completeError;
-		}
-	}
-
-	async function handleDeleteItem() {
-		if (!serviceOrder || !deletingItem) return;
-
-		setIsDeletingItem(true);
-		try {
-			await deleteServiceOrderItem(serviceOrder.id, deletingItem.id);
-			setDeletingItem(null);
-			await refresh();
-			showToast('Item excluído com sucesso!', 'success');
-		} catch (deleteError) {
-			showToast(
-				deleteError instanceof Error
-					? deleteError.message
-					: 'Não foi possível excluir o item.',
-				'error',
-			);
-		} finally {
-			setIsDeletingItem(false);
 		}
 	}
 
@@ -332,9 +273,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 										<ItemsTable
 											items={serviceOrder.items}
 											translatorsById={translatorsById}
-											onAddItem={() => setIsAddItemModalVisible(true)}
-											onEditItem={setEditingItem}
-											onDeleteItem={setDeletingItem}
+											isInServiceOrder={true}
 										/>
 									)}
 
@@ -343,11 +282,6 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											services={additionalServices}
 											isLoading={isLoadingAdditionalServices}
 											error={additionalServicesError}
-											onAddService={() =>
-												setIsAdditionalServiceModalVisible(true)
-											}
-											onEditService={setEditingAdditionalService}
-											onCompleteService={handleCompleteAdditionalService}
 										/>
 									)}
 									{detailTab === 'revisao' && (
@@ -511,102 +445,6 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 				toast={inviteTargetItem ? toast : null}
 			/>
 
-			<AddItemModal
-				visible={isAddItemModalVisible}
-				onClose={() => setIsAddItemModalVisible(false)}
-				onSubmit={async (data, file) => {
-					if (!serviceOrder) return;
-
-					try {
-						await createServiceOrderItem(serviceOrder.id, data, file);
-						await refresh();
-						showToast('Item adicionado com sucesso!', 'success');
-					} catch (submitError) {
-						showToast(
-							submitError instanceof Error
-								? submitError.message
-								: 'Não foi possível adicionar o item.',
-							'error',
-						);
-						throw submitError;
-					}
-				}}
-			/>
-
-			<AdditionalServiceFormModal
-				visible={
-					isAdditionalServiceModalVisible || editingAdditionalService !== null
-				}
-				service={editingAdditionalService}
-				onClose={() => {
-					setIsAdditionalServiceModalVisible(false);
-					setEditingAdditionalService(null);
-				}}
-				onSubmit={async (data) => {
-					if (!serviceOrder) return;
-
-					try {
-						if (editingAdditionalService) {
-							await updateAdditionalService(editingAdditionalService.id, data);
-							showToast('Serviço adicional atualizado com sucesso!', 'success');
-						} else {
-							if (!serviceOrder.quote_id) {
-								showToast(
-									'Serviços adicionais exigem uma ordem vinculada a orçamento.',
-									'error',
-								);
-								return;
-							}
-							await createAdditionalService({
-								...data,
-								quote_id: serviceOrder.quote_id,
-							});
-							showToast('Serviço adicional cadastrado com sucesso!', 'success');
-						}
-						setRefreshToken((current) => current + 1);
-					} catch (submitError) {
-						showToast(
-							submitError instanceof Error
-								? submitError.message
-								: 'Não foi possível salvar o serviço adicional.',
-							'error',
-						);
-						throw submitError;
-					}
-				}}
-			/>
-
-			<EditItemModal
-				item={editingItem}
-				onClose={() => setEditingItem(null)}
-				onSubmit={async (itemId, data, file) => {
-					try {
-						await updateServiceOrderItem(itemId, data, file);
-						await refresh();
-						showToast('Item atualizado com sucesso!', 'success');
-					} catch (submitError) {
-						showToast(
-							submitError instanceof Error
-								? submitError.message
-								: 'Não foi possível salvar o item.',
-							'error',
-						);
-						throw submitError;
-					}
-				}}
-			/>
-
-			<ConfirmDialog
-				visible={deletingItem !== null}
-				title="Excluir item"
-				message={`Tem certeza que deseja excluir o item ${deletingItem?.source_language ?? ''} → ${deletingItem?.target_language ?? ''}? Essa ação não pode ser desfeita.`}
-				confirmLabel="Excluir"
-				destructive
-				isLoading={isDeletingItem}
-				onConfirm={handleDeleteItem}
-				onCancel={() => setDeletingItem(null)}
-			/>
-
 			<ConfirmDialog
 				visible={isDeleteConfirmVisible}
 				title="Excluir ordem de serviço"
@@ -638,17 +476,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 			)}
 
 			<Toast
-				toast={
-					inviteTargetItem ||
-					isAddItemModalVisible ||
-					isAdditionalServiceModalVisible ||
-					editingAdditionalService ||
-					editingItem ||
-					isDeleteConfirmVisible ||
-					deletingItem
-						? null
-						: toast
-				}
+				toast={inviteTargetItem || isDeleteConfirmVisible ? null : toast}
 			/>
 		</View>
 	);

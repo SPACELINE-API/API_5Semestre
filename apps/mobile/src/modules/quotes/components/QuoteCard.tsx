@@ -59,6 +59,24 @@ import {
 import { AdditionalServiceCard } from './AdditionalServiceCard';
 import { AdditionalServiceFormModal } from './AdditionalServiceFormModal';
 import { LanguageSelect } from './LanguageSelect';
+import {
+	createServiceOrderItem,
+	deleteServiceOrderItem,
+	getServiceOrder,
+	updateServiceOrderItem,
+} from '../../service-orders/services/serviceOrderService';
+import { listTranslators } from '../../service-orders/services/translatorService';
+import type {
+	CreateServiceOrderItemInput,
+	ServiceOrderItem,
+	Translator,
+	UpdateServiceOrderItemInput,
+} from '../../service-orders/types/serviceOrder';
+import type { UploadableFile } from '../../../shared/types/file';
+import { ItemsTable } from '../../service-orders/components/ItemsTable';
+import { AddItemModal } from '../../service-orders/components/AddItemModal';
+import { EditItemModal } from '../../service-orders/components/EditItemModal';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 
 const statusStyles: Record<string, { label: string; classes: string }> = {
 	approved: { label: 'Aprovado', classes: 'bg-emerald-50 text-emerald-700' },
@@ -421,6 +439,24 @@ export function QuoteCard({
 		DraftAdditionalService[]
 	>([]);
 
+	const [serviceOrderItems, setServiceOrderItems] = useState<
+		ServiceOrderItem[]
+	>([]);
+	const [serviceOrderItemsLoading, setServiceOrderItemsLoading] =
+		useState(false);
+	const [serviceOrderItemsError, setServiceOrderItemsError] = useState('');
+	const [translators, setTranslators] = useState<Translator[]>([]);
+	const [showAddItemModal, setShowAddItemModal] = useState(false);
+	const [editingItem, setEditingItem] = useState<ServiceOrderItem | null>(null);
+	const [deletingItem, setDeletingItem] = useState<ServiceOrderItem | null>(
+		null,
+	);
+	const [isDeletingItem, setIsDeletingItem] = useState(false);
+
+	const translatorsById = new Map(
+		translators.map((translator) => [translator.id, translator]),
+	);
+
 	useEffect(() => {
 		listCompanies()
 			.then(setCompanies)
@@ -451,6 +487,38 @@ export function QuoteCard({
 			active = false;
 		};
 	}, [expanded, quote.id]);
+
+	useEffect(() => {
+		if (!expanded || !quote.service_order_id) return;
+
+		let active = true;
+		setServiceOrderItemsLoading(true);
+		setServiceOrderItemsError('');
+		getServiceOrder(quote.service_order_id)
+			.then((serviceOrder) => {
+				if (active) setServiceOrderItems(serviceOrder.items);
+			})
+			.catch(() => {
+				if (active)
+					setServiceOrderItemsError(
+						'Não foi possível carregar os itens do orçamento.',
+					);
+			})
+			.finally(() => {
+				if (active) setServiceOrderItemsLoading(false);
+			});
+		listTranslators()
+			.then((data) => {
+				if (active) setTranslators(data);
+			})
+			.catch(() => {
+				if (active) setTranslators([]);
+			});
+
+		return () => {
+			active = false;
+		};
+	}, [expanded, quote.service_order_id]);
 
 	const status = statusStyles[quote.status.toLowerCase()] ?? {
 		label: quote.status,
@@ -565,6 +633,54 @@ export function QuoteCard({
 					: 'Não foi possível concluir o serviço adicional.',
 			);
 			throw error;
+		}
+	}
+
+	async function handleCreateServiceOrderItem(
+		data: CreateServiceOrderItemInput,
+		file: UploadableFile | null,
+	) {
+		if (!quote.service_order_id) return;
+
+		const item = await createServiceOrderItem(
+			quote.service_order_id,
+			data,
+			file,
+		);
+		setServiceOrderItems((current) => [...current, item]);
+	}
+
+	async function handleUpdateServiceOrderItem(
+		itemId: string,
+		data: UpdateServiceOrderItemInput,
+		file: UploadableFile | null,
+	) {
+		const updated = await updateServiceOrderItem(itemId, data, file);
+		setServiceOrderItems((current) =>
+			current.map((item) => (item.id === updated.id ? updated : item)),
+		);
+	}
+
+	async function handleDeleteServiceOrderItem() {
+		if (!quote.service_order_id || !deletingItem) return;
+
+		setIsDeletingItem(true);
+		setSaveError('');
+		try {
+			await deleteServiceOrderItem(quote.service_order_id, deletingItem.id);
+			setServiceOrderItems((current) =>
+				current.filter((item) => item.id !== deletingItem.id),
+			);
+			setDeletingItem(null);
+		} catch (error) {
+			setSaveError(
+				error instanceof Error
+					? error.message
+					: 'Não foi possível excluir o item.',
+			);
+			setDeletingItem(null);
+		} finally {
+			setIsDeletingItem(false);
 		}
 	}
 
@@ -1253,6 +1369,32 @@ export function QuoteCard({
 						</View>
 					</View>
 
+					{quote.service_order_id ? (
+						<View>
+							<SectionTitle>
+								Itens do orçamento ({serviceOrderItems.length})
+							</SectionTitle>
+							{serviceOrderItemsLoading ? (
+								<Text className="font-inter text-sm text-gray-500">
+									Carregando itens do orçamento...
+								</Text>
+							) : serviceOrderItemsError ? (
+								<Text className="font-inter text-sm text-red-700">
+									{serviceOrderItemsError}
+								</Text>
+							) : (
+								<ItemsTable
+									items={serviceOrderItems}
+									translatorsById={translatorsById}
+									onAddItem={() => setShowAddItemModal(true)}
+									onEditItem={setEditingItem}
+									onDeleteItem={setDeletingItem}
+									layout="cards"
+								/>
+							)}
+						</View>
+					) : null}
+
 					{isEditing ? (
 						<View className="flex-row flex-wrap gap-3 border-t border-gray-100 pt-4">
 							<TouchableOpacity
@@ -1322,6 +1464,29 @@ export function QuoteCard({
 				visible={showAdditionalServiceModal}
 				onClose={() => setShowAdditionalServiceModal(false)}
 				onSubmit={handleCreateAdditionalService}
+			/>
+
+			<AddItemModal
+				visible={showAddItemModal}
+				onClose={() => setShowAddItemModal(false)}
+				onSubmit={handleCreateServiceOrderItem}
+			/>
+
+			<EditItemModal
+				item={editingItem}
+				onClose={() => setEditingItem(null)}
+				onSubmit={handleUpdateServiceOrderItem}
+			/>
+
+			<ConfirmDialog
+				visible={deletingItem !== null}
+				title="Excluir item"
+				message={`Tem certeza que deseja excluir o item ${deletingItem?.source_language ?? ''} → ${deletingItem?.target_language ?? ''}? Essa ação não pode ser desfeita.`}
+				confirmLabel="Excluir"
+				destructive
+				isLoading={isDeletingItem}
+				onConfirm={() => void handleDeleteServiceOrderItem()}
+				onCancel={() => setDeletingItem(null)}
 			/>
 
 			<CompanyFormModal
