@@ -118,7 +118,10 @@ export function SelectField({
 						top: rect.top + 4,
 						left: rect.left,
 						width: rect.width,
-						maxHeight: searchable ? 290 : 240,
+						maxHeight: Math.max(
+							120,
+							window.innerHeight - rect.top - 16,
+						),
 						zIndex: 9999,
 						boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
 					}}
