@@ -35,11 +35,17 @@ function HeaderCell({ label, width }: { label: string; width: `${number}%` }) {
 	);
 }
 
-function AddItemButton({ onPress }: { onPress: () => void }) {
+function AddItemButton({
+	onPress,
+	layout = 'table',
+}: {
+	onPress: () => void;
+	layout?: 'table' | 'cards';
+}) {
 	const isDesktop = useIsDesktop();
 	const canWriteServiceOrders = usePermission('service_orders.write');
 
-	if (!isDesktop) {
+	if (!isDesktop && layout === 'table') {
 		return (
 			<TouchableOpacity
 				onPress={onPress}
@@ -202,7 +208,9 @@ export function ItemsTable({
 				<Text className="font-inter text-sm text-gray-500">
 					Este orçamento ainda não possui itens.
 				</Text>
-				{!isInServiceOrder && <AddItemButton onPress={onAddItem!} />}
+				{!isInServiceOrder && (
+					<AddItemButton onPress={onAddItem!} layout={layout} />
+				)}
 			</View>
 		);
 	}
@@ -220,7 +228,9 @@ export function ItemsTable({
 					</Text>
 				</View>
 
-				{!isInServiceOrder && <AddItemButton onPress={onAddItem!} />}
+				{!isInServiceOrder && (
+					<AddItemButton onPress={onAddItem!} layout={layout} />
+				)}
 			</View>
 		);
 	}
@@ -243,14 +253,18 @@ export function ItemsTable({
 						/>
 					);
 				})}
-				{!isInServiceOrder && <AddItemButton onPress={onAddItem!} />}
+				{!isInServiceOrder && (
+					<AddItemButton onPress={onAddItem!} layout={layout} />
+				)}
 			</View>
 		);
 	}
 
 	return (
 		<View className="gap-4 bg-white">
-			{!isInServiceOrder && <AddItemButton onPress={onAddItem!} />}
+			{!isInServiceOrder && (
+				<AddItemButton onPress={onAddItem!} layout={layout} />
+			)}
 
 			<View className="hidden h-11 flex-row items-center border-b border-gray-200 md:flex">
 				<HeaderCell label="Idiomas" width="16%" />
