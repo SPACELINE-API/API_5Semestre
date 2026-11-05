@@ -9,18 +9,24 @@ from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemCreate,
     QuoteTranslationItemUpdate,
 )
+from app.modules.quotes.services.quote_lock import ensure_quote_is_editable
 
 
 class TranslationItemService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_item(
-        self, quote_id: uuid.UUID, item_data: QuoteTranslationItemCreate
-    ) -> QuoteTranslationItem:
+    def _get_quote(self, quote_id: uuid.UUID) -> Quote:
         quote = self.db.query(Quote).filter(Quote.id == quote_id).first()
         if not quote:
             raise HTTPException(status_code=404, detail="Quote not found")
+        return quote
+
+    def create_item(
+        self, quote_id: uuid.UUID, item_data: QuoteTranslationItemCreate
+    ) -> QuoteTranslationItem:
+        quote = self._get_quote(quote_id)
+        ensure_quote_is_editable(quote)
 
         item = QuoteTranslationItem(
             quote_id=quote_id,
@@ -36,9 +42,7 @@ class TranslationItemService:
         return item
 
     def list_items(self, quote_id: uuid.UUID) -> list[QuoteTranslationItem]:
-        quote = self.db.query(Quote).filter(Quote.id == quote_id).first()
-        if not quote:
-            raise HTTPException(status_code=404, detail="Quote not found")
+        self._get_quote(quote_id)
 
         return (
             self.db.query(QuoteTranslationItem)
@@ -52,6 +56,7 @@ class TranslationItemService:
         item_id: uuid.UUID,
         item_data: QuoteTranslationItemUpdate,
     ) -> QuoteTranslationItem:
+        ensure_quote_is_editable(self._get_quote(quote_id))
         item = (
             self.db.query(QuoteTranslationItem)
             .filter(
@@ -71,6 +76,7 @@ class TranslationItemService:
         return item
 
     def delete_item(self, quote_id: uuid.UUID, item_id: uuid.UUID) -> None:
+        ensure_quote_is_editable(self._get_quote(quote_id))
         item = (
             self.db.query(QuoteTranslationItem)
             .filter(

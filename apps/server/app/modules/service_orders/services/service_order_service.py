@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.modules.clients.models.company import Company
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
+from app.modules.quotes.services.quote_lock import ensure_service_order_items_are_editable
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
 from app.modules.service_orders.models.service_order_file import (
@@ -345,7 +346,8 @@ class ServiceOrderService:
         self.db.commit()
 
     def delete_item(self, service_order_id: uuid.UUID, item_id: uuid.UUID) -> None:
-        self._get_service_order_or_404(service_order_id)
+        service_order = self._get_service_order_or_404(service_order_id)
+        ensure_service_order_items_are_editable(service_order)
         item = (
             self.db.query(ServiceOrderItem)
             .filter(
@@ -406,6 +408,7 @@ class ServiceOrderService:
         content_type: str | None = None,
     ) -> ServiceOrderItemResponse:
         service_order = self._get_service_order_or_404(service_order_id)
+        ensure_service_order_items_are_editable(service_order)
 
         file_url = None
         if file_data is not None and filename is not None and content_type is not None:
@@ -438,6 +441,7 @@ class ServiceOrderService:
         item = self.db.query(ServiceOrderItem).filter(ServiceOrderItem.id == item_id).first()
         if not item:
             raise HTTPException(status_code=404, detail="Item da ordem de serviço não encontrado")
+        ensure_service_order_items_are_editable(item.service_order)
 
         if not data.source_language or not data.target_language:
             raise HTTPException(

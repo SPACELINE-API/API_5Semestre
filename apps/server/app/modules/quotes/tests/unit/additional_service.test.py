@@ -4,10 +4,11 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
+from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
-from app.modules.quotes.models import AdditionalService
+from app.modules.quotes.models import AdditionalService, Quote
 from app.modules.quotes.schemas.additional_service import (
     AdditionalServiceCreate,
     AdditionalServiceResponse,
@@ -216,7 +217,7 @@ def test_update_additional_service_changes_only_sent_fields(
     service: AdditionalServiceService,
 ):
     additional_service = AdditionalService(
-        quote_id=uuid4(),
+        quote=Quote(status="pending"),
         description="Tradução de documento secundário",
         price=Decimal("150.00"),
         status="pending",
@@ -237,7 +238,7 @@ def test_update_additional_service_changes_description_and_price(
     service: AdditionalServiceService,
 ):
     additional_service = AdditionalService(
-        quote_id=uuid4(),
+        quote=Quote(status="pending"),
         description="Tradução de documento secundário",
         price=Decimal("150.00"),
         status="pending",
@@ -265,7 +266,7 @@ def test_update_additional_service_fails_when_not_found(service: AdditionalServi
 
 def test_update_additional_service_rejects_completed_service(service: AdditionalServiceService):
     additional_service = AdditionalService(
-        quote_id=uuid4(),
+        quote=Quote(status="pending"),
         description="Tradução de documento secundário",
         price=Decimal("150.00"),
         status="approved",
@@ -337,7 +338,7 @@ def test_update_additional_service_status_marks_as_completed(
     service: AdditionalServiceService,
 ):
     additional_service = AdditionalService(
-        quote_id=uuid4(),
+        quote=Quote(status="pending"),
         description="Tradução de documento secundário",
         price=Decimal("150.00"),
         status="pending",
@@ -366,3 +367,66 @@ def test_update_additional_service_status_fails_when_not_found(
         )
 
     service.repository.update_additional_service.assert_not_called()
+
+
+def approved_additional_service(service: AdditionalServiceService) -> MagicMock:
+    additional_service = MagicMock(quote=MagicMock(status="approved"), status="pending")
+    service.repository.get_additional_service_by_id.return_value = additional_service
+    return additional_service
+
+
+def test_create_additional_service_rejects_approved_quote(service: AdditionalServiceService):
+    service.quote_repository.get_by_id.return_value = MagicMock(status="approved")
+    payload = AdditionalServiceCreate(
+        quote_id=uuid4(),
+        description="Tradução de documento secundário",
+        price=Decimal("150.00"),
+    )
+
+    with pytest.raises(HTTPException) as error:
+        service.create_additional_service(payload)
+
+    assert error.value.status_code == 409
+    service.repository.create_additional_service.assert_not_called()
+
+
+def test_update_additional_service_rejects_approved_quote(service: AdditionalServiceService):
+    approved_additional_service(service)
+
+    with pytest.raises(HTTPException) as error:
+        service.update_additional_service(uuid4(), AdditionalServiceUpdate(price=Decimal("80.00")))
+
+    assert error.value.status_code == 409
+    service.repository.update_additional_service.assert_not_called()
+
+
+def test_update_additional_service_status_rejects_approved_quote(
+    service: AdditionalServiceService,
+):
+    additional_service = approved_additional_service(service)
+
+    with pytest.raises(HTTPException) as error:
+        service.update_additional_service_status(
+            uuid4(), AdditionalServiceStatusUpdate(status="approved")
+        )
+
+    assert error.value.status_code == 409
+    assert additional_service.status == "pending"
+    service.repository.update_additional_service.assert_not_called()
+
+
+def test_delete_additional_service_rejects_approved_quote(service: AdditionalServiceService):
+    approved_additional_service(service)
+
+    with pytest.raises(HTTPException) as error:
+        service.delete_additional_service(uuid4())
+
+    assert error.value.status_code == 409
+    service.repository.delete_additional_service.assert_not_called()
+
+
+def test_list_additional_services_works_for_approved_quote(service: AdditionalServiceService):
+    service.quote_repository.get_by_id.return_value = MagicMock(status="approved")
+    service.repository.list_additional_services_by_quote.return_value = []
+
+    assert service.list_additional_services(uuid4()) == []

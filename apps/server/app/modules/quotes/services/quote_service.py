@@ -13,6 +13,7 @@ from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.repositories.quote_repository import QuoteRepository
 from app.modules.quotes.repositories.request_repository import RequestRepository
 from app.modules.quotes.schemas.quote import QuoteCreate, QuoteStatusUpdate, QuoteUpdate
+from app.modules.quotes.services.quote_lock import ensure_quote_is_editable
 from app.modules.quotes.services.receipt_service import QuoteReceiptService
 from app.modules.quotes.services.storage import upload_quote_document
 from app.modules.service_orders.models.service_order import ServiceOrder
@@ -43,6 +44,7 @@ class QuoteService:
         quote = self.db.query(Quote).filter(Quote.id == quote_id).first()
         if quote is None:
             raise HTTPException(status_code=404, detail="Orçamento não encontrado.")
+        ensure_quote_is_editable(quote)
 
         update_data = data.model_dump(exclude_unset=True)
         company_id = update_data.get("company_id", quote.company_id)
