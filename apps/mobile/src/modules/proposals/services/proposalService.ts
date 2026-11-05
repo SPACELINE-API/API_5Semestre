@@ -7,6 +7,7 @@ import {
 import type {
 	CompanyReportRequest,
 	CompanyReportResponse,
+	ReportCompanyOption,
 	ReportFormat,
 } from '../types/report';
 import type { ProposalPage, ProposalFilters } from '../types/proposal';
@@ -15,9 +16,17 @@ const PROPOSALS_PATH = '/api/quotes/proposals';
 const PAGE_SIZE = 10;
 const PROPOSAL_COMPANIES_PATH = '/api/quotes/proposals/companies';
 const PROPOSAL_REPORT_PATH = '/api/quotes/proposals/reports';
+const REPORT_COMPANIES_PATH = '/api/clients';
 
 export function listProposalCompanies(): Promise<string[]> {
 	return apiGetAuth<string[]>(PROPOSAL_COMPANIES_PATH);
+}
+
+export async function listReportCompanies(): Promise<ReportCompanyOption[]> {
+	const companies = await apiGetAuth<
+		Array<{ id: string; trade_name: string }>
+	>(REPORT_COMPANIES_PATH);
+	return companies.map(({ id, trade_name }) => ({ id, trade_name }));
 }
 
 export function listProposals(filters: ProposalFilters): Promise<ProposalPage> {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { CompanyReportModal } from '../components/CompanyReportModal';
 import { ProposalCharts } from '../components/ProposalCharts';
 import { ProposalDetailModal } from '../components/ProposalDetailModal';
 import { ProposalFilters } from '../components/ProposalFilters';
@@ -85,6 +86,7 @@ export function ProposalsPage() {
 	const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(
 		null,
 	);
+	const [isReportModalVisible, setIsReportModalVisible] = useState(false);
 	const { result, isLoading, error, refresh } = useProposals(filters);
 	const hasFocusedBefore = useRef(false);
 	const refreshProposals = useRef(refresh);
@@ -135,13 +137,26 @@ export function ProposalsPage() {
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
 			>
-				<View className="mb-7 border-b border-gray-200 pb-6">
-					<Text className="font-inter font-bold text-gray-950 text-2xl">
-						Propostas comerciais
-					</Text>
-					<Text className="mt-2 font-inter text-gray-500 text-sm">
-						Acompanhe propostas por empresa, período, cliente, valor e situação.
-					</Text>
+				<View className="mb-7 flex-row flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-6">
+					<View className="min-w-[220px] flex-1">
+						<Text className="font-inter font-bold text-gray-950 text-2xl">
+							Propostas comerciais
+						</Text>
+						<Text className="mt-2 font-inter text-gray-500 text-sm">
+							Acompanhe propostas por empresa, período, cliente, valor e situação.
+						</Text>
+					</View>
+					<TouchableOpacity
+						onPress={() => setIsReportModalVisible(true)}
+						activeOpacity={0.8}
+						accessibilityRole="button"
+						accessibilityLabel="Gerar relatório"
+						className="shrink-0 rounded-lg bg-blue-600 px-4 py-3"
+					>
+						<Text className="font-inter font-semibold text-sm text-white">
+							Gerar relatório
+						</Text>
+					</TouchableOpacity>
 				</View>
 
 				<View className="gap-5">
@@ -207,6 +222,10 @@ export function ProposalsPage() {
 						`/orcamento?quoteId=${encodeURIComponent(proposal.id)}` as never,
 					);
 				}}
+			/>
+			<CompanyReportModal
+				visible={isReportModalVisible}
+				onClose={() => setIsReportModalVisible(false)}
 			/>
 		</View>
 	);
