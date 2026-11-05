@@ -105,6 +105,11 @@ class QuoteService:
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                         detail="Adicione ao menos um documento ao orçamento antes de aprová-lo.",
                     )
+                if any(not (item.file_url or "").strip() for item in quote.items):
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="Anexe o arquivo de todos os documentos antes de aprovar o orçamento.",
+                    )
 
                 project_name = (quote.customer_need or "").strip()
                 if not project_name:

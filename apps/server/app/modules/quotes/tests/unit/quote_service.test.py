@@ -219,3 +219,50 @@ def test_update_status_reproved_does_not_create_receipt(mock_db_session, monkeyp
     )
 
     receipt_cls.assert_not_called()
+
+
+def pending_quote_without_service_order(mock_db_session, file_urls):
+    items = [MagicMock(file_url=file_url) for file_url in file_urls]
+    quote = MagicMock(
+        id=uuid.uuid4(),
+        status="pending",
+        service_orders=[],
+        company_id=uuid.uuid4(),
+        items=items,
+    )
+    query = mock_db_session.query.return_value.filter.return_value.with_for_update.return_value
+    query.first.return_value = quote
+    return quote
+
+
+@pytest.mark.parametrize(
+    "file_urls",
+    [[None], ["   "], ["https://storage.test/contrato.pdf", None]],
+)
+def test_update_status_rejects_approval_with_document_without_file(mock_db_session, file_urls):
+    quote = pending_quote_without_service_order(mock_db_session, file_urls)
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).update_status(
+            quote.id, QuoteStatusUpdate(status="approved"), user
+        )
+
+    assert error.value.status_code == 422
+    assert (
+        error.value.detail == "Anexe o arquivo de todos os documentos antes de aprovar o orçamento."
+    )
+    assert quote.status == "pending"
+    mock_db_session.commit.assert_not_called()
+
+
+def test_update_status_reproval_does_not_require_document_file(mock_db_session, monkeypatch):
+    quote = pending_quote_without_service_order(mock_db_session, [None])
+    monkeypatch.setattr(quote_service_module, "QuoteReceiptService", MagicMock())
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    result = QuoteService(mock_db_session).update_status(
+        quote.id, QuoteStatusUpdate(status="reproved", reproval_reason="Sem arquivo"), user
+    )
+
+    assert result.status == "reproved"
