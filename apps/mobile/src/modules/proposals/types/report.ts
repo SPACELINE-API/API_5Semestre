@@ -2,7 +2,7 @@ export type ReportSelection = 'selected' | 'all';
 
 export type ReportGranularity = 'days' | 'months' | 'years';
 
-export type ReportFormat = 'json' | 'csv' | 'xlsx';
+export type ReportFormat = 'csv' | 'xlsx';
 
 export type ReportCompanyOption = {
 	id: string;
@@ -46,20 +46,6 @@ export type CompanyReportCompany = {
 	datas_reprovacao_propostas: string[];
 	total_ordens_servico: number;
 	ordens_servico: CompanyReportOrder[];
-};
-
-export type CompanyReportResponse = {
-	periodo_inicio: string;
-	periodo_fim: string;
-	granularidade: ReportGranularity;
-	empresas: CompanyReportCompany[];
-	total_empresas: number;
-};
-
-export type CompanyReportFileResponse = {
-	url: string;
-	filename: string;
-	expires_in: number;
 };
 
 export type CompanyReportFileResponse = {

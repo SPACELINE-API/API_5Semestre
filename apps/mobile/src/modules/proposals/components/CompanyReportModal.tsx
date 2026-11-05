@@ -7,8 +7,6 @@ import { SelectField } from '../../../shared/components/SelectField';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import {
 	downloadCompanyReport,
-	downloadJsonReport,
-	generateCompanyReport,
 	listReportCompanies,
 } from '../services/proposalService';
 import type {
@@ -23,7 +21,6 @@ const GRANULARITY_OPTIONS = [
 ];
 
 const FORMAT_OPTIONS = [
-	{ value: 'json', label: 'Visualizar relatório' },
 	{ value: 'csv', label: 'CSV' },
 	{ value: 'xlsx', label: 'Excel' },
 ];
@@ -50,7 +47,7 @@ export function CompanyReportModal({
 	const [endDate, setEndDate] = useState('');
 	const [openDate, setOpenDate] = useState<'start' | 'end' | null>(null);
 	const [granularity, setGranularity] = useState<'days' | 'months' | 'years'>('months');
-	const [format, setFormat] = useState<ReportFormat>('json');
+	const [format, setFormat] = useState<ReportFormat>('xlsx');
 	const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -91,7 +88,7 @@ export function CompanyReportModal({
 		setEndDate('');
 		setOpenDate(null);
 		setGranularity('months');
-		setFormat('json');
+		setFormat('xlsx');
 		setError(null);
 		setSuccess(null);
 	}
@@ -142,22 +139,9 @@ export function CompanyReportModal({
 				granularity,
 			};
 
-			if (format === 'json') {
-				const report = await generateCompanyReport({
-					...baseRequest,
-					format: 'json',
-				});
-				await downloadJsonReport(report);
-				resetReportForm();
-				onClose();
-			} else {
-				await downloadCompanyReport({
-					...baseRequest,
-					format,
-				});
-				resetReportForm();
-				onClose();
-			}
+			await downloadCompanyReport({ ...baseRequest, format });
+			resetReportForm();
+			onClose();
 		} catch (cause) {
 			setError(reportErrorMessage(cause));
 		} finally {

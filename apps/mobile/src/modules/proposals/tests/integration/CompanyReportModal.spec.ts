@@ -82,11 +82,9 @@ test.describe('modal de relatório de propostas', () => {
 				status: 200,
 				contentType: 'application/json',
 				body: JSON.stringify({
-					periodo_inicio: '2026-01-01',
-					periodo_fim: '2026-01-02',
-					granularidade: 'days',
-					empresas: [],
-					total_empresas: 0,
+					url: 'http://127.0.0.1:5183/signed/relatorio-propostas.xlsx',
+					filename: 'relatorio-propostas.xlsx',
+					expires_in: 300,
 				}),
 			});
 		});

@@ -1,8 +1,5 @@
 import { Linking, Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { File, Paths } from 'expo-file-system';
-import * as LegacyFileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
 import {
 	apiGetAuth,
 	apiPostAuth,
@@ -11,7 +8,6 @@ import { resolveNativeResourceUrl } from '../../../shared/utils/nativeResourceUr
 import type {
 	CompanyReportRequest,
 	CompanyReportFileResponse,
-	CompanyReportResponse,
 	ReportCompanyOption,
 	ReportFormat,
 } from '../types/report';
@@ -52,17 +48,8 @@ export function listProposals(filters: ProposalFilters): Promise<ProposalPage> {
 	return apiGetAuth<ProposalPage>(`${PROPOSALS_PATH}?${query.toString()}`);
 }
 
-export function generateCompanyReport(
-	request: CompanyReportRequest & { format: 'json' },
-): Promise<CompanyReportResponse> {
-	return apiPostAuth<CompanyReportResponse, typeof request>(
-		PROPOSAL_REPORT_PATH,
-		request,
-	);
-}
-
 export async function downloadCompanyReport(
-	request: CompanyReportRequest & { format: Exclude<ReportFormat, 'json'> },
+	request: CompanyReportRequest,
 ): Promise<void> {
 	const report = await apiPostAuth<CompanyReportFileResponse, typeof request>(
 		PROPOSAL_REPORT_PATH,
@@ -82,53 +69,6 @@ export async function downloadCompanyReport(
 		return;
 	}
 	await Linking.openURL(reportUrl);
-}
-
-export async function downloadJsonReport(
-	report: CompanyReportResponse,
-): Promise<void> {
-	const blob = new Blob([JSON.stringify(report, null, 2)], {
-		type: 'application/json',
-	});
-	if (Platform.OS !== 'web') {
-		await shareReportBlob(blob, 'relatorio-propostas.json', 'application/json');
-		return;
-	}
-	const url = URL.createObjectURL(blob);
-	const link = document.createElement('a');
-	link.href = url;
-	link.download = 'relatorio-propostas.json';
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	URL.revokeObjectURL(url);
-}
-
-async function shareReportBlob(blob: Blob, fileName: string, mimeType: string) {
-	await shareReportBuffer(await blob.arrayBuffer(), fileName, mimeType);
-}
-
-async function shareReportBuffer(
-	buffer: ArrayBuffer,
-	fileName: string,
-	mimeType: string,
-) {
-	if (Platform.OS === 'android') {
-		const file = new File(Paths.cache, `${Date.now()}-${fileName}`);
-		file.write(new Uint8Array(buffer));
-		const contentUri = await LegacyFileSystem.getContentUriAsync(file.uri);
-		await Linking.openURL(contentUri);
-		return;
-	}
-	if (!(await Sharing.isAvailableAsync())) {
-		throw new Error('O compartilhamento de arquivos não está disponível.');
-	}
-	const file = new File(Paths.cache, fileName);
-	file.write(new Uint8Array(buffer));
-	await Sharing.shareAsync(file.uri, {
-		mimeType,
-		dialogTitle: `Salvar ${fileName}`,
-	});
 }
 
 export { PAGE_SIZE as PROPOSAL_PAGE_SIZE };

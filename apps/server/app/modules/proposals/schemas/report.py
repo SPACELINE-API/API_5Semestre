@@ -6,7 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 ReportGranularity = Literal["days", "months", "years"]
-ReportFormat = Literal["json", "csv", "xlsx"]
+ReportFormat = Literal["csv", "xlsx"]
 CompanySelection = Literal["selected", "all"]
 
 
@@ -18,7 +18,7 @@ class CompanyReportRequest(BaseModel):
     start_date: date
     end_date: date
     granularity: ReportGranularity = "months"
-    format: ReportFormat = "json"
+    format: ReportFormat = "xlsx"
 
     @model_validator(mode="after")
     def validate_period(self) -> "CompanyReportRequest":

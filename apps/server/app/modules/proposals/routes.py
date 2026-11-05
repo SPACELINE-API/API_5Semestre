@@ -1,9 +1,5 @@
 from datetime import date
-from io import BytesIO
-from typing import Literal
-
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import require_permission
@@ -11,14 +7,12 @@ from app.modules.proposals.schemas.proposal import ProposalListResponse
 from app.modules.proposals.schemas.report import (
     CompanyReportFileResponse,
     CompanyReportRequest,
-    CompanyReportResponse,
 )
 from app.modules.proposals.services.company_report_service import CompanyReportService
 from app.modules.proposals.services.proposal_service import ProposalService
 from app.modules.proposals.services.report_exporter import (
     build_csv,
     build_xlsx,
-    to_portuguese_payload,
 )
 from app.modules.proposals.services.report_storage import REPORT_URL_EXPIRES_IN, upload_report
 from app.shared.database import get_db
@@ -71,20 +65,13 @@ def list_proposals(
 @router.post("/reports", response_model=None)
 def generate_company_report(
     report_request: CompanyReportRequest,
-    delivery: Literal["url", "bytes"] = Query(default="url"),
     _user=Depends(proposals_read_permission),
     db: Session = Depends(get_db),
-) -> CompanyReportResponse | CompanyReportFileResponse | StreamingResponse | JSONResponse:
+) -> CompanyReportFileResponse:
     report = CompanyReportService(db).generate(report_request)
     if report_request.format == "csv":
         filename = "relatorio-propostas.csv"
         content = build_csv(report)
-        if delivery == "bytes":
-            return StreamingResponse(
-                BytesIO(content),
-                media_type="text/csv; charset=utf-8",
-                headers={"Content-Disposition": f"attachment; filename={filename}"},
-            )
         return CompanyReportFileResponse(
             url=upload_report(content, filename, "text/csv; charset=utf-8"),
             filename=filename,
@@ -93,12 +80,6 @@ def generate_company_report(
     if report_request.format == "xlsx":
         filename = "relatorio-propostas.xlsx"
         content = build_xlsx(report)
-        if delivery == "bytes":
-            return StreamingResponse(
-                BytesIO(content),
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                headers={"Content-Disposition": f"attachment; filename={filename}"},
-            )
         return CompanyReportFileResponse(
             url=upload_report(
                 content,
@@ -108,4 +89,3 @@ def generate_company_report(
             filename=filename,
             expires_in=REPORT_URL_EXPIRES_IN,
         )
-    return JSONResponse(content=to_portuguese_payload(report))

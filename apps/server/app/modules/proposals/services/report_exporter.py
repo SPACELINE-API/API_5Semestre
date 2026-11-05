@@ -244,10 +244,6 @@ def _translate_dict(values: dict[str, Any]) -> dict[str, Any]:
     return translated
 
 
-def to_portuguese_payload(report: CompanyReportResponse) -> dict[str, Any]:
-    return _translate_dict(report.model_dump(mode="json"))
-
-
 def build_csv(report: CompanyReportResponse) -> bytes:
     output = io.StringIO(newline="")
     writer = csv.DictWriter(

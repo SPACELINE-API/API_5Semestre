@@ -79,7 +79,7 @@ def create_company(db, *, with_data: bool = True) -> Company:
     return company
 
 
-def report_payload(company_id: uuid.UUID, report_format: str = "json") -> dict:
+def report_payload(company_id: uuid.UUID, report_format: str = "csv") -> dict:
     return {
         "company_ids": [str(company_id)],
         "start_date": "2026-01-01",
@@ -87,20 +87,6 @@ def report_payload(company_id: uuid.UUID, report_format: str = "json") -> dict:
         "granularity": "months",
         "format": report_format,
     }
-
-
-def test_report_route_returns_json_from_temporary_database(report_client) -> None:
-    client, db = report_client
-    company = create_company(db)
-
-    response = client.post(REPORT_URL, json=report_payload(company.id))
-
-    assert response.status_code == 200
-    body = response.json()
-    assert body["total_empresas"] == 1
-    assert body["empresas"][0]["empresa_id"] == str(company.id)
-    assert body["empresas"][0]["total_requisicoes"] == 1
-    assert body["empresas"][0]["total_propostas"] == 1
 
 
 def test_report_route_returns_csv_from_temporary_database(report_client) -> None:
