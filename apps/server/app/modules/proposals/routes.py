@@ -1,5 +1,6 @@
 from datetime import date
 from io import BytesIO
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -7,7 +8,11 @@ from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import require_permission
 from app.modules.proposals.schemas.proposal import ProposalListResponse
-from app.modules.proposals.schemas.report import CompanyReportRequest, CompanyReportResponse
+from app.modules.proposals.schemas.report import (
+    CompanyReportFileResponse,
+    CompanyReportRequest,
+    CompanyReportResponse,
+)
 from app.modules.proposals.services.company_report_service import CompanyReportService
 from app.modules.proposals.services.proposal_service import ProposalService
 from app.modules.proposals.services.report_exporter import (
@@ -15,6 +20,7 @@ from app.modules.proposals.services.report_exporter import (
     build_xlsx,
     to_portuguese_payload,
 )
+from app.modules.proposals.services.report_storage import REPORT_URL_EXPIRES_IN, upload_report
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/quotes/proposals", tags=["proposals"])
@@ -65,20 +71,41 @@ def list_proposals(
 @router.post("/reports", response_model=None)
 def generate_company_report(
     report_request: CompanyReportRequest,
+    delivery: Literal["url", "bytes"] = Query(default="url"),
     _user=Depends(proposals_read_permission),
     db: Session = Depends(get_db),
-) -> CompanyReportResponse | StreamingResponse | JSONResponse:
+) -> CompanyReportResponse | CompanyReportFileResponse | StreamingResponse | JSONResponse:
     report = CompanyReportService(db).generate(report_request)
     if report_request.format == "csv":
-        return StreamingResponse(
-            BytesIO(build_csv(report)),
-            media_type="text/csv; charset=utf-8",
-            headers={"Content-Disposition": "attachment; filename=relatorio-propostas.csv"},
+        filename = "relatorio-propostas.csv"
+        content = build_csv(report)
+        if delivery == "bytes":
+            return StreamingResponse(
+                BytesIO(content),
+                media_type="text/csv; charset=utf-8",
+                headers={"Content-Disposition": f"attachment; filename={filename}"},
+            )
+        return CompanyReportFileResponse(
+            url=upload_report(content, filename, "text/csv; charset=utf-8"),
+            filename=filename,
+            expires_in=REPORT_URL_EXPIRES_IN,
         )
     if report_request.format == "xlsx":
-        return StreamingResponse(
-            BytesIO(build_xlsx(report)),
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": "attachment; filename=relatorio-propostas.xlsx"},
+        filename = "relatorio-propostas.xlsx"
+        content = build_xlsx(report)
+        if delivery == "bytes":
+            return StreamingResponse(
+                BytesIO(content),
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": f"attachment; filename={filename}"},
+            )
+        return CompanyReportFileResponse(
+            url=upload_report(
+                content,
+                filename,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ),
+            filename=filename,
+            expires_in=REPORT_URL_EXPIRES_IN,
         )
     return JSONResponse(content=to_portuguese_payload(report))

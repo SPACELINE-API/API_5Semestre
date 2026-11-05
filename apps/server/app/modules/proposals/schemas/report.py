@@ -113,3 +113,9 @@ class CompanyReportResponse(BaseModel):
     granularity: ReportGranularity
     companies: list[CompanyReportCompany]
     total_companies: int
+
+
+class CompanyReportFileResponse(BaseModel):
+    url: str
+    filename: str
+    expires_in: int
