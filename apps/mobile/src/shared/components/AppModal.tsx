@@ -150,7 +150,9 @@ export function AppModal({
 							style={{ flexShrink: 1 }}
 							contentContainerClassName="gap-4 px-6 pb-4 pt-4 md:px-7"
 							keyboardShouldPersistTaps="handled"
-							keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+							keyboardDismissMode={
+								Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+							}
 							onScrollBeginDrag={() => Keyboard.dismiss()}
 						>
 							{children}

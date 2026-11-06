@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+	ActivityIndicator,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import { Check, X } from 'lucide-react-native';
 import { AppModal } from '../../../shared/components/AppModal';
 import { DateField } from '../../../shared/components/DateField';
@@ -9,10 +15,7 @@ import {
 	downloadCompanyReport,
 	listReportCompanies,
 } from '../services/proposalService';
-import type {
-	ReportCompanyOption,
-	ReportFormat,
-} from '../types/report';
+import type { ReportCompanyOption, ReportFormat } from '../types/report';
 
 const GRANULARITY_OPTIONS = [
 	{ value: 'days', label: 'Dias' },
@@ -46,7 +49,9 @@ export function CompanyReportModal({
 	const [startDate, setStartDate] = useState('');
 	const [endDate, setEndDate] = useState('');
 	const [openDate, setOpenDate] = useState<'start' | 'end' | null>(null);
-	const [granularity, setGranularity] = useState<'days' | 'months' | 'years'>('months');
+	const [granularity, setGranularity] = useState<'days' | 'months' | 'years'>(
+		'months',
+	);
 	const [format, setFormat] = useState<ReportFormat>('xlsx');
 	const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
 	const [isGenerating, setIsGenerating] = useState(false);
@@ -76,7 +81,9 @@ export function CompanyReportModal({
 		);
 	}, [companies, search]);
 
-	const selectedCompanies = companies.filter((company) => selectedIds.includes(company.id));
+	const selectedCompanies = companies.filter((company) =>
+		selectedIds.includes(company.id),
+	);
 	const selectedCount = selectAll ? companies.length : selectedIds.length;
 
 	function resetReportForm() {
@@ -164,7 +171,9 @@ export function CompanyReportModal({
 		>
 			<View className="gap-4">
 				<View className="gap-1">
-					<Text className="font-inter font-semibold text-gray-800 text-sm">Empresas</Text>
+					<Text className="font-inter font-semibold text-gray-800 text-sm">
+						Empresas
+					</Text>
 					<Text className="font-inter text-gray-500 text-xs">
 						{selectedCount} empresa(s) selecionada(s)
 					</Text>
@@ -176,10 +185,14 @@ export function CompanyReportModal({
 					accessibilityState={{ checked: selectAll }}
 					className={`flex-row items-center gap-2 rounded-lg border px-3 py-2.5 ${selectAll ? 'border-blue-200 bg-blue-50' : 'border-transparent bg-transparent'}`}
 				>
-					<View className={`h-5 w-5 items-center justify-center rounded border ${selectAll ? 'border-blue-600 bg-blue-600' : 'border-gray-400 bg-white'}`}>
+					<View
+						className={`h-5 w-5 items-center justify-center rounded border ${selectAll ? 'border-blue-600 bg-blue-600' : 'border-gray-400 bg-white'}`}
+					>
 						{selectAll && <Check size={14} color="#FFFFFF" />}
 					</View>
-					<Text className={`font-inter font-medium text-sm ${selectAll ? 'text-blue-800' : 'text-gray-800'}`}>
+					<Text
+						className={`font-inter font-medium text-sm ${selectAll ? 'text-blue-800' : 'text-gray-800'}`}
+					>
 						Selecionar todas as empresas
 					</Text>
 				</TouchableOpacity>
@@ -202,37 +215,49 @@ export function CompanyReportModal({
 					className="w-full min-w-0 rounded-lg border border-gray-300 px-3 font-inter text-gray-900 text-sm"
 				/>
 
-				{isCompanyPickerOpen && (isLoadingCompanies ? (
-					<View className="items-center py-4"><ActivityIndicator color="#1C6FB0" /></View>
-				) : (
-					<View className="max-h-44 gap-1 overflow-hidden rounded-lg border border-gray-200 p-1">
-						{visibleCompanies.length === 0 ? (
-							<Text className="p-3 font-inter text-gray-500 text-sm">Nenhuma empresa encontrada.</Text>
-						) : (
-							visibleCompanies.map((company) => {
-								const isSelected = selectedIds.includes(company.id);
-								return (
-									<TouchableOpacity
-										key={company.id}
-										onPress={() => toggleCompany(company.id)}
-										accessibilityRole="checkbox"
-										accessibilityState={{ checked: isSelected }}
-										className="flex-row items-center justify-between rounded-md px-2 py-2 hover:bg-gray-50"
-									>
-										<Text className="flex-1 font-inter text-gray-800 text-sm">{company.trade_name}</Text>
-										{isSelected && <Check size={17} color="#1C6FB0" />}
-									</TouchableOpacity>
-								);
-							})
-						)}
-					</View>
-				))}
+				{isCompanyPickerOpen &&
+					(isLoadingCompanies ? (
+						<View className="items-center py-4">
+							<ActivityIndicator color="#1C6FB0" />
+						</View>
+					) : (
+						<View className="max-h-44 gap-1 overflow-hidden rounded-lg border border-gray-200 p-1">
+							{visibleCompanies.length === 0 ? (
+								<Text className="p-3 font-inter text-gray-500 text-sm">
+									Nenhuma empresa encontrada.
+								</Text>
+							) : (
+								visibleCompanies.map((company) => {
+									const isSelected = selectedIds.includes(company.id);
+									return (
+										<TouchableOpacity
+											key={company.id}
+											onPress={() => toggleCompany(company.id)}
+											accessibilityRole="checkbox"
+											accessibilityState={{ checked: isSelected }}
+											className="flex-row items-center justify-between rounded-md px-2 py-2 hover:bg-gray-50"
+										>
+											<Text className="flex-1 font-inter text-gray-800 text-sm">
+												{company.trade_name}
+											</Text>
+											{isSelected && <Check size={17} color="#1C6FB0" />}
+										</TouchableOpacity>
+									);
+								})
+							)}
+						</View>
+					))}
 
 				{selectedCompanies.length > 0 && !selectAll && (
 					<View className="flex-row flex-wrap gap-2">
 						{selectedCompanies.map((company) => (
-							<View key={company.id} className="flex-row items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1.5">
-								<Text className="font-inter text-blue-800 text-xs">{company.trade_name}</Text>
+							<View
+								key={company.id}
+								className="flex-row items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1.5"
+							>
+								<Text className="font-inter text-blue-800 text-xs">
+									{company.trade_name}
+								</Text>
 								<TouchableOpacity
 									accessibilityRole="button"
 									accessibilityLabel={`Remover ${company.trade_name}`}
@@ -245,10 +270,16 @@ export function CompanyReportModal({
 					</View>
 				)}
 
-				<View className="flex-col gap-3 md:flex-row" style={{ zIndex: openDate ? 20 : 1 }}>
+				<View
+					className="flex-col gap-3 md:flex-row"
+					style={{ zIndex: openDate ? 20 : 1 }}
+				>
 					<View
 						className="min-w-0 flex-1"
-						style={{ position: 'relative', zIndex: openDate === 'start' ? 30 : 1 }}
+						style={{
+							position: 'relative',
+							zIndex: openDate === 'start' ? 30 : 1,
+						}}
 					>
 						<DateField
 							label="Data inicial"
@@ -261,7 +292,10 @@ export function CompanyReportModal({
 					</View>
 					<View
 						className="min-w-0 flex-1"
-						style={{ position: 'relative', zIndex: openDate === 'end' ? 30 : 1 }}
+						style={{
+							position: 'relative',
+							zIndex: openDate === 'end' ? 30 : 1,
+						}}
 					>
 						<DateField
 							label="Data final"
@@ -292,8 +326,16 @@ export function CompanyReportModal({
 					onChange={(value) => setFormat(value as ReportFormat)}
 				/>
 
-				{error && <Text className="rounded-lg bg-red-50 p-3 font-inter text-red-700 text-sm">{error}</Text>}
-				{success && <Text className="rounded-lg bg-green-50 p-3 font-inter text-green-700 text-sm">{success}</Text>}
+				{error && (
+					<Text className="rounded-lg bg-red-50 p-3 font-inter text-red-700 text-sm">
+						{error}
+					</Text>
+				)}
+				{success && (
+					<Text className="rounded-lg bg-green-50 p-3 font-inter text-green-700 text-sm">
+						{success}
+					</Text>
+				)}
 			</View>
 		</AppModal>
 	);

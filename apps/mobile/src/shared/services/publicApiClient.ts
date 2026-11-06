@@ -55,7 +55,10 @@ export async function request<TResponse>(path: string, init?: RequestInit) {
 	return response.json() as Promise<TResponse>;
 }
 
-export async function requestBlob(path: string, init?: RequestInit): Promise<Blob> {
+export async function requestBlob(
+	path: string,
+	init?: RequestInit,
+): Promise<Blob> {
 	let response: Response;
 	try {
 		response = await fetch(`${apiUrl}${path}`, {

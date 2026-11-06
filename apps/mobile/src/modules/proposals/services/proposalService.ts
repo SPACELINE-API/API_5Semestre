@@ -1,9 +1,6 @@
 import { Linking, Platform } from 'react-native';
 import Constants from 'expo-constants';
-import {
-	apiGetAuth,
-	apiPostAuth,
-} from '../../../shared/services/apiClient';
+import { apiGetAuth, apiPostAuth } from '../../../shared/services/apiClient';
 import { resolveNativeResourceUrl } from '../../../shared/utils/nativeResourceUrl';
 import type {
 	CompanyReportRequest,
@@ -23,9 +20,9 @@ export function listProposalCompanies(): Promise<string[]> {
 }
 
 export async function listReportCompanies(): Promise<ReportCompanyOption[]> {
-	const companies = await apiGetAuth<
-		Array<{ id: string; trade_name: string }>
-	>(REPORT_COMPANIES_PATH);
+	const companies = await apiGetAuth<Array<{ id: string; trade_name: string }>>(
+		REPORT_COMPANIES_PATH,
+	);
 	return companies.map(({ id, trade_name }) => ({ id, trade_name }));
 }
 

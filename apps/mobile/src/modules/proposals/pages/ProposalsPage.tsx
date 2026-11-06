@@ -143,7 +143,8 @@ export function ProposalsPage() {
 							Propostas comerciais
 						</Text>
 						<Text className="mt-2 font-inter text-gray-500 text-sm">
-							Acompanhe propostas por empresa, período, cliente, valor e situação.
+							Acompanhe propostas por empresa, período, cliente, valor e
+							situação.
 						</Text>
 					</View>
 					<TouchableOpacity
