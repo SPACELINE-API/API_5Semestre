@@ -171,7 +171,7 @@ export function TranslatorsPage() {
 									Filtros
 								</Text>
 								{statusFilter !== 'all' && (
-					<View className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+									<View className="h-1.5 w-1.5 rounded-full bg-blue-600" />
 								)}
 							</TouchableOpacity>
 						</View>

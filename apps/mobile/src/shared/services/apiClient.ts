@@ -50,7 +50,10 @@ async function authenticatedBlobRequest(path: string, init?: RequestInit) {
 	}
 }
 
-async function authenticatedArrayBufferRequest(path: string, init?: RequestInit) {
+async function authenticatedArrayBufferRequest(
+	path: string,
+	init?: RequestInit,
+) {
 	try {
 		return await requestArrayBuffer(path, {
 			...init,

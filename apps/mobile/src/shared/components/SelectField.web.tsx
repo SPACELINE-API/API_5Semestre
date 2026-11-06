@@ -62,7 +62,10 @@ export function SelectField({
 		measure();
 		function handleScroll(event: Event) {
 			const target = event.target;
-			if (target instanceof Element && target.closest('.select-field-dropdown')) {
+			if (
+				target instanceof Element &&
+				target.closest('.select-field-dropdown')
+			) {
 				return;
 			}
 			close();
@@ -73,7 +76,10 @@ export function SelectField({
 			const target = event.target;
 			if (!(target instanceof Element)) return;
 			const trigger = triggerRef.current as unknown as HTMLElement | null;
-			if (trigger?.contains(target) || target.closest('.select-field-dropdown')) {
+			if (
+				trigger?.contains(target) ||
+				target.closest('.select-field-dropdown')
+			) {
 				return;
 			}
 			close();
@@ -118,10 +124,7 @@ export function SelectField({
 						top: rect.top + 4,
 						left: rect.left,
 						width: rect.width,
-						maxHeight: Math.max(
-							120,
-							window.innerHeight - rect.top - 16,
-						),
+						maxHeight: Math.max(120, window.innerHeight - rect.top - 16),
 						zIndex: 9999,
 						boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
 					}}

@@ -16,7 +16,9 @@ const companies = [
 
 async function openReportModal(page: Page) {
 	await page.getByRole('button', { name: 'Gerar relatório' }).click();
-	await expect(page.getByRole('heading', { name: 'Gerar relatório' })).toBeVisible();
+	await expect(
+		page.getByRole('heading', { name: 'Gerar relatório' }),
+	).toBeVisible();
 }
 
 async function chooseDate(page: Page, label: string) {
@@ -45,7 +47,11 @@ test.describe('modal de relatório de propostas', () => {
 			}),
 		);
 		await page.route('**/api/quotes/proposals/companies', (route) =>
-			route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: '[]',
+			}),
 		);
 		await page.route('**/api/clients', (route) =>
 			route.fulfill({
@@ -64,19 +70,27 @@ test.describe('modal de relatório de propostas', () => {
 		await page.goto('/propostas');
 	});
 
-	test('seleciona uma empresa e valida o período obrigatório', async ({ page }) => {
+	test('seleciona uma empresa e valida o período obrigatório', async ({
+		page,
+	}) => {
 		await openReportModal(page);
 		await page.getByRole('textbox', { name: 'Buscar empresa' }).click();
 		await page.getByText('Empresa Alfa', { exact: true }).click();
-		await expect(page.getByText('Empresa Alfa', { exact: true })).toHaveCount(1);
+		await expect(page.getByText('Empresa Alfa', { exact: true })).toHaveCount(
+			1,
+		);
 
 		await page.getByRole('button', { name: 'Gerar relatório' }).last().click();
 		await expect(
-			page.getByText('Informe o período inicial e final.', { exact: true }).last(),
+			page
+				.getByText('Informe o período inicial e final.', { exact: true })
+				.last(),
 		).toBeVisible();
 	});
 
-	test('seleciona todas as empresas e envia a seleção correta', async ({ page }) => {
+	test('seleciona todas as empresas e envia a seleção correta', async ({
+		page,
+	}) => {
 		let requestBody: Record<string, unknown> | undefined;
 		await page.route('**/api/quotes/proposals/reports', async (route) => {
 			requestBody = route.request().postDataJSON() as Record<string, unknown>;
@@ -92,16 +106,20 @@ test.describe('modal de relatório de propostas', () => {
 		});
 
 		await openReportModal(page);
-		await page.getByRole('checkbox', { name: 'Selecionar todas as empresas' }).click();
+		await page
+			.getByRole('checkbox', { name: 'Selecionar todas as empresas' })
+			.click();
 		await chooseDate(page, 'Data inicial');
 		await chooseDate(page, 'Data final');
 		await page.getByRole('button', { name: 'Gerar relatório' }).last().click();
 
-		await expect.poll(() => requestBody).toMatchObject({
-			selection: 'all',
-			start_date: expect.any(String),
-			end_date: expect.any(String),
-		});
+		await expect
+			.poll(() => requestBody)
+			.toMatchObject({
+				selection: 'all',
+				start_date: expect.any(String),
+				end_date: expect.any(String),
+			});
 		expect(requestBody).not.toHaveProperty('company_ids');
 	});
 
@@ -110,7 +128,9 @@ test.describe('modal de relatório de propostas', () => {
 			route.fulfill({
 				status: 200,
 				contentType: 'text/csv; charset=utf-8',
-				headers: { 'Content-Disposition': 'attachment; filename=relatorio-propostas.csv' },
+				headers: {
+					'Content-Disposition': 'attachment; filename=relatorio-propostas.csv',
+				},
 				body: 'Empresa;Total\nEmpresa Alfa;1',
 			}),
 		);

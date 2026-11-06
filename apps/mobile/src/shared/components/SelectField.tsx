@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+	ScrollView,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import { Check, ChevronDown, Search } from 'lucide-react-native';
 
 export type SelectOption = { value: string; label: string };
@@ -69,50 +75,50 @@ export function SelectField({
 
 			{isOpen && (
 				<View className="overflow-hidden rounded-lg border border-gray-200 bg-white pb-2 shadow-lg">
-						{searchable && (
-							<View className="mx-3 mt-3 flex-row items-center gap-2 rounded-lg border border-gray-300 px-3">
-								<Search size={14} color="#9CA3AF" />
-								<TextInput
-									value={query}
-									onChangeText={setQuery}
-									placeholder="Pesquisar"
-									placeholderTextColor="#9CA3AF"
-									accessibilityLabel={`Pesquisar ${label}`}
-									className="h-10 flex-1 font-inter text-gray-900 text-sm"
-								/>
-							</View>
+					{searchable && (
+						<View className="mx-3 mt-3 flex-row items-center gap-2 rounded-lg border border-gray-300 px-3">
+							<Search size={14} color="#9CA3AF" />
+							<TextInput
+								value={query}
+								onChangeText={setQuery}
+								placeholder="Pesquisar"
+								placeholderTextColor="#9CA3AF"
+								accessibilityLabel={`Pesquisar ${label}`}
+								className="h-10 flex-1 font-inter text-gray-900 text-sm"
+							/>
+						</View>
+					)}
+					<ScrollView
+						className="px-4"
+						style={{ maxHeight: 300 }}
+						keyboardShouldPersistTaps="handled"
+					>
+						{visibleOptions.length === 0 && (
+							<Text className="py-3 font-inter text-gray-400 text-sm">
+								Nenhum resultado.
+							</Text>
 						)}
-						<ScrollView
-							className="px-4"
-							style={{ maxHeight: 300 }}
-							keyboardShouldPersistTaps="handled"
-						>
-							{visibleOptions.length === 0 && (
-								<Text className="py-3 font-inter text-gray-400 text-sm">
-									Nenhum resultado.
-								</Text>
-							)}
-							{visibleOptions.map((option) => {
-								const isSelected = option.value === value;
+						{visibleOptions.map((option) => {
+							const isSelected = option.value === value;
 
-								return (
-									<TouchableOpacity
-										key={option.value || 'all'}
-										onPress={() => select(option.value)}
-										activeOpacity={0.7}
-										className="flex-row items-center justify-between border-b border-gray-100 py-3"
+							return (
+								<TouchableOpacity
+									key={option.value || 'all'}
+									onPress={() => select(option.value)}
+									activeOpacity={0.7}
+									className="flex-row items-center justify-between border-b border-gray-100 py-3"
+								>
+									<Text
+										className={`flex-1 font-inter text-sm ${isSelected ? 'font-semibold text-blue-600' : 'text-gray-800'}`}
 									>
-										<Text
-											className={`flex-1 font-inter text-sm ${isSelected ? 'font-semibold text-blue-600' : 'text-gray-800'}`}
-										>
-											{option.label}
-										</Text>
-										{isSelected && <Check size={16} color="#1C6FB0" />}
-									</TouchableOpacity>
-								);
-							})}
-						</ScrollView>
-					</View>
+										{option.label}
+									</Text>
+									{isSelected && <Check size={16} color="#1C6FB0" />}
+								</TouchableOpacity>
+							);
+						})}
+					</ScrollView>
+				</View>
 			)}
 		</View>
 	);
