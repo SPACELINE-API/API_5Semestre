@@ -5,10 +5,12 @@ import io
 import re
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import Any, cast
 
-from openpyxl import Workbook  # type: ignore[import-untyped]
-from openpyxl.styles import Font  # type: ignore[import-untyped]
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
 
 from app.modules.proposals.schemas.report import CompanyReportCompany, CompanyReportResponse
 
@@ -244,10 +246,6 @@ def _translate_dict(values: dict[str, Any]) -> dict[str, Any]:
     return translated
 
 
-def to_portuguese_payload(report: CompanyReportResponse) -> dict[str, Any]:
-    return _translate_dict(report.model_dump(mode="json"))
-
-
 def build_csv(report: CompanyReportResponse) -> bytes:
     output = io.StringIO(newline="")
     writer = csv.DictWriter(
@@ -269,7 +267,7 @@ def build_csv(report: CompanyReportResponse) -> bytes:
 
 def build_xlsx(report: CompanyReportResponse) -> bytes:
     workbook = Workbook()
-    worksheet = workbook.active
+    worksheet = cast(Worksheet, workbook.active)
     worksheet.title = "Empresas"
     worksheet.append(list(CSV_HEADERS))
 
@@ -282,9 +280,15 @@ def build_xlsx(report: CompanyReportResponse) -> bytes:
 
     worksheet.freeze_panes = "A2"
     worksheet.auto_filter.ref = worksheet.dimensions
-    for column_cells in worksheet.columns:
-        width = max(len(str(cell.value or "")) for cell in column_cells)
-        worksheet.column_dimensions[column_cells[0].column_letter].width = min(width + 2, 60)
+    for column_index in range(1, worksheet.max_column + 1):
+        width = max(
+            len(str(worksheet.cell(row=row_index, column=column_index).value or ""))
+            for row_index in range(1, worksheet.max_row + 1)
+        )
+        worksheet.column_dimensions[get_column_letter(column_index)].width = min(
+            width + 2,
+            60,
+        )
 
     output = io.BytesIO()
     workbook.save(output)

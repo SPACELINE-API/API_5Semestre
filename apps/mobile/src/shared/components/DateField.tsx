@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Platform, View, Text, TouchableOpacity } from 'react-native';
+import { Keyboard, Platform, View, Text, TouchableOpacity } from 'react-native';
 import DateTimePicker, {
 	type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
@@ -246,6 +246,7 @@ export function DateField({
 	}, [isPickerVisible, updatePickerVisibility]);
 
 	function openCalendar() {
+		Keyboard.dismiss();
 		updatePickerVisibility(!isPickerVisible);
 	}
 

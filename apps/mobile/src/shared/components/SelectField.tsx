@@ -1,14 +1,12 @@
 import { useMemo, useState } from 'react';
 import {
-	Modal,
-	Pressable,
 	ScrollView,
 	Text,
 	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { Check, ChevronDown, Search, X } from 'lucide-react-native';
+import { Check, ChevronDown, Search } from 'lucide-react-native';
 
 export type SelectOption = { value: string; label: string };
 
@@ -55,12 +53,12 @@ export function SelectField({
 	}
 
 	return (
-		<View className="gap-1.5">
+		<View className="gap-1.5" style={{ zIndex: isOpen ? 50 : 1 }}>
 			<Text className="font-inter font-semibold text-gray-800 text-xs">
 				{label}
 			</Text>
 			<TouchableOpacity
-				onPress={() => setIsOpen(true)}
+				onPress={() => setIsOpen((current) => !current)}
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityLabel={label}
@@ -75,69 +73,53 @@ export function SelectField({
 				<ChevronDown size={16} color="#6B7280" />
 			</TouchableOpacity>
 
-			<Modal
-				visible={isOpen}
-				transparent
-				animationType="fade"
-				onRequestClose={close}
-			>
-				<View className="flex-1 items-center justify-center px-4">
-					<Pressable
-						className="absolute inset-0 bg-black/40"
-						onPress={close}
-						accessibilityLabel={`Fechar ${label}`}
-					/>
-					<View className="max-h-[80%] w-full max-w-[400px] overflow-hidden rounded-xl bg-white pb-2">
-						<View className="flex-row items-center justify-between border-b border-gray-300 p-4">
-							<Text className="font-inter font-bold text-gray-900 text-lg">
-								{label}
-							</Text>
-							<TouchableOpacity onPress={close}>
-								<X size={20} color="#5A5A5A" />
-							</TouchableOpacity>
+			{isOpen && (
+				<View className="overflow-hidden rounded-lg border border-gray-200 bg-white pb-2 shadow-lg">
+					{searchable && (
+						<View className="mx-3 mt-3 flex-row items-center gap-2 rounded-lg border border-gray-300 px-3">
+							<Search size={14} color="#9CA3AF" />
+							<TextInput
+								value={query}
+								onChangeText={setQuery}
+								placeholder="Pesquisar"
+								placeholderTextColor="#9CA3AF"
+								accessibilityLabel={`Pesquisar ${label}`}
+								className="h-10 flex-1 font-inter text-gray-900 text-sm"
+							/>
 						</View>
-						{searchable && (
-							<View className="mx-4 mt-3 flex-row items-center gap-2 rounded-lg border border-gray-300 px-3">
-								<Search size={14} color="#9CA3AF" />
-								<TextInput
-									value={query}
-									onChangeText={setQuery}
-									placeholder="Pesquisar"
-									placeholderTextColor="#9CA3AF"
-									accessibilityLabel={`Pesquisar ${label}`}
-									className="h-10 flex-1 font-inter text-gray-900 text-sm"
-								/>
-							</View>
+					)}
+					<ScrollView
+						className="px-4"
+						style={{ maxHeight: 300 }}
+						keyboardShouldPersistTaps="handled"
+					>
+						{visibleOptions.length === 0 && (
+							<Text className="py-3 font-inter text-gray-400 text-sm">
+								Nenhum resultado.
+							</Text>
 						)}
-						<ScrollView className="px-4" keyboardShouldPersistTaps="handled">
-							{visibleOptions.length === 0 && (
-								<Text className="py-3 font-inter text-gray-400 text-sm">
-									Nenhum resultado.
-								</Text>
-							)}
-							{visibleOptions.map((option) => {
-								const isSelected = option.value === value;
+						{visibleOptions.map((option) => {
+							const isSelected = option.value === value;
 
-								return (
-									<TouchableOpacity
-										key={option.value || 'all'}
-										onPress={() => select(option.value)}
-										activeOpacity={0.7}
-										className="flex-row items-center justify-between border-b border-gray-100 py-3"
+							return (
+								<TouchableOpacity
+									key={option.value || 'all'}
+									onPress={() => select(option.value)}
+									activeOpacity={0.7}
+									className="flex-row items-center justify-between border-b border-gray-100 py-3"
+								>
+									<Text
+										className={`flex-1 font-inter text-sm ${isSelected ? 'font-semibold text-blue-600' : 'text-gray-800'}`}
 									>
-										<Text
-											className={`flex-1 font-inter text-sm ${isSelected ? 'font-semibold text-blue-600' : 'text-gray-800'}`}
-										>
-											{option.label}
-										</Text>
-										{isSelected && <Check size={16} color="#1C6FB0" />}
-									</TouchableOpacity>
-								);
-							})}
-						</ScrollView>
-					</View>
+										{option.label}
+									</Text>
+									{isSelected && <Check size={16} color="#1C6FB0" />}
+								</TouchableOpacity>
+							);
+						})}
+					</ScrollView>
 				</View>
-			</Modal>
+			)}
 		</View>
 	);
 }

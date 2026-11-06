@@ -1,10 +1,8 @@
 import uuid
 from datetime import UTC, date, datetime
-from io import BytesIO
 
 import pytest
 from fastapi.testclient import TestClient
-from openpyxl import load_workbook
 
 from app.main import app
 from app.modules.clients.models.company import Company
@@ -17,9 +15,13 @@ REPORT_URL = "/api/quotes/proposals/reports"
 
 
 @pytest.fixture
-def report_client(isolated_db_session):
+def report_client(isolated_db_session, monkeypatch):
     app.dependency_overrides[get_db] = lambda: isolated_db_session
     app.dependency_overrides[proposals_read_permission] = lambda: object()
+    monkeypatch.setattr(
+        "app.modules.proposals.routes.upload_report",
+        lambda content, filename, content_type: f"https://storage.example/signed/{filename}",
+    )
     with TestClient(app) as client:
         yield client, isolated_db_session
     app.dependency_overrides.clear()
@@ -78,7 +80,7 @@ def create_company(db, *, with_data: bool = True) -> Company:
     return company
 
 
-def report_payload(company_id: uuid.UUID, report_format: str = "json") -> dict:
+def report_payload(company_id: uuid.UUID, report_format: str = "csv") -> dict:
     return {
         "company_ids": [str(company_id)],
         "start_date": "2026-01-01",
@@ -88,20 +90,6 @@ def report_payload(company_id: uuid.UUID, report_format: str = "json") -> dict:
     }
 
 
-def test_report_route_returns_json_from_temporary_database(report_client) -> None:
-    client, db = report_client
-    company = create_company(db)
-
-    response = client.post(REPORT_URL, json=report_payload(company.id))
-
-    assert response.status_code == 200
-    body = response.json()
-    assert body["total_empresas"] == 1
-    assert body["empresas"][0]["empresa_id"] == str(company.id)
-    assert body["empresas"][0]["total_requisicoes"] == 1
-    assert body["empresas"][0]["total_propostas"] == 1
-
-
 def test_report_route_returns_csv_from_temporary_database(report_client) -> None:
     client, db = report_client
     company = create_company(db)
@@ -109,9 +97,9 @@ def test_report_route_returns_csv_from_temporary_database(report_client) -> None
     response = client.post(REPORT_URL, json=report_payload(company.id, "csv"))
 
     assert response.status_code == 200
-    assert response.headers["content-type"].startswith("text/csv")
-    assert "attachment" in response.headers["content-disposition"]
-    assert company.trade_name in response.content.decode("utf-8-sig")
+    body = response.json()
+    assert body["filename"] == "relatorio-propostas.csv"
+    assert body["url"].endswith("relatorio-propostas.csv")
 
 
 def test_report_route_returns_excel_from_temporary_database(report_client) -> None:
@@ -121,9 +109,9 @@ def test_report_route_returns_excel_from_temporary_database(report_client) -> No
     response = client.post(REPORT_URL, json=report_payload(company.id, "xlsx"))
 
     assert response.status_code == 200
-    workbook = load_workbook(BytesIO(response.content), read_only=True)
-    assert workbook.sheetnames == ["Empresas"]
-    assert workbook["Empresas"].max_row == 2
+    body = response.json()
+    assert body["filename"] == "relatorio-propostas.xlsx"
+    assert body["url"].endswith("relatorio-propostas.xlsx")
 
 
 def test_report_route_rejects_inverted_period(report_client) -> None:
@@ -159,5 +147,5 @@ def test_report_route_supports_all_companies(report_client) -> None:
 
     assert response.status_code == 200
     body = response.json()
-    assert body["total_empresas"] == 1
-    assert body["empresas"][0]["empresa_id"] == str(company_with_data.id)
+    assert body["filename"] == "relatorio-propostas.csv"
+    assert body["url"].endswith("relatorio-propostas.csv")
