@@ -209,7 +209,6 @@ export function CompanyReportModal({
 					onFocus={() => setIsCompanyPickerOpen(true)}
 					onPressIn={() => setIsCompanyPickerOpen(true)}
 					numberOfLines={1}
-					ellipsizeMode="tail"
 					textAlignVertical="center"
 					style={{ height: 44, lineHeight: 20, paddingVertical: 0 }}
 					className="w-full min-w-0 rounded-lg border border-gray-300 px-3 font-inter text-gray-900 text-sm"
