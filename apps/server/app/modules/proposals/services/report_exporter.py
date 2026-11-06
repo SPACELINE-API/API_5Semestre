@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import csv
 import io
-from typing import cast
 import re
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import Any, cast
 
 from openpyxl import Workbook
 from openpyxl.styles import Font
