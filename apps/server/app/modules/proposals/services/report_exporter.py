@@ -7,8 +7,8 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from openpyxl import Workbook  
-from openpyxl.styles import Font  
+from openpyxl import Workbook
+from openpyxl.styles import Font
 
 from app.modules.proposals.schemas.report import CompanyReportCompany, CompanyReportResponse
 
