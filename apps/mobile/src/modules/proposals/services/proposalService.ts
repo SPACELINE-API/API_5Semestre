@@ -9,7 +9,6 @@ import type {
 	CompanyReportRequest,
 	CompanyReportFileResponse,
 	ReportCompanyOption,
-	ReportFormat,
 } from '../types/report';
 import type { ProposalPage, ProposalFilters } from '../types/proposal';
 
