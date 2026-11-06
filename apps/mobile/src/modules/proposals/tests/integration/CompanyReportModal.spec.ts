@@ -71,7 +71,9 @@ test.describe('modal de relatório de propostas', () => {
 		await expect(page.getByText('Empresa Alfa', { exact: true })).toHaveCount(1);
 
 		await page.getByRole('button', { name: 'Gerar relatório' }).last().click();
-		await expect(page.getByText('Informe o período inicial e final.')).toBeVisible();
+		await expect(
+			page.getByText('Informe o período inicial e final.', { exact: true }).last(),
+		).toBeVisible();
 	});
 
 	test('seleciona todas as empresas e envia a seleção correta', async ({ page }) => {

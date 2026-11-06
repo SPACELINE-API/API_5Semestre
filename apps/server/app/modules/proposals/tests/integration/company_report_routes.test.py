@@ -146,5 +146,5 @@ def test_report_route_supports_all_companies(report_client) -> None:
 
     assert response.status_code == 200
     body = response.json()
-    assert body["total_empresas"] == 1
-    assert body["empresas"][0]["empresa_id"] == str(company_with_data.id)
+    assert body["filename"] == "relatorio-propostas.csv"
+    assert body["url"].endswith("relatorio-propostas.csv")
