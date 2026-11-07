@@ -79,6 +79,4 @@ def test_rejects_timeout_that_is_not_integer(minutes: object) -> None:
     with pytest.raises(ValidationError) as error:
         InactivityTimeoutUpdate(minutes=minutes)
 
-    assert "O tempo limite de inatividade deve ser um número inteiro de minutos" in str(
-        error.value
-    )
+    assert "O tempo limite de inatividade deve ser um número inteiro de minutos" in str(error.value)
