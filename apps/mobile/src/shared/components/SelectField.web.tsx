@@ -78,6 +78,7 @@ export function SelectField({
 			const trigger = triggerRef.current as unknown as HTMLElement | null;
 			if (
 				trigger?.contains(target) ||
+				target.closest('.select-field-trigger') ||
 				target.closest('.select-field-dropdown')
 			) {
 				return;
@@ -189,7 +190,7 @@ export function SelectField({
 				accessibilityRole="button"
 				accessibilityLabel={label}
 				accessibilityState={{ expanded: isOpen }}
-				className="h-10 flex-row items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3"
+				className="select-field-trigger h-10 flex-row items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3"
 			>
 				<Text
 					className={`flex-1 font-inter text-sm ${selected ? 'text-gray-900' : 'text-gray-500'}`}

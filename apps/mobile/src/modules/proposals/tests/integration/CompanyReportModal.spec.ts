@@ -26,6 +26,11 @@ async function chooseDate(page: Page, label: string) {
 	await page.getByRole('button', { name: 'Hoje' }).click();
 }
 
+async function chooseOption(page: Page, label: string, option: string) {
+	await page.getByRole('button', { name: label }).click();
+	await page.getByText(option, { exact: true }).click();
+}
+
 test.describe('modal de relatório de propostas', () => {
 	test.beforeEach(async ({ page }) => {
 		await page.context().addCookies([
@@ -112,6 +117,8 @@ test.describe('modal de relatório de propostas', () => {
 			.click();
 		await chooseDate(page, 'Data inicial');
 		await chooseDate(page, 'Data final');
+		await chooseOption(page, 'Granularidade', 'Meses');
+		await chooseOption(page, 'Formato', 'Excel');
 		await page.getByRole('button', { name: 'Gerar relatório' }).last().click();
 
 		await expect
@@ -150,10 +157,11 @@ test.describe('modal de relatório de propostas', () => {
 		await openReportModal(page);
 		await page.getByRole('textbox', { name: 'Buscar empresa' }).click();
 		await page.getByText('Empresa Alfa', { exact: true }).click();
+		await page.getByRole('button', { name: 'Concluir' }).click();
 		await chooseDate(page, 'Data inicial');
 		await chooseDate(page, 'Data final');
-		await page.getByRole('button', { name: 'Formato' }).click();
-		await page.getByText('CSV', { exact: true }).click();
+		await chooseOption(page, 'Granularidade', 'Meses');
+		await chooseOption(page, 'Formato', 'CSV');
 
 		const downloadPromise = page.waitForEvent('download');
 		await page.getByRole('button', { name: 'Gerar relatório' }).last().click();
