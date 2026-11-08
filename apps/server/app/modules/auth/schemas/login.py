@@ -34,8 +34,8 @@ class PasswordRecoveryRequest(BaseModel):
 
 
 class PasswordPairRequest(BaseModel):
-    password: str = Field(min_length=8, max_length=128)
-    password_confirmation: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=6, max_length=128)
+    password_confirmation: str = Field(min_length=6, max_length=128)
 
     @model_validator(mode="after")
     def passwords_must_match(self) -> "PasswordPairRequest":

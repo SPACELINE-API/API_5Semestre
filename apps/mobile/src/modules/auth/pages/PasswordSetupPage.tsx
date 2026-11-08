@@ -21,7 +21,7 @@ import {
 	type PasswordSetupLinkInfo,
 } from '../services/passwordSetup';
 
-const MIN_PASSWORD_LENGTH = 8;
+const MIN_PASSWORD_LENGTH = 6;
 
 type LoadState =
 	| { kind: 'loading' }
