@@ -77,7 +77,7 @@ test.describe('modal de relatório de propostas', () => {
 		await page.getByRole('textbox', { name: 'Buscar empresa' }).click();
 		await page.getByText('Empresa Alfa', { exact: true }).click();
 		await expect(page.getByText('Empresa Alfa', { exact: true })).toHaveCount(
-			1,
+			2,
 		);
 
 		await page.getByRole('button', { name: 'Gerar relatório' }).last().click();
@@ -106,6 +106,7 @@ test.describe('modal de relatório de propostas', () => {
 		});
 
 		await openReportModal(page);
+		await page.getByRole('textbox', { name: 'Buscar empresa' }).click();
 		await page
 			.getByRole('checkbox', { name: 'Selecionar todas as empresas' })
 			.click();

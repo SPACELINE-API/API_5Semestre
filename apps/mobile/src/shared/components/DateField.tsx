@@ -256,7 +256,15 @@ export function DateField({
 		Keyboard.dismiss();
 		if (Platform.OS === 'web' && triggerRef.current) {
 			const rect = triggerRef.current.getBoundingClientRect();
-			setCalendarPosition({ top: rect.bottom + 8, left: rect.left });
+			const calendarHeight = 300;
+			const opensAbove =
+				window.innerHeight - rect.bottom < calendarHeight &&
+				rect.top > calendarHeight;
+			const top = opensAbove ? rect.top - calendarHeight - 8 : rect.bottom + 8;
+			setCalendarPosition({
+				top,
+				left: Math.max(8, Math.min(rect.left, window.innerWidth - 288)),
+			});
 		}
 		updatePickerVisibility(!isPickerVisible);
 	}
