@@ -6,6 +6,13 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, mo
 from app.modules.auth.schemas.login import PasswordPairRequest
 
 
+def _normalize_phone(value: str) -> str:
+    phone = value.strip()
+    if len([char for char in phone if char.isdigit()]) < 10:
+        raise ValueError("Telefone inválido (mínimo 10 dígitos).")
+    return phone
+
+
 def _normalize_name(value: str) -> str:
     name = " ".join(value.split())
     if not name:
@@ -18,12 +25,18 @@ class InternalUserCreate(BaseModel):
 
     name: str = Field(min_length=1, max_length=150)
     email: EmailStr
+    phone: str = Field(min_length=1, max_length=30)
     role_ids: list[UUID] = Field(min_length=1)
 
     @field_validator("name")
     @classmethod
     def normalize_name(cls, value: str) -> str:
         return _normalize_name(value)
+
+    @field_validator("phone")
+    @classmethod
+    def normalize_phone(cls, value: str) -> str:
+        return _normalize_phone(value)
 
     @field_validator("email")
     @classmethod
@@ -43,11 +56,17 @@ class InternalUserUpdate(BaseModel):
 
     name: str | None = Field(default=None, min_length=1, max_length=150)
     email: EmailStr | None = None
+    phone: str | None = Field(default=None, min_length=1, max_length=30)
 
     @field_validator("name")
     @classmethod
     def normalize_name(cls, value: str | None) -> str | None:
         return None if value is None else _normalize_name(value)
+
+    @field_validator("phone")
+    @classmethod
+    def normalize_phone(cls, value: str | None) -> str | None:
+        return None if value is None else _normalize_phone(value)
 
     @field_validator("email")
     @classmethod
@@ -56,7 +75,7 @@ class InternalUserUpdate(BaseModel):
 
     @model_validator(mode="after")
     def require_any_field(self) -> "InternalUserUpdate":
-        if self.name is None and self.email is None:
+        if self.name is None and self.email is None and self.phone is None:
             raise ValueError("Informe ao menos um campo para atualizar.")
         return self
 
@@ -83,6 +102,7 @@ class InternalUserResponse(BaseModel):
     id: UUID
     name: str | None
     email: str
+    phone: str | None
     is_active: bool
     status: str
     password_defined: bool

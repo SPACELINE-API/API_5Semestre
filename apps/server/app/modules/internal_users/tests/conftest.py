@@ -86,7 +86,7 @@ class InternalUsersEnv:
     ) -> dict[str, Any]:
         response = self.client.post(
             "/api/internal-users",
-            json={"name": name, "email": email, "role_ids": [str(role.id)]},
+            json={"name": name, "email": email, "phone": "11999990000", "role_ids": [str(role.id)]},
         )
         assert response.status_code == 201, response.text
         return response.json()

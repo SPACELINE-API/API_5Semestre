@@ -68,6 +68,7 @@ class InternalUserService:
             id=uuid.UUID(str(auth_user["id"])),
             email=data.email,
             name=data.name,
+            phone=data.phone,
             password_hash=UNUSABLE_PASSWORD_HASH,
             is_active=False,
             role=INTERNAL_USER_LEGACY_ROLE,
@@ -137,6 +138,8 @@ class InternalUserService:
             self.tokens.reject_pending(user.id)
         if data.name is not None:
             user.name = data.name
+        if data.phone is not None:
+            user.phone = data.phone
 
         after = user_snapshot(user)
         if before != after:

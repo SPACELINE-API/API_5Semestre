@@ -23,6 +23,7 @@ def test_create_internal_user_starts_inactive_with_roles_and_audit(env) -> None:
         json={
             "name": "  Ana   Souza ",
             "email": "Ana@Example.com",
+            "phone": "11999990000",
             "role_ids": [str(projetos.id), str(financeiro.id)],
         },
     )
@@ -31,6 +32,7 @@ def test_create_internal_user_starts_inactive_with_roles_and_audit(env) -> None:
     body = response.json()
     assert body["name"] == "Ana Souza"
     assert body["email"] == "ana@example.com"
+    assert body["phone"] == "11999990000"
     assert body["is_active"] is False
     assert body["status"] == "inativa"
     assert body["password_defined"] is False
@@ -51,6 +53,7 @@ def test_create_rejects_translator_profile(env) -> None:
             json={
                 "name": "Ana",
                 "email": f"{uuid.uuid4().hex}@example.com",
+                "phone": "11999990000",
                 "role_ids": [str(role.id)],
             },
         )
@@ -66,16 +69,22 @@ def test_create_rejects_duplicate_and_missing_roles(env) -> None:
         json={
             "name": "Ana",
             "email": "ana@example.com",
+            "phone": "11999990000",
             "role_ids": [str(projetos.id), str(projetos.id)],
         },
     )
     empty = env.client.post(
         "/api/internal-users",
-        json={"name": "Ana", "email": "ana@example.com", "role_ids": []},
+        json={"name": "Ana", "email": "ana@example.com", "phone": "11999990000", "role_ids": []},
     )
     unknown = env.client.post(
         "/api/internal-users",
-        json={"name": "Ana", "email": "ana@example.com", "role_ids": [str(uuid.uuid4())]},
+        json={
+            "name": "Ana",
+            "email": "ana@example.com",
+            "phone": "11999990000",
+            "role_ids": [str(uuid.uuid4())],
+        },
     )
 
     assert duplicated.status_code == 422
@@ -89,7 +98,12 @@ def test_create_rejects_inactive_role(env) -> None:
 
     response = env.client.post(
         "/api/internal-users",
-        json={"name": "Ana", "email": "ana@example.com", "role_ids": [str(role.id)]},
+        json={
+            "name": "Ana",
+            "email": "ana@example.com",
+            "phone": "11999990000",
+            "role_ids": [str(role.id)],
+        },
     )
 
     assert response.status_code == 422
@@ -107,11 +121,21 @@ def test_email_is_globally_unique_across_internal_users_and_translators(env) -> 
 
     same_user_email = env.client.post(
         "/api/internal-users",
-        json={"name": "Outra", "email": "ANA@example.com", "role_ids": [str(projetos.id)]},
+        json={
+            "name": "Outra",
+            "email": "ANA@example.com",
+            "phone": "11999990000",
+            "role_ids": [str(projetos.id)],
+        },
     )
     translator_email = env.client.post(
         "/api/internal-users",
-        json={"name": "Outra", "email": "tradutor@example.com", "role_ids": [str(projetos.id)]},
+        json={
+            "name": "Outra",
+            "email": "tradutor@example.com",
+            "phone": "11999990000",
+            "role_ids": [str(projetos.id)],
+        },
     )
 
     assert same_user_email.status_code == 409
@@ -160,7 +184,12 @@ def test_only_administrators_can_use_the_flow(env) -> None:
     responses = [
         env.client.post(
             "/api/internal-users",
-            json={"name": "X", "email": "x@example.com", "role_ids": [str(projetos.id)]},
+            json={
+                "name": "X",
+                "email": "x@example.com",
+                "phone": "11999990000",
+                "role_ids": [str(projetos.id)],
+            },
         ),
         env.client.get("/api/internal-users"),
         env.client.get(f"/api/internal-users/{person_id}"),
@@ -304,8 +333,43 @@ def test_supabase_failure_does_not_create_local_person(env) -> None:
 
     response = env.client.post(
         "/api/internal-users",
-        json={"name": "Ana", "email": "ana@example.com", "role_ids": [str(projetos.id)]},
+        json={
+            "name": "Ana",
+            "email": "ana@example.com",
+            "phone": "11999990000",
+            "role_ids": [str(projetos.id)],
+        },
     )
 
     assert response.status_code == 502
     assert env.db.scalar(select(User).where(User.email == "ana@example.com")) is None
+
+
+def test_phone_is_required_and_validated_on_create(env) -> None:
+    projetos = env.role("Projetos")
+    base = {"name": "Ana", "email": "ana@example.com", "role_ids": [str(projetos.id)]}
+
+    missing = env.client.post("/api/internal-users", json=base)
+    short = env.client.post("/api/internal-users", json={**base, "phone": "12345"})
+    blank = env.client.post("/api/internal-users", json={**base, "phone": "   "})
+    valid = env.client.post("/api/internal-users", json={**base, "phone": " (11) 99999-0000 "})
+
+    assert missing.status_code == 422
+    assert short.status_code == 422
+    assert blank.status_code == 422
+    assert valid.status_code == 201
+    assert valid.json()["phone"] == "(11) 99999-0000"
+
+
+def test_update_phone(env) -> None:
+    person = env.create_person(env.role("Projetos"))
+
+    updated = env.client.patch(
+        f"/api/internal-users/{person['id']}", json={"phone": "(21) 98888-7777"}
+    )
+    invalid = env.client.patch(f"/api/internal-users/{person['id']}", json={"phone": "123"})
+
+    assert updated.status_code == 200
+    assert updated.json()["phone"] == "(21) 98888-7777"
+    assert invalid.status_code == 422
+    assert "internal_user_updated" in audit_actions(env, person["id"])

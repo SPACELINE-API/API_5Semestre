@@ -33,6 +33,7 @@ def present_user(user: User, latest_token: PasswordSetupToken | None) -> Interna
         id=user.id,
         name=user.name,
         email=user.email,
+        phone=user.phone,
         is_active=user.is_active,
         status=account_status(user),
         password_defined=user.password_set_at is not None,
@@ -52,6 +53,7 @@ def user_snapshot(user: User) -> dict[str, object]:
     return {
         "name": user.name,
         "email": user.email,
+        "phone": user.phone,
         "is_active": user.is_active,
         "roles": sorted(role.name for role in user.roles),
     }
