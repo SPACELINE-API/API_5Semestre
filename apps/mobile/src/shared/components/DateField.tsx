@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Platform, View, Text, TouchableOpacity } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Keyboard, Platform, View, Text, TouchableOpacity } from 'react-native';
+import { createPortal } from 'react-dom';
 import DateTimePicker, {
 	type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
@@ -61,12 +62,14 @@ function CalendarPopover({
 	onSelect,
 	onClear,
 	onClose,
+	position,
 }: {
 	value: string;
 	minDate?: string;
 	onSelect: (value: string) => void;
 	onClear: () => void;
 	onClose: () => void;
+	position: { top: number; left: number };
 }) {
 	const todayValue = toDateInputValue(new Date());
 	const minimum = minDate ? parseDateValue(minDate) : undefined;
@@ -93,12 +96,13 @@ function CalendarPopover({
 
 	return (
 		<div
-			className="absolute left-0 top-full z-50 mt-2 w-[280px] border border-gray-200 bg-white p-2 shadow-xl shadow-slate-900/15"
+			className="w-[280px] border border-gray-200 bg-white p-2 shadow-xl shadow-slate-900/15"
+			data-calendar-popover
 			style={{
-				position: 'absolute',
-				top: 'calc(100% + 8px)',
-				left: 0,
-				zIndex: 1000,
+				position: 'fixed',
+				top: position.top,
+				left: position.left,
+				zIndex: 10000,
 				backgroundColor: '#fff',
 				border: '1px solid #e5e7eb',
 				borderRadius: 12,
@@ -219,6 +223,8 @@ export function DateField({
 	onOpenChange,
 }: DateFieldProps) {
 	const [internalPickerVisible, setInternalPickerVisible] = useState(false);
+	const triggerRef = useRef<HTMLButtonElement | null>(null);
+	const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0 });
 	const isPickerVisible = isOpen ?? internalPickerVisible;
 	const minimumDate = minDate ? parseDateValue(minDate) : undefined;
 
@@ -234,7 +240,8 @@ export function DateField({
 			const target = event.target;
 			if (
 				target instanceof Element &&
-				!target.closest('[data-date-field-root]')
+				!target.closest('[data-date-field-root]') &&
+				!target.closest('[data-calendar-popover]')
 			) {
 				updatePickerVisibility(false);
 			}
@@ -246,6 +253,19 @@ export function DateField({
 	}, [isPickerVisible, updatePickerVisibility]);
 
 	function openCalendar() {
+		Keyboard.dismiss();
+		if (Platform.OS === 'web' && triggerRef.current) {
+			const rect = triggerRef.current.getBoundingClientRect();
+			const calendarHeight = 300;
+			const opensAbove =
+				window.innerHeight - rect.bottom < calendarHeight &&
+				rect.top > calendarHeight;
+			const top = opensAbove ? rect.top - calendarHeight - 8 : rect.bottom + 8;
+			setCalendarPosition({
+				top,
+				left: Math.max(8, Math.min(rect.left, window.innerWidth - 288)),
+			});
+		}
 		updatePickerVisibility(!isPickerVisible);
 	}
 
@@ -267,6 +287,7 @@ export function DateField({
 					{label}
 				</label>
 				<button
+					ref={triggerRef}
 					type="button"
 					aria-label={`Selecionar data: ${label}`}
 					aria-expanded={isPickerVisible}
@@ -278,21 +299,25 @@ export function DateField({
 					</span>
 					<Calendar size={16} color="#6b7280" />
 				</button>
-				{isPickerVisible ? (
-					<CalendarPopover
-						value={value}
-						minDate={minDate}
-						onSelect={(selectedValue) => {
-							onChangeText(selectedValue);
-							closeCalendar();
-						}}
-						onClear={() => {
-							onChangeText('');
-							closeCalendar();
-						}}
-						onClose={closeCalendar}
-					/>
-				) : null}
+				{isPickerVisible
+					? createPortal(
+							<CalendarPopover
+								value={value}
+								minDate={minDate}
+								position={calendarPosition}
+								onSelect={(selectedValue) => {
+									onChangeText(selectedValue);
+									closeCalendar();
+								}}
+								onClear={() => {
+									onChangeText('');
+									closeCalendar();
+								}}
+								onClose={closeCalendar}
+							/>,
+							document.body,
+						)
+					: null}
 			</div>
 		);
 	}

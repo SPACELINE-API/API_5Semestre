@@ -4,6 +4,8 @@ import {
 	apiUrl,
 	extractErrorMessage,
 	request,
+	requestArrayBuffer,
+	requestBlob,
 } from './publicApiClient';
 
 export { apiPost, apiUrl } from './publicApiClient';
@@ -19,6 +21,41 @@ async function authenticatedRequest<TResponse>(
 ) {
 	try {
 		return await request<TResponse>(path, {
+			...init,
+			headers: { ...authHeaders(), ...init?.headers },
+		});
+	} catch (error) {
+		if (error instanceof ApiError && error.status === 401) {
+			clearSession();
+			const { router } = await import('expo-router');
+			router.replace('/login' as never);
+		}
+		throw error;
+	}
+}
+
+async function authenticatedBlobRequest(path: string, init?: RequestInit) {
+	try {
+		return await requestBlob(path, {
+			...init,
+			headers: { ...authHeaders(), ...init?.headers },
+		});
+	} catch (error) {
+		if (error instanceof ApiError && error.status === 401) {
+			clearSession();
+			const { router } = await import('expo-router');
+			router.replace('/login' as never);
+		}
+		throw error;
+	}
+}
+
+async function authenticatedArrayBufferRequest(
+	path: string,
+	init?: RequestInit,
+) {
+	try {
+		return await requestArrayBuffer(path, {
 			...init,
 			headers: { ...authHeaders(), ...init?.headers },
 		});
@@ -86,6 +123,20 @@ export async function apiGetAuth<TResponse>(path: string): Promise<TResponse> {
 
 export function apiPostAuth<TResponse, TBody>(path: string, body: TBody) {
 	return authenticatedRequest<TResponse>(path, {
+		method: 'POST',
+		body: JSON.stringify(body),
+	});
+}
+
+export function apiPostAuthBlob<TBody>(path: string, body: TBody) {
+	return authenticatedBlobRequest(path, {
+		method: 'POST',
+		body: JSON.stringify(body),
+	});
+}
+
+export function apiPostAuthArrayBuffer<TBody>(path: string, body: TBody) {
+	return authenticatedArrayBufferRequest(path, {
 		method: 'POST',
 		body: JSON.stringify(body),
 	});

@@ -18,6 +18,7 @@ type SelectFieldProps = {
 	options: SelectOption[];
 	onChange: (value: string) => void;
 	allLabel: string;
+	searchable?: boolean;
 };
 
 function normalize(text: string): string {
@@ -30,6 +31,7 @@ export function SelectField({
 	options,
 	onChange,
 	allLabel,
+	searchable = true,
 }: SelectFieldProps) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [query, setQuery] = useState('');
@@ -42,11 +44,12 @@ export function SelectField({
 	const selected = options.find((option) => option.value === value);
 
 	const visibleOptions = useMemo(() => {
-		const term = normalize(query.trim());
 		const all = [{ value: '', label: allLabel }, ...options];
+		if (!searchable) return all;
+		const term = normalize(query.trim());
 		if (!term) return all;
 		return options.filter((option) => normalize(option.label).includes(term));
-	}, [allLabel, options, query]);
+	}, [allLabel, options, query, searchable]);
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -57,11 +60,36 @@ export function SelectField({
 			setRect({ top: box.bottom, left: box.left, width: box.width });
 		}
 		measure();
+		function handleScroll(event: Event) {
+			const target = event.target;
+			if (
+				target instanceof Element &&
+				target.closest('.select-field-dropdown')
+			) {
+				return;
+			}
+			close();
+		}
 		window.addEventListener('resize', measure);
-		window.addEventListener('scroll', measure, true);
+		window.addEventListener('scroll', handleScroll, true);
+		function handleOutsidePointerDown(event: PointerEvent) {
+			const target = event.target;
+			if (!(target instanceof Element)) return;
+			const trigger = triggerRef.current as unknown as HTMLElement | null;
+			if (
+				trigger?.contains(target) ||
+				target.closest('.select-field-trigger') ||
+				target.closest('.select-field-dropdown')
+			) {
+				return;
+			}
+			close();
+		}
+		document.addEventListener('pointerdown', handleOutsidePointerDown);
 		return () => {
 			window.removeEventListener('resize', measure);
-			window.removeEventListener('scroll', measure, true);
+			window.removeEventListener('scroll', handleScroll, true);
+			document.removeEventListener('pointerdown', handleOutsidePointerDown);
 		};
 	}, [isOpen]);
 
@@ -91,28 +119,31 @@ export function SelectField({
 					}}
 				/>
 				<View
-					className="overflow-hidden rounded-lg border border-gray-200 bg-white"
+					className="select-field-dropdown overflow-hidden rounded-lg border border-gray-200 bg-white"
 					style={{
 						position: 'fixed' as never,
 						top: rect.top + 4,
 						left: rect.left,
 						width: rect.width,
+						maxHeight: Math.max(120, window.innerHeight - rect.top - 16),
 						zIndex: 9999,
 						boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
 					}}
 				>
-					<View className="flex-row items-center gap-2 border-b border-gray-100 px-3">
-						<Search size={14} color="#9CA3AF" />
-						<TextInput
-							autoFocus
-							value={query}
-							onChangeText={setQuery}
-							placeholder="Pesquisar"
-							placeholderTextColor="#9CA3AF"
-							accessibilityLabel={`Pesquisar ${label}`}
-							className="h-10 flex-1 font-inter text-gray-900 text-sm outline-none"
-						/>
-					</View>
+					{searchable && (
+						<View className="flex-row items-center gap-2 border-b border-gray-100 px-3">
+							<Search size={14} color="#9CA3AF" />
+							<TextInput
+								autoFocus
+								value={query}
+								onChangeText={setQuery}
+								placeholder="Pesquisar"
+								placeholderTextColor="#9CA3AF"
+								accessibilityLabel={`Pesquisar ${label}`}
+								className="h-10 flex-1 font-inter text-gray-900 text-sm outline-none"
+							/>
+						</View>
+					)}
 					<ScrollView
 						style={{ maxHeight: 240 }}
 						keyboardShouldPersistTaps="handled"
@@ -159,7 +190,7 @@ export function SelectField({
 				accessibilityRole="button"
 				accessibilityLabel={label}
 				accessibilityState={{ expanded: isOpen }}
-				className="h-10 flex-row items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3"
+				className="select-field-trigger h-10 flex-row items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3"
 			>
 				<Text
 					className={`flex-1 font-inter text-sm ${selected ? 'text-gray-900' : 'text-gray-500'}`}
