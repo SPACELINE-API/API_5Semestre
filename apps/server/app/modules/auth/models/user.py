@@ -42,6 +42,15 @@ class User(Base):
 
     role: Mapped[str] = mapped_column(String(255), nullable=False)
 
+    name: Mapped[str | None] = mapped_column(String(150), nullable=True)
+
+    phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
+
+    password_set_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

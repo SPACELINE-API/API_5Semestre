@@ -13,6 +13,7 @@ from app.modules.auth.services.roles_service import (
     get_effective_permissions,
     has_permission,
 )
+from app.modules.auth.services.supabase_admin_client import SupabaseAdminClient
 from app.modules.auth.services.supabase_auth_client import SupabaseAuthClient
 from app.shared.database import get_db
 from app.shared.supabase.client import get_supabase_config
@@ -26,6 +27,15 @@ def get_supabase_auth_client() -> SupabaseAuthClient:
     return SupabaseAuthClient(
         supabase_url=config.url,
         anon_key=config.anon_key,
+    )
+
+
+def get_supabase_admin_client() -> SupabaseAdminClient:
+    config = get_supabase_config()
+
+    return SupabaseAdminClient(
+        supabase_url=config.url,
+        service_role_key=config.service_role_key,
     )
 
 

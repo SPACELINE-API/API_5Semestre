@@ -71,11 +71,17 @@ export function requiredPermission(pathname: string) {
 	return route ? ROUTE_PERMISSIONS[route] : null;
 }
 
+const PUBLIC_PATHS = ['/login', '/solicitar-servico', '/definir-senha'];
+
+export function isPublicPath(pathname: string) {
+	return PUBLIC_PATHS.includes(pathname);
+}
+
 export function canAccess(
 	context: AuthorizationContext | null,
 	pathname: string,
 ) {
-	if (pathname === '/login' || pathname === '/solicitar-servico') return true;
+	if (isPublicPath(pathname)) return true;
 	const permission = requiredPermission(pathname);
 	return Boolean(
 		permission &&

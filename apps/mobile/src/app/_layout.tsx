@@ -33,6 +33,7 @@ import { ApiError } from '../shared/services/publicApiClient';
 import {
 	canAccess,
 	firstAllowedRoute,
+	isPublicPath,
 	requiredPermission,
 } from '../modules/auth/services/authorization';
 
@@ -49,7 +50,7 @@ export default function AppLayout() {
 		'Poppins-Bold': Poppins_700Bold,
 	});
 	const pathname = usePathname();
-	const isPublic = pathname === '/login' || pathname === '/solicitar-servico';
+	const isPublic = isPublicPath(pathname);
 	const [authorizationLoaded, setAuthorizationLoaded] = useState(false);
 	const [authorizationError, setAuthorizationError] = useState(false);
 	const [authorizationVersion, setAuthorizationVersion] = useState(0);
@@ -84,11 +85,7 @@ export default function AppLayout() {
 
 	useEffect(() => {
 		let active = true;
-		if (
-			!session ||
-			pathname === '/login' ||
-			pathname === '/solicitar-servico'
-		) {
+		if (!session || isPublicPath(pathname)) {
 			setAuthorizationLoaded(false);
 			setAuthorizationError(false);
 			return () => {
@@ -119,10 +116,7 @@ export default function AppLayout() {
 		return () => {
 			active = false;
 		};
-	}, [
-		session?.access_token,
-		pathname === '/login' || pathname === '/solicitar-servico',
-	]);
+	}, [session?.access_token, isPublicPath(pathname)]);
 
 	if (!fontsLoaded && !error) {
 		return null;
