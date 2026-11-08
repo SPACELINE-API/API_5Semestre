@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
 	ActivityIndicator,
+	ScrollView,
 	Text,
 	TextInput,
 	TouchableOpacity,
@@ -29,17 +30,33 @@ const FORMAT_OPTIONS = [
 ];
 
 function reportErrorMessage(error: unknown): string {
-	if (error instanceof ApiError) return error.message;
-	if (error instanceof Error && error.message) return error.message;
+	const message =
+		error instanceof ApiError
+			? error.message
+			: error instanceof Error
+				? error.message
+				: '';
+	const translations: Record<string, string> = {
+		'No companies selected.': 'Selecione ao menos uma empresa.',
+		'No data found for the selected period.':
+			'Nenhuma empresa selecionada possui dados no período informado.',
+		'Invalid date range.':
+			'A data inicial não pode ser posterior à data final.',
+		'Failed to generate report.':
+			'Não foi possível gerar o relatório. Tente novamente.',
+	};
+	if (message && translations[message]) return translations[message];
 	return 'Não foi possível gerar o relatório. Tente novamente.';
 }
 
 export function CompanyReportModal({
 	visible,
 	onClose,
+	onSuccess,
 }: {
 	visible: boolean;
 	onClose: () => void;
+	onSuccess?: (message: string) => void;
 }) {
 	const [companies, setCompanies] = useState<ReportCompanyOption[]>([]);
 	const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -49,10 +66,10 @@ export function CompanyReportModal({
 	const [startDate, setStartDate] = useState('');
 	const [endDate, setEndDate] = useState('');
 	const [openDate, setOpenDate] = useState<'start' | 'end' | null>(null);
-	const [granularity, setGranularity] = useState<'days' | 'months' | 'years'>(
-		'months',
-	);
-	const [format, setFormat] = useState<ReportFormat>('xlsx');
+	const [granularity, setGranularity] = useState<
+		'days' | 'months' | 'years' | ''
+	>('');
+	const [format, setFormat] = useState<ReportFormat | ''>('');
 	const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -94,8 +111,8 @@ export function CompanyReportModal({
 		setStartDate('');
 		setEndDate('');
 		setOpenDate(null);
-		setGranularity('months');
-		setFormat('xlsx');
+		setGranularity('');
+		setFormat('');
 		setError(null);
 		setSuccess(null);
 	}
@@ -109,13 +126,19 @@ export function CompanyReportModal({
 		);
 		setError(null);
 		setSuccess(null);
-		setIsCompanyPickerOpen(false);
 	}
 
 	function toggleSelectAll() {
 		setSelectAll((current) => !current);
 		setSelectedIds([]);
 		setIsCompanyPickerOpen(false);
+		setError(null);
+		setSuccess(null);
+	}
+
+	function clearSelection() {
+		setSelectAll(false);
+		setSelectedIds([]);
 		setError(null);
 		setSuccess(null);
 	}
@@ -131,8 +154,16 @@ export function CompanyReportModal({
 			setError('Informe o período inicial e final.');
 			return;
 		}
+		if (!format) {
+			setError('Selecione o formato do relatório.');
+			return;
+		}
 		if (startDate > endDate) {
 			setError('A data inicial não pode ser posterior à data final.');
+			return;
+		}
+		if (!granularity) {
+			setError('Selecione a granularidade do relatório.');
 			return;
 		}
 
@@ -147,6 +178,7 @@ export function CompanyReportModal({
 			};
 
 			await downloadCompanyReport({ ...baseRequest, format });
+			onSuccess?.('Relatório gerado com sucesso!');
 			resetReportForm();
 			onClose();
 		} catch (cause) {
@@ -179,31 +211,13 @@ export function CompanyReportModal({
 					</Text>
 				</View>
 
-				<TouchableOpacity
-					onPress={toggleSelectAll}
-					accessibilityRole="checkbox"
-					accessibilityState={{ checked: selectAll }}
-					className={`flex-row items-center gap-2 rounded-lg border px-3 py-2.5 ${selectAll ? 'border-blue-200 bg-blue-50' : 'border-transparent bg-transparent'}`}
-				>
-					<View
-						className={`h-5 w-5 items-center justify-center rounded border ${selectAll ? 'border-blue-600 bg-blue-600' : 'border-gray-400 bg-white'}`}
-					>
-						{selectAll && <Check size={14} color="#FFFFFF" />}
-					</View>
-					<Text
-						className={`font-inter font-medium text-sm ${selectAll ? 'text-blue-800' : 'text-gray-800'}`}
-					>
-						Selecionar todas as empresas
-					</Text>
-				</TouchableOpacity>
-
 				<TextInput
 					value={search}
 					onChangeText={(value) => {
 						setSearch(value);
 						setIsCompanyPickerOpen(true);
 					}}
-					placeholder="Buscar empresa"
+					placeholder={selectAll ? 'Todas selecionadas' : 'Buscar empresa'}
 					placeholderTextColor="#9CA3AF"
 					accessibilityLabel="Buscar empresa"
 					onFocus={() => setIsCompanyPickerOpen(true)}
@@ -220,7 +234,38 @@ export function CompanyReportModal({
 							<ActivityIndicator color="#1C6FB0" />
 						</View>
 					) : (
-						<View className="max-h-44 gap-1 overflow-hidden rounded-lg border border-gray-200 p-1">
+						<ScrollView
+							className="max-h-64 rounded-lg border border-gray-200"
+							style={{ maxHeight: 224 }}
+							keyboardShouldPersistTaps="handled"
+							nestedScrollEnabled
+						>
+							<View className="flex-row items-center justify-between border-b border-gray-200 bg-gray-50 px-3 py-2.5">
+								<TouchableOpacity
+									onPress={toggleSelectAll}
+									accessibilityRole="checkbox"
+									accessibilityLabel="Selecionar todas as empresas"
+									accessibilityState={{ checked: selectAll }}
+									className="flex-row items-center gap-3"
+								>
+									<View
+										className={`h-5 w-5 items-center justify-center rounded border ${selectAll ? 'border-blue-600 bg-blue-600' : 'border-gray-400 bg-white'}`}
+									>
+										{selectAll && <Check size={14} color="#FFFFFF" />}
+									</View>
+									<Text className="font-inter font-semibold text-gray-800 text-sm">
+										Selecionar todas ({companies.length})
+									</Text>
+								</TouchableOpacity>
+								<TouchableOpacity
+									onPress={clearSelection}
+									accessibilityRole="button"
+								>
+									<Text className="font-inter text-blue-600 text-sm">
+										Limpar
+									</Text>
+								</TouchableOpacity>
+							</View>
 							{visibleCompanies.length === 0 ? (
 								<Text className="p-3 font-inter text-gray-500 text-sm">
 									Nenhuma empresa encontrada.
@@ -234,17 +279,35 @@ export function CompanyReportModal({
 											onPress={() => toggleCompany(company.id)}
 											accessibilityRole="checkbox"
 											accessibilityState={{ checked: isSelected }}
-											className="flex-row items-center justify-between rounded-md px-2 py-2 hover:bg-gray-50"
+											activeOpacity={0.7}
+											className={`flex-row items-center gap-3 rounded-md px-2 py-2.5 hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}`}
 										>
+											<View
+												className={`h-5 w-5 items-center justify-center rounded border ${isSelected ? 'border-blue-600 bg-blue-600' : 'border-gray-400 bg-white'}`}
+											>
+												{isSelected && <Check size={14} color="#FFFFFF" />}
+											</View>
 											<Text className="flex-1 font-inter text-gray-800 text-sm">
 												{company.trade_name}
 											</Text>
-											{isSelected && <Check size={17} color="#1C6FB0" />}
 										</TouchableOpacity>
 									);
 								})
 							)}
-						</View>
+							<View className="flex-row items-center justify-between border-t border-gray-200 bg-white px-3 py-2.5">
+								<Text className="font-inter text-gray-500 text-xs">
+									{selectedCount} de {companies.length} selecionadas
+								</Text>
+								<TouchableOpacity
+									onPress={() => setIsCompanyPickerOpen(false)}
+									accessibilityRole="button"
+								>
+									<Text className="font-inter font-semibold text-blue-600 text-sm">
+										Concluir
+									</Text>
+								</TouchableOpacity>
+							</View>
+						</ScrollView>
 					))}
 
 				{selectedCompanies.length > 0 && !selectAll && (

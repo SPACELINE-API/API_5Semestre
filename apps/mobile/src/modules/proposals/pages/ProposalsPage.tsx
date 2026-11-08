@@ -12,6 +12,8 @@ import {
 	ProposalLoading,
 } from '../components/ProposalStates';
 import { ProposalTable } from '../components/ProposalTable';
+import { Toast } from '../../../shared/components/Toast';
+import { useToast } from '../../../shared/hooks/useToast';
 import { useProposals } from '../hooks/useProposals';
 import type { Proposal, ProposalFilters as Filters } from '../types/proposal';
 import {
@@ -87,6 +89,7 @@ export function ProposalsPage() {
 		null,
 	);
 	const [isReportModalVisible, setIsReportModalVisible] = useState(false);
+	const { toast, showToast } = useToast();
 	const { result, isLoading, error, refresh } = useProposals(filters);
 	const hasFocusedBefore = useRef(false);
 	const refreshProposals = useRef(refresh);
@@ -227,7 +230,9 @@ export function ProposalsPage() {
 			<CompanyReportModal
 				visible={isReportModalVisible}
 				onClose={() => setIsReportModalVisible(false)}
+				onSuccess={showToast}
 			/>
+			<Toast toast={toast} />
 		</View>
 	);
 }
