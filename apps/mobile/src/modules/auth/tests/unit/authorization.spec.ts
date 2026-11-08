@@ -52,6 +52,7 @@ test.describe('canAccess', () => {
 	test('keeps login and public request pages open', () => {
 		expect(canAccess(null, '/login')).toBe(true);
 		expect(canAccess(null, '/solicitar-servico')).toBe(true);
+		expect(canAccess(null, '/definir-senha')).toBe(true);
 	});
 
 	test('blocks unknown paths', () => {
