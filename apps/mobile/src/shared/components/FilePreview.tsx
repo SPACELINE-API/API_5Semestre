@@ -19,7 +19,7 @@ type FilePreviewProps = {
 	compact?: boolean;
 };
 
-function getNativeDocumentUrl(fileUrl: string) {
+export function getNativeDocumentUrl(fileUrl: string) {
 	return resolveNativeResourceUrl(
 		getPreviewDocumentUrl(fileUrl),
 		Constants.expoConfig?.hostUri,
