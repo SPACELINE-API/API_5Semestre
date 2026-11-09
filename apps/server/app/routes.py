@@ -5,6 +5,8 @@ from app.modules.auth.routes import roles_router
 from app.modules.auth.routes import router as auth_router
 from app.modules.clients.routes import router as clients_router
 from app.modules.contacts.routes import router as contacts_router
+from app.modules.internal_users.routes import password_setup_router
+from app.modules.internal_users.routes import router as internal_users_router
 from app.modules.proposals.routes import router as proposals_router
 from app.modules.quotes.routes import router as quotes_router
 from app.modules.reports.routes import router as reports_router
@@ -20,6 +22,8 @@ api_router = APIRouter(prefix="/api")
 api_router.include_router(auth_router)
 api_router.include_router(roles_router)
 api_router.include_router(users_router)
+api_router.include_router(internal_users_router)
+api_router.include_router(password_setup_router)
 api_router.include_router(clients_router)
 api_router.include_router(contacts_router)
 api_router.include_router(resources_router)

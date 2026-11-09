@@ -41,6 +41,34 @@ class SupabaseAdminClient:
 
         return response.json()
 
+    def update_user(
+        self,
+        user_id: str,
+        *,
+        email: str | None = None,
+        password: str | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {}
+        if email is not None:
+            payload["email"] = email
+            payload["email_confirm"] = True
+        if password is not None:
+            payload["password"] = password
+
+        try:
+            response = self.http_client.put(
+                f"{self.supabase_url}/auth/v1/admin/users/{user_id}",
+                headers=create_supabase_headers(self.service_role_key),
+                json=payload,
+            )
+        except httpx.HTTPError as error:
+            raise SupabaseAdminUnexpectedError(str(error)) from error
+
+        if response.status_code >= 300:
+            raise SupabaseAdminUnexpectedError(response.text)
+
+        return response.json()
+
     def _find_user_by_email(self, email: str) -> dict[str, Any] | None:
         response = self.http_client.get(
             f"{self.supabase_url}/auth/v1/admin/users",

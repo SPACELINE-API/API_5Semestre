@@ -33,14 +33,17 @@ class PasswordRecoveryRequest(BaseModel):
     email: EmailStr
 
 
-class PasswordResetRequest(BaseModel):
-    access_token: str = Field(min_length=1)
-    password: str = Field(min_length=6)
-    password_confirmation: str = Field(min_length=6)
+class PasswordPairRequest(BaseModel):
+    password: str = Field(min_length=6, max_length=128)
+    password_confirmation: str = Field(min_length=6, max_length=128)
 
     @model_validator(mode="after")
-    def passwords_must_match(self) -> "PasswordResetRequest":
+    def passwords_must_match(self) -> "PasswordPairRequest":
         if self.password != self.password_confirmation:
             raise ValueError("As senhas não coincidem")
 
         return self
+
+
+class PasswordResetRequest(PasswordPairRequest):
+    access_token: str = Field(min_length=1)

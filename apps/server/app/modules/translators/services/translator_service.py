@@ -3,6 +3,7 @@ import uuid
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.modules.internal_users.services.identity_rules import email_used_by_internal_user
 from app.modules.system_parameters.models.language import Language
 from app.modules.translators.models.qualification import TechnicalQualification
 from app.modules.translators.models.translator import Translator
@@ -18,6 +19,7 @@ from app.modules.translators.services.certificate_service import TranslatorCerti
 
 class TranslatorService:
     def __init__(self, db: Session):
+        self.db = db
         self.repo = TranslatorRepository(db)
         self.certificates = TranslatorCertificateService(db)
 
@@ -50,7 +52,7 @@ class TranslatorService:
 
     def create(self, data: TranslatorCreate) -> Translator:
         existing = self.repo.get_by_email(data.email)
-        if existing:
+        if existing or email_used_by_internal_user(self.db, data.email):
             raise HTTPException(status_code=400, detail="Email already registered")
 
         qualifications = self._validate_qualifications(data.qualification_ids)
@@ -79,7 +81,9 @@ class TranslatorService:
         # Se o e-mail mudou, valida se já não está em uso por outro tradutor
         if data.email != translator.email:
             existing = self.repo.get_by_email(data.email)
-            if existing and existing.id != translator_id:
+            if (existing and existing.id != translator_id) or email_used_by_internal_user(
+                self.db, data.email
+            ):
                 raise HTTPException(status_code=400, detail="Email already registered")
 
         qualifications = self._validate_qualifications(data.qualification_ids)
