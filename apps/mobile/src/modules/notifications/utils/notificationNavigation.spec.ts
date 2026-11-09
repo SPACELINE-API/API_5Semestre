@@ -83,6 +83,20 @@ test('maps document notifications to the service orders screen', () => {
 	}
 });
 
+test('maps received documents to the review tab of the service order', () => {
+	expect(
+		notificationRoute(eventNotification('document_received', 'service_order')),
+	).toBe('/ordens-de-servico/related-1?tab=revisao');
+});
+
+test('maps reviewed documents to the translator item details screen', () => {
+	for (const eventType of ['document_approved', 'document_changes_requested']) {
+		expect(
+			notificationRoute(eventNotification(eventType, 'service_order_item')),
+		).toBe('/meus-itens/related-1');
+	}
+});
+
 test('does not navigate unknown notification types', () => {
 	expect(notificationRoute(notification('unknown'))).toBeNull();
 });

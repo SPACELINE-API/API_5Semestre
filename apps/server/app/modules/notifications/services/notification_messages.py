@@ -22,12 +22,14 @@ def certificate_received_message(translator_name: str) -> NotificationMessage:
     )
 
 
-def certificate_review_message(status: CertificateStatus) -> NotificationMessage:
+def certificate_review_message(
+    status: CertificateStatus, language_name: str
+) -> NotificationMessage:
     is_approved = status == CertificateStatus.APPROVED
     return NotificationMessage(
         event_type="certificate_approved" if is_approved else "certificate_rejected",
         title="Resultado do certificado",
-        message=f"Seu certificado foi {'aprovado' if is_approved else 'reprovado'}.",
+        message=f"Seu certificado de {language_name} foi {'aprovado' if is_approved else 'reprovado'}.",
     )
 
 

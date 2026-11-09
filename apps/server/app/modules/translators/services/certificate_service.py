@@ -195,7 +195,7 @@ class TranslatorCertificateService:
                 )
             )
 
-        notification_message = certificate_review_message(data.status)
+        notification_message = certificate_review_message(data.status, certificate.language_name)
         NotificationService(self.db).notify_translator(
             translator,
             event_type=notification_message.event_type,

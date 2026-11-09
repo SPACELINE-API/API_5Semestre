@@ -29,21 +29,21 @@ from app.modules.translators.models.translator_certificate import CertificateSta
             ),
         ),
         (
-            certificate_review_message,
+            lambda status: certificate_review_message(status, "Inglês"),
             CertificateStatus.APPROVED,
             NotificationMessage(
                 event_type="certificate_approved",
                 title="Resultado do certificado",
-                message="Seu certificado foi aprovado.",
+                message="Seu certificado de Inglês foi aprovado.",
             ),
         ),
         (
-            certificate_review_message,
+            lambda status: certificate_review_message(status, "Inglês"),
             CertificateStatus.REJECTED,
             NotificationMessage(
                 event_type="certificate_rejected",
                 title="Resultado do certificado",
-                message="Seu certificado foi reprovado.",
+                message="Seu certificado de Inglês foi reprovado.",
             ),
         ),
         (

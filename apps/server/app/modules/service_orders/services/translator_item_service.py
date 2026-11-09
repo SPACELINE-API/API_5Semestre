@@ -172,8 +172,8 @@ class TranslatorItemService:
             event_type=notification_message.event_type,
             title=notification_message.title,
             message=notification_message.message,
-            related_type="service_order_file",
-            related_id=delivered_file.id,
+            related_type="service_order",
+            related_id=item.service_order_id,
             idempotency_key=f"document:{delivered_file.id}:received",
         )
         try:
