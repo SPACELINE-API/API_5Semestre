@@ -42,20 +42,23 @@ class NotificationRepository:
 
         query = select(Notification).where(*filters).order_by(Notification.created_at.desc())
         total = self.db.scalar(select(func.count()).select_from(query.subquery())) or 0
-        items = list(
-            self.db.scalars(query.offset((page - 1) * page_size).limit(page_size)).all()
-        )
+        items = list(self.db.scalars(query.offset((page - 1) * page_size).limit(page_size)).all())
         return items, total
 
     def unread_count(self, recipient_user_id: uuid.UUID) -> int:
-        return self.db.scalar(
-            select(func.count(Notification.id)).where(
-                Notification.recipient_user_id == recipient_user_id,
-                Notification.read_at.is_(None),
+        return (
+            self.db.scalar(
+                select(func.count(Notification.id)).where(
+                    Notification.recipient_user_id == recipient_user_id,
+                    Notification.read_at.is_(None),
+                )
             )
-        ) or 0
+            or 0
+        )
 
-    def mark_read(self, notification_id: uuid.UUID, recipient_user_id: uuid.UUID) -> Notification | None:
+    def mark_read(
+        self, notification_id: uuid.UUID, recipient_user_id: uuid.UUID
+    ) -> Notification | None:
         notification = self.db.scalar(
             select(Notification).where(
                 Notification.id == notification_id,

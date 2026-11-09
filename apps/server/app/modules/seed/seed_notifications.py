@@ -77,9 +77,7 @@ TRANSLATOR_NOTIFICATIONS = (
 )
 
 
-def seed_notifications(
-    *, db: Session | None = None, user_emails: list[str] | None = None
-) -> int:
+def seed_notifications(*, db: Session | None = None, user_emails: list[str] | None = None) -> int:
     database_session = db or get_session_factory()()
     should_close_session = db is None
 
@@ -112,9 +110,7 @@ def seed_notifications(
                         related_id=event.related_id,
                         idempotency_key=idempotency_key,
                         created_at=datetime.now(UTC) - timedelta(days=index),
-                        read_at=(datetime.now(UTC) - timedelta(hours=1))
-                        if event.is_read
-                        else None,
+                        read_at=(datetime.now(UTC) - timedelta(hours=1)) if event.is_read else None,
                     )
                 )
                 created += 1
@@ -127,9 +123,7 @@ def seed_notifications(
 
 def _notifications_for_user(user: User) -> tuple[SeedNotification, ...]:
     legacy_role = user.role.strip().casefold()
-    effective_roles = {
-        role.name.strip().casefold() for role in user.roles if role.is_active
-    }
+    effective_roles = {role.name.strip().casefold() for role in user.roles if role.is_active}
     is_admin = legacy_role in {"admin", "administrador"} or bool(
         effective_roles & {"admin", "administrador"}
     )

@@ -95,9 +95,7 @@ def test_unread_count_and_list_filters_use_authenticated_user(
 ) -> None:
     owner, other = users
     create_notification(isolated_db_session, owner)
-    create_notification(
-        isolated_db_session, owner, event_type="certificate_approved", read=True
-    )
+    create_notification(isolated_db_session, owner, event_type="certificate_approved", read=True)
     create_notification(isolated_db_session, other)
 
     unread_count = authenticated_client.get("/api/notifications/unread-count")
@@ -108,12 +106,8 @@ def test_unread_count_and_list_filters_use_authenticated_user(
 
     assert unread_count.status_code == 200
     assert unread_count.json()["count"] == 1
-    assert [item["event_type"] for item in unread.json()["items"]] == [
-        "certificate_received"
-    ]
-    assert [item["event_type"] for item in approved.json()["items"]] == [
-        "certificate_approved"
-    ]
+    assert [item["event_type"] for item in unread.json()["items"]] == ["certificate_received"]
+    assert [item["event_type"] for item in approved.json()["items"]] == ["certificate_approved"]
 
 
 def test_mark_read_persists_and_does_not_allow_cross_user_updates(
@@ -125,9 +119,7 @@ def test_mark_read_persists_and_does_not_allow_cross_user_updates(
     own_notification = create_notification(isolated_db_session, owner)
     foreign_notification = create_notification(isolated_db_session, other)
 
-    own_response = authenticated_client.patch(
-        f"/api/notifications/{own_notification.id}/read"
-    )
+    own_response = authenticated_client.patch(f"/api/notifications/{own_notification.id}/read")
     foreign_response = authenticated_client.patch(
         f"/api/notifications/{foreign_notification.id}/read"
     )
@@ -150,6 +142,11 @@ def test_replaying_notification_event_is_idempotent(
     replay = create_notification(isolated_db_session, owner, idempotency_key=key)
 
     assert replay.id == first.id
-    assert isolated_db_session.scalar(
-        select(func.count()).select_from(Notification).where(Notification.idempotency_key == key)
-    ) == 1
+    assert (
+        isolated_db_session.scalar(
+            select(func.count())
+            .select_from(Notification)
+            .where(Notification.idempotency_key == key)
+        )
+        == 1
+    )

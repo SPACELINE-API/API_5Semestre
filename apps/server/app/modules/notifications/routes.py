@@ -39,7 +39,9 @@ def unread_count(
     current_user: SupabaseAuthenticatedUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return UnreadCountResponse(count=NotificationService(db).unread_count(uuid.UUID(current_user.id)))
+    return UnreadCountResponse(
+        count=NotificationService(db).unread_count(uuid.UUID(current_user.id))
+    )
 
 
 @router.patch("/{notification_id}/read", response_model=NotificationResponse)
