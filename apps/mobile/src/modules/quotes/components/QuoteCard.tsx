@@ -59,6 +59,7 @@ import {
 import { AdditionalServiceCard } from './AdditionalServiceCard';
 import { AdditionalServiceFormModal } from './AdditionalServiceFormModal';
 import { LanguageSelect } from './LanguageSelect';
+import { QuoteReceiptSection } from './QuoteReceiptSection';
 import {
 	createServiceOrderItem,
 	deleteServiceOrderItem,
@@ -1058,6 +1059,15 @@ export function QuoteCard({
 								{quote.approved_by_email || 'Responsável não identificado'}
 							</Text>
 						</View>
+					) : null}
+					{quote.status === 'approved' && !isEditing ? (
+						<QuoteReceiptSection
+							quote={quote}
+							company={companies.find(
+								(company) => company.id === quote.company_id,
+							)}
+							additionalServices={additionalServices}
+						/>
 					) : null}
 
 					{saveError ? (
