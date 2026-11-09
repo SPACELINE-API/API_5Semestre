@@ -5,6 +5,8 @@ from datetime import UTC, datetime, timedelta
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
+from app.modules.notifications.services.notification_messages import document_received_message
+from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_file import (
     DIRECTION_SAIDA,
@@ -152,18 +154,28 @@ class TranslatorItemService:
 
         file_url = upload_service_order_file(filename, io.BytesIO(content), content_type)
 
-        self.db.add(
-            ServiceOrderFile(
-                service_order_id=item.service_order_id,
-                service_order_item_id=item.id,
-                filename=filename[:255],
-                file_url=file_url,
-                direction=DIRECTION_SAIDA,
-                review_status=REVIEW_PENDING,
-                uploaded_at=uploaded_at,
-            )
+        delivered_file = ServiceOrderFile(
+            service_order_id=item.service_order_id,
+            service_order_item_id=item.id,
+            filename=filename[:255],
+            file_url=file_url,
+            direction=DIRECTION_SAIDA,
+            review_status=REVIEW_PENDING,
+            uploaded_at=uploaded_at,
         )
+        self.db.add(delivered_file)
         item.status = STATUS_EM_ANALISE
+        self.db.flush()
+        notification_message = document_received_message(translator.name)
+        NotificationService(self.db).notify_users_with_permission(
+            "documents.write",
+            event_type=notification_message.event_type,
+            title=notification_message.title,
+            message=notification_message.message,
+            related_type="service_order_file",
+            related_id=delivered_file.id,
+            idempotency_key=f"document:{delivered_file.id}:received",
+        )
         try:
             self.db.commit()
         except Exception:
