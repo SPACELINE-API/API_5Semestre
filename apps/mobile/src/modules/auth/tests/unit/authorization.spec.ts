@@ -55,6 +55,24 @@ test.describe('canAccess', () => {
 		expect(canAccess(null, '/definir-senha')).toBe(true);
 	});
 
+	test('restricts the administration area to administrators', () => {
+		const admin: AuthorizationContext = {
+			user: { id: 'u', email: 'a@b.com' },
+			roles: [{ id: '1', name: 'Administrador' }],
+			permissions: [],
+		};
+		const withPermissions: AuthorizationContext = {
+			user: { id: 'u', email: 'a@b.com' },
+			roles: [{ id: '2', name: 'Projetos' }],
+			permissions: ['roles.read', 'users.read', 'users.write'],
+		};
+
+		expect(canAccess(admin, '/administracao/pessoas')).toBe(true);
+		expect(canAccess(withPermissions, '/administracao')).toBe(false);
+		expect(canAccess(withPermissions, '/administracao/pessoas')).toBe(false);
+		expect(canAccess(null, '/administracao/pessoas')).toBe(false);
+	});
+
 	test('blocks unknown paths', () => {
 		expect(canAccess(context(['dashboard.read']), '/')).toBe(false);
 	});

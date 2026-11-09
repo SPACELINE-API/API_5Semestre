@@ -77,11 +77,20 @@ export function isPublicPath(pathname: string) {
 	return PUBLIC_PATHS.includes(pathname);
 }
 
+const ADMINISTRATOR_ONLY_PREFIXES = ['/administracao'];
+
+function isAdministratorOnlyPath(pathname: string) {
+	return ADMINISTRATOR_ONLY_PREFIXES.some(
+		(prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+	);
+}
+
 export function canAccess(
 	context: AuthorizationContext | null,
 	pathname: string,
 ) {
 	if (isPublicPath(pathname)) return true;
+	if (isAdministratorOnlyPath(pathname)) return hasFullRouteAccess(context);
 	const permission = requiredPermission(pathname);
 	return Boolean(
 		permission &&

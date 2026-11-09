@@ -15,6 +15,7 @@ import type { LucideIcon } from 'lucide-react-native';
 import {
 	BarChart3 as ProdutividadeIcon,
 	FileBarChart as ProposalsIcon,
+	Users as PeopleIcon,
 	X as CloseIcon,
 } from 'lucide-react-native';
 import {
@@ -130,6 +131,7 @@ export function SideBar({
 	const isTradutoresActive = pathname.startsWith('/tradutores');
 	const isOrcamentoActive = pathname.startsWith('/orcamento');
 	const isProposalsActive = pathname.startsWith('/propostas');
+	const isAdministrationActive = pathname.startsWith('/administracao');
 	const isMyItemsActive = pathname.startsWith('/meus-itens');
 	const isProfileActive = pathname.startsWith('/meu-perfil');
 	const showExpanded = isOpen || mobileOpen;
@@ -325,6 +327,21 @@ export function SideBar({
 										/>
 									</View>
 								</View>
+
+								{hasFullRouteAccess(authorizationContext) && (
+									<View>
+										<GroupLabel isOpen={showExpanded}>Administração</GroupLabel>
+										<View className="flex-col gap-1">
+											<NavItem
+												icon={PeopleIcon}
+												label="Pessoas"
+												isOpen={showExpanded}
+												active={isAdministrationActive}
+												onPress={() => navigate('/administracao/pessoas')}
+											/>
+										</View>
+									</View>
+								)}
 
 								<View>
 									<GroupLabel isOpen={showExpanded}>Outros</GroupLabel>
