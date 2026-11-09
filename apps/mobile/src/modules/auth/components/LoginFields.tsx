@@ -1,5 +1,5 @@
 import { RefObject } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Platform, Text, TextInput, View } from 'react-native';
 import { PasswordField } from './PasswordField';
 
 type LoginFieldsProps = {
@@ -20,7 +20,8 @@ type LoginFieldsProps = {
 	onTogglePassword: () => void;
 	onToggleNewPassword: () => void;
 	onToggleConfirmation: () => void;
-	onSubmitEditing: () => void;
+	onEmailSubmitEditing: () => void;
+	onPasswordSubmitEditing: () => void;
 };
 
 export function LoginFields({
@@ -41,8 +42,17 @@ export function LoginFields({
 	onTogglePassword,
 	onToggleNewPassword,
 	onToggleConfirmation,
-	onSubmitEditing,
+	onEmailSubmitEditing,
+	onPasswordSubmitEditing,
 }: LoginFieldsProps) {
+	const handleWebSubmit =
+		(onSubmitEditing: () => void) =>
+		(event: { nativeEvent: { key?: string } }) => {
+			if (event.nativeEvent.key === 'Enter') {
+				onSubmitEditing();
+			}
+		};
+
 	if (token) {
 		return (
 			<View className="gap-5">
@@ -78,7 +88,14 @@ export function LoginFields({
 				keyboardType="email-address"
 				autoCapitalize="none"
 				returnKeyType={recovery ? 'done' : 'next'}
-				onSubmitEditing={onSubmitEditing}
+				onSubmitEditing={
+					Platform.OS === 'web' ? undefined : onEmailSubmitEditing
+				}
+				onKeyPress={
+					Platform.OS === 'web'
+						? handleWebSubmit(onEmailSubmitEditing)
+						: undefined
+				}
 				value={email}
 				onChangeText={onEmailChange}
 			/>
@@ -94,7 +111,14 @@ export function LoginFields({
 						onChangeText={onPasswordChange}
 						visible={showPassword}
 						onToggle={onTogglePassword}
-						onSubmitEditing={onSubmitEditing}
+						onSubmitEditing={
+							Platform.OS === 'web' ? undefined : onPasswordSubmitEditing
+						}
+						onKeyPress={
+							Platform.OS === 'web'
+								? handleWebSubmit(onPasswordSubmitEditing)
+								: undefined
+						}
 					/>
 				</>
 			) : null}
