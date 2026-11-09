@@ -46,14 +46,19 @@ class NotificationRepository:
         return items, total
 
     def unread_count(self, recipient_user_id: uuid.UUID) -> int:
-        return self.db.scalar(
-            select(func.count(Notification.id)).where(
-                Notification.recipient_user_id == recipient_user_id,
-                Notification.read_at.is_(None),
+        return (
+            self.db.scalar(
+                select(func.count(Notification.id)).where(
+                    Notification.recipient_user_id == recipient_user_id,
+                    Notification.read_at.is_(None),
+                )
             )
-        ) or 0
+            or 0
+        )
 
-    def mark_read(self, notification_id: uuid.UUID, recipient_user_id: uuid.UUID) -> Notification | None:
+    def mark_read(
+        self, notification_id: uuid.UUID, recipient_user_id: uuid.UUID
+    ) -> Notification | None:
         notification = self.db.scalar(
             select(Notification).where(
                 Notification.id == notification_id,

@@ -1,12 +1,12 @@
 import uuid
 
-from app.modules.seed.seed_notifications import seed_notifications
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.modules.auth.models.user import User
 from app.modules.auth.models.roles import Role
+from app.modules.auth.models.user import User
 from app.modules.notifications.models.notification import Notification
+from app.modules.seed.seed_notifications import seed_notifications
 
 
 def create_seed_users(db: Session) -> tuple[User, User]:

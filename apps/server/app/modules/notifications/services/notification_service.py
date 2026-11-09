@@ -95,9 +95,15 @@ class NotificationService:
         related_id: uuid.UUID,
         idempotency_key: str,
     ) -> list[Notification]:
-        users = self.db.scalars(
-            select(User).options(selectinload(User.roles).selectinload(Role.permissions)).where(User.is_active)
-        ).unique().all()
+        users = (
+            self.db.scalars(
+                select(User)
+                .options(selectinload(User.roles).selectinload(Role.permissions))
+                .where(User.is_active)
+            )
+            .unique()
+            .all()
+        )
         recipients = [user for user in users if has_permission(user.roles, permission_code)]
         return self._create_for_users(
             recipients,

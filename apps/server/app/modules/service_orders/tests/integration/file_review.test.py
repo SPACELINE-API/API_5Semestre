@@ -98,9 +98,7 @@ def make_translator(db_session: Session) -> Translator:
     return translator
 
 
-def make_user(
-    db_session: Session, email: str, permission_code: str | None = None
-) -> User:
+def make_user(db_session: Session, email: str, permission_code: str | None = None) -> User:
     user = User(
         email=email,
         password_hash="hashed",
@@ -247,13 +245,9 @@ def test_document_delivery_notifies_only_active_users_with_documents_write(
     order = make_order(db_session)
     translator = make_translator(db_session)
     item = make_item(db_session, order, translator, status=STATUS_EM_ANDAMENTO)
-    permitted = make_user(
-        db_session, f"permitted-{uuid.uuid4()}@example.com", "documents.write"
-    )
+    permitted = make_user(db_session, f"permitted-{uuid.uuid4()}@example.com", "documents.write")
     make_user(db_session, f"unrelated-{uuid.uuid4()}@example.com", "translators.write")
-    inactive = make_user(
-        db_session, f"inactive-{uuid.uuid4()}@example.com", "documents.write"
-    )
+    inactive = make_user(db_session, f"inactive-{uuid.uuid4()}@example.com", "documents.write")
     inactive.is_active = False
 
     TranslatorItemService(db_session).deliver(

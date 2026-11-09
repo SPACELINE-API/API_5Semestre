@@ -164,13 +164,9 @@ def test_valid_certificate_is_stored_and_only_metadata_is_saved(
 def test_certificate_submission_notifies_only_active_users_with_translators_write(
     db_session, translator, fake_storage
 ):
-    permitted = make_user(
-        db_session, f"permitted-{uuid.uuid4()}@example.com", "translators.write"
-    )
+    permitted = make_user(db_session, f"permitted-{uuid.uuid4()}@example.com", "translators.write")
     make_user(db_session, f"unrelated-{uuid.uuid4()}@example.com", "documents.write")
-    inactive = make_user(
-        db_session, f"inactive-{uuid.uuid4()}@example.com", "translators.write"
-    )
+    inactive = make_user(db_session, f"inactive-{uuid.uuid4()}@example.com", "translators.write")
     inactive.is_active = False
 
     certificate = submit(TranslatorCertificateService(db_session), translator)
