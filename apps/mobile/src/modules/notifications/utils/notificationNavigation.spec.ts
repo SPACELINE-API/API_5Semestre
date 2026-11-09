@@ -45,10 +45,19 @@ test('maps certificate received notifications to the translators screen', () => 
 	).toBe('/tradutores');
 });
 
-test('maps certificate review notifications to the current user profile', () => {
+test('maps a new certificate directly to the translator validation tab', () => {
+	expect(
+		notificationRoute(eventNotification('certificate_received', 'translator')),
+	).toBe('/tradutores/related-1?tab=requests');
+});
+
+test('does not navigate when a certificate is approved', () => {
 	expect(
 		notificationRoute(eventNotification('certificate_approved', 'certificate')),
-	).toBe('/meu-perfil');
+	).toBeNull();
+});
+
+test('maps rejected certificate notifications to the current user profile', () => {
 	expect(
 		notificationRoute(eventNotification('certificate_rejected', 'certificate')),
 	).toBe('/meu-perfil');

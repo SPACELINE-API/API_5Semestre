@@ -107,8 +107,8 @@ class TranslatorCertificateService:
             event_type=notification_message.event_type,
             title=notification_message.title,
             message=notification_message.message,
-            related_type="certificate",
-            related_id=certificate.id,
+            related_type="translator",
+            related_id=translator.id,
             idempotency_key=f"certificate:{certificate.id}:received:{checksum}",
         )
 
