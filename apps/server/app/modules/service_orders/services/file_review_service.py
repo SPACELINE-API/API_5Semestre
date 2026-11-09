@@ -4,6 +4,8 @@ from datetime import UTC, datetime
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.modules.notifications.services.notification_messages import document_review_message
+from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.service_orders.models.service_order_file import (
     DIRECTION_SAIDA,
     REVIEW_APPROVED,
@@ -51,11 +53,23 @@ class ServiceOrderFileReviewService:
         return file, item
 
     def approve(self, service_order_id: uuid.UUID, file_id: uuid.UUID) -> ServiceOrderFile:
-        file, _item = self._get_reviewable_file(service_order_id, file_id)
+        file, item = self._get_reviewable_file(service_order_id, file_id)
 
         file.review_status = REVIEW_APPROVED
         file.review_note = None
         file.reviewed_at = datetime.now(UTC)
+
+        if item.translator is not None:
+            notification_message = document_review_message(file.review_status)
+            NotificationService(self.db).notify_translator(
+                item.translator,
+                event_type=notification_message.event_type,
+                title=notification_message.title,
+                message=notification_message.message,
+                related_type="service_order_file",
+                related_id=file.id,
+                idempotency_key=f"document:{file.id}:review:approved:{file.reviewed_at.isoformat()}",
+            )
 
         self.db.commit()
         self.db.refresh(file)
@@ -71,6 +85,20 @@ class ServiceOrderFileReviewService:
         file.reviewed_at = datetime.now(UTC)
         item.status = STATUS_EM_ANDAMENTO
         item.completed_at = None
+
+        if item.translator is not None:
+            notification_message = document_review_message(file.review_status)
+            NotificationService(self.db).notify_translator(
+                item.translator,
+                event_type=notification_message.event_type,
+                title=notification_message.title,
+                message=notification_message.message,
+                related_type="service_order_file",
+                related_id=file.id,
+                idempotency_key=(
+                    f"document:{file.id}:review:changes_requested:{file.reviewed_at.isoformat()}"
+                ),
+            )
 
         self.db.commit()
         self.db.refresh(file)
