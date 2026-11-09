@@ -10,6 +10,7 @@ import { Redirect, Slot, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { SideBar } from '../components/SideBar';
+import { NotificationCenter } from '../modules/notifications/components/NotificationCenter';
 import {
 	Inter_400Regular,
 	Inter_500Medium,
@@ -214,17 +215,22 @@ function AppShell({
 				{showNavigation ? (
 					<View
 						style={{ paddingTop: insets.top }}
-						className="flex-row items-center gap-3 border-b border-gray-100 bg-white px-4 py-3 md:hidden"
+						className="flex-row items-center border-b border-gray-100 bg-white px-4 py-3 md:hidden"
 					>
 						<TouchableOpacity
 							onPress={onOpenMobileNav}
 							activeOpacity={0.7}
 							accessibilityRole="button"
 							accessibilityLabel="Abrir menu"
-							className="h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
+							className="h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50 md:invisible"
 						>
 							<Menu size={22} color="#1f2937" strokeWidth={2} />
 						</TouchableOpacity>
+					</View>
+				) : null}
+				{showNavigation ? (
+					<View pointerEvents="box-none" className="absolute inset-0 z-50">
+						<NotificationCenter topOffset={insets.top + 8} />
 					</View>
 				) : null}
 

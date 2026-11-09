@@ -6,6 +6,8 @@ from app.modules.notifications.services.notification_messages import (
     certificate_review_message,
     document_received_message,
     document_review_message,
+    quote_approved_message,
+    service_order_completed_message,
 )
 from app.modules.service_orders.models.service_order_file import (
     REVIEW_APPROVED,
@@ -69,6 +71,24 @@ from app.modules.translators.models.translator_certificate import CertificateSta
                 event_type="document_changes_requested",
                 title="Ajustes solicitados no documento",
                 message="Foram solicitados ajustes no documento entregue.",
+            ),
+        ),
+        (
+            quote_approved_message,
+            "Empresa Alpha",
+            NotificationMessage(
+                event_type="quote_approved",
+                title="Orçamento aprovado",
+                message="O orçamento da empresa Empresa Alpha foi aprovado.",
+            ),
+        ),
+        (
+            service_order_completed_message,
+            "Projeto Beta",
+            NotificationMessage(
+                event_type="service_order_completed",
+                title="Ordem de serviço concluída",
+                message='A ordem de serviço "Projeto Beta" foi concluída com sucesso.',
             ),
         ),
     ],

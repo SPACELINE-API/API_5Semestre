@@ -8,6 +8,10 @@ from sqlalchemy.orm import Session
 
 from app.modules.clients.models.company import Company
 from app.modules.contacts.models.contact import Contact
+from app.modules.notifications.services.notification_messages import (
+    service_order_completed_message,
+)
+from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.quotes.models.quote import Quote
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
@@ -150,10 +154,23 @@ class ServiceOrderDeliveryService:
                 return False
 
         completed_at = datetime.now(UTC)
+        completed = False
         for item in items:
             if item.status != STATUS_CONCLUIDA:
                 item.status = STATUS_CONCLUIDA
                 item.completed_at = completed_at
+                completed = True
+
+        if completed:
+            message = service_order_completed_message(service_order.project_name)
+            NotificationService(self.db).notify_administrators(
+                event_type=message.event_type,
+                title=message.title,
+                message=message.message,
+                related_type="service_order",
+                related_id=service_order.id,
+                idempotency_key=f"service-order:{service_order.id}:completed",
+            )
         self.db.commit()
         return True
 

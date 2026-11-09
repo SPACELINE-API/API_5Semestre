@@ -53,3 +53,32 @@ def document_review_message(review_status: str) -> NotificationMessage:
             message="Foram solicitados ajustes no documento entregue.",
         )
     raise ValueError(f"Unsupported document review status: {review_status}")
+
+
+def quote_approved_message(company_name: str | None) -> NotificationMessage:
+    display_name = (company_name or "não identificada").strip()
+    return NotificationMessage(
+        event_type="quote_approved",
+        title="Orçamento aprovado",
+        message=f"O orçamento da empresa {display_name} foi aprovado.",
+    )
+
+
+def service_order_completed_message(project_name: str) -> NotificationMessage:
+    return NotificationMessage(
+        event_type="service_order_completed",
+        title="Ordem de serviço concluída",
+        message=f'A ordem de serviço "{project_name}" foi concluída com sucesso.',
+    )
+
+
+def translator_invite_received_message(document_type: str | None) -> NotificationMessage:
+    return NotificationMessage(
+        event_type="translator_invite_received",
+        title="Novo convite recebido",
+        message=(
+            f"Você recebeu um convite para traduzir {document_type}."
+            if document_type
+            else "Você recebeu um novo convite para um serviço de tradução."
+        ),
+    )
