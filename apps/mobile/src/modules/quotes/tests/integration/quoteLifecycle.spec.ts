@@ -128,7 +128,7 @@ for (const status of ['pending', 'approved', 'reproved', 'cancelled']) {
 
 		await expect(
 			page.getByText(
-				/bloqueado para edição|aguardando aprovação\. Reabra|cancelado e não pode/,
+				/bloqueado para edição|aguardando aprovação\. Reabra|prazo de validade de 30 dias expirou/,
 			),
 		).toBeVisible();
 		await expect(page.getByLabel('Editar orçamento')).toHaveCount(0);
@@ -284,4 +284,43 @@ test('exibe o erro da API quando a reabertura falha', async ({ page }) => {
 		page.getByText(/Orçamentos cancelados não podem ser reabertos/),
 	).toBeVisible();
 	await expect(page.getByText('Confirmar reabertura')).toBeVisible();
+});
+
+for (const status of ['draft', 'pending']) {
+	test(`exibe a validade do orçamento ${status}`, async ({ page }) => {
+		await loginAs(page);
+		await mockQuotes(
+			page,
+			makeQuote({ status, valid_until: '2026-11-24T15:00:00Z' }),
+		);
+
+		await page.goto('/orcamento');
+
+		await expect(page.getByText('Válido até 24/11/2026')).toBeVisible();
+	});
+}
+
+test('não exibe a validade de orçamento aprovado', async ({ page }) => {
+	await loginAs(page);
+	await mockQuotes(
+		page,
+		makeQuote({ status: 'approved', valid_until: '2026-11-24T15:00:00Z' }),
+	);
+
+	await page.goto('/orcamento');
+	await page.getByRole('button', { name: /Expandir orçamento/ }).waitFor();
+
+	await expect(page.getByText(/Válido até/)).toHaveCount(0);
+});
+
+test('orçamento cancelado informa que a validade expirou', async ({ page }) => {
+	await loginAs(page);
+	await mockQuotes(page, makeQuote({ status: 'cancelled' }));
+
+	await openQuote(page);
+
+	await expect(
+		page.getByText(/prazo de validade de 30 dias expirou/),
+	).toBeVisible();
+	await expect(page.getByText('Cancelado').first()).toBeVisible();
 });
