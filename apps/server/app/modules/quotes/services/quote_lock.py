@@ -10,6 +10,7 @@ from app.modules.quotes.models.quote import (
     QUOTE_STATUS_REPROVED,
     Quote,
 )
+from app.modules.quotes.services.quote_expiration import is_quote_expired
 
 if TYPE_CHECKING:
     from app.modules.service_orders.models.service_order import ServiceOrder
@@ -20,7 +21,7 @@ QUOTE_LOCK_REASONS = {
     QUOTE_STATUS_PENDING: "Este orçamento está aguardando aprovação do cliente.",
     QUOTE_STATUS_APPROVED: "Este orçamento já foi aprovado.",
     QUOTE_STATUS_REPROVED: "Este orçamento foi reprovado.",
-    QUOTE_STATUS_CANCELLED: "Este orçamento foi cancelado.",
+    QUOTE_STATUS_CANCELLED: "Este orçamento foi cancelado porque o prazo de validade expirou.",
 }
 
 SERVICE_ORDER_ITEMS_LOCKED_MESSAGE = (
@@ -35,10 +36,11 @@ def quote_locked_message(quote_status: str) -> str:
 
 
 def ensure_quote_is_editable(quote: Quote) -> None:
-    if quote.status != QUOTE_STATUS_DRAFT:
+    current_status = QUOTE_STATUS_CANCELLED if is_quote_expired(quote) else quote.status
+    if current_status != QUOTE_STATUS_DRAFT:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=quote_locked_message(quote.status),
+            detail=quote_locked_message(current_status),
         )
 
 

@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
@@ -21,6 +21,8 @@ QUOTE_STATUSES = (
     QUOTE_STATUS_REPROVED,
     QUOTE_STATUS_CANCELLED,
 )
+QUOTE_EXPIRABLE_STATUSES = (QUOTE_STATUS_DRAFT, QUOTE_STATUS_PENDING)
+QUOTE_VALIDITY_DAYS = 30
 QUOTE_STATUS_PATTERN = f"^({'|'.join(QUOTE_STATUSES)})$"
 
 if TYPE_CHECKING:
@@ -73,6 +75,11 @@ class Quote(Base):
     receipt_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     receipt_error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    validity_starts_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -108,6 +115,12 @@ class Quote(Base):
         if not self.service_orders:
             return None
         return self.service_orders[0].id
+
+    @property
+    def valid_until(self) -> datetime | None:
+        if self.validity_starts_at is None:
+            return None
+        return self.validity_starts_at + timedelta(days=QUOTE_VALIDITY_DAYS)
 
     @property
     def total_value(self) -> Decimal:

@@ -64,6 +64,8 @@ class QuoteResponse(BaseModel):
     reproved_at: datetime | None = None
     reproved_by_email: str | None = None
     reproval_reason: str | None = None
+    validity_starts_at: datetime | None = None
+    valid_until: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -80,6 +82,8 @@ class QuoteManagerResponse(BaseModel):
     reproved_by_email: str | None
     reproval_reason: str | None
     service_order_id: uuid.UUID | None = None
+    validity_starts_at: datetime | None = None
+    valid_until: datetime | None = None
     total_value: Decimal
     customer_name: str | None
     enterprise: str | None
@@ -118,6 +122,8 @@ class QuoteFromRequestResponse(BaseModel):
     original_language: str
     translation_language: str
     customer_need: str
+    validity_starts_at: datetime | None = None
+    valid_until: datetime | None = None
     created_at: datetime
     updated_at: datetime
 

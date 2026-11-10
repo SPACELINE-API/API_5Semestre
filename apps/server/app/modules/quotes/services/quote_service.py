@@ -26,6 +26,11 @@ from app.modules.quotes.schemas.quote import (
     QuoteStatusUpdate,
     QuoteUpdate,
 )
+from app.modules.quotes.services.quote_expiration import (
+    cancel_expired_quote,
+    expire_overdue_quotes,
+    is_quote_expired,
+)
 from app.modules.quotes.services.quote_lock import ensure_quote_is_editable
 from app.modules.quotes.services.receipt_service import QuoteReceiptService
 from app.modules.quotes.services.storage import upload_quote_document
@@ -40,19 +45,21 @@ DECISION_BLOCKED_MESSAGES = {
     QUOTE_STATUS_DRAFT: "Envie o orçamento ao cliente antes de registrar a decisão.",
     QUOTE_STATUS_APPROVED: "Este orçamento já foi aprovado.",
     QUOTE_STATUS_REPROVED: "Este orçamento já foi reprovado.",
-    QUOTE_STATUS_CANCELLED: "Este orçamento foi cancelado.",
+    QUOTE_STATUS_CANCELLED: "Este orçamento foi cancelado porque o prazo de validade expirou.",
 }
 
 SEND_BLOCKED_MESSAGES = {
     QUOTE_STATUS_PENDING: "Este orçamento já foi enviado e está aguardando aprovação do cliente.",
     QUOTE_STATUS_APPROVED: "Este orçamento já foi aprovado.",
     QUOTE_STATUS_REPROVED: "Este orçamento foi reprovado.",
-    QUOTE_STATUS_CANCELLED: "Este orçamento foi cancelado.",
+    QUOTE_STATUS_CANCELLED: "Este orçamento foi cancelado porque o prazo de validade expirou.",
 }
 
 REOPEN_BLOCKED_MESSAGES = {
     QUOTE_STATUS_DRAFT: "Este orçamento já está em preparação e pode ser alterado.",
-    QUOTE_STATUS_CANCELLED: "Orçamentos cancelados não podem ser reabertos.",
+    QUOTE_STATUS_CANCELLED: (
+        "Orçamentos cancelados por prazo de validade expirado não podem ser reabertos."
+    ),
 }
 
 
@@ -100,6 +107,7 @@ class QuoteService:
         search: str | None = None,
         status_filter: str | None = None,
     ) -> dict:
+        expire_overdue_quotes(self.db)
         quotes, total = self.quote_repository.list_all(
             page=page,
             page_size=page_size,
@@ -245,6 +253,7 @@ class QuoteService:
 
         previous_status = quote.status
         quote.status = QUOTE_STATUS_DRAFT
+        quote.validity_starts_at = datetime.now(UTC)
         self.db.add(
             QuoteAuditLog(
                 quote_id=quote.id,
@@ -271,6 +280,10 @@ class QuoteService:
         quote = self.db.query(Quote).filter(Quote.id == quote_id).with_for_update().first()
         if quote is None:
             raise HTTPException(status_code=404, detail="Orçamento não encontrado.")
+        if is_quote_expired(quote):
+            cancel_expired_quote(self.db, quote)
+            self.db.commit()
+            self.db.refresh(quote)
         return quote
 
     def _validate_customer_links(self, company_id, contact_id) -> None:

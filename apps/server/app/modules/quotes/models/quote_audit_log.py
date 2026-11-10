@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.shared.database import Base
 
 QUOTE_AUDIT_ACTION_REOPEN = "reopen"
+QUOTE_AUDIT_ACTION_EXPIRE = "expire"
 
 
 class QuoteAuditLog(Base):
