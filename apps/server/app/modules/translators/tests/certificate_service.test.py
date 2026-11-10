@@ -4,7 +4,9 @@ import uuid
 import pytest
 from fastapi import HTTPException
 
+from app.modules.auth.models.roles import Permission, Role
 from app.modules.auth.models.user import User
+from app.modules.notifications.models.notification import Notification
 from app.modules.system_parameters.models.language import Language
 from app.modules.translators.models.translator import Translator
 from app.modules.translators.models.translator_certificate import (
@@ -83,6 +85,24 @@ def make_translator(db_session) -> Translator:
     return translator
 
 
+def make_user(db_session, email: str, permission_code: str | None = None) -> User:
+    user = User(
+        email=email,
+        password_hash="hashed",
+        is_active=True,
+        role="tradutor",
+    )
+    if permission_code is not None:
+        permission = db_session.query(Permission).filter_by(code=permission_code).one_or_none()
+        if permission is None:
+            permission = Permission(code=permission_code)
+        role = Role(name=f"Role {uuid.uuid4()}", permissions=[permission])
+        user.roles.append(role)
+    db_session.add(user)
+    db_session.flush()
+    return user
+
+
 @pytest.fixture
 def translator(db_session):
     return make_translator(db_session)
@@ -139,6 +159,55 @@ def test_valid_certificate_is_stored_and_only_metadata_is_saved(
     stored = db_session.get(TranslatorCertificate, certificate.id)
     assert stored.storage_path == object_path
     assert len(stored.checksum_sha256) == 64
+
+
+def test_certificate_submission_notifies_only_active_users_with_translators_write(
+    db_session, translator, fake_storage
+):
+    permitted = make_user(db_session, f"permitted-{uuid.uuid4()}@example.com", "translators.write")
+    make_user(db_session, f"unrelated-{uuid.uuid4()}@example.com", "documents.write")
+    inactive = make_user(db_session, f"inactive-{uuid.uuid4()}@example.com", "translators.write")
+    inactive.is_active = False
+
+    certificate = submit(TranslatorCertificateService(db_session), translator)
+
+    notifications = (
+        db_session.query(Notification)
+        .filter_by(event_type="certificate_received", related_id=certificate.id)
+        .all()
+    )
+    assert {item.recipient_user_id for item in notifications} == {permitted.id}
+    assert notifications[0].related_type == "certificate"
+
+
+@pytest.mark.parametrize(
+    ("status", "event_type"),
+    [
+        (CertificateStatus.APPROVED, "certificate_approved"),
+        (CertificateStatus.REJECTED, "certificate_rejected"),
+    ],
+)
+def test_certificate_review_notifies_translator_user_matching_email(
+    db_session, translator, fake_storage, status, event_type
+):
+    translator_user = make_user(db_session, translator.email)
+    certificate = submit(TranslatorCertificateService(db_session), translator)
+
+    TranslatorCertificateService(db_session).review(
+        translator.id,
+        certificate.id,
+        CertificateReviewInput(status=status, review_note="Documento avaliado"),
+        "admin@example.com",
+    )
+
+    notifications = (
+        db_session.query(Notification)
+        .filter_by(event_type=event_type, related_id=certificate.id)
+        .all()
+    )
+    assert len(notifications) == 1
+    assert notifications[0].recipient_user_id == translator_user.id
+    assert notifications[0].related_type == "certificate"
 
 
 def test_invalid_file_is_rejected_before_reaching_storage(db_session, translator, fake_storage):
