@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from unittest.mock import MagicMock
 
@@ -14,6 +15,7 @@ from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
 from app.modules.quotes.models import AdditionalService, Quote, QuoteAuditLog, QuoteTranslationItem
 from app.modules.quotes.services import quote_service as quote_service_module
+from app.modules.quotes.services.quote_expiration import expire_overdue_quotes
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 from app.shared.database import get_db
@@ -314,3 +316,88 @@ def test_reopen_requires_permission(db_client: TestClient, isolated_db_session: 
     assert response.status_code == 403
     isolated_db_session.refresh(quote)
     assert quote.status == "approved"
+
+
+def age_quote(db: Session, quote: Quote, days: int) -> None:
+    quote.validity_starts_at = datetime.now(UTC) - timedelta(days=days)
+    db.commit()
+
+
+@pytest.mark.parametrize("status", ["draft", "pending"])
+def test_overdue_quote_is_cancelled_when_listing(
+    db_client: TestClient, isolated_db_session: Session, status: str
+):
+    quote = make_quote(isolated_db_session, status)
+    age_quote(isolated_db_session, quote, 31)
+
+    response = db_client.get("/api/quotes")
+
+    assert response.status_code == 200
+    listed = next(item for item in response.json()["items"] if item["id"] == str(quote.id))
+    assert listed["status"] == "cancelled"
+    audit = isolated_db_session.query(QuoteAuditLog).filter_by(quote_id=quote.id).one()
+    assert audit.action == "expire"
+    assert audit.previous_status == status
+    assert audit.actor_user_id is None
+
+
+def test_quote_within_validity_is_not_cancelled(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "pending")
+    age_quote(isolated_db_session, quote, 29)
+
+    response = db_client.get("/api/quotes")
+
+    listed = next(item for item in response.json()["items"] if item["id"] == str(quote.id))
+    assert listed["status"] == "pending"
+    assert listed["valid_until"] is not None
+
+
+def test_overdue_draft_rejects_changes(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "draft")
+    age_quote(isolated_db_session, quote, 31)
+
+    response = db_client.patch(f"/api/quotes/{quote.id}", json={"customer_name": "Outro"})
+
+    assert response.status_code == 409
+    assert "prazo de validade expirou" in response.json()["detail"]
+
+
+def test_overdue_pending_cannot_be_approved(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "pending")
+    age_quote(isolated_db_session, quote, 31)
+
+    response = db_client.patch(f"/api/quotes/{quote.id}/status", json={"status": "approved"})
+
+    assert response.status_code == 409
+    isolated_db_session.expire_all()
+    assert isolated_db_session.get(Quote, quote.id).status == "cancelled"
+    assert isolated_db_session.query(ServiceOrder).filter_by(quote_id=quote.id).count() == 0
+
+
+def test_reopen_restarts_validity(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "approved")
+    age_quote(isolated_db_session, quote, 45)
+
+    response = db_client.post(f"/api/quotes/{quote.id}/reopen", json={"reason": "Ajuste"})
+
+    assert response.status_code == 200
+    valid_until = datetime.fromisoformat(response.json()["valid_until"])
+    assert valid_until - datetime.now(UTC) > timedelta(days=29)
+    assert db_client.post(f"/api/quotes/{quote.id}/send").status_code == 200
+
+
+def test_expiration_job_cancels_only_overdue_quotes(isolated_db_session: Session):
+    overdue = make_quote(isolated_db_session, "pending")
+    age_quote(isolated_db_session, overdue, 31)
+    valid = make_quote(isolated_db_session, "draft")
+    approved = make_quote(isolated_db_session, "approved")
+    age_quote(isolated_db_session, approved, 60)
+
+    assert expire_overdue_quotes(isolated_db_session) == 1
+
+    isolated_db_session.expire_all()
+    assert isolated_db_session.get(Quote, overdue.id).status == "cancelled"
+    assert isolated_db_session.get(Quote, valid.id).status == "draft"
+    assert isolated_db_session.get(Quote, approved.id).status == "approved"
