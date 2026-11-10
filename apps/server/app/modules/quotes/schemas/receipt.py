@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from enum import StrEnum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.modules.quotes.models.quote import Quote
 
@@ -35,6 +35,20 @@ class QuoteReceiptResponse(BaseModel):
             sent_at=quote.receipt_sent_at,
             error_message=quote.receipt_error_message,
         )
+
+
+class QuoteReceiptVersionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    version: int
+    status: QuoteReceiptStatus
+    pdf_url: str | None = None
+    total_value: str | None = None
+    approved_at: datetime | None = None
+    generated_at: datetime | None = None
+    sent_at: datetime | None = None
+    error_message: str | None = None
 
 
 class QuoteReceiptDownloadResponse(BaseModel):
