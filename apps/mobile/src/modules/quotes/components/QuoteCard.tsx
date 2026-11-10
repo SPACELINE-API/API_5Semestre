@@ -94,7 +94,8 @@ const lockedStatusMessages: Record<string, string> = {
 		'Este orçamento já foi aprovado e está bloqueado para edição. Reabra o orçamento para alterá-lo.',
 	reproved:
 		'Este orçamento foi reprovado e está bloqueado para edição. Reabra o orçamento para alterá-lo.',
-	cancelled: 'Este orçamento foi cancelado e não pode mais ser alterado.',
+	cancelled:
+		'Este orçamento foi cancelado porque o prazo de validade de 30 dias expirou e não pode mais ser alterado.',
 };
 
 function formatDate(value: string) {
@@ -107,6 +108,17 @@ function formatDate(value: string) {
 				year: 'numeric',
 				hour: '2-digit',
 				minute: '2-digit',
+			});
+}
+
+function formatDay(value: string) {
+	const date = new Date(value);
+	return Number.isNaN(date.getTime())
+		? value
+		: date.toLocaleDateString('pt-BR', {
+				day: '2-digit',
+				month: '2-digit',
+				year: 'numeric',
 			});
 }
 
@@ -427,6 +439,9 @@ export function QuoteCard({
 	const canReopenQuote =
 		canReopenQuotes && REOPENABLE_QUOTE_STATUSES.includes(quote.status);
 	const lockedMessage = lockedStatusMessages[quote.status];
+	const showValidity =
+		(quote.status === 'draft' || quote.status === 'pending') &&
+		Boolean(quote.valid_until);
 
 	const [isEditing, setIsEditing] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
@@ -865,6 +880,11 @@ export function QuoteCard({
 									? 'Vinculado a uma solicitação'
 									: 'Criado manualmente'}
 							</Text>
+							{showValidity && quote.valid_until ? (
+								<Text className="font-inter-medium text-xs text-amber-700">
+									Válido até {formatDay(quote.valid_until)}
+								</Text>
+							) : null}
 						</View>
 					</View>
 				</View>
