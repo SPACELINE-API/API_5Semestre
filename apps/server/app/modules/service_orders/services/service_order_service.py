@@ -21,6 +21,7 @@ from app.modules.service_orders.models.service_order_item import (
     STATUS_PENDENTE,
     ServiceOrderItem,
 )
+from app.modules.service_orders.models.service_order_version import ServiceOrderVersion
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
@@ -31,6 +32,7 @@ from app.modules.service_orders.schemas.service_order import (
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
+from app.modules.service_orders.services.quote_sync_service import record_initial_version
 from app.modules.service_orders.services.storage import (
     delete_service_order_file,
     get_service_order_storage_path,
@@ -73,6 +75,8 @@ def to_response(service_order: ServiceOrder) -> ServiceOrderResponse:
         internal_notes=service_order.internal_notes,
         external_notes=service_order.external_notes,
         status=compute_aggregate_status(service_order.items),
+        current_version=max((version.version for version in service_order.versions), default=1),
+        revised_after_reopen=any(version.version > 1 for version in service_order.versions),
         items=[ServiceOrderItemResponse.model_validate(item) for item in service_order.items],
         files=[ServiceOrderFileResponse.model_validate(file) for file in service_order.files],
         created_at=service_order.created_at,
@@ -148,10 +152,16 @@ class ServiceOrderService:
             )
 
         self.db.add(service_order)
+        self.db.flush()
+        record_initial_version(self.db, service_order, None)
         self.db.commit()
         self.db.refresh(service_order)
 
         return to_response(service_order)
+
+    def list_versions(self, service_order_id: uuid.UUID) -> list[ServiceOrderVersion]:
+        service_order = self._get_service_order_or_404(service_order_id)
+        return list(service_order.versions)
 
     def create_manual(self, data: ManualServiceOrderRequest) -> ServiceOrderResponse:
         company = self.db.query(Company).filter(Company.id == data.company_id).first()

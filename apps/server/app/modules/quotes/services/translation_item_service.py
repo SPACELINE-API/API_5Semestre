@@ -10,6 +10,9 @@ from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemUpdate,
 )
 from app.modules.quotes.services.quote_lock import ensure_quote_is_editable
+from app.modules.service_orders.services.quote_sync_service import (
+    detach_quote_item_from_service_order,
+)
 
 
 class TranslationItemService:
@@ -85,6 +88,7 @@ class TranslationItemService:
         if item is None:
             raise HTTPException(status_code=404, detail="Item do orçamento não encontrado.")
         ensure_quote_is_editable(item.quote)
+        detach_quote_item_from_service_order(self.db, item)
 
         self.db.delete(item)
         self.db.commit()
