@@ -14,7 +14,13 @@ import { ChartCard } from '../../productivity/components/ChartCard';
 
 const TEXT = { fontFamily: 'Inter', color: '#353535' };
 const GRID = '#F0F0F0';
-const STATUS_ORDER: ProposalStatus[] = ['pending', 'approved', 'reproved'];
+const STATUS_ORDER: ProposalStatus[] = [
+	'draft',
+	'pending',
+	'approved',
+	'reproved',
+	'cancelled',
+];
 
 function statusOption(proposals: Proposal[]): ChartOption {
 	const counts = STATUS_ORDER.map(

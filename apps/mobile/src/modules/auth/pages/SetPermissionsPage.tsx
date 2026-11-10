@@ -64,6 +64,7 @@ const VISIBLE_PERMISSIONS = new Set([
 
 const EXTRA_PERMISSION_LABELS: Record<string, string> = {
 	'quotes.approve': 'Aprovação',
+	'quotes.reopen': 'Reabrir orçamentos',
 	'assignments.respond': 'Responder convites',
 	'assignments.manage': 'Gerenciar convites',
 };

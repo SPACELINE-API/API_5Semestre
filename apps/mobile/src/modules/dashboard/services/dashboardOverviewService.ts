@@ -92,9 +92,15 @@ async function loadQuotes(range: PeriodRange): Promise<OverviewGroup> {
 				date: q.created_at,
 			})),
 			range,
-			{ pending: 'Em aberto', approved: 'Aprovados', reproved: 'Reprovados' },
+			{
+				draft: 'Em preparação',
+				pending: 'Aguardando aprovação',
+				approved: 'Aprovados',
+				reproved: 'Reprovados',
+				cancelled: 'Cancelados',
+			},
 			true,
-			['pending', 'approved', 'reproved'],
+			['draft', 'pending', 'approved', 'reproved'],
 		),
 	};
 }

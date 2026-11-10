@@ -17,9 +17,11 @@ const SORT_OPTIONS: { value: ProposalSortField; label: string }[] = [
 ];
 
 const STATUS_OPTIONS: { value: ProposalStatus; label: string }[] = [
-	{ value: 'pending', label: 'Pendente' },
+	{ value: 'draft', label: 'Em preparação' },
+	{ value: 'pending', label: 'Aguardando aprovação' },
 	{ value: 'approved', label: 'Aprovada' },
 	{ value: 'reproved', label: 'Reprovada' },
+	{ value: 'cancelled', label: 'Cancelada' },
 ];
 
 export function ProposalFilters({
