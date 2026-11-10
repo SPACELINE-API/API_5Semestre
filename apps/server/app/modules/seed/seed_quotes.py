@@ -42,7 +42,7 @@ SEED_QUOTES = [
         target_language="en-US",
         document_type="Contrato societário",
         estimated_value=Decimal("1240.00"),
-        status="pending",
+        status="draft",
         asset_filename="contrato-societario.pdf",
     ),
     SeedQuote(
@@ -54,7 +54,7 @@ SEED_QUOTES = [
         target_language="pt-BR",
         document_type="Certidão de nascimento",
         estimated_value=Decimal("380.00"),
-        status="pending",
+        status="draft",
         asset_filename="certidao-de-nascimento.pdf",
     ),
     SeedQuote(
@@ -66,7 +66,7 @@ SEED_QUOTES = [
         target_language="pt-BR",
         document_type="Termo de confidencialidade",
         estimated_value=Decimal("610.00"),
-        status="pending",
+        status="draft",
         asset_filename="termo-de-confidencialidade.pdf",
     ),
 ]

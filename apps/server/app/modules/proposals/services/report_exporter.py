@@ -131,6 +131,14 @@ JSON_KEY_TRANSLATIONS = {
     "error_message": "mensagem_erro",
 }
 
+PROPOSAL_STATUS_TRANSLATIONS = {
+    "draft": "Em preparação",
+    "pending": "Aguardando aprovação",
+    "approved": "Aprovado",
+    "reproved": "Reprovado",
+    "cancelled": "Cancelado",
+}
+
 VALUE_TRANSLATIONS = {
     "active": "Ativa",
     "inactive": "Inativa",
@@ -228,7 +236,12 @@ def _translate_dict(values: dict[str, Any]) -> dict[str, Any]:
         translated_key = JSON_KEY_TRANSLATIONS.get(key, key)
         translated_value: Any
         if isinstance(value, dict):
-            if key in {"requests_by_status", "proposals_by_status"}:
+            if key == "proposals_by_status":
+                translated_value = {
+                    PROPOSAL_STATUS_TRANSLATIONS.get(str(nested_key), str(nested_key)): nested_value
+                    for nested_key, nested_value in value.items()
+                }
+            elif key == "requests_by_status":
                 translated_value = {
                     VALUE_TRANSLATIONS.get(str(nested_key), str(nested_key)): nested_value
                     for nested_key, nested_value in value.items()

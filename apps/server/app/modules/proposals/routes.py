@@ -16,6 +16,7 @@ from app.modules.proposals.services.report_exporter import (
     build_xlsx,
 )
 from app.modules.proposals.services.report_storage import REPORT_URL_EXPIRES_IN, upload_report
+from app.modules.quotes.models.quote import QUOTE_STATUS_PATTERN
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/quotes/proposals", tags=["proposals"])
@@ -37,9 +38,7 @@ def list_proposals(
     page_size: int = Query(default=10, ge=1, le=100),
     start_date: date | None = Query(default=None),
     end_date: date | None = Query(default=None),
-    status_filter: str | None = Query(
-        default=None, alias="status", pattern="^(pending|approved|reproved)$"
-    ),
+    status_filter: str | None = Query(default=None, alias="status", pattern=QUOTE_STATUS_PATTERN),
     enterprise: str | None = Query(default=None, min_length=1, max_length=155),
     order_by: str = Query(default="created_at"),
     order_dir: str = Query(default="desc"),

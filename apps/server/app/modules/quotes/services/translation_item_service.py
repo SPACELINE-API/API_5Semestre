@@ -9,6 +9,7 @@ from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemCreate,
     QuoteTranslationItemUpdate,
 )
+from app.modules.quotes.services.quote_lock import ensure_quote_is_editable
 
 
 class TranslationItemService:
@@ -21,6 +22,7 @@ class TranslationItemService:
         quote = self.db.query(Quote).filter(Quote.id == quote_id).first()
         if not quote:
             raise HTTPException(status_code=404, detail="Quote not found")
+        ensure_quote_is_editable(quote)
 
         item = QuoteTranslationItem(
             quote_id=quote_id,
@@ -62,6 +64,7 @@ class TranslationItemService:
         )
         if item is None:
             raise HTTPException(status_code=404, detail="Item do orçamento não encontrado.")
+        ensure_quote_is_editable(item.quote)
 
         for field, value in item_data.model_dump(exclude_unset=True).items():
             setattr(item, field, value)
@@ -81,6 +84,7 @@ class TranslationItemService:
         )
         if item is None:
             raise HTTPException(status_code=404, detail="Item do orçamento não encontrado.")
+        ensure_quote_is_editable(item.quote)
 
         self.db.delete(item)
         self.db.commit()

@@ -28,6 +28,7 @@ ADMIN_PERMISSIONS = (
     "quotes.read",
     "quotes.write",
     "quotes.approve",
+    "quotes.reopen",
     "service_orders.read",
     "service_orders.write",
     "translators.read",

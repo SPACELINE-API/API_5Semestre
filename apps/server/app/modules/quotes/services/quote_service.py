@@ -9,16 +9,51 @@ from sqlalchemy.orm import Session
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
 from app.modules.contacts.models.contact import Contact
-from app.modules.quotes.models.quote import Quote
+from app.modules.quotes.models.quote import (
+    QUOTE_STATUS_APPROVED,
+    QUOTE_STATUS_CANCELLED,
+    QUOTE_STATUS_DRAFT,
+    QUOTE_STATUS_PENDING,
+    QUOTE_STATUS_REPROVED,
+    Quote,
+)
+from app.modules.quotes.models.quote_audit_log import QUOTE_AUDIT_ACTION_REOPEN, QuoteAuditLog
 from app.modules.quotes.repositories.quote_repository import QuoteRepository
 from app.modules.quotes.repositories.request_repository import RequestRepository
-from app.modules.quotes.schemas.quote import QuoteCreate, QuoteStatusUpdate, QuoteUpdate
+from app.modules.quotes.schemas.quote import (
+    QuoteCreate,
+    QuoteReopenRequest,
+    QuoteStatusUpdate,
+    QuoteUpdate,
+)
+from app.modules.quotes.services.quote_lock import ensure_quote_is_editable
 from app.modules.quotes.services.receipt_service import QuoteReceiptService
 from app.modules.quotes.services.storage import upload_quote_document
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 
 logger = logging.getLogger(__name__)
+
+REOPENABLE_STATUSES = (QUOTE_STATUS_PENDING, QUOTE_STATUS_APPROVED, QUOTE_STATUS_REPROVED)
+
+DECISION_BLOCKED_MESSAGES = {
+    QUOTE_STATUS_DRAFT: "Envie o orçamento ao cliente antes de registrar a decisão.",
+    QUOTE_STATUS_APPROVED: "Este orçamento já foi aprovado.",
+    QUOTE_STATUS_REPROVED: "Este orçamento já foi reprovado.",
+    QUOTE_STATUS_CANCELLED: "Este orçamento foi cancelado.",
+}
+
+SEND_BLOCKED_MESSAGES = {
+    QUOTE_STATUS_PENDING: "Este orçamento já foi enviado e está aguardando aprovação do cliente.",
+    QUOTE_STATUS_APPROVED: "Este orçamento já foi aprovado.",
+    QUOTE_STATUS_REPROVED: "Este orçamento foi reprovado.",
+    QUOTE_STATUS_CANCELLED: "Este orçamento foi cancelado.",
+}
+
+REOPEN_BLOCKED_MESSAGES = {
+    QUOTE_STATUS_DRAFT: "Este orçamento já está em preparação e pode ser alterado.",
+    QUOTE_STATUS_CANCELLED: "Orçamentos cancelados não podem ser reabertos.",
+}
 
 
 class QuoteService:
@@ -30,7 +65,7 @@ class QuoteService:
     def create_quote(self, quote_data: QuoteCreate) -> Quote:
         self._validate_customer_links(quote_data.company_id, quote_data.contact_id)
         quote = Quote(
-            status="pending",
+            status=QUOTE_STATUS_DRAFT,
             company_id=quote_data.company_id,
             contact_id=quote_data.contact_id,
         )
@@ -43,6 +78,7 @@ class QuoteService:
         quote = self.db.query(Quote).filter(Quote.id == quote_id).first()
         if quote is None:
             raise HTTPException(status_code=404, detail="Orçamento não encontrado.")
+        ensure_quote_is_editable(quote)
 
         update_data = data.model_dump(exclude_unset=True)
         company_id = update_data.get("company_id", quote.company_id)
@@ -84,13 +120,17 @@ class QuoteService:
         data: QuoteStatusUpdate,
         current_user: SupabaseAuthenticatedUser,
     ) -> Quote:
-        quote = self.db.query(Quote).filter(Quote.id == quote_id).with_for_update().first()
-        if quote is None:
-            raise HTTPException(status_code=404, detail="Orçamento não encontrado.")
-        if quote.status != "pending":
+        quote = self._get_quote_for_update(quote_id)
+        if quote.status != QUOTE_STATUS_PENDING:
+            reason = DECISION_BLOCKED_MESSAGES.get(
+                quote.status, "Este orçamento não pode receber uma decisão."
+            )
             raise HTTPException(
-                status_code=409,
-                detail="Somente orçamentos pendentes podem receber uma decisão.",
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"{reason} Somente orçamentos aguardando aprovação podem ser aprovados "
+                    "ou reprovados."
+                ),
             )
 
         if data.status == "approved":
@@ -166,6 +206,71 @@ class QuoteService:
             except Exception:
                 logger.exception("Falha ao gerar comprovante do orçamento %s", quote.id)
 
+        return quote
+
+    def send_to_customer(self, quote_id: uuid.UUID) -> Quote:
+        quote = self._get_quote_for_update(quote_id)
+        if quote.status != QUOTE_STATUS_DRAFT:
+            reason = SEND_BLOCKED_MESSAGES.get(quote.status, "Este orçamento não pode ser enviado.")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"{reason} Somente orçamentos em preparação podem ser enviados ao cliente."
+                ),
+            )
+
+        quote.status = QUOTE_STATUS_PENDING
+        self.db.commit()
+        self.db.refresh(quote)
+        return quote
+
+    def reopen(
+        self,
+        quote_id: uuid.UUID,
+        data: QuoteReopenRequest,
+        current_user: SupabaseAuthenticatedUser,
+    ) -> Quote:
+        quote = self._get_quote_for_update(quote_id)
+        if quote.status not in REOPENABLE_STATUSES:
+            reason = REOPEN_BLOCKED_MESSAGES.get(
+                quote.status, "Este orçamento não pode ser reaberto."
+            )
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"{reason} Somente orçamentos aguardando aprovação, aprovados ou "
+                    "reprovados podem ser reabertos."
+                ),
+            )
+
+        previous_status = quote.status
+        quote.status = QUOTE_STATUS_DRAFT
+        self.db.add(
+            QuoteAuditLog(
+                quote_id=quote.id,
+                action=QUOTE_AUDIT_ACTION_REOPEN,
+                previous_status=previous_status,
+                new_status=QUOTE_STATUS_DRAFT,
+                reason=data.reason,
+                actor_user_id=uuid.UUID(current_user.id),
+                actor_email=current_user.email,
+            )
+        )
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Não foi possível reabrir o orçamento.",
+            ) from None
+        self.db.refresh(quote)
+        return quote
+
+    def _get_quote_for_update(self, quote_id: uuid.UUID) -> Quote:
+        quote = self.db.query(Quote).filter(Quote.id == quote_id).with_for_update().first()
+        if quote is None:
+            raise HTTPException(status_code=404, detail="Orçamento não encontrado.")
         return quote
 
     def _validate_customer_links(self, company_id, contact_id) -> None:

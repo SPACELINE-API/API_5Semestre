@@ -38,6 +38,19 @@ class QuoteStatusUpdate(BaseModel):
         return self
 
 
+class QuoteReopenRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str = Field(max_length=500)
+
+    @model_validator(mode="after")
+    def require_reason(self):
+        self.reason = (self.reason or "").strip()
+        if not self.reason:
+            raise ValueError("Informe o motivo da reabertura.")
+        return self
+
+
 class QuoteResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -9,6 +9,20 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.shared.database import Base
 
+QUOTE_STATUS_DRAFT = "draft"
+QUOTE_STATUS_PENDING = "pending"
+QUOTE_STATUS_APPROVED = "approved"
+QUOTE_STATUS_REPROVED = "reproved"
+QUOTE_STATUS_CANCELLED = "cancelled"
+QUOTE_STATUSES = (
+    QUOTE_STATUS_DRAFT,
+    QUOTE_STATUS_PENDING,
+    QUOTE_STATUS_APPROVED,
+    QUOTE_STATUS_REPROVED,
+    QUOTE_STATUS_CANCELLED,
+)
+QUOTE_STATUS_PATTERN = f"^({'|'.join(QUOTE_STATUSES)})$"
+
 if TYPE_CHECKING:
     from app.modules.clients.models.company import Company
     from app.modules.contacts.models.contact import Contact
@@ -35,7 +49,9 @@ class Quote(Base):
     contact_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("contact.id", ondelete="RESTRICT"), nullable=True, index=True
     )
-    status: Mapped[str] = mapped_column(String(50), nullable=False, default="pending")
+    status: Mapped[str] = mapped_column(
+        String(50), nullable=False, default=QUOTE_STATUS_DRAFT, server_default=QUOTE_STATUS_DRAFT
+    )
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     approved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     approved_by_email: Mapped[str | None] = mapped_column(String(255))
@@ -89,7 +105,7 @@ class Quote(Base):
 
     @property
     def service_order_id(self) -> uuid.UUID | None:
-        if self.status != "approved" or not self.service_orders:
+        if not self.service_orders:
             return None
         return self.service_orders[0].id
 

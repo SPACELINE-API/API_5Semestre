@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import require_permission
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
+from app.modules.quotes.models.quote import QUOTE_STATUS_PATTERN
 from app.modules.quotes.schemas.additional_service import (
     AdditionalServiceCreate,
     AdditionalServiceResponse,
@@ -16,6 +17,7 @@ from app.modules.quotes.schemas.quote import (
     QuoteFromRequestResponse,
     QuoteListResponse,
     QuoteManagerResponse,
+    QuoteReopenRequest,
     QuoteResponse,
     QuoteStatusUpdate,
     QuoteUpdate,
@@ -46,6 +48,7 @@ router = APIRouter(prefix="/quotes", tags=["quotes"])
 quotes_read_permission = require_permission("quotes.read")
 quotes_write_permission = require_permission("quotes.write")
 quotes_approve_permission = require_permission("quotes.approve")
+quotes_reopen_permission = require_permission("quotes.reopen")
 requests_read_permission = require_permission("requests.read")
 requests_write_permission = require_permission("requests.write")
 documents_write_permission = require_permission("documents.write")
@@ -81,9 +84,7 @@ def list_quotes(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=10),
     search: str | None = Query(default=None, max_length=255),
-    status_filter: str | None = Query(
-        default=None, alias="status", pattern="^(pending|approved|reproved)$"
-    ),
+    status_filter: str | None = Query(default=None, alias="status", pattern=QUOTE_STATUS_PATTERN),
     _user=Depends(quotes_read_permission),
     db: Session = Depends(get_db),
 ):
@@ -116,6 +117,27 @@ def update_quote_status(
 ):
     service = QuoteService(db)
     return service.update_status(quote_id, data, current_user)
+
+
+@router.post("/{quote_id}/send", response_model=QuoteResponse)
+def send_quote_to_customer(
+    quote_id: uuid.UUID,
+    _user=Depends(quotes_write_permission),
+    db: Session = Depends(get_db),
+):
+    service = QuoteService(db)
+    return service.send_to_customer(quote_id)
+
+
+@router.post("/{quote_id}/reopen", response_model=QuoteResponse)
+def reopen_quote(
+    quote_id: uuid.UUID,
+    data: QuoteReopenRequest,
+    current_user: SupabaseAuthenticatedUser = Depends(quotes_reopen_permission),
+    db: Session = Depends(get_db),
+):
+    service = QuoteService(db)
+    return service.reopen(quote_id, data, current_user)
 
 
 @router.get("/{quote_id}/receipt", response_model=QuoteReceiptResponse)
