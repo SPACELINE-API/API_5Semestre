@@ -75,6 +75,11 @@ class Quote(Base):
     receipt_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     receipt_error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    customer_access_token_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, unique=True
+    )
+    sent_to_customer_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    sent_to_customer_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     validity_starts_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

@@ -66,6 +66,8 @@ class QuoteResponse(BaseModel):
     reproval_reason: str | None = None
     validity_starts_at: datetime | None = None
     valid_until: datetime | None = None
+    sent_to_customer_at: datetime | None = None
+    sent_to_customer_email: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -84,6 +86,8 @@ class QuoteManagerResponse(BaseModel):
     service_order_id: uuid.UUID | None = None
     validity_starts_at: datetime | None = None
     valid_until: datetime | None = None
+    sent_to_customer_at: datetime | None = None
+    sent_to_customer_email: str | None = None
     total_value: Decimal
     customer_name: str | None
     enterprise: str | None
@@ -129,3 +133,34 @@ class QuoteFromRequestResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class QuoteCustomerItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    document_type: str | None = None
+    source_language: str
+    target_language: str
+    estimated_value: Decimal | None = None
+
+
+class QuoteCustomerService(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    description: str
+    price: Decimal
+
+
+class QuoteCustomerResponse(BaseModel):
+    code: str
+    status: str
+    company_name: str | None = None
+    customer_name: str | None = None
+    items: list[QuoteCustomerItem]
+    additional_services: list[QuoteCustomerService]
+    total_value: Decimal
+    valid_until: datetime | None = None
+    sent_to_customer_at: datetime | None = None
+    approved_at: datetime | None = None
+    reproved_at: datetime | None = None
+    reproval_reason: str | None = None
