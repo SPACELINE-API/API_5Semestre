@@ -8,6 +8,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.modules.auth.models.user import User
+from app.modules.notifications.services.notification_messages import (
+    certificate_received_message,
+    certificate_review_message,
+)
+from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.system_parameters.models.language import Language
 from app.modules.translators.models.translator import Translator
 from app.modules.translators.models.translator_certificate import (
@@ -95,6 +100,18 @@ class TranslatorCertificateService:
         certificate.reviewed_by_id = None
         certificate.reviewed_at = None
 
+        self.db.flush()
+        notification_message = certificate_received_message(translator.name)
+        NotificationService(self.db).notify_users_with_permission(
+            "translators.write",
+            event_type=notification_message.event_type,
+            title=notification_message.title,
+            message=notification_message.message,
+            related_type="certificate",
+            related_id=certificate.id,
+            idempotency_key=f"certificate:{certificate.id}:received:{checksum}",
+        )
+
         try:
             self.db.commit()
         except Exception as error:
@@ -177,6 +194,20 @@ class TranslatorCertificateService:
                     proficiency_level=certificate.proficiency_level,
                 )
             )
+
+        notification_message = certificate_review_message(data.status)
+        NotificationService(self.db).notify_translator(
+            translator,
+            event_type=notification_message.event_type,
+            title=notification_message.title,
+            message=notification_message.message,
+            related_type="certificate",
+            related_id=certificate.id,
+            idempotency_key=(
+                f"certificate:{certificate.id}:review:{notification_message.event_type}:"
+                f"{certificate.reviewed_at.isoformat()}"
+            ),
+        )
 
         try:
             self.db.commit()

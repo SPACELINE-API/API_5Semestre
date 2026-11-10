@@ -7,8 +7,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.main import app
+from app.modules.auth.models.roles import Permission, Role
+from app.modules.auth.models.user import User
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
+from app.modules.notifications.models.notification import Notification
 from app.modules.quotes.models.quote import Quote
 from app.modules.service_orders import routes as service_orders_routes
 from app.modules.service_orders.models.service_order import ServiceOrder
@@ -95,6 +98,28 @@ def make_translator(db_session: Session) -> Translator:
     return translator
 
 
+def make_user(db_session: Session, email: str, permission_code: str | None = None) -> User:
+    user = User(
+        email=email,
+        password_hash="hashed",
+        is_active=True,
+        role="tradutor",
+    )
+    if permission_code is not None:
+        permission = db_session.query(Permission).filter_by(code=permission_code).one_or_none()
+        if permission is None:
+            permission = Permission(code=permission_code)
+        user.roles.append(
+            Role(
+                name=f"Role {uuid.uuid4()}",
+                permissions=[permission],
+            )
+        )
+    db_session.add(user)
+    db_session.flush()
+    return user
+
+
 def make_item(
     db_session: Session,
     order: ServiceOrder,
@@ -165,6 +190,82 @@ def test_request_changes_stores_the_note_and_reopens_the_item(db_session: Sessio
     assert reviewed.reviewed_at is not None
     db_session.refresh(item)
     assert item.status == STATUS_EM_ANDAMENTO
+
+
+def test_approve_persists_document_approved_notification_for_translator_email(
+    db_session: Session,
+) -> None:
+    order = make_order(db_session)
+    translator = make_translator(db_session)
+    translator_user = make_user(db_session, translator.email)
+    item = make_item(db_session, order, translator)
+    file = make_delivery(db_session, order, item)
+
+    ServiceOrderFileReviewService(db_session).approve(order.id, file.id)
+
+    notification = (
+        db_session.query(Notification)
+        .filter_by(event_type="document_approved", related_id=file.id)
+        .one()
+    )
+    assert notification.recipient_user_id == translator_user.id
+    assert notification.related_type == "service_order_file"
+
+
+def test_request_changes_persists_notification_for_translator_email(
+    db_session: Session,
+) -> None:
+    order = make_order(db_session)
+    translator = make_translator(db_session)
+    translator_user = make_user(db_session, translator.email)
+    item = make_item(db_session, order, translator)
+    file = make_delivery(db_session, order, item)
+
+    ServiceOrderFileReviewService(db_session).request_changes(
+        order.id, file.id, "Revisar a terminologia"
+    )
+
+    notification = (
+        db_session.query(Notification)
+        .filter_by(event_type="document_changes_requested", related_id=file.id)
+        .one()
+    )
+    assert notification.recipient_user_id == translator_user.id
+    assert notification.related_type == "service_order_file"
+
+
+def test_document_delivery_notifies_only_active_users_with_documents_write(
+    db_session: Session, monkeypatch
+) -> None:
+    monkeypatch.setattr(
+        translator_item_module,
+        "upload_service_order_file",
+        lambda filename, _data, _content_type: f"https://storage.example/{filename}",
+    )
+    order = make_order(db_session)
+    translator = make_translator(db_session)
+    item = make_item(db_session, order, translator, status=STATUS_EM_ANDAMENTO)
+    permitted = make_user(db_session, f"permitted-{uuid.uuid4()}@example.com", "documents.write")
+    make_user(db_session, f"unrelated-{uuid.uuid4()}@example.com", "translators.write")
+    inactive = make_user(db_session, f"inactive-{uuid.uuid4()}@example.com", "documents.write")
+    inactive.is_active = False
+
+    TranslatorItemService(db_session).deliver(
+        item.id, translator.email, "traducao.pdf", b"conteudo", "application/pdf"
+    )
+    delivered_file = (
+        db_session.query(ServiceOrderFile)
+        .filter_by(service_order_item_id=item.id, direction=DIRECTION_SAIDA)
+        .one()
+    )
+
+    notifications = (
+        db_session.query(Notification)
+        .filter_by(event_type="document_received", related_id=delivered_file.id)
+        .all()
+    )
+    assert {item.recipient_user_id for item in notifications} == {permitted.id}
+    assert notifications[0].related_type == "service_order_file"
 
 
 def test_a_delivery_can_only_be_reviewed_once(db_session: Session) -> None:
