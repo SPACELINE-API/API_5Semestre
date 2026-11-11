@@ -33,7 +33,7 @@ export function PersonRow({
 
 	return (
 		<View className="flex-col gap-3 border-t border-gray-100 px-4 py-4 md:flex-row md:items-center md:gap-4">
-			<View className="min-w-0 flex-1 flex-row items-center gap-3">
+			<View className="min-w-0 flex-row items-center gap-3 md:flex-1">
 				<View className="h-10 w-10 items-center justify-center rounded-full bg-blue-50">
 					<Text className="font-inter font-bold text-blue-700 text-sm">
 						{initials(person)}

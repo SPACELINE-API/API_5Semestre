@@ -12,6 +12,7 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { getAuthorizationContext } from '../../auth/services/auth';
+import { SettingsHeader } from '../../auth/components/SettingsHeader';
 import { DepartmentSection } from '../components/DepartmentSection';
 import { PendingInvitesCard } from '../components/PendingInvitesCard';
 import {
@@ -170,30 +171,29 @@ export function InternalUsersPage() {
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
 				keyboardShouldPersistTaps="handled"
 			>
-				<View className="mb-6 flex-row flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-6">
-					<View className="min-w-[220px] flex-1">
-						<Text className="font-inter font-bold text-blue-600 text-xs uppercase tracking-wider">
-							Administração
-						</Text>
-						<Text className="mt-1 font-inter font-bold text-gray-950 text-2xl">
+				<SettingsHeader active="pessoas" />
+
+				<View className="mb-5 gap-2">
+					<View className="flex-row items-center justify-between gap-3">
+						<Text className="min-w-0 flex-1 font-inter font-semibold text-gray-900 text-base">
 							Pessoas internas
 						</Text>
-						<Text className="mt-2 font-inter text-gray-500 text-sm">
-							Convide e gerencie quem trabalha na plataforma, separado por
-							departamento. As permissões de cada perfil ficam em Configurações.
-						</Text>
+						<TouchableOpacity
+							onPress={openCreate}
+							accessibilityRole="button"
+							accessibilityLabel="Convidar pessoa"
+							className="shrink-0 flex-row items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2.5 md:gap-2 md:px-4 md:py-3"
+						>
+							<Plus size={16} color="#FFFFFF" />
+							<Text className="font-inter font-semibold text-sm text-white">
+								Convidar pessoa
+							</Text>
+						</TouchableOpacity>
 					</View>
-					<TouchableOpacity
-						onPress={openCreate}
-						accessibilityRole="button"
-						accessibilityLabel="Convidar pessoa"
-						className="shrink-0 flex-row items-center gap-2 rounded-lg bg-blue-600 px-4 py-3"
-					>
-						<Plus size={16} color="#FFFFFF" />
-						<Text className="font-inter font-semibold text-sm text-white">
-							Convidar pessoa
-						</Text>
-					</TouchableOpacity>
+					<Text className="font-inter text-gray-500 text-sm">
+						Convide e gerencie quem trabalha na plataforma, separado por
+						departamento. As permissões de cada perfil ficam na aba Permissões.
+					</Text>
 				</View>
 
 				<PendingInvitesCard
@@ -203,7 +203,7 @@ export function InternalUsersPage() {
 				/>
 
 				<View className="mb-5 flex-col gap-3 md:flex-row md:items-center md:justify-between">
-					<View className="h-11 flex-1 flex-row items-center gap-2 rounded-lg border border-gray-300 px-3 md:max-w-[420px]">
+					<View className="h-11 w-full flex-row items-center gap-2 rounded-lg border border-gray-300 px-3 md:w-auto md:max-w-[420px] md:flex-1">
 						<Search size={16} color="#9CA3AF" />
 						<TextInput
 							value={search}
