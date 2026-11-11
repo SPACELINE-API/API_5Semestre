@@ -297,13 +297,96 @@ def test_update_quote_rejects_locked_status(mock_db_session, status):
     mock_db_session.commit.assert_not_called()
 
 
-def test_send_to_customer_moves_draft_to_pending(mock_db_session):
+def draft_quote_ready_to_send(mock_db_session, **overrides):
     quote = quote_for_update(mock_db_session, "draft")
+    quote.company_id = uuid.uuid4()
+    quote.items = [MagicMock(file_url="https://storage.test/contrato.pdf")]
+    quote.contact = MagicMock(email="contato@cliente.com", name="Contato")
+    quote.sent_to_customer_at = None
+    quote.valid_until = None
+    for field, value in overrides.items():
+        setattr(quote, field, value)
+    return quote
+
+
+def test_send_to_customer_moves_draft_to_pending_and_emails_customer(mock_db_session, monkeypatch):
+    quote = draft_quote_ready_to_send(mock_db_session)
+    send_email = MagicMock()
+    monkeypatch.setattr(quote_service_module, "send_quote_sent_email", send_email)
 
     result = QuoteService(mock_db_session).send_to_customer(quote.id)
 
     assert result.status == "pending"
+    assert result.sent_to_customer_email == "contato@cliente.com"
+    assert len(result.customer_access_token_hash) == 64
+    kwargs = send_email.call_args.kwargs
+    assert kwargs["to_email"] == "contato@cliente.com"
+    assert "/aprovar-orcamento?token=" in kwargs["approval_url"]
+    assert kwargs["is_update"] is False
     mock_db_session.commit.assert_called_once()
+
+
+def test_resend_after_reopen_is_marked_as_update(mock_db_session, monkeypatch):
+    quote = draft_quote_ready_to_send(mock_db_session, sent_to_customer_at=MagicMock())
+    send_email = MagicMock()
+    monkeypatch.setattr(quote_service_module, "send_quote_sent_email", send_email)
+
+    QuoteService(mock_db_session).send_to_customer(quote.id)
+
+    assert send_email.call_args.kwargs["is_update"] is True
+
+
+def test_send_to_customer_keeps_draft_when_email_fails(mock_db_session, monkeypatch):
+    quote = draft_quote_ready_to_send(mock_db_session)
+    monkeypatch.setattr(
+        quote_service_module,
+        "send_quote_sent_email",
+        MagicMock(side_effect=RuntimeError("smtp down")),
+    )
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).send_to_customer(quote.id)
+
+    assert error.value.status_code == 502
+    assert quote.status == "draft"
+    mock_db_session.commit.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"company_id": None}, "Vincule uma empresa"),
+        ({"items": []}, "Adicione ao menos um documento"),
+        ({"items": [MagicMock(file_url=None)]}, "Anexe o arquivo"),
+    ],
+)
+def test_send_to_customer_requires_complete_quote(mock_db_session, monkeypatch, overrides, message):
+    quote = draft_quote_ready_to_send(mock_db_session, **overrides)
+    send_email = MagicMock()
+    monkeypatch.setattr(quote_service_module, "send_quote_sent_email", send_email)
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).send_to_customer(quote.id)
+
+    assert error.value.status_code == 422
+    assert message in error.value.detail
+    send_email.assert_not_called()
+
+
+def test_send_to_customer_requires_an_email(mock_db_session, monkeypatch):
+    quote = draft_quote_ready_to_send(
+        mock_db_session,
+        contact=None,
+        email=None,
+        company=MagicMock(email=None),
+    )
+    monkeypatch.setattr(quote_service_module, "send_quote_sent_email", MagicMock())
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).send_to_customer(quote.id)
+
+    assert error.value.status_code == 422
+    assert "e-mail de contato" in error.value.detail
 
 
 @pytest.mark.parametrize("status", ["pending", "approved", "reproved", "cancelled"])
