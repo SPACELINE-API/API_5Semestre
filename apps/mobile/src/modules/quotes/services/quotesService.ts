@@ -71,6 +71,8 @@ export type QuoteResponse = {
 	reproval_reason?: string | null;
 	validity_starts_at?: string | null;
 	valid_until?: string | null;
+	sent_to_customer_at?: string | null;
+	sent_to_customer_email?: string | null;
 	created_at: string;
 	updated_at: string;
 };

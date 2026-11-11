@@ -72,6 +72,7 @@ import type {
 } from '../../service-orders/types/serviceOrder';
 import { ItemsTable } from '../../service-orders/components/ItemsTable';
 import { ReopenQuoteDialog } from './ReopenQuoteDialog';
+import { SendQuoteDialog } from './SendQuoteDialog';
 
 export const quoteStatusStyles: Record<
 	string,
@@ -120,6 +121,25 @@ function formatDay(value: string) {
 				month: '2-digit',
 				year: 'numeric',
 			});
+}
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+function daysUntil(value: string) {
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return null;
+	return Math.ceil((date.getTime() - Date.now()) / DAY_IN_MS);
+}
+
+function validityLabel(value: string) {
+	const days = daysUntil(value);
+	const base = `Válido até ${formatDay(value)}`;
+	if (days === null || days > 7) return { text: base, urgent: false };
+	if (days <= 0) return { text: `${base} · vence hoje`, urgent: true };
+	return {
+		text: `${base} · vence em ${days} ${days === 1 ? 'dia' : 'dias'}`,
+		urgent: days <= 3,
+	};
 }
 
 function display(value: string | null | undefined) {
@@ -439,9 +459,17 @@ export function QuoteCard({
 	const canReopenQuote =
 		canReopenQuotes && REOPENABLE_QUOTE_STATUSES.includes(quote.status);
 	const lockedMessage = lockedStatusMessages[quote.status];
-	const showValidity =
+	const validity =
 		(quote.status === 'draft' || quote.status === 'pending') &&
-		Boolean(quote.valid_until);
+		quote.valid_until
+			? validityLabel(quote.valid_until)
+			: null;
+	const hasItemWithoutFile = quote.items.some(
+		(item) => !(item.file_url ?? '').trim(),
+	);
+	const canSendQuote =
+		Boolean(quote.company_id) && quote.items.length > 0 && !hasItemWithoutFile;
+	const [sendDialogOpen, setSendDialogOpen] = useState(false);
 
 	const [isEditing, setIsEditing] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
@@ -680,8 +708,12 @@ export function QuoteCard({
 		setSendError('');
 		setFeedbackMessage('');
 		const message = await onSend();
+		setSendDialogOpen(false);
 		if (message) setSendError(message);
-		else setFeedbackMessage('Orçamento enviado ao cliente para aprovação.');
+		else
+			setFeedbackMessage(
+				'Orçamento enviado por e-mail ao cliente. Ele pode aprovar ou reprovar pelo link recebido.',
+			);
 	}
 
 	async function handleReopen(reason: string) {
@@ -880,9 +912,11 @@ export function QuoteCard({
 									? 'Vinculado a uma solicitação'
 									: 'Criado manualmente'}
 							</Text>
-							{showValidity && quote.valid_until ? (
-								<Text className="font-inter-medium text-xs text-amber-700">
-									Válido até {formatDay(quote.valid_until)}
+							{validity ? (
+								<Text
+									className={`font-inter-medium text-xs ${validity.urgent ? 'text-red-700' : 'text-amber-700'}`}
+								>
+									{validity.text}
 								</Text>
 							) : null}
 						</View>
@@ -914,27 +948,28 @@ export function QuoteCard({
 					) : null}
 
 					{lockedMessage ? (
-						<View className="flex-row items-start gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
-							<Lock size={16} color="#4b5563" />
-							<Text className="flex-1 font-inter text-sm text-gray-700">
-								{lockedMessage}
-							</Text>
+						<View className="gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+							<View className="flex-row items-start gap-2">
+								<Lock size={16} color="#4b5563" />
+								<Text className="flex-1 font-inter text-sm text-gray-700">
+									{lockedMessage}
+								</Text>
+							</View>
+							{canReopenQuote && !isEditing ? (
+								<TouchableOpacity
+									accessibilityRole="button"
+									accessibilityLabel={`Reabrir orçamento ${shortId(quote.id)}`}
+									disabled={updating}
+									onPress={() => setReopenDialogOpen(true)}
+									className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-amber-300 bg-white px-3 py-2"
+								>
+									<RotateCcw size={16} color="#b45309" />
+									<Text className="font-inter-medium text-sm text-amber-800">
+										Reabrir orçamento
+									</Text>
+								</TouchableOpacity>
+							) : null}
 						</View>
-					) : null}
-
-					{canReopenQuote && !isEditing ? (
-						<TouchableOpacity
-							accessibilityRole="button"
-							accessibilityLabel={`Reabrir orçamento ${shortId(quote.id)}`}
-							disabled={updating}
-							onPress={() => setReopenDialogOpen(true)}
-							className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-amber-300 px-3 py-2"
-						>
-							<RotateCcw size={16} color="#b45309" />
-							<Text className="font-inter-medium text-sm text-amber-800">
-								Reabrir orçamento
-							</Text>
-						</TouchableOpacity>
 					) : null}
 
 					{isDraft && !isEditing ? (
@@ -943,8 +978,10 @@ export function QuoteCard({
 								Orçamento em preparação
 							</Text>
 							<Text className="mt-1 font-inter text-sm text-gray-600">
-								Revise os dados e envie ao cliente para aprovação. Depois do
-								envio, o orçamento fica bloqueado para edição.
+								Revise os dados e envie o orçamento ao cliente. Ele recebe um
+								e-mail com os valores, a validade e um link para aprovar ou
+								reprovar. Depois do envio, o orçamento fica bloqueado para
+								edição.
 							</Text>
 							{!quote.company_id && (
 								<View className="mt-3 flex-row items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
@@ -963,6 +1000,15 @@ export function QuoteCard({
 									</Text>
 								</View>
 							)}
+							{quote.company_id && hasItemWithoutFile && (
+								<View className="mt-3 flex-row items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+									<CircleAlert size={16} color="#b45309" />
+									<Text className="flex-1 font-inter text-sm text-amber-800">
+										Anexe o arquivo de todos os documentos antes de enviar o
+										orçamento.
+									</Text>
+								</View>
+							)}
 							{sendError ? (
 								<Text className="mt-3 font-inter text-sm text-red-700">
 									{sendError}
@@ -970,13 +1016,16 @@ export function QuoteCard({
 							) : null}
 							<TouchableOpacity
 								accessibilityRole="button"
-								disabled={updating || !canWriteQuotes || !canApproveQuote}
-								onPress={() => void handleSend()}
-								className={`mt-4 flex-row items-center gap-2 self-start rounded-lg px-4 py-2.5 ${updating || !canApproveQuote ? 'bg-gray-300' : 'bg-blue-600'} ${!canWriteQuotes || !canApproveQuote ? 'opacity-40' : ''}`}
+								disabled={updating || !canWriteQuotes || !canSendQuote}
+								onPress={() => {
+									setSendError('');
+									setSendDialogOpen(true);
+								}}
+								className={`mt-4 flex-row items-center gap-2 self-start rounded-lg px-4 py-2.5 ${updating || !canSendQuote ? 'bg-gray-300' : 'bg-blue-600'} ${!canWriteQuotes || !canSendQuote ? 'opacity-40' : ''}`}
 							>
 								<Send size={15} color="#ffffff" />
 								<Text className="font-inter-medium text-sm text-white">
-									{updating ? 'Enviando...' : 'Enviar ao cliente'}
+									{updating ? 'Enviando...' : 'Enviar orçamento ao cliente'}
 								</Text>
 							</TouchableOpacity>
 						</View>
@@ -999,10 +1048,14 @@ export function QuoteCard({
 					{quote.status === 'pending' && !isEditing ? (
 						<View className="rounded-xl border border-blue-100 bg-blue-50/60 p-4">
 							<Text className="font-inter-semibold text-sm text-gray-900">
-								Decisão do orçamento
+								Aguardando resposta do cliente
 							</Text>
 							<Text className="mt-1 font-inter text-sm text-gray-600">
-								Aprove este orçamento ou registre o motivo da reprovação.
+								{quote.sent_to_customer_email
+									? `Enviado para ${quote.sent_to_customer_email}${quote.sent_to_customer_at ? ` em ${formatDate(quote.sent_to_customer_at)}` : ''}. `
+									: ''}
+								O cliente aprova ou reprova pelo link do e-mail. Se a resposta
+								chegar por outro canal, registre a decisão aqui.
 							</Text>
 							{decisionError ? (
 								<Text className="mt-3 font-inter text-sm text-red-700">
@@ -1555,6 +1608,16 @@ export function QuoteCard({
 				visible={showAdditionalServiceModal}
 				onClose={() => setShowAdditionalServiceModal(false)}
 				onSubmit={handleCreateAdditionalService}
+			/>
+
+			<SendQuoteDialog
+				visible={sendDialogOpen}
+				quoteLabel={shortId(quote.id)}
+				validUntil={quote.valid_until ? formatDay(quote.valid_until) : null}
+				sending={updating}
+				isResend={Boolean(quote.sent_to_customer_at)}
+				onConfirm={() => void handleSend()}
+				onCancel={() => setSendDialogOpen(false)}
 			/>
 
 			<ReopenQuoteDialog
