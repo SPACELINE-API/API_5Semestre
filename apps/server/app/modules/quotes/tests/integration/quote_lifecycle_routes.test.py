@@ -18,9 +18,11 @@ from app.modules.quotes.services import quote_service as quote_service_module
 from app.modules.quotes.services.quote_expiration import expire_overdue_quotes
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import ServiceOrderItem
+from app.modules.service_orders.models.service_order_version import ServiceOrderVersion
 from app.shared.database import get_db
 
 LOCKED_STATUSES = ["pending", "approved", "reproved", "cancelled"]
+sent_emails = MagicMock()
 BASE_PERMISSIONS = ("quotes.read", "quotes.write", "quotes.approve", "service_orders.read")
 
 
@@ -54,6 +56,8 @@ def act_as(user: User) -> None:
 @pytest.fixture
 def db_client(isolated_db_session: Session, monkeypatch):
     monkeypatch.setattr(quote_service_module, "QuoteReceiptService", MagicMock())
+    monkeypatch.setattr(quote_service_module, "send_quote_sent_email", sent_emails)
+    sent_emails.reset_mock()
     app.dependency_overrides[get_db] = lambda: isolated_db_session
     act_as(make_user(isolated_db_session, (*BASE_PERMISSIONS, "quotes.reopen")))
     try:
@@ -258,13 +262,25 @@ def test_full_lifecycle_with_reopen_keeps_single_service_order(
     isolated_db_session.expire_all()
     orders = isolated_db_session.query(ServiceOrder).filter_by(quote_id=quote.id).all()
     assert [order.id for order in orders] == [service_order.id]
-    current_items = [
-        (item.id, item.source_language, item.target_language, item.price)
+    current_items = {
+        item.id: (item.source_language, item.target_language, item.price)
         for item in isolated_db_session.query(ServiceOrderItem)
         .filter_by(service_order_id=service_order.id)
         .all()
-    ]
-    assert current_items == original_items
+    }
+    original_id, *original_values = original_items[0]
+    assert current_items[original_id] == tuple(original_values)
+    assert len(current_items) == 2
+    assert ("pt-BR", "es-ES", Decimal("50.00")) in current_items.values()
+    versions = (
+        isolated_db_session.query(ServiceOrderVersion)
+        .filter_by(service_order_id=service_order.id)
+        .order_by(ServiceOrderVersion.version)
+        .all()
+    )
+    assert [version.version for version in versions] == [1, 2]
+    assert versions[1].reason == "Cliente enviou novo documento"
+    assert [change["action"] for change in versions[1].changes] == ["added"]
     assert db_client.get(f"/api/service-orders/{service_order.id}").status_code == 200
 
 
@@ -401,3 +417,283 @@ def test_expiration_job_cancels_only_overdue_quotes(isolated_db_session: Session
     assert isolated_db_session.get(Quote, overdue.id).status == "cancelled"
     assert isolated_db_session.get(Quote, valid.id).status == "draft"
     assert isolated_db_session.get(Quote, approved.id).status == "approved"
+
+
+def send_and_get_token(client: TestClient, quote: Quote) -> str:
+    response = client.post(f"/api/quotes/{quote.id}/send")
+    assert response.status_code == 200, response.text
+    approval_url = sent_emails.call_args.kwargs["approval_url"]
+    return approval_url.split("token=", 1)[1]
+
+
+def as_anonymous() -> None:
+    app.dependency_overrides.pop(get_current_user, None)
+
+
+def test_send_emails_the_customer_with_approval_link(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+
+    token = send_and_get_token(db_client, quote)
+
+    kwargs = sent_emails.call_args.kwargs
+    assert kwargs["to_email"] == quote.company.email
+    assert kwargs["is_update"] is False
+    assert kwargs["valid_until"]
+    isolated_db_session.refresh(quote)
+    assert quote.status == "pending"
+    assert quote.sent_to_customer_email == quote.company.email
+    assert quote.customer_access_token_hash
+    assert token not in quote.customer_access_token_hash
+
+
+def test_send_fails_without_email_and_keeps_draft(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    sent_emails.side_effect = RuntimeError("smtp down")
+    try:
+        response = db_client.post(f"/api/quotes/{quote.id}/send")
+    finally:
+        sent_emails.side_effect = None
+
+    assert response.status_code == 502
+    isolated_db_session.expire_all()
+    stored = isolated_db_session.get(Quote, quote.id)
+    assert stored.status == "draft"
+    assert stored.customer_access_token_hash is None
+
+
+def test_customer_sees_quote_by_link_without_login(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    as_anonymous()
+
+    response = db_client.get(f"/api/public/quotes/{token}")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "pending"
+    assert data["company_name"] == "Empresa de Teste"
+    assert len(data["items"]) == 1
+    assert data["additional_services"][0]["description"] == "Revisão"
+    assert data["total_value"] == "120.00"
+    assert data["valid_until"] is not None
+    assert "file_url" not in data["items"][0]
+
+
+def test_invalid_customer_link_returns_404(db_client: TestClient):
+    as_anonymous()
+
+    response = db_client.get("/api/public/quotes/token-inexistente")
+
+    assert response.status_code == 404
+
+
+def test_customer_approves_quote_by_link(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    as_anonymous()
+
+    response = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "approved"})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "approved"
+    isolated_db_session.expire_all()
+    stored = isolated_db_session.get(Quote, quote.id)
+    assert stored.approved_by is None
+    assert stored.approved_by_email == stored.sent_to_customer_email
+    assert isolated_db_session.query(ServiceOrder).filter_by(quote_id=quote.id).count() == 1
+    quote_service_module.QuoteReceiptService.return_value.create_receipt.assert_called_once()
+
+    again = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "approved"})
+    assert again.status_code == 409
+    assert db_client.get(f"/api/public/quotes/{token}").json()["status"] == "approved"
+
+
+def test_customer_reproves_quote_with_reason(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    as_anonymous()
+
+    missing = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "reproved"})
+    assert missing.status_code == 422
+
+    response = db_client.post(
+        f"/api/public/quotes/{token}/decision",
+        json={"status": "reproved", "reproval_reason": "Valor acima do previsto"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "reproved"
+    assert data["reproval_reason"] == "Valor acima do previsto"
+    assert isolated_db_session.query(ServiceOrder).filter_by(quote_id=quote.id).count() == 0
+
+
+def test_reopen_invalidates_link_and_resend_sends_update(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    first_token = send_and_get_token(db_client, quote)
+    assert (
+        db_client.post(f"/api/quotes/{quote.id}/reopen", json={"reason": "Novo documento"})
+    ).status_code == 200
+
+    assert db_client.get(f"/api/public/quotes/{first_token}").status_code == 404
+
+    second_token = send_and_get_token(db_client, quote)
+
+    assert second_token != first_token
+    assert sent_emails.call_args.kwargs["is_update"] is True
+    assert db_client.get(f"/api/public/quotes/{second_token}").json()["status"] == "pending"
+
+
+def test_customer_cannot_approve_expired_quote(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    age_quote(isolated_db_session, quote, 31)
+    as_anonymous()
+
+    assert db_client.get(f"/api/public/quotes/{token}").json()["status"] == "cancelled"
+    response = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "approved"})
+
+    assert response.status_code == 409
+    assert isolated_db_session.query(ServiceOrder).filter_by(quote_id=quote.id).count() == 0
+
+
+def approve_reopen_and_get_order(client: TestClient, db: Session, quote: Quote) -> ServiceOrder:
+    assert client.post(f"/api/quotes/{quote.id}/send").status_code == 200
+    assert (
+        client.patch(f"/api/quotes/{quote.id}/status", json={"status": "approved"}).status_code
+        == 200
+    )
+    assert (
+        client.post(f"/api/quotes/{quote.id}/reopen", json={"reason": "Ajuste do cliente"})
+    ).status_code == 200
+    return db.query(ServiceOrder).filter_by(quote_id=quote.id).one()
+
+
+def reapprove(client: TestClient, quote: Quote) -> None:
+    assert client.post(f"/api/quotes/{quote.id}/send").status_code == 200
+    response = client.patch(f"/api/quotes/{quote.id}/status", json={"status": "approved"})
+    assert response.status_code == 200, response.text
+
+
+def test_reapproval_updates_changed_items_in_service_order(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+    item_id = quote.items[0].id
+
+    assert (
+        db_client.patch(
+            f"/api/quotes/{quote.id}/translation-items/{item_id}",
+            json={"target_language": "fr-FR", "estimated_value": "150.00"},
+        )
+    ).status_code == 200
+    reapprove(db_client, quote)
+
+    isolated_db_session.expire_all()
+    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
+    assert os_item.target_language == "fr-FR"
+    assert os_item.price == Decimal("150.00")
+    version = (
+        isolated_db_session.query(ServiceOrderVersion)
+        .filter_by(service_order_id=order.id, version=2)
+        .one()
+    )
+    change = version.changes[0]
+    assert change["action"] == "updated"
+    assert change["fields"]["target_language"] == {"before": "en-US", "after": "fr-FR"}
+    assert change["fields"]["price"] == {"before": "100.00", "after": "150.00"}
+
+
+def test_reapproval_removes_item_deleted_from_quote(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+    first_item = quote.items[0].id
+    assert (
+        db_client.post(
+            f"/api/quotes/{quote.id}/translation-items",
+            json={
+                "source_language": "pt-BR",
+                "target_language": "es-ES",
+                "file_url": "https://storage.test/novo.pdf",
+                "estimated_value": "40.00",
+            },
+        )
+    ).status_code == 201
+
+    assert (
+        db_client.delete(f"/api/quotes/{quote.id}/translation-items/{first_item}").status_code
+        == 204
+    )
+    reapprove(db_client, quote)
+
+    isolated_db_session.expire_all()
+    items = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).all()
+    assert [(item.source_language, item.target_language) for item in items] == [("pt-BR", "es-ES")]
+    version = (
+        isolated_db_session.query(ServiceOrderVersion)
+        .filter_by(service_order_id=order.id, version=2)
+        .one()
+    )
+    assert sorted(change["action"] for change in version.changes) == ["added", "removed"]
+
+
+def test_item_in_progress_cannot_be_removed_from_reopened_quote(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
+    os_item.status = "em_andamento"
+    isolated_db_session.commit()
+
+    response = db_client.delete(f"/api/quotes/{quote.id}/translation-items/{quote.items[0].id}")
+
+    assert response.status_code == 409
+    assert "em andamento" in response.json()["detail"]
+    count = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).count()
+    assert count == 1
+
+
+def test_removal_only_applies_after_reapproval(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "draft")
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+    assert (
+        db_client.delete(f"/api/quotes/{quote.id}/translation-items/{quote.items[0].id}")
+    ).status_code == 204
+
+    isolated_db_session.expire_all()
+    count = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).count()
+    assert count == 1
+
+
+def test_service_order_exposes_versions_and_reopen_flag(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+
+    before = db_client.get(f"/api/service-orders/{order.id}").json()
+    assert before["current_version"] == 1
+    assert before["revised_after_reopen"] is False
+
+    reapprove(db_client, quote)
+
+    after = db_client.get(f"/api/service-orders/{order.id}").json()
+    assert after["current_version"] == 2
+    assert after["revised_after_reopen"] is True
+    versions = db_client.get(f"/api/service-orders/{order.id}/versions").json()
+    assert [version["version"] for version in versions] == [2, 1]
+    assert versions[0]["reason"] == "Ajuste do cliente"
+    assert versions[0]["origin"] == "quote_reapproval"
+    assert versions[1]["origin"] == "quote_approval"
