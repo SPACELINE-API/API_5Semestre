@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import (
     get_current_user,
-    require_administrator,
     require_permission,
 )
 from app.modules.system_parameters.models.language import Language
@@ -55,6 +54,6 @@ def get_inactivity_timeout(
 def change_inactivity_timeout(
     payload: InactivityTimeoutUpdate,
     db: Session = Depends(get_db),
-    _user=Depends(require_administrator),
+    _user=Depends(settings_write_permission),
 ):
     return InactivityTimeoutService(db).update_inactivity_timeout(payload)

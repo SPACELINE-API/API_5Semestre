@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.main import app
 from app.modules.auth.dependencies.dependencies import get_current_user
-from app.modules.auth.models.roles import Role
+from app.modules.auth.models.roles import Permission, Role
 from app.modules.auth.models.user import User
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.system_parameters.models.system_parameter import SystemParameter
@@ -39,8 +39,8 @@ def authenticate() -> None:
     )
 
 
-def create_user(db: Session, role_name: str) -> None:
-    role = Role(name=role_name)
+def create_user(db: Session, role_name: str, permissions: list[str] | None = None) -> None:
+    role = Role(name=role_name, permissions=[Permission(code=code) for code in permissions or []])
     db.add(User(email=USER_EMAIL, password_hash="unused", role=role_name, roles=[role]))
     db.flush()
 
@@ -79,14 +79,28 @@ def test_patch_requires_authentication(client: TestClient) -> None:
     assert response.status_code in (401, 403)
 
 
-def test_patch_rejects_non_administrator(client: TestClient, db: Session) -> None:
+def test_patch_rejects_user_without_settings_write_permission(
+    client: TestClient, db: Session
+) -> None:
     authenticate()
-    create_user(db, "Tradutor")
+    create_user(db, "Tradutor", ["settings.read"])
 
     response = client.patch(URL, json={"minutes": 10})
 
     assert response.status_code == 403
-    assert response.json() == {"detail": "Apenas administradores podem realizar esta operação"}
+    assert response.json() == {"detail": "Usuário sem permissão para esta operação"}
+
+
+def test_patch_allows_non_administrator_with_settings_write_permission(
+    client: TestClient, db: Session
+) -> None:
+    authenticate()
+    create_user(db, "Configurações", ["settings.write"])
+
+    response = client.patch(URL, json={"minutes": 25})
+
+    assert response.status_code == 200
+    assert response.json() == {"minutes": 25}
 
 
 def test_patch_updates_timeout_for_administrator(client: TestClient, db: Session) -> None:
