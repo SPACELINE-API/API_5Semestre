@@ -4,8 +4,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 
-from app.modules.auth.dependencies.dependencies import require_permission
+from app.modules.auth.dependencies.dependencies import (
+    get_supabase_admin_client,
+    require_permission,
+)
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
+from app.modules.auth.services.supabase_admin_client import SupabaseAdminClient
 from app.modules.translators.models.translator_language import ProficiencyLevel
 from app.modules.translators.schemas.certificate import (
     CertifiableLanguageResponse,
@@ -35,6 +39,8 @@ profile_permission = require_permission("assignments.read")
 
 DbSession = Annotated[Session, Depends(get_db)]
 CurrentUser = Annotated[SupabaseAuthenticatedUser, Depends(profile_permission)]
+AdminClient = Annotated[SupabaseAdminClient, Depends(get_supabase_admin_client)]
+TranslatorsWriter = Annotated[SupabaseAuthenticatedUser, Depends(translators_write_permission)]
 
 
 def _read_limited(upload: UploadFile, max_bytes: int) -> bytes:
@@ -111,9 +117,21 @@ def list_qualifications(db: DbSession, _user=Depends(translators_read_permission
 def create_translator(
     data: TranslatorCreate,
     db: DbSession,
-    _user=Depends(translators_write_permission),
+    admin_client: AdminClient,
+    actor: TranslatorsWriter,
 ):
-    return TranslatorService(db).create(data)
+    return TranslatorService(db, admin_client).create(data, actor)
+
+
+# REENVIA O LINK DE DEFINICAO DE SENHA ENQUANTO A CONTA DO TRADUTOR NAO FOI ATIVADA
+@router.post("/{translator_id}/password-setup-link/resend", response_model=TranslatorResponse)
+def resend_translator_password_link(
+    translator_id: uuid.UUID,
+    db: DbSession,
+    admin_client: AdminClient,
+    actor: TranslatorsWriter,
+):
+    return TranslatorService(db, admin_client).resend_password_link(translator_id, actor)
 
 
 @router.get("", response_model=list[TranslatorResponse])
@@ -186,15 +204,16 @@ def update_translator(
     translator_id: uuid.UUID,
     data: TranslatorUpdate,
     db: DbSession,
-    _user=Depends(translators_write_permission),
+    admin_client: AdminClient,
+    actor: TranslatorsWriter,
 ):
-    return TranslatorService(db).update(translator_id, data)
+    return TranslatorService(db, admin_client).update(translator_id, data, actor)
 
 
 @router.delete("/{translator_id}", status_code=204)
 def delete_translator(
     translator_id: uuid.UUID,
     db: DbSession,
-    _user=Depends(translators_write_permission),
+    actor: TranslatorsWriter,
 ):
-    TranslatorService(db).delete(translator_id)
+    TranslatorService(db).delete(translator_id, actor)
