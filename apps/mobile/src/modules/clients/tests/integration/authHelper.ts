@@ -2,7 +2,10 @@ import type { Page } from '@playwright/test';
 
 const SESSION_COOKIE = 'spaceline_session';
 
-export async function loginAs(page: Page) {
+export async function loginAs(
+	page: Page,
+	options: { extraPermissions?: string[] } = {},
+) {
 	await page.route('**/api/auth/me', (route) =>
 		route.fulfill({
 			status: 200,
@@ -40,6 +43,7 @@ export async function loginAs(page: Page) {
 					'roles.write',
 					'users.write',
 					'settings.write',
+					...(options.extraPermissions ?? []),
 				],
 			}),
 		}),

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import require_permission
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
+from app.modules.quotes.models.quote import QUOTE_STATUS_PATTERN
 from app.modules.quotes.schemas.additional_service import (
     AdditionalServiceCreate,
     AdditionalServiceResponse,
@@ -13,14 +14,20 @@ from app.modules.quotes.schemas.additional_service import (
 )
 from app.modules.quotes.schemas.quote import (
     QuoteCreate,
+    QuoteCustomerResponse,
     QuoteFromRequestResponse,
     QuoteListResponse,
     QuoteManagerResponse,
+    QuoteReopenRequest,
     QuoteResponse,
     QuoteStatusUpdate,
     QuoteUpdate,
 )
-from app.modules.quotes.schemas.receipt import QuoteReceiptDownloadResponse, QuoteReceiptResponse
+from app.modules.quotes.schemas.receipt import (
+    QuoteReceiptDownloadResponse,
+    QuoteReceiptResponse,
+    QuoteReceiptVersionResponse,
+)
 from app.modules.quotes.schemas.request import RequestCreate, RequestResponse, RequestStatusUpdate
 from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemCreate,
@@ -33,6 +40,7 @@ from app.modules.quotes.services.additional_service import (
     AdditionalServiceService,
 )
 from app.modules.quotes.services.quote_service import QuoteService
+from app.modules.quotes.services.receipt_formatting import short_quote_code
 from app.modules.quotes.services.receipt_service import (
     QuoteReceiptNotFoundError,
     QuoteReceiptService,
@@ -43,9 +51,11 @@ from app.modules.quotes.services.translation_item_service import TranslationItem
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
+public_router = APIRouter(prefix="/public/quotes", tags=["public-quotes"])
 quotes_read_permission = require_permission("quotes.read")
 quotes_write_permission = require_permission("quotes.write")
 quotes_approve_permission = require_permission("quotes.approve")
+quotes_reopen_permission = require_permission("quotes.reopen")
 requests_read_permission = require_permission("requests.read")
 requests_write_permission = require_permission("requests.write")
 documents_write_permission = require_permission("documents.write")
@@ -81,9 +91,7 @@ def list_quotes(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=10),
     search: str | None = Query(default=None, max_length=255),
-    status_filter: str | None = Query(
-        default=None, alias="status", pattern="^(pending|approved|reproved)$"
-    ),
+    status_filter: str | None = Query(default=None, alias="status", pattern=QUOTE_STATUS_PATTERN),
     _user=Depends(quotes_read_permission),
     db: Session = Depends(get_db),
 ):
@@ -118,6 +126,27 @@ def update_quote_status(
     return service.update_status(quote_id, data, current_user)
 
 
+@router.post("/{quote_id}/send", response_model=QuoteResponse)
+def send_quote_to_customer(
+    quote_id: uuid.UUID,
+    _user=Depends(quotes_write_permission),
+    db: Session = Depends(get_db),
+):
+    service = QuoteService(db)
+    return service.send_to_customer(quote_id)
+
+
+@router.post("/{quote_id}/reopen", response_model=QuoteResponse)
+def reopen_quote(
+    quote_id: uuid.UUID,
+    data: QuoteReopenRequest,
+    current_user: SupabaseAuthenticatedUser = Depends(quotes_reopen_permission),
+    db: Session = Depends(get_db),
+):
+    service = QuoteService(db)
+    return service.reopen(quote_id, data, current_user)
+
+
 @router.get("/{quote_id}/receipt", response_model=QuoteReceiptResponse)
 def get_quote_receipt(
     quote_id: uuid.UUID,
@@ -129,6 +158,18 @@ def get_quote_receipt(
     except QuoteReceiptNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     return QuoteReceiptResponse.from_quote(quote)
+
+
+@router.get("/{quote_id}/receipts", response_model=list[QuoteReceiptVersionResponse])
+def list_quote_receipts(
+    quote_id: uuid.UUID,
+    _user=Depends(quotes_read_permission),
+    db: Session = Depends(get_db),
+):
+    try:
+        return QuoteReceiptService(db).list_versions(quote_id)
+    except QuoteReceiptNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.get("/{quote_id}/receipt/download", response_model=QuoteReceiptDownloadResponse)
@@ -347,3 +388,34 @@ def delete_additional_service(
         service.delete_additional_service(service_id)
     except AdditionalServiceNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+def to_customer_response(quote) -> QuoteCustomerResponse:
+    return QuoteCustomerResponse(
+        code=short_quote_code(quote.id),
+        status=quote.status,
+        company_name=quote.company_name,
+        customer_name=quote.customer_name,
+        items=quote.items,
+        additional_services=quote.additional_services,
+        total_value=quote.total_value,
+        valid_until=quote.valid_until,
+        sent_to_customer_at=quote.sent_to_customer_at,
+        approved_at=quote.approved_at,
+        reproved_at=quote.reproved_at,
+        reproval_reason=quote.reproval_reason,
+    )
+
+
+@public_router.get("/{token}", response_model=QuoteCustomerResponse)
+def get_quote_for_customer(token: str, db: Session = Depends(get_db)):
+    return to_customer_response(QuoteService(db).get_for_customer(token))
+
+
+@public_router.post("/{token}/decision", response_model=QuoteCustomerResponse)
+def decide_quote_as_customer(
+    token: str,
+    data: QuoteStatusUpdate,
+    db: Session = Depends(get_db),
+):
+    return to_customer_response(QuoteService(db).decide_as_customer(token, data))

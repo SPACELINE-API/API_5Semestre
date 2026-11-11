@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
@@ -8,6 +8,22 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.shared.database import Base
+
+QUOTE_STATUS_DRAFT = "draft"
+QUOTE_STATUS_PENDING = "pending"
+QUOTE_STATUS_APPROVED = "approved"
+QUOTE_STATUS_REPROVED = "reproved"
+QUOTE_STATUS_CANCELLED = "cancelled"
+QUOTE_STATUSES = (
+    QUOTE_STATUS_DRAFT,
+    QUOTE_STATUS_PENDING,
+    QUOTE_STATUS_APPROVED,
+    QUOTE_STATUS_REPROVED,
+    QUOTE_STATUS_CANCELLED,
+)
+QUOTE_EXPIRABLE_STATUSES = (QUOTE_STATUS_DRAFT, QUOTE_STATUS_PENDING)
+QUOTE_VALIDITY_DAYS = 30
+QUOTE_STATUS_PATTERN = f"^({'|'.join(QUOTE_STATUSES)})$"
 
 if TYPE_CHECKING:
     from app.modules.clients.models.company import Company
@@ -35,7 +51,9 @@ class Quote(Base):
     contact_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("contact.id", ondelete="RESTRICT"), nullable=True, index=True
     )
-    status: Mapped[str] = mapped_column(String(50), nullable=False, default="pending")
+    status: Mapped[str] = mapped_column(
+        String(50), nullable=False, default=QUOTE_STATUS_DRAFT, server_default=QUOTE_STATUS_DRAFT
+    )
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     approved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     approved_by_email: Mapped[str | None] = mapped_column(String(255))
@@ -57,6 +75,16 @@ class Quote(Base):
     receipt_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     receipt_error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    customer_access_token_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, unique=True
+    )
+    sent_to_customer_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    sent_to_customer_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    validity_starts_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -89,9 +117,15 @@ class Quote(Base):
 
     @property
     def service_order_id(self) -> uuid.UUID | None:
-        if self.status != "approved" or not self.service_orders:
+        if not self.service_orders:
             return None
         return self.service_orders[0].id
+
+    @property
+    def valid_until(self) -> datetime | None:
+        if self.validity_starts_at is None:
+            return None
+        return self.validity_starts_at + timedelta(days=QUOTE_VALIDITY_DAYS)
 
     @property
     def total_value(self) -> Decimal:

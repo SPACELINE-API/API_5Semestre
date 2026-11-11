@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.modules.clients.models.company import Company
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
+from app.modules.quotes.services.quote_lock import ensure_service_order_items_are_editable
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
 from app.modules.service_orders.models.service_order_file import (
@@ -20,6 +21,7 @@ from app.modules.service_orders.models.service_order_item import (
     STATUS_PENDENTE,
     ServiceOrderItem,
 )
+from app.modules.service_orders.models.service_order_version import ServiceOrderVersion
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
@@ -30,6 +32,7 @@ from app.modules.service_orders.schemas.service_order import (
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
+from app.modules.service_orders.services.quote_sync_service import record_initial_version
 from app.modules.service_orders.services.storage import (
     delete_service_order_file,
     get_service_order_storage_path,
@@ -72,6 +75,8 @@ def to_response(service_order: ServiceOrder) -> ServiceOrderResponse:
         internal_notes=service_order.internal_notes,
         external_notes=service_order.external_notes,
         status=compute_aggregate_status(service_order.items),
+        current_version=max((version.version for version in service_order.versions), default=1),
+        revised_after_reopen=any(version.version > 1 for version in service_order.versions),
         items=[ServiceOrderItemResponse.model_validate(item) for item in service_order.items],
         files=[ServiceOrderFileResponse.model_validate(file) for file in service_order.files],
         created_at=service_order.created_at,
@@ -87,8 +92,6 @@ class ServiceOrderService:
         service_order = (
             self.db.query(ServiceOrder)
             .options(selectinload(ServiceOrder.items), selectinload(ServiceOrder.files))
-            .outerjoin(Quote, ServiceOrder.quote_id == Quote.id)
-            .filter((ServiceOrder.quote_id.is_(None)) | (Quote.status == "approved"))
             .filter(ServiceOrder.id == service_order_id)
             .first()
         )
@@ -149,10 +152,16 @@ class ServiceOrderService:
             )
 
         self.db.add(service_order)
+        self.db.flush()
+        record_initial_version(self.db, service_order, None)
         self.db.commit()
         self.db.refresh(service_order)
 
         return to_response(service_order)
+
+    def list_versions(self, service_order_id: uuid.UUID) -> list[ServiceOrderVersion]:
+        service_order = self._get_service_order_or_404(service_order_id)
+        return list(service_order.versions)
 
     def create_manual(self, data: ManualServiceOrderRequest) -> ServiceOrderResponse:
         company = self.db.query(Company).filter(Company.id == data.company_id).first()
@@ -345,7 +354,8 @@ class ServiceOrderService:
         self.db.commit()
 
     def delete_item(self, service_order_id: uuid.UUID, item_id: uuid.UUID) -> None:
-        self._get_service_order_or_404(service_order_id)
+        service_order = self._get_service_order_or_404(service_order_id)
+        ensure_service_order_items_are_editable(service_order)
         item = (
             self.db.query(ServiceOrderItem)
             .filter(
@@ -406,6 +416,7 @@ class ServiceOrderService:
         content_type: str | None = None,
     ) -> ServiceOrderItemResponse:
         service_order = self._get_service_order_or_404(service_order_id)
+        ensure_service_order_items_are_editable(service_order)
 
         file_url = None
         if file_data is not None and filename is not None and content_type is not None:
@@ -438,6 +449,7 @@ class ServiceOrderService:
         item = self.db.query(ServiceOrderItem).filter(ServiceOrderItem.id == item_id).first()
         if not item:
             raise HTTPException(status_code=404, detail="Item da ordem de serviço não encontrado")
+        ensure_service_order_items_are_editable(item.service_order)
 
         if not data.source_language or not data.target_language:
             raise HTTPException(
@@ -460,8 +472,6 @@ class ServiceOrderService:
         service_orders = (
             self.db.query(ServiceOrder)
             .options(selectinload(ServiceOrder.items), selectinload(ServiceOrder.files))
-            .outerjoin(Quote, ServiceOrder.quote_id == Quote.id)
-            .filter((ServiceOrder.quote_id.is_(None)) | (Quote.status == "approved"))
             .all()
         )
         return [to_response(service_order) for service_order in service_orders]

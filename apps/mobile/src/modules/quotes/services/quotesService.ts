@@ -2,6 +2,7 @@ import { env } from '../../../shared/env';
 import {
 	apiDeleteAuth,
 	apiPatchAuth,
+	apiPostAuth,
 	authHeaders,
 } from '../../../shared/services/apiClient';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
@@ -68,6 +69,10 @@ export type QuoteResponse = {
 	reproved_at?: string | null;
 	reproved_by_email?: string | null;
 	reproval_reason?: string | null;
+	validity_starts_at?: string | null;
+	valid_until?: string | null;
+	sent_to_customer_at?: string | null;
+	sent_to_customer_email?: string | null;
 	created_at: string;
 	updated_at: string;
 };
@@ -97,7 +102,16 @@ export type ManagedQuote = QuoteResponse & {
 	service_order_id: string | null;
 };
 
-export type QuoteStatusFilter = 'pending' | 'approved' | 'reproved' | 'all';
+export type QuoteStatus =
+	'draft' | 'pending' | 'approved' | 'reproved' | 'cancelled';
+
+export type QuoteStatusFilter = QuoteStatus | 'all';
+
+export const REOPENABLE_QUOTE_STATUSES: readonly string[] = [
+	'pending',
+	'approved',
+	'reproved',
+];
 
 export type PaginatedQuotes = {
 	items: ManagedQuote[];
@@ -124,7 +138,7 @@ function quoteDecisionErrorMessage(status: number): string {
 	if (status === 404)
 		return 'Este orçamento não foi encontrado. Atualize a lista e tente novamente.';
 	if (status === 409)
-		return 'Este orçamento já recebeu uma decisão. Atualize a lista.';
+		return 'Este orçamento não está aguardando aprovação. Atualize a lista.';
 	if (status === 422) return 'Confira os dados informados e tente novamente.';
 	if (status === 0)
 		return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
@@ -297,7 +311,72 @@ export async function updateQuoteStatus(
 		return {
 			success: false,
 			status: apiError.status ?? 0,
-			detail: quoteDecisionErrorMessage(apiError.status ?? 0),
+			detail:
+				apiError.status === 409 && apiError.message
+					? apiError.message
+					: quoteDecisionErrorMessage(apiError.status ?? 0),
+		};
+	}
+}
+
+function quoteTransitionErrorMessage(
+	status: number,
+	message: string | undefined,
+	fallback: string,
+): string {
+	if (status === 403)
+		return 'Você não tem permissão para realizar esta ação neste orçamento.';
+	if (status === 404)
+		return 'Este orçamento não foi encontrado. Atualize a lista e tente novamente.';
+	if ((status === 409 || status === 422) && message) return message;
+	if (status === 0)
+		return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+	return fallback;
+}
+
+export async function sendQuoteToCustomer(
+	quoteId: string,
+): Promise<QuoteDecisionResult> {
+	try {
+		const data = await apiPostAuth<QuoteResponse, Record<string, never>>(
+			`/api/quotes/${encodeURIComponent(quoteId)}/send`,
+			{},
+		);
+		return { success: true, data };
+	} catch (error) {
+		const apiError = error as { status?: number; message?: string };
+		return {
+			success: false,
+			status: apiError.status ?? 0,
+			detail: quoteTransitionErrorMessage(
+				apiError.status ?? 0,
+				apiError.message,
+				'Não foi possível enviar o orçamento ao cliente. Tente novamente.',
+			),
+		};
+	}
+}
+
+export async function reopenQuote(
+	quoteId: string,
+	reason: string,
+): Promise<QuoteDecisionResult> {
+	try {
+		const data = await apiPostAuth<QuoteResponse, { reason: string }>(
+			`/api/quotes/${encodeURIComponent(quoteId)}/reopen`,
+			{ reason },
+		);
+		return { success: true, data };
+	} catch (error) {
+		const apiError = error as { status?: number; message?: string };
+		return {
+			success: false,
+			status: apiError.status ?? 0,
+			detail: quoteTransitionErrorMessage(
+				apiError.status ?? 0,
+				apiError.message,
+				'Não foi possível reabrir o orçamento. Tente novamente.',
+			),
 		};
 	}
 }

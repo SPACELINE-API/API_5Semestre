@@ -9,6 +9,7 @@ from app.modules.internal_users.routes import password_setup_router
 from app.modules.internal_users.routes import router as internal_users_router
 from app.modules.notifications.routes import router as notifications_router
 from app.modules.proposals.routes import router as proposals_router
+from app.modules.quotes.routes import public_router as public_quotes_router
 from app.modules.quotes.routes import router as quotes_router
 from app.modules.reports.routes import router as reports_router
 from app.modules.resources.routes import router as resources_router
@@ -34,6 +35,7 @@ api_router.include_router(service_orders_router)
 api_router.include_router(allocations_router)
 api_router.include_router(reports_router)
 api_router.include_router(quotes_router)
+api_router.include_router(public_quotes_router)
 api_router.include_router(proposals_router)
 api_router.include_router(support_router)
 api_router.include_router(support_agent_router)

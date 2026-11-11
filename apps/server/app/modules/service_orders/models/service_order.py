@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
     from app.modules.service_orders.models.service_order_file import ServiceOrderFile
     from app.modules.service_orders.models.service_order_item import ServiceOrderItem
+    from app.modules.service_orders.models.service_order_version import ServiceOrderVersion
 
 
 class ServiceOrder(Base):
@@ -69,5 +70,10 @@ class ServiceOrder(Base):
     delivery_attempts: Mapped[list["ServiceOrderDelivery"]] = relationship(
         "ServiceOrderDelivery",
         back_populates="service_order",
+        cascade="all, delete-orphan",
+    )
+    versions: Mapped[list["ServiceOrderVersion"]] = relationship(
+        "ServiceOrderVersion",
+        order_by="ServiceOrderVersion.version.desc()",
         cascade="all, delete-orphan",
     )

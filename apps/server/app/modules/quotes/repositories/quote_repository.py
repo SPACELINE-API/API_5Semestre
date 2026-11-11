@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import String, cast, func, or_
 from sqlalchemy.orm import Session, selectinload
 
-from app.modules.quotes.models.quote import Quote
+from app.modules.quotes.models.quote import QUOTE_STATUS_DRAFT, Quote
 from app.modules.quotes.models.request import Request
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
 
@@ -63,7 +63,7 @@ class QuoteRepository:
             request_id=request.id,
             company_id=request.company_id,
             contact_id=request.contact_id,
-            status="pending",
+            status=QUOTE_STATUS_DRAFT,
             customer_name=request.customer_name,
             enterprise=request.enterprise,
             email=request.email,

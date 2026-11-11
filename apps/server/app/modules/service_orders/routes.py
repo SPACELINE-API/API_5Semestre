@@ -31,6 +31,7 @@ from app.modules.service_orders.schemas.service_order import (
     ServiceOrderFileReviewRequest,
     ServiceOrderItemResponse,
     ServiceOrderResponse,
+    ServiceOrderVersionResponse,
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
@@ -171,6 +172,15 @@ def get_service_order(
 ):
     service = ServiceOrderService(db)
     return service.get_service_order(service_order_id)
+
+
+@router.get("/{service_order_id}/versions", response_model=list[ServiceOrderVersionResponse])
+def list_service_order_versions(
+    service_order_id: uuid.UUID,
+    _user=Depends(service_orders_read_permission),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderService(db).list_versions(service_order_id)
 
 
 @router.patch("/{service_order_id}", response_model=ServiceOrderResponse)

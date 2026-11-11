@@ -337,7 +337,7 @@ test.describe('Painel inicial (Dashboard)', () => {
 		await page.goto('/dashboard');
 
 		await expect(page.getByRole('tab', { name: 'Orçamentos' })).toBeVisible();
-		for (const label of ['Em aberto', 'Aprovados', 'Reprovados']) {
+		for (const label of ['Aguardando aprovação', 'Aprovados', 'Reprovados']) {
 			await expect(page.getByText(label, { exact: true })).toBeVisible();
 		}
 		// total do grupo e valor de cada status

@@ -23,10 +23,12 @@ import { fetchLanguages } from '../services/languageService';
 import type {
 	QuoteReceipt,
 	QuoteReceiptStatus,
+	QuoteReceiptVersion,
 } from '../services/receiptService';
 import {
 	getQuoteReceipt,
 	getQuoteReceiptDownloadUrl,
+	listQuoteReceiptVersions,
 } from '../services/receiptService';
 import type { Company } from '../../clients/types/company';
 import { formatCnpj } from '../../clients/utils/format';
@@ -499,6 +501,29 @@ export function QuoteReceiptSection({
 	const [error, setError] = useState('');
 	const [modalOpen, setModalOpen] = useState(false);
 	const [reloadKey, setReloadKey] = useState(0);
+	const [versions, setVersions] = useState<QuoteReceiptVersion[]>([]);
+
+	useEffect(() => {
+		let active = true;
+		listQuoteReceiptVersions(quote.id)
+			.then((data) => {
+				if (active) setVersions(data);
+			})
+			.catch(() => {
+				if (active) setVersions([]);
+			});
+		return () => {
+			active = false;
+		};
+	}, [quote.id, quote.approved_at, reloadKey]);
+
+	async function openVersion(url: string) {
+		if (Platform.OS === 'web') {
+			window.open(getPreviewDocumentUrl(url), '_blank', 'noopener,noreferrer');
+			return;
+		}
+		await WebBrowser.openBrowserAsync(getNativeDocumentUrl(url));
+	}
 
 	useEffect(() => {
 		let active = true;
@@ -590,6 +615,42 @@ export function QuoteReceiptSection({
 					/>
 				</>
 			)}
+
+			{versions.length > 1 ? (
+				<View className="gap-2 border-t border-gray-100 pt-3">
+					<Text className="font-inter-medium text-xs text-gray-500">
+						Versões do comprovante
+					</Text>
+					{versions.map((version, index) => (
+						<View
+							key={version.id}
+							className="flex-row flex-wrap items-center justify-between gap-2"
+						>
+							<Text className="font-inter text-sm text-gray-800">
+								Versão {version.version}
+								{index === 0 ? ' (atual)' : ''} · gerada em{' '}
+								{formatDate(version.generated_at)}
+							</Text>
+							<View className="flex-row items-center gap-3">
+								<ReceiptStatusBadge status={version.status} />
+								{version.pdf_url ? (
+									<TouchableOpacity
+										accessibilityRole="link"
+										accessibilityLabel={`Abrir comprovante versão ${version.version}`}
+										onPress={() => void openVersion(version.pdf_url!)}
+										className="flex-row items-center gap-1"
+									>
+										<ExternalLink size={14} color="#1d4ed8" />
+										<Text className="font-inter-medium text-sm text-blue-700">
+											PDF
+										</Text>
+									</TouchableOpacity>
+								) : null}
+							</View>
+						</View>
+					))}
+				</View>
+			) : null}
 		</View>
 	);
 }

@@ -4,10 +4,11 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
+from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
-from app.modules.quotes.models import AdditionalService
+from app.modules.quotes.models import AdditionalService, Quote
 from app.modules.quotes.schemas.additional_service import (
     AdditionalServiceCreate,
     AdditionalServiceResponse,
@@ -126,7 +127,7 @@ def test_response_schema_reads_model_attributes():
 
 def test_create_additional_service_for_quote(service: AdditionalServiceService):
     quote_id = uuid4()
-    service.quote_repository.get_by_id.return_value = MagicMock(id=quote_id)
+    service.quote_repository.get_by_id.return_value = MagicMock(id=quote_id, status="draft")
     service.repository.create_additional_service.side_effect = lambda item: item
     payload = AdditionalServiceCreate(
         quote_id=quote_id,
@@ -161,7 +162,7 @@ def test_create_additional_service_fails_when_quote_does_not_exist(
 def test_create_additional_service_raises_conflict_on_duplicate_description(
     service: AdditionalServiceService,
 ):
-    service.quote_repository.get_by_id.return_value = MagicMock(id=uuid4())
+    service.quote_repository.get_by_id.return_value = MagicMock(id=uuid4(), status="draft")
     service.repository.create_additional_service.side_effect = IntegrityError(
         "INSERT", {}, Exception("duplicate key")
     )
@@ -216,7 +217,7 @@ def test_update_additional_service_changes_only_sent_fields(
     service: AdditionalServiceService,
 ):
     additional_service = AdditionalService(
-        quote_id=uuid4(),
+        quote=Quote(status="draft"),
         description="Tradução de documento secundário",
         price=Decimal("150.00"),
         status="pending",
@@ -237,7 +238,7 @@ def test_update_additional_service_changes_description_and_price(
     service: AdditionalServiceService,
 ):
     additional_service = AdditionalService(
-        quote_id=uuid4(),
+        quote=Quote(status="draft"),
         description="Tradução de documento secundário",
         price=Decimal("150.00"),
         status="pending",
@@ -265,7 +266,7 @@ def test_update_additional_service_fails_when_not_found(service: AdditionalServi
 
 def test_update_additional_service_rejects_completed_service(service: AdditionalServiceService):
     additional_service = AdditionalService(
-        quote_id=uuid4(),
+        quote=Quote(status="draft"),
         description="Tradução de documento secundário",
         price=Decimal("150.00"),
         status="approved",
@@ -285,7 +286,9 @@ def test_update_additional_service_rejects_completed_service(service: Additional
 def test_update_additional_service_raises_conflict_on_duplicate_description(
     service: AdditionalServiceService,
 ):
-    service.repository.get_additional_service_by_id.return_value = MagicMock()
+    service.repository.get_additional_service_by_id.return_value = MagicMock(
+        quote=MagicMock(status="draft"), status="pending"
+    )
     service.repository.update_additional_service.side_effect = IntegrityError(
         "UPDATE", {}, Exception("duplicate key")
     )
@@ -300,7 +303,7 @@ def test_update_additional_service_raises_conflict_on_duplicate_description(
 
 
 def test_delete_additional_service_removes_found_item(service: AdditionalServiceService):
-    additional_service = MagicMock()
+    additional_service = MagicMock(quote=MagicMock(status="draft"))
     service.repository.get_additional_service_by_id.return_value = additional_service
 
     service.delete_additional_service(uuid4())
@@ -337,7 +340,7 @@ def test_update_additional_service_status_marks_as_completed(
     service: AdditionalServiceService,
 ):
     additional_service = AdditionalService(
-        quote_id=uuid4(),
+        quote=Quote(status="draft"),
         description="Tradução de documento secundário",
         price=Decimal("150.00"),
         status="pending",
@@ -366,3 +369,67 @@ def test_update_additional_service_status_fails_when_not_found(
         )
 
     service.repository.update_additional_service.assert_not_called()
+
+
+LOCKED_STATUSES = ["pending", "approved", "reproved", "cancelled"]
+
+
+@pytest.mark.parametrize("status", LOCKED_STATUSES)
+def test_create_additional_service_rejects_locked_quote(service: AdditionalServiceService, status):
+    service.quote_repository.get_by_id.return_value = MagicMock(id=uuid4(), status=status)
+    payload = AdditionalServiceCreate(
+        quote_id=uuid4(), description="Revisão", price=Decimal("10.00")
+    )
+
+    with pytest.raises(HTTPException) as error:
+        service.create_additional_service(payload)
+
+    assert error.value.status_code == 409
+    service.repository.create_additional_service.assert_not_called()
+
+
+@pytest.mark.parametrize("status", LOCKED_STATUSES)
+def test_update_additional_service_rejects_locked_quote(service: AdditionalServiceService, status):
+    additional_service = AdditionalService(
+        quote=Quote(status=status), description="Revisão", price=Decimal("10.00"), status="pending"
+    )
+    service.repository.get_additional_service_by_id.return_value = additional_service
+
+    with pytest.raises(HTTPException) as error:
+        service.update_additional_service(uuid4(), AdditionalServiceUpdate(price=Decimal("1.00")))
+
+    assert error.value.status_code == 409
+    assert additional_service.price == Decimal("10.00")
+    service.repository.update_additional_service.assert_not_called()
+
+
+@pytest.mark.parametrize("status", LOCKED_STATUSES)
+def test_update_additional_service_status_rejects_locked_quote(
+    service: AdditionalServiceService, status
+):
+    additional_service = AdditionalService(
+        quote=Quote(status=status), description="Revisão", price=Decimal("10.00"), status="pending"
+    )
+    service.repository.get_additional_service_by_id.return_value = additional_service
+
+    with pytest.raises(HTTPException) as error:
+        service.update_additional_service_status(
+            uuid4(), AdditionalServiceStatusUpdate(status="approved")
+        )
+
+    assert error.value.status_code == 409
+    assert additional_service.status == "pending"
+    service.repository.update_additional_service.assert_not_called()
+
+
+@pytest.mark.parametrize("status", LOCKED_STATUSES)
+def test_delete_additional_service_rejects_locked_quote(service: AdditionalServiceService, status):
+    service.repository.get_additional_service_by_id.return_value = MagicMock(
+        quote=MagicMock(status=status)
+    )
+
+    with pytest.raises(HTTPException) as error:
+        service.delete_additional_service(uuid4())
+
+    assert error.value.status_code == 409
+    service.repository.delete_additional_service.assert_not_called()
