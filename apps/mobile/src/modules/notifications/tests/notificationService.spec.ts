@@ -6,20 +6,20 @@ import {
 } from '../services/notificationService';
 
 test.describe('Notification service', () => {
-	test('lists six recent notifications', async () => {
+	test('lists all notifications available for the scrollable preview', async () => {
 		let requestedUrl = '';
 		const originalFetch = globalThis.fetch;
 		globalThis.fetch = async (input) => {
 			requestedUrl = String(input);
 			return {
 				ok: true,
-				json: async () => ({ items: [], total: 0, page: 1, page_size: 6 }),
+					json: async () => ({ items: [], total: 0, page: 1, page_size: 100 }),
 			} as Response;
 		};
 
 		try {
 			await listRecentNotifications();
-			expect(requestedUrl).toContain('/api/notifications?page=1&page_size=6');
+			expect(requestedUrl).toContain('/api/notifications?page=1&page_size=100');
 		} finally {
 			globalThis.fetch = originalFetch;
 		}

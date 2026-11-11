@@ -215,7 +215,7 @@ function AppShell({
 				{showNavigation ? (
 					<View
 						style={{ paddingTop: insets.top }}
-						className="flex-row items-center border-b border-gray-100 bg-white px-4 py-3 md:hidden"
+						className="flex-row items-center border-b border-gray-100 bg-white px-4 py-3 pr-16 md:hidden"
 					>
 						<TouchableOpacity
 							onPress={onOpenMobileNav}
@@ -230,7 +230,7 @@ function AppShell({
 				) : null}
 				{showNavigation ? (
 					<View pointerEvents="box-none" className="absolute inset-0 z-50">
-						<NotificationCenter topOffset={insets.top + 8} />
+						<NotificationCenter topOffset={insets.top - 4} />
 					</View>
 				) : null}
 

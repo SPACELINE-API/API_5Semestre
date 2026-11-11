@@ -12,7 +12,7 @@ export function listNotifications(page = 1, pageSize = 20) {
 }
 
 export function listRecentNotifications() {
-	return listNotifications(1, 6);
+	return listNotifications(1, 100);
 }
 
 export function getUnreadNotificationCount() {
