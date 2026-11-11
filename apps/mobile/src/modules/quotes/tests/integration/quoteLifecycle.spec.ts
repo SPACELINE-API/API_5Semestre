@@ -103,10 +103,13 @@ test('orçamento em preparação pode ser editado e enviado ao cliente', async (
 	await expect(page.getByLabel('Editar orçamento')).toBeVisible();
 	await expect(page.getByText('Novo serviço adicional')).toBeVisible();
 
-	await page.getByText('Enviar ao cliente', { exact: true }).click();
+	await page.getByText('Enviar orçamento ao cliente', { exact: true }).click();
+	await expect(page.getByText(/O cliente vai receber um e-mail/)).toBeVisible();
+	expect(sendCalls).toBe(0);
+	await page.getByText('Confirmar envio', { exact: true }).click();
 
 	await expect(
-		page.getByText('Orçamento enviado ao cliente para aprovação.'),
+		page.getByText(/Orçamento enviado por e-mail ao cliente/),
 	).toBeVisible();
 	await expect(page.getByText('Aguardando aprovação').first()).toBeVisible();
 	await expect(page.getByLabel('Editar orçamento')).toHaveCount(0);
@@ -134,7 +137,7 @@ for (const status of ['pending', 'approved', 'reproved', 'cancelled']) {
 		await expect(page.getByLabel('Editar orçamento')).toHaveCount(0);
 		await expect(page.getByText('Novo serviço adicional')).toHaveCount(0);
 		await expect(
-			page.getByText('Enviar ao cliente', { exact: true }),
+			page.getByText('Enviar orçamento ao cliente', { exact: true }),
 		).toHaveCount(0);
 	});
 }
@@ -323,4 +326,116 @@ test('orçamento cancelado informa que a validade expirou', async ({ page }) => 
 		page.getByText(/prazo de validade de 30 dias expirou/),
 	).toBeVisible();
 	await expect(page.getByText('Cancelado').first()).toBeVisible();
+});
+
+test('cancelar a confirmação não envia o orçamento', async ({ page }) => {
+	await loginAs(page);
+	await mockQuotes(page, makeQuote());
+	let sendCalls = 0;
+	await page.route(`**/api/quotes/${quoteId}/send`, (route) => {
+		sendCalls += 1;
+		return route.fulfill({ status: 500, body: '{}' });
+	});
+
+	await openQuote(page);
+	await page.getByText('Enviar orçamento ao cliente', { exact: true }).click();
+	await page.getByText('Cancelar', { exact: true }).click();
+
+	await expect(page.getByText(/O cliente vai receber um e-mail/)).toHaveCount(
+		0,
+	);
+	await expect(page.getByText('Em preparação').first()).toBeVisible();
+	expect(sendCalls).toBe(0);
+});
+
+test('reenvio após reabertura avisa que o link anterior deixa de valer', async ({
+	page,
+}) => {
+	await loginAs(page);
+	await mockQuotes(
+		page,
+		makeQuote({ sent_to_customer_at: '2026-10-26T12:00:00Z' }),
+	);
+
+	await openQuote(page);
+	await page.getByText('Enviar orçamento ao cliente', { exact: true }).click();
+
+	await expect(page.getByText(/Reenviar orçamento/)).toBeVisible();
+	await expect(
+		page.getByText(/link enviado antes deixa de valer/),
+	).toBeVisible();
+});
+
+test('exibe o erro quando o e-mail não pode ser enviado', async ({ page }) => {
+	await loginAs(page);
+	await mockQuotes(page, makeQuote());
+	await page.route(`**/api/quotes/${quoteId}/send`, (route) =>
+		route.fulfill({
+			status: 502,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				detail:
+					'Não foi possível enviar o e-mail do orçamento ao cliente. O orçamento continua em preparação; tente novamente.',
+			}),
+		}),
+	);
+
+	await openQuote(page);
+	await page.getByText('Enviar orçamento ao cliente', { exact: true }).click();
+	await page.getByText('Confirmar envio', { exact: true }).click();
+
+	await expect(
+		page.getByText(
+			/Não foi possível enviar o orçamento ao cliente|Não foi possível enviar o e-mail/,
+		),
+	).toBeVisible();
+	await expect(page.getByText('Em preparação').first()).toBeVisible();
+});
+
+test('bloqueia o envio quando falta o arquivo de um documento', async ({
+	page,
+}) => {
+	await loginAs(page);
+	const base = makeQuote();
+	await mockQuotes(
+		page,
+		makeQuote({
+			items: base.items.map((item) => ({ ...item, file_url: '' })),
+		}),
+	);
+
+	await openQuote(page);
+
+	await expect(
+		page.getByText(/Anexe o arquivo de todos os documentos antes de enviar/),
+	).toBeVisible();
+	await expect(
+		page.getByRole('button', { name: 'Enviar orçamento ao cliente' }),
+	).toBeDisabled();
+});
+
+test('destaca quando o orçamento está perto de vencer', async ({ page }) => {
+	await loginAs(page);
+	const inTwoDays = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 - 60_000);
+	await mockQuotes(
+		page,
+		makeQuote({ status: 'pending', valid_until: inTwoDays.toISOString() }),
+	);
+
+	await page.goto('/orcamento');
+
+	await expect(page.getByText(/vence em 2 dias/)).toBeVisible();
+});
+
+test('aviso de bloqueio traz a ação de reabrir', async ({ page }) => {
+	await loginAs(page, { extraPermissions: ['quotes.reopen'] });
+	await mockQuotes(page, makeQuote({ status: 'approved' }));
+
+	await openQuote(page);
+
+	const notice = page.getByText(/já foi aprovado e está bloqueado/);
+	await expect(notice).toBeVisible();
+	await expect(
+		page.getByRole('button', { name: /Reabrir orçamento/ }),
+	).toBeVisible();
 });
