@@ -77,7 +77,7 @@ export function isPublicPath(pathname: string) {
 	return PUBLIC_PATHS.includes(pathname);
 }
 
-const ADMINISTRATOR_ONLY_PREFIXES = ['/administracao'];
+const ADMINISTRATOR_ONLY_PREFIXES = ['/configuracoes/pessoas'];
 
 function isAdministratorOnlyPath(pathname: string) {
 	return ADMINISTRATOR_ONLY_PREFIXES.some(

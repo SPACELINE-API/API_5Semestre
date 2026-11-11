@@ -12,6 +12,7 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { getAuthorizationContext } from '../../auth/services/auth';
+import { SettingsHeader } from '../../auth/components/SettingsHeader';
 import { DepartmentSection } from '../components/DepartmentSection';
 import { PendingInvitesCard } from '../components/PendingInvitesCard';
 import {
@@ -170,17 +171,17 @@ export function InternalUsersPage() {
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
 				keyboardShouldPersistTaps="handled"
 			>
-				<View className="mb-6 flex-row flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-6">
+				<SettingsHeader active="pessoas" />
+
+				<View className="mb-5 flex-row flex-wrap items-start justify-between gap-4">
 					<View className="min-w-[220px] flex-1">
-						<Text className="font-inter font-bold text-blue-600 text-xs uppercase tracking-wider">
-							Administração
-						</Text>
-						<Text className="mt-1 font-inter font-bold text-gray-950 text-2xl">
+						<Text className="font-inter font-semibold text-gray-900 text-base">
 							Pessoas internas
 						</Text>
-						<Text className="mt-2 font-inter text-gray-500 text-sm">
+						<Text className="mt-1 font-inter text-gray-500 text-sm">
 							Convide e gerencie quem trabalha na plataforma, separado por
-							departamento. As permissões de cada perfil ficam em Configurações.
+							departamento. As permissões de cada perfil ficam na aba
+							Permissões.
 						</Text>
 					</View>
 					<TouchableOpacity
