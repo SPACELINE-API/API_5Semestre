@@ -1,9 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.modules.auth.dependencies.dependencies import require_permission
+from app.modules.auth.dependencies.dependencies import (
+    get_current_user,
+    require_permission,
+)
 from app.modules.system_parameters.models.language import Language
+from app.modules.system_parameters.schemas.inactivity_timeout import (
+    InactivityTimeoutResponse,
+    InactivityTimeoutUpdate,
+)
 from app.modules.system_parameters.schemas.language import LanguageCreate, LanguageResponse
+from app.modules.system_parameters.services.inactivity_timeout import InactivityTimeoutService
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/support", tags=["support"])
@@ -32,3 +40,20 @@ def create_language(
     db.commit()
     db.refresh(new_language)
     return new_language
+
+
+@router.get("/inactivity-timeout", response_model=InactivityTimeoutResponse)
+def get_inactivity_timeout(
+    db: Session = Depends(get_db),
+    _user=Depends(get_current_user),
+):
+    return InactivityTimeoutService(db).get_inactivity_timeout()
+
+
+@router.patch("/inactivity-timeout", response_model=InactivityTimeoutResponse)
+def change_inactivity_timeout(
+    payload: InactivityTimeoutUpdate,
+    db: Session = Depends(get_db),
+    _user=Depends(settings_write_permission),
+):
+    return InactivityTimeoutService(db).update_inactivity_timeout(payload)
