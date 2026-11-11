@@ -62,12 +62,14 @@ test('exibe todas as notificações em uma lista interna rolável no mobile', as
 			body: JSON.stringify({ count: notifications.length }),
 		}),
 	);
-	await page.route(/\/api\/(quotes|service-orders|requests|clients|translators)/, (route) =>
-		route.fulfill({
-			status: 200,
-			contentType: 'application/json',
-			body: JSON.stringify([]),
-		}),
+	await page.route(
+		/\/api\/(quotes|service-orders|requests|clients|translators)/,
+		(route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([]),
+			}),
 	);
 
 	await page.goto('/dashboard');

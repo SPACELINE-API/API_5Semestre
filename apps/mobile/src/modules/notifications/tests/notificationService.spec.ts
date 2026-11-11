@@ -13,7 +13,7 @@ test.describe('Notification service', () => {
 			requestedUrl = String(input);
 			return {
 				ok: true,
-					json: async () => ({ items: [], total: 0, page: 1, page_size: 100 }),
+				json: async () => ({ items: [], total: 0, page: 1, page_size: 100 }),
 			} as Response;
 		};
 

@@ -38,18 +38,23 @@ export function NotificationCard({
 					{!isRead && (
 						<View className="mt-1.5 h-2 w-2 rounded-full bg-blue-600" />
 					)}
-						<Text
-							className={`flex-1 font-inter font-semibold text-gray-900 ${compact ? 'text-xs' : 'text-sm'}`}
-						>
+					<Text
+						className={`flex-1 font-inter font-semibold text-gray-900 ${compact ? 'text-xs' : 'text-sm'}`}
+					>
 						{notification.title}
 					</Text>
 					<ChevronRight size={15} color="#9CA3AF" />
 				</View>
-				<Text className="font-inter text-gray-600 text-xs" numberOfLines={compact ? 1 : 2}>
+				<Text
+					className="font-inter text-gray-600 text-xs"
+					numberOfLines={compact ? 1 : 2}
+				>
 					{notification.message}
 				</Text>
 			</TouchableOpacity>
-			<View className={`${compact ? 'mt-0.5' : 'mt-1'} flex-row items-center justify-between gap-2`}>
+			<View
+				className={`${compact ? 'mt-0.5' : 'mt-1'} flex-row items-center justify-between gap-2`}
+			>
 				{!isRead ? (
 					<TouchableOpacity
 						onPress={() => onMarkAsRead(notification)}
