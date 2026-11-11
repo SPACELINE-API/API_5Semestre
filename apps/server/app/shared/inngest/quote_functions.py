@@ -19,7 +19,10 @@ def run_quote_expiration() -> int:
     trigger=inngest.TriggerCron(cron="TZ=America/Sao_Paulo 0 3 * * *"),
 )
 async def expire_overdue_quotes_daily(ctx: inngest.Context) -> dict:
-    expired = await ctx.step.run("expire-overdue-quotes", run_quote_expiration)
+    async def _expire() -> int:
+        return run_quote_expiration()
+
+    expired: int = await ctx.step.run("expire-overdue-quotes", _expire)
     return {"expired": expired}
 
 
