@@ -53,6 +53,7 @@ test.describe('canAccess', () => {
 		expect(canAccess(null, '/login')).toBe(true);
 		expect(canAccess(null, '/solicitar-servico')).toBe(true);
 		expect(canAccess(null, '/definir-senha')).toBe(true);
+		expect(canAccess(null, '/aprovar-orcamento')).toBe(true);
 	});
 
 	test('blocks unknown paths', () => {
