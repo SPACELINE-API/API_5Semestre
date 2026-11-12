@@ -13,7 +13,7 @@ import {
 	useWindowDimensions,
 } from 'react-native';
 import { Bell } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { useNotificationsStore } from '../hooks/useNotificationsStore';
 import { notificationRoute } from '../utils/notificationNavigation';
 import type { Notification } from '../types/notification';
@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
 
 export function NotificationCenter({ topOffset }: NotificationCenterProps) {
 	const router = useRouter();
+	const pathname = usePathname();
 	const { width: windowWidth } = useWindowDimensions();
 	const isMobile = windowWidth < 768;
 	const isNative = Platform.OS !== 'web';
@@ -151,6 +152,10 @@ export function NotificationCenter({ topOffset }: NotificationCenterProps) {
 		startPolling();
 		return stopPolling;
 	}, [startPolling, stopPolling]);
+
+	useEffect(() => {
+		setPreviewOpen(false);
+	}, [pathname]);
 
 	async function togglePreview() {
 		if (previewOpen) {
@@ -208,8 +213,8 @@ export function NotificationCenter({ topOffset }: NotificationCenterProps) {
 			)}
 			<View
 				style={{
-					top: isMobile ? topOffset : 28,
-					right: isMobile ? 12 : 72,
+					top: topOffset,
+					right: 12,
 				}}
 				className="absolute z-50"
 			>
