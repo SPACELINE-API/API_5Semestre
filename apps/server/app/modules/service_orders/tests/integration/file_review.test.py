@@ -205,11 +205,11 @@ def test_approve_persists_document_approved_notification_for_translator_email(
 
     notification = (
         db_session.query(Notification)
-        .filter_by(event_type="document_approved", related_id=file.id)
+        .filter_by(event_type="document_approved", related_id=item.id)
         .one()
     )
     assert notification.recipient_user_id == translator_user.id
-    assert notification.related_type == "service_order_file"
+    assert notification.related_type == "service_order_item"
 
 
 def test_request_changes_persists_notification_for_translator_email(
@@ -227,11 +227,11 @@ def test_request_changes_persists_notification_for_translator_email(
 
     notification = (
         db_session.query(Notification)
-        .filter_by(event_type="document_changes_requested", related_id=file.id)
+        .filter_by(event_type="document_changes_requested", related_id=item.id)
         .one()
     )
     assert notification.recipient_user_id == translator_user.id
-    assert notification.related_type == "service_order_file"
+    assert notification.related_type == "service_order_item"
 
 
 def test_document_delivery_notifies_only_active_users_with_documents_write(
@@ -253,19 +253,13 @@ def test_document_delivery_notifies_only_active_users_with_documents_write(
     TranslatorItemService(db_session).deliver(
         item.id, translator.email, "traducao.pdf", b"conteudo", "application/pdf"
     )
-    delivered_file = (
-        db_session.query(ServiceOrderFile)
-        .filter_by(service_order_item_id=item.id, direction=DIRECTION_SAIDA)
-        .one()
-    )
-
     notifications = (
         db_session.query(Notification)
-        .filter_by(event_type="document_received", related_id=delivered_file.id)
+        .filter_by(event_type="document_received", related_id=order.id)
         .all()
     )
     assert {item.recipient_user_id for item in notifications} == {permitted.id}
-    assert notifications[0].related_type == "service_order_file"
+    assert notifications[0].related_type == "service_order"
 
 
 def test_a_delivery_can_only_be_reviewed_once(db_session: Session) -> None:

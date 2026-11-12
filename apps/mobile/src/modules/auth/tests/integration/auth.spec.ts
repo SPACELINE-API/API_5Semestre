@@ -70,7 +70,7 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(emailInput).toHaveValue('user@example.com');
 		await passwordInput.fill('password');
 		await expect(passwordInput).toHaveValue('password');
-		await page.getByText('ENTRAR', { exact: true }).click();
+		await passwordInput.press('Enter');
 
 		await expect(page).toHaveURL(/\/dashboard$/);
 		expect(
