@@ -49,7 +49,7 @@ async def validar_entrada(texto: str) -> None:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
                 "Só consigo ajudar com assuntos do suporte: clientes, ordens de serviço, "
-                "tradutores, orçamentos e usuários."
+                "tradutores, orçamentos, produtividade e usuários."
             ),
         ) from exc
     except GuardrailUnavailable as exc:
