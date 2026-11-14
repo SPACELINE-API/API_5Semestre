@@ -76,6 +76,7 @@ def test_seed_users_creates_auth_users_and_upserts_local_users() -> None:
     assert parameter_values == {
         "login_lockout_timeout_minutes": "5",
         "login_max_attempts": "3",
+        "inactivity_timeout_minutes": "30",
     }
 
 

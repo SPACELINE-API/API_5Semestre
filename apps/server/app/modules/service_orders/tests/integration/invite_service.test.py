@@ -6,8 +6,10 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.modules.auth.models.user import User
 from app.modules.clients.models.company import Company
 from app.modules.clients.schemas.company import calculate_cnpj_check_digit
+from app.modules.notifications.models.notification import Notification
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
 from app.modules.service_orders.models.invite import (
@@ -139,6 +141,32 @@ def test_send_invites_creates_pending_invites_and_sends_email(
     assert invites[0].status == INVITE_STATUS_PENDENTE
     assert len(sent_emails) == 1
     assert sent_emails[0]["to"] == translator.email
+
+
+def test_send_invites_notifies_only_the_invited_translator(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+    account = User(
+        email=translator.email,
+        password_hash="hashed",
+        is_active=True,
+        role="tradutor",
+    )
+    db_session.add(account)
+    db_session.commit()
+
+    [invite] = InviteService(db_session).send_invites(item.id, [translator.id])
+
+    notifications = db_session.query(Notification).all()
+    assert len(notifications) == 1
+    assert notifications[0].recipient_user_id == account.id
+    assert notifications[0].event_type == "translator_invite_received"
+    assert notifications[0].title == "Novo convite recebido"
+    assert notifications[0].related_type == "service_order_item_invite"
+    assert notifications[0].related_id == invite.id
+    assert notifications[0].idempotency_key == f"service_order_invite:{invite.id}:sent"
 
 
 def test_send_invites_rejects_inactive_translator_without_persisting_or_email(

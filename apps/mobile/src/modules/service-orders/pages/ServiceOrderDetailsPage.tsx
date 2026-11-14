@@ -49,9 +49,13 @@ import { AdditionalServicesTab } from '../components/AdditionalServicesTab';
 
 type ServiceOrderDetailsPageProps = {
 	id: string;
+	initialTab?: string;
 };
 
-export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
+export function ServiceOrderDetailsPage({
+	id,
+	initialTab,
+}: ServiceOrderDetailsPageProps) {
 	const router = useRouter();
 
 	const { serviceOrder, isLoading, error, refresh, setServiceOrder } =
@@ -62,7 +66,9 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const { toast, showToast } = useToast();
 
 	const [view, setView] = useState<ServiceOrderView>('detalhes');
-	const [detailTab, setDetailTab] = useState<ServiceOrderDetailTab>('geral');
+	const [detailTab, setDetailTab] = useState<ServiceOrderDetailTab>(
+		initialTab === 'revisao' ? 'revisao' : 'geral',
+	);
 	const [inviteTargetItem, setInviteTargetItem] =
 		useState<ServiceOrderItem | null>(null);
 	const [refreshToken, setRefreshToken] = useState(0);

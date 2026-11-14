@@ -169,15 +169,15 @@ def test_certificate_submission_notifies_only_active_users_with_translators_writ
     inactive = make_user(db_session, f"inactive-{uuid.uuid4()}@example.com", "translators.write")
     inactive.is_active = False
 
-    certificate = submit(TranslatorCertificateService(db_session), translator)
+    submit(TranslatorCertificateService(db_session), translator)
 
     notifications = (
         db_session.query(Notification)
-        .filter_by(event_type="certificate_received", related_id=certificate.id)
+        .filter_by(event_type="certificate_received", related_id=translator.id)
         .all()
     )
     assert {item.recipient_user_id for item in notifications} == {permitted.id}
-    assert notifications[0].related_type == "certificate"
+    assert notifications[0].related_type == "translator"
 
 
 @pytest.mark.parametrize(
