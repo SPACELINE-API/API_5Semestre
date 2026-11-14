@@ -4,6 +4,8 @@ from typing import Any
 
 from openpyxl import Workbook
 from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
 
 CABECALHO = [
     "Tradutor",
@@ -60,6 +62,8 @@ def gerar_csv(relatorio: Any) -> bytes:
 def gerar_xlsx(relatorio: Any) -> bytes:
     wb = Workbook()
     ws = wb.active
+    if not isinstance(ws, Worksheet):
+        raise RuntimeError("Planilha ativa inválida")
     ws.title = "Produtividade"
     ws.append(CABECALHO)
     for celula in ws[1]:
@@ -67,9 +71,9 @@ def gerar_xlsx(relatorio: Any) -> bytes:
     for linha in _linhas(relatorio):
         ws.append(linha)
     ws.freeze_panes = "A2"
-    for coluna in ws.columns:
+    for indice, coluna in enumerate(ws.columns, start=1):
         largura = max(len(str(c.value or "")) for c in coluna)
-        ws.column_dimensions[coluna[0].column_letter].width = min(largura + 2, 40)
+        ws.column_dimensions[get_column_letter(indice)].width = min(largura + 2, 40)
     buffer = io.BytesIO()
     wb.save(buffer)
     return buffer.getvalue()
