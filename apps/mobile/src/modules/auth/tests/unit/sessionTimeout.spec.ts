@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 import {
 	getInactivityTimeout,
+	onInactivityTimeoutChange,
 	updateInactivityTimeout,
 } from '../../services/sessionTimeout';
 
@@ -82,5 +83,55 @@ test.describe('Session Timeout Service Unit Tests', () => {
 				'Permission denied',
 			);
 		});
+	});
+});
+
+test.describe('onInactivityTimeoutChange', () => {
+	let originalFetch: typeof globalThis.fetch;
+
+	test.beforeAll(() => {
+		originalFetch = globalThis.fetch;
+	});
+
+	test.afterAll(() => {
+		globalThis.fetch = originalFetch;
+	});
+
+	test('notifies listeners after a successful update', async () => {
+		globalThis.fetch = async () =>
+			({
+				ok: true,
+				json: async () => ({ minutes: 15 }),
+			}) as Response;
+
+		const received: number[] = [];
+		const unsubscribe = onInactivityTimeoutChange((minutes) =>
+			received.push(minutes),
+		);
+
+		await updateInactivityTimeout(15);
+		unsubscribe();
+		await updateInactivityTimeout(15);
+
+		expect(received).toEqual([15]);
+	});
+
+	test('does not notify listeners when the update fails', async () => {
+		globalThis.fetch = async () =>
+			({
+				ok: false,
+				status: 422,
+				json: async () => ({ detail: 'Invalid value' }),
+			}) as Response;
+
+		const received: number[] = [];
+		const unsubscribe = onInactivityTimeoutChange((minutes) =>
+			received.push(minutes),
+		);
+
+		await expect(updateInactivityTimeout(0)).rejects.toThrow('Invalid value');
+		unsubscribe();
+
+		expect(received).toEqual([]);
 	});
 });

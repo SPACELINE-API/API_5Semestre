@@ -111,3 +111,77 @@ test.describe('configuração de sessão', () => {
 		await expect(page.getByPlaceholder('Ex: 30')).not.toBeEditable();
 	});
 });
+
+test.describe('logout por inatividade', () => {
+	async function mockTimeout(
+		page: import('@playwright/test').Page,
+		minutes: number,
+	) {
+		await page.route('**/api/support/inactivity-timeout', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ minutes }),
+			}),
+		);
+	}
+
+	test('desloga o usuário após o tempo configurado sem atividade', async ({
+		page,
+	}) => {
+		await page.clock.install();
+		await useProfile(page, ['roles.read', 'settings.write']);
+		await mockTimeout(page, 1);
+
+		await page.goto('/configuracoes/sessao');
+		await expect(page.getByText('1 minuto', { exact: true })).toBeVisible();
+
+		await page.clock.fastForward('01:15');
+
+		await expect(page).toHaveURL(/\/login$/);
+	});
+
+	test('mantém a sessão enquanto houver atividade', async ({ page }) => {
+		await page.clock.install();
+		await useProfile(page, ['roles.read', 'settings.write']);
+		await mockTimeout(page, 1);
+
+		await page.goto('/configuracoes/sessao');
+		await expect(page.getByText('1 minuto', { exact: true })).toBeVisible();
+
+		await page.clock.fastForward('00:45');
+		await page.mouse.move(200, 200);
+		await page.keyboard.press('Shift');
+		await page.clock.fastForward('00:45');
+
+		await expect(page).toHaveURL(/\/configuracoes\/sessao$/);
+	});
+
+	test('aplica o novo tempo salvo sem recarregar a página', async ({
+		page,
+	}) => {
+		await page.clock.install();
+		await useProfile(page, ['roles.read', 'settings.write']);
+		await page.route('**/api/support/inactivity-timeout', async (route) => {
+			const isPatch = route.request().method() === 'PATCH';
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ minutes: isPatch ? 1 : 30 }),
+			});
+		});
+
+		await page.goto('/configuracoes/sessao');
+		await expect(page.getByText('30 minutos')).toBeVisible();
+
+		await page.getByPlaceholder('Ex: 30').fill('1');
+		await page.getByRole('button', { name: 'Salvar' }).click();
+		await expect(
+			page.getByText('Tempo de sessão atualizado com sucesso!'),
+		).toBeVisible();
+
+		await page.clock.fastForward('01:15');
+
+		await expect(page).toHaveURL(/\/login$/);
+	});
+});
