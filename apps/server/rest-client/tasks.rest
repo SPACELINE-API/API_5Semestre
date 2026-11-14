@@ -1,0 +1,114 @@
+@serverUrl = http://localhost:3333
+
+### Login do administrador do seed (cria, consulta e avalia tarefas)
+# @name loginAdmin
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@spaceline.com.br",
+  "password": "123456"
+}
+
+### Login do funcionário interno do seed (cliente@spaceline.com.br possui o perfil Atendimento)
+# @name loginEmployee
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "cliente@spaceline.com.br",
+  "password": "123456"
+}
+
+### Dados do funcionário autenticado (o id é usado como responsável da tarefa)
+# @name employeeMe
+GET {{serverUrl}}/api/auth/me
+Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
+
+### Criar tarefa para exatamente um funcionário interno (exige tasks.write)
+### O prazo é opcional. Sem idempotency_key, cada chamada cria uma nova tarefa.
+# @name createTask
+POST {{serverUrl}}/api/tasks
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "description": "Organizar os contratos assinados de outubro",
+  "due_date": "2026-11-20",
+  "assignee_id": "{{employeeMe.response.body.$.user.id}}"
+}
+
+### Tarefas do funcionário autenticado (filtro opcional: status=pending|in_progress|in_review|completed|rejected)
+GET {{serverUrl}}/api/tasks/me
+Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
+
+### Detalhe da tarefa (o funcionário só enxerga as próprias tarefas)
+GET {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}
+Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
+
+### Iniciar tarefa pendente (pendente -> em andamento)
+POST {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/start
+Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
+
+### Registrar a descrição da execução (somente em andamento)
+PATCH {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/execution
+Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "execution_description": "Contratos separados por cliente e digitalizados."
+}
+
+### Anexar arquivo (opcional; PDF, Word, planilha, texto ou imagem até 10 MB; até 10 anexos)
+# @name addAttachment
+POST {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/attachments
+Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
+Content-Type: multipart/form-data; boundary=----SpacelineTask
+
+------SpacelineTask
+Content-Disposition: form-data; name="file"; filename="contratos.pdf"
+Content-Type: application/pdf
+
+< ./seed-assets/termo-de-confidencialidade.pdf
+------SpacelineTask--
+
+### URL assinada para baixar o anexo (funcionário responsável ou avaliador)
+GET {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/attachments/{{addAttachment.response.body.$.attachments[0].id}}/file
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+
+### Remover anexo (somente em andamento)
+DELETE {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/attachments/{{addAttachment.response.body.$.attachments[0].id}}
+Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
+
+### Enviar para análise (em andamento -> em análise; exige a descrição da execução)
+POST {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/submit
+Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
+
+### Consultar tarefas dos funcionários internos (exige tasks.review; filtros opcionais status e assignee_id)
+GET {{serverUrl}}/api/tasks?status=in_review
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+
+### Reprovar tarefa em análise (a justificativa é obrigatória)
+POST {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/reject
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "reason": "Faltaram os contratos da Acme."
+}
+
+### Retomar tarefa reprovada (reprovado -> em andamento)
+POST {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/resume
+Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
+
+### Aprovar tarefa em análise (em análise -> concluído)
+POST {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/approve
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+
+### Histórico de status, descrições, justificativas e anexos
+GET {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/history
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+
+### Transição inválida: iniciar uma tarefa que não está pendente retorna 409
+POST {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/start
+Authorization: Bearer {{loginEmployee.response.body.$.access_token}}

@@ -7,20 +7,21 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.modules.tasks.schemas.task import TaskCreate
+from app.modules.tasks.services.task_rules import TASKS_WRITE_PERMISSION
 from app.modules.tasks.services.task_service import TaskService
 from app.shared.database import get_session_factory
 
 from ..contract import ToolSpec, Usuario
 from ..errors import CodigoErro
 
-PERMISSAO_CRIAR_TAREFAS = "assignments.write"
+PERMISSAO_CRIAR_TAREFAS = TASKS_WRITE_PERMISSION
 
 
 class CriarTarefaEntrada(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     description: str = Field(min_length=1, max_length=5000)
-    translator_ids: list[uuid.UUID] = Field(min_length=1)
+    assignee_id: uuid.UUID
     due_date: date | None = None
     sem_prazo: bool = False
     confirmation_token: str | None = Field(default=None, min_length=20, max_length=200)
@@ -45,7 +46,7 @@ def _idempotency_key(entrada: CriarTarefaEntrada, usuario: Usuario) -> str:
     payload = {
         "requester_id": str(usuario.id),
         "description": entrada.description.strip(),
-        "translator_ids": sorted(str(item) for item in entrada.translator_ids),
+        "assignee_id": str(entrada.assignee_id),
         "due_date": entrada.due_date.isoformat() if entrada.due_date else None,
         "sem_prazo": entrada.sem_prazo,
     }
@@ -57,7 +58,7 @@ def _handler(entrada: CriarTarefaEntrada, usuario: Usuario) -> dict[str, Any]:
     data = TaskCreate(
         description=entrada.description,
         due_date=entrada.due_date,
-        translator_ids=entrada.translator_ids,
+        assignee_id=entrada.assignee_id,
         idempotency_key=_idempotency_key(entrada, usuario),
     )
     if entrada.due_date is None and not entrada.sem_prazo:
@@ -78,11 +79,10 @@ def _handler(entrada: CriarTarefaEntrada, usuario: Usuario) -> dict[str, Any]:
                 if entrada.sem_prazo or entrada.due_date is None
                 else entrada.due_date.isoformat()
             )
-            tradutores = ", ".join(str(item) for item in data.translator_ids)
             return {
                 "status": "confirmation_required",
                 "mensagem": (
-                    f"Confirme a tarefa '{data.description}' para os tradutores {tradutores}, "
+                    f"Confirme a tarefa '{data.description}' para o funcionário {data.assignee_id}, "
                     f"com prazo {prazo}."
                 ),
                 "missing_fields": [],
@@ -116,7 +116,7 @@ def _record_attempt(
             details={
                 "description": data.description,
                 "due_date": data.due_date.isoformat() if data.due_date else None,
-                "translator_ids": [str(item) for item in data.translator_ids],
+                "assignee_id": str(data.assignee_id),
                 "sem_prazo": entrada.sem_prazo,
             },
         )
@@ -128,9 +128,10 @@ def criar_tarefa_spec() -> ToolSpec:
     return ToolSpec(
         name="criar_tarefa",
         description=(
-            "Cria uma tarefa para um ou mais tradutores. Primeiro apresente a proposta e use "
-            "o token retornado; só crie quando o usuário confirmar enviando esse token com os "
-            "mesmos dados. Se não houver prazo, confirme sem_prazo antes de propor."
+            "Cria uma tarefa para exatamente um funcionário interno (assignee_id). Primeiro "
+            "apresente a proposta e use o token retornado; só crie quando o usuário confirmar "
+            "enviando esse token com os mesmos dados. Se não houver prazo, confirme sem_prazo "
+            "antes de propor."
         ),
         input_schema=CriarTarefaEntrada,
         output_schema=CriarTarefaSaida,
@@ -144,6 +145,6 @@ def criar_tarefa_spec() -> ToolSpec:
         required_permission=PERMISSAO_CRIAR_TAREFAS,
         handler=_handler,
         free_text_fields=("description",),
-        topic_keywords=("tarefa", "tradutor", "tradução"),
+        topic_keywords=("tarefa",),
         topic_label="tarefas",
     )

@@ -20,9 +20,9 @@ def run(executor, params, user):
 
 
 def add_user(db, role="admin"):
-    permission = db.query(Permission).filter_by(code="assignments.write").first()
+    permission = db.query(Permission).filter_by(code="tasks.write").first()
     if permission is None:
-        permission = Permission(code="assignments.write")
+        permission = Permission(code="tasks.write")
         db.add(permission)
     access_role = Role(name=f"{role}-{uuid.uuid4()}", permissions=[permission])
     db.add(access_role)
@@ -41,18 +41,16 @@ def keep_loaded_instances(db):
     db.expire_on_commit = False
 
 
-def add_translator(db):
-    from app.modules.translators.models.translator import Translator
-
-    translator = Translator(
+def add_employee(db):
+    employee = User(
         id=uuid.uuid4(),
-        name="Ana Tradutora",
-        email=f"translator-{uuid.uuid4()}@example.com",
-        phone="11999990000",
+        email=f"employee-{uuid.uuid4()}@example.com",
+        password_hash="hash",
+        role="interno",
         is_active=True,
     )
-    db.add(translator)
-    return translator
+    db.add(employee)
+    return employee
 
 
 def test_task_tool_returns_persisted_proposal_without_creating_task(
@@ -61,7 +59,7 @@ def test_task_tool_returns_persisted_proposal_without_creating_task(
     db = isolated_db_session
     keep_loaded_instances(db)
     user = add_user(db)
-    translator = add_translator(db)
+    employee = add_employee(db)
     db.flush()
     monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
 
@@ -69,7 +67,7 @@ def test_task_tool_returns_persisted_proposal_without_creating_task(
         Executor(criar_catalogo_tarefas(), approve_guardrail),
         {
             "description": "Traduzir contrato",
-            "translator_ids": [str(translator.id)],
+            "assignee_id": str(employee.id),
             "due_date": date(2026, 12, 1).isoformat(),
         },
         user,
@@ -89,13 +87,13 @@ def test_task_tool_creates_only_with_matching_proposal_token(isolated_db_session
     db = isolated_db_session
     keep_loaded_instances(db)
     user = add_user(db)
-    translator = add_translator(db)
+    employee = add_employee(db)
     db.flush()
     monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
     executor = Executor(criar_catalogo_tarefas(), approve_guardrail)
     payload = {
         "description": "Traduzir contrato",
-        "translator_ids": [str(translator.id)],
+        "assignee_id": str(employee.id),
         "due_date": date(2026, 12, 1).isoformat(),
     }
     proposal_result = run(executor, payload, user)
@@ -119,7 +117,7 @@ def test_task_tool_rejects_boolean_confirmation_without_creating_task(
     db = isolated_db_session
     keep_loaded_instances(db)
     user = add_user(db)
-    translator = add_translator(db)
+    employee = add_employee(db)
     db.flush()
     monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
 
@@ -127,7 +125,7 @@ def test_task_tool_rejects_boolean_confirmation_without_creating_task(
         Executor(criar_catalogo_tarefas(), approve_guardrail),
         {
             "description": "Traduzir contrato",
-            "translator_ids": [str(translator.id)],
+            "assignee_id": str(employee.id),
             "due_date": date(2026, 12, 1).isoformat(),
             "confirmado": True,
         },
@@ -146,13 +144,13 @@ def test_task_tool_changed_payload_and_wrong_user_token_do_not_create_task(
     keep_loaded_instances(db)
     user = add_user(db)
     other_user = add_user(db)
-    translator = add_translator(db)
+    employee = add_employee(db)
     db.flush()
     monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
     executor = Executor(criar_catalogo_tarefas(), approve_guardrail)
     payload = {
         "description": "Traduzir contrato",
-        "translator_ids": [str(translator.id)],
+        "assignee_id": str(employee.id),
         "due_date": date(2026, 12, 1).isoformat(),
     }
     proposal_result = run(executor, payload, user)
@@ -179,13 +177,13 @@ def test_task_tool_consumed_token_cannot_create_task_again(isolated_db_session, 
     db = isolated_db_session
     keep_loaded_instances(db)
     user = add_user(db)
-    translator = add_translator(db)
+    employee = add_employee(db)
     db.flush()
     monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
     executor = Executor(criar_catalogo_tarefas(), approve_guardrail)
     payload = {
         "description": "Traduzir contrato",
-        "translator_ids": [str(translator.id)],
+        "assignee_id": str(employee.id),
         "due_date": date(2026, 12, 1).isoformat(),
     }
     proposal_result = run(executor, payload, user)
@@ -196,3 +194,26 @@ def test_task_tool_consumed_token_cannot_create_task_again(isolated_db_session, 
     assert first_confirmation.sucesso is True
     assert second_confirmation.sucesso is False
     assert db.query(Task).count() == 1
+
+
+def test_task_tool_rejects_more_than_one_assignee(isolated_db_session, monkeypatch):
+    db = isolated_db_session
+    keep_loaded_instances(db)
+    user = add_user(db)
+    employee = add_employee(db)
+    other = add_employee(db)
+    db.flush()
+    monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
+
+    result = run(
+        Executor(criar_catalogo_tarefas(), approve_guardrail),
+        {
+            "description": "Organizar contratos",
+            "assignee_id": [str(employee.id), str(other.id)],
+            "due_date": date(2026, 12, 1).isoformat(),
+        },
+        user,
+    )
+
+    assert result.sucesso is False
+    assert db.query(TaskProposal).count() == 0
