@@ -55,6 +55,14 @@ def build_setup_url(raw_token: str) -> str:
     return f"{env_provider.get_site_url().rstrip('/')}/definir-senha?token={raw_token}"
 
 
+def ensure_awaiting_password(user: User) -> None:
+    if user.is_active or user.password_set_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="O link só pode ser enviado a contas inativas e sem senha",
+        )
+
+
 class PasswordSetupService:
     def __init__(self, db: Session, admin_client: SupabaseAdminClient | None = None):
         self.db = db
@@ -76,7 +84,11 @@ class PasswordSetupService:
     def send_initial(
         self, user_id: uuid.UUID, actor: SupabaseAuthenticatedUser
     ) -> InternalUserResponse:
-        user = self._load_pending_user(user_id)
+        return self.send_initial_to(self.people.load_user(user_id), actor)
+
+    # TAMBEM USADO PELO CADASTRO DE TRADUTOR, QUE CARREGA A PROPRIA CONTA DE ACESSO
+    def send_initial_to(self, user: User, actor: SupabaseAuthenticatedUser) -> InternalUserResponse:
+        ensure_awaiting_password(user)
         if self.tokens.has_any(user.id):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -85,7 +97,10 @@ class PasswordSetupService:
         return self._issue(user, actor, ACTION_LINK_SENT)
 
     def resend(self, user_id: uuid.UUID, actor: SupabaseAuthenticatedUser) -> InternalUserResponse:
-        user = self._load_pending_user(user_id)
+        return self.resend_to(self.people.load_user(user_id), actor)
+
+    def resend_to(self, user: User, actor: SupabaseAuthenticatedUser) -> InternalUserResponse:
+        ensure_awaiting_password(user)
         self.tokens.expire_overdue(user.id)
         if not self.tokens.has_any(user.id):
             raise HTTPException(
@@ -211,15 +226,6 @@ class PasswordSetupService:
         self.db.commit()
         self.db.refresh(token)
         return present_user(user, token)
-
-    def _load_pending_user(self, user_id: uuid.UUID) -> User:
-        user = self.people.load_user(user_id)
-        if user.is_active or user.password_set_at is not None:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="O link só pode ser enviado a contas inativas e sem senha",
-            )
-        return user
 
     def _expire_if_overdue(self, token: PasswordSetupToken) -> None:
         if token.status == LINK_STATUS_PENDENTE and token.expires_at <= datetime.now(UTC):

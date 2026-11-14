@@ -11,13 +11,19 @@ class TranslatorLanguageInput(BaseModel):
     proficiency_level: ProficiencyLevel
 
 
-# PAYLOAD DE CRIACAO E ATUALIZACAO DO TRADUTOR
-class TranslatorCreate(BaseModel):
+# PAYLOAD DE ATUALIZACAO DO TRADUTOR
+class TranslatorUpdate(BaseModel):
     name: str = Field(..., max_length=150)
     email: str = Field(..., max_length=255, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     phone: str = Field(..., max_length=30)
     qualification_ids: list[uuid.UUID] = Field(default_factory=list)
     languages: list[TranslatorLanguageInput] = Field(..., min_length=1)
+
+    # O E-MAIL TAMBEM IDENTIFICA A CONTA DE ACESSO, QUE GUARDA O ENDERECO EM MINUSCULAS
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
 
     @field_validator("languages")
     @classmethod
@@ -30,8 +36,9 @@ class TranslatorCreate(BaseModel):
         return languages
 
 
-# ALIAS PARA ATUALIZACAO (MESMAS REGRAS)
-TranslatorUpdate = TranslatorCreate
+# PAYLOAD DE CRIACAO: O PERFIL DA CONTA E SEMPRE TRADUTOR, ENTAO NAO ACEITA CAMPOS EXTRAS
+class TranslatorCreate(TranslatorUpdate):
+    model_config = ConfigDict(extra="forbid")
 
 
 class TranslatorStatusUpdate(BaseModel):
@@ -56,6 +63,21 @@ class QualificationResponse(BaseModel):
     description: str | None = None
 
 
+class TranslatorAccountLinkResponse(BaseModel):
+    status: str
+    sent_at: datetime
+    expires_at: datetime
+    used_at: datetime | None = None
+
+
+# CONTA DE ACESSO DO TRADUTOR; A SENHA NUNCA E EXPOSTA, APENAS SE JA FOI DEFINIDA
+class TranslatorAccountResponse(BaseModel):
+    user_id: uuid.UUID
+    status: str
+    password_defined: bool
+    latest_link: TranslatorAccountLinkResponse | None = None
+
+
 # RESPOSTA COMPLETA DO TRADUTOR COM RELACIONAMENTOS
 class TranslatorResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -69,6 +91,7 @@ class TranslatorResponse(BaseModel):
     updated_at: datetime
     qualifications: list[QualificationResponse] = []
     languages: list[TranslatorLanguageResponse] = []
+    account: TranslatorAccountResponse | None = None
 
 
 class TranslatorProfileUpdate(BaseModel):
