@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Bot, User } from 'lucide-react-native';
-import { Text, View } from 'react-native';
+import { Linking, Platform, Text, View } from 'react-native';
+import Constants from 'expo-constants';
 import Markdown from 'react-native-markdown-display';
+import { resolveNativeResourceUrl } from '../../../shared/utils/nativeResourceUrl';
 
 type ChatMessageBubbleProps = {
 	role: 'user' | 'agent';
@@ -97,6 +99,28 @@ const markdownStyles = {
 	td: { padding: 6, color: '#1a2942' },
 };
 
+function openChatLink(url: string) {
+	const target = url.startsWith('/')
+		? resolveNativeResourceUrl(url, Constants.expoConfig?.hostUri, Platform.OS)
+		: url;
+
+	if (Platform.OS === 'web') {
+		const isFile = /\.(csv|xlsx)(\?|$)/i.test(target);
+		if (!isFile) {
+			window.open(target, '_blank');
+			return;
+		}
+		const frame = document.createElement('iframe');
+		frame.style.display = 'none';
+		frame.src = target;
+		document.body.appendChild(frame);
+		window.setTimeout(() => frame.remove(), 60_000);
+		return;
+	}
+
+	void Linking.openURL(target);
+}
+
 function TypingIndicator() {
 	const [dotCount, setDotCount] = useState(1);
 
@@ -148,7 +172,15 @@ export function ChatMessageBubble({
 					) : isUser ? (
 						<Text className="text-sm leading-6 text-white">{message}</Text>
 					) : (
-						<Markdown style={markdownStyles}>{message}</Markdown>
+						<Markdown
+							style={markdownStyles}
+							onLinkPress={(url) => {
+								openChatLink(url);
+								return false;
+							}}
+						>
+							{message}
+						</Markdown>
 					)}
 				</View>
 				{timestamp ? (
