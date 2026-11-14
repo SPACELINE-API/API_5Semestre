@@ -38,6 +38,12 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 	);
 };
 
+const serverRoot = path.resolve(__dirname, '..', 'server');
+
+config.watchFolders = config.watchFolders.filter(
+	(folder) => path.resolve(folder) !== serverRoot,
+);
+
 const MAX_CONCURRENT_CACHE_OPERATIONS = 24;
 
 function throttleCacheStore(store, limit) {

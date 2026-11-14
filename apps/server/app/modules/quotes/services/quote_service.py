@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
 from app.modules.contacts.models.contact import Contact
+from app.modules.notifications.services.notification_messages import quote_approved_message
+from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.repositories.quote_repository import QuoteRepository
 from app.modules.quotes.repositories.request_repository import RequestRepository
@@ -94,6 +96,16 @@ class QuoteService:
             )
 
         if data.status == "approved":
+            project_name = (quote.customer_need or "").strip()
+            if not project_name:
+                project_name = next(
+                    (
+                        item.document_type.strip()
+                        for item in quote.items
+                        if item.document_type and item.document_type.strip()
+                    ),
+                    "Tradução de documentos",
+                )
             if not quote.service_orders:
                 if not quote.company_id:
                     raise HTTPException(
@@ -111,16 +123,6 @@ class QuoteService:
                         detail="Anexe o arquivo de todos os documentos antes de aprovar o orçamento.",
                     )
 
-                project_name = (quote.customer_need or "").strip()
-                if not project_name:
-                    project_name = next(
-                        (
-                            item.document_type.strip()
-                            for item in quote.items
-                            if item.document_type and item.document_type.strip()
-                        ),
-                        "Tradução de documentos",
-                    )
                 service_order = ServiceOrder(
                     quote_id=quote.id,
                     company_id=quote.company_id,
@@ -150,6 +152,16 @@ class QuoteService:
         quote.reproval_reason = (
             (data.reproval_reason or "").strip() if data.status == "reproved" else None
         )
+        if data.status == "approved":
+            message = quote_approved_message(quote.company_name)
+            NotificationService(self.db).notify_administrators(
+                event_type=message.event_type,
+                title=message.title,
+                message=message.message,
+                related_type="quote",
+                related_id=quote.id,
+                idempotency_key=f"quote:{quote.id}:approved",
+            )
         try:
             self.db.commit()
         except Exception:

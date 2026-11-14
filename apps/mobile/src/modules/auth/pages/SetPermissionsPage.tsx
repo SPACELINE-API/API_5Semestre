@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import ConfigPermissions from '../components/permissions/ConfigPermissions';
+import { SettingsHeader } from '../components/SettingsHeader';
 import { RoleFormModal } from '../components/permissions/RoleFormModal';
 import SelectRole from '../components/permissions/SelectRole';
 import { usePermission } from '../hooks/usePermission';
@@ -134,16 +135,8 @@ export default function SetPermissionsPage() {
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
 			>
+				<SettingsHeader active="permissoes" />
 				<View className="gap-6">
-					<View>
-						<Text className="font-inter font-bold text-gray-950 text-2xl">
-							Configurações
-						</Text>
-						<Text className="mt-2 font-inter text-gray-400 text-sm">
-							Usuários → Permissões
-						</Text>
-					</View>
-
 					{isLoading ? (
 						<View className="py-20 items-center">
 							<ActivityIndicator size="large" color="#2563eb" />

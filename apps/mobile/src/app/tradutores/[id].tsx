@@ -74,7 +74,7 @@ function hasTranslatorProfileChanges(
 
 export default function TranslatorDetailsScreen() {
 	const router = useRouter();
-	const { id } = useLocalSearchParams();
+	const { id, tab } = useLocalSearchParams<{ id?: string; tab?: string }>();
 	const [translator, setTranslator] = useState(null as Translator | null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null as string | null);
@@ -83,7 +83,9 @@ export default function TranslatorDetailsScreen() {
 	const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 	const canWriteTranslators = usePermission('translators.write');
 	const { toast, showToast } = useToast();
-	const [activeTab, setActiveTab] = useState<TranslatorTab>('info');
+	const [activeTab, setActiveTab] = useState<TranslatorTab>(
+		tab === 'requests' ? 'requests' : 'info',
+	);
 	const certificates = useTranslatorCertificates(id as string | undefined);
 	const [selectedRequest, setSelectedRequest] =
 		useState<TranslatorCertificate | null>(null);
@@ -106,6 +108,10 @@ export default function TranslatorDetailsScreen() {
 			.catch(() => setError('Nao foi possivel carregar os dados do tradutor.'))
 			.finally(() => setIsLoading(false));
 	}, [id]);
+
+	useEffect(() => {
+		if (tab === 'requests') setActiveTab('requests');
+	}, [tab]);
 
 	async function handleDelete() {
 		if (!translator) return;
