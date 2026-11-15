@@ -72,8 +72,7 @@ export default function LanguageSettingsPage() {
 		if (
 			languages.some(
 				(language) =>
-					language.id.toLocaleLowerCase() ===
-					trimmedCode.toLocaleLowerCase(),
+					language.id.toLocaleLowerCase() === trimmedCode.toLocaleLowerCase(),
 			)
 		) {
 			setFieldError('Este código de idioma já está cadastrado.');
