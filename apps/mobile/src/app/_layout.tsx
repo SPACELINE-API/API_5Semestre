@@ -37,6 +37,7 @@ import {
 	isPublicPath,
 	requiredPermission,
 } from '../modules/auth/services/authorization';
+import { useInactivityLogout } from '../modules/auth/hooks/useInactivityLogout';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -200,9 +201,13 @@ function AppShell({
 	onOpenMobileNav,
 }: AppShellProps) {
 	const insets = useSafeAreaInsets();
+	const registerActivity = useInactivityLogout(showNavigation);
 
 	return (
-		<View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}>
+		<View
+			onTouchStart={registerActivity}
+			style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}
+		>
 			{showNavigation ? (
 				<SideBar
 					key={authorizationVersion}

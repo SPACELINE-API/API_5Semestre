@@ -8,11 +8,12 @@ import {
 } from '../services/auth';
 import { hasFullRouteAccess } from '../services/authorization';
 
-export type SettingsTab = 'permissoes' | 'pessoas';
+export type SettingsTab = 'permissoes' | 'pessoas' | 'sessao';
 
 const TAB_LABELS: Record<SettingsTab, string> = {
 	permissoes: 'Permissões',
 	pessoas: 'Pessoas',
+	sessao: 'Sessão',
 };
 
 export function SettingsHeader({ active }: { active: SettingsTab }) {
@@ -28,6 +29,7 @@ export function SettingsHeader({ active }: { active: SettingsTab }) {
 		...(hasFullRouteAccess(context)
 			? [{ key: 'pessoas' as const, label: TAB_LABELS.pessoas }]
 			: []),
+		{ key: 'sessao', label: TAB_LABELS.sessao },
 	];
 
 	function changeTab(tab: SettingsTab) {
