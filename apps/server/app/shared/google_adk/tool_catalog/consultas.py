@@ -1,15 +1,21 @@
+from datetime import date
 from typing import Any
 
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.modules.auth.models.user import User
 from app.modules.clients.models.company import Company
+from app.modules.proposals.services.report_storage import upload_report
 from app.modules.quotes.models.quote import Quote
+from app.modules.reports.services.productivity_service import ProductivityService
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.translators.models.translator import Translator
 from app.shared.database import get_session_factory
 
+from .exportador_produtividade import gerar_arquivo
+from .helpers_produtividade import indicadores, resolver
 from .tools.listagem import LIMITE_RESULTADOS
 
 LIMITE_CONSULTA = LIMITE_RESULTADOS + 1
@@ -142,5 +148,65 @@ def buscar_orcamentos() -> list[dict[str, Any]]:
             }
             for orcamento in orcamentos
         ]
+    finally:
+        db.close()
+
+
+def buscar_produtividade(
+    data_inicial: date | None,
+    data_final: date | None,
+    tradutor: str,
+    ordem_servico: str,
+    formato: str = "",
+) -> dict[str, Any]:
+    db = get_session_factory()()
+    try:
+        servico = ProductivityService(db)
+        translator_id = service_order_id = None
+
+        if tradutor or ordem_servico:
+            filtros = servico.get_filters()
+
+            if tradutor:
+                translator_id, opcoes = resolver(
+                    tradutor, [(t.id, t.name) for t in filtros.translators]
+                )
+                if translator_id is None:
+                    motivo = "ambíguo" if opcoes else "não encontrado"
+                    return {"erro": f"Tradutor {motivo}.", "opcoes": opcoes}
+
+            if ordem_servico:
+                service_order_id, opcoes = resolver(
+                    ordem_servico, [(p.id, p.project_name) for p in filtros.projects]
+                )
+                if service_order_id is None:
+                    motivo = "ambígua" if opcoes else "não encontrada"
+                    return {"erro": f"Ordem de serviço {motivo}.", "opcoes": opcoes}
+
+        try:
+            relatorio = servico.get_report(
+                data_inicial, data_final, translator_id, service_order_id
+            )
+        except HTTPException as exc:
+            return {"erro": str(exc.detail)}
+
+        resposta: dict[str, Any] = {
+            "periodo_inicio": relatorio.period_start.isoformat(),
+            "periodo_fim": relatorio.period_end.isoformat(),
+            "resumo": indicadores(relatorio.summary),
+            "tradutores": [
+                {"tradutor": t.translator_name, **indicadores(t)} for t in relatorio.translators
+            ],
+        }
+
+        if formato in ("csv", "xlsx"):
+            if relatorio.summary.documents_translated == 0:
+                resposta["erro"] = "Nenhum dado no período informado; arquivo não gerado."
+            else:
+                conteudo, nome, tipo = gerar_arquivo(relatorio, formato)
+                resposta["arquivo_nome"] = nome
+                resposta["arquivo_url"] = upload_report(conteudo, nome, tipo)
+
+        return resposta
     finally:
         db.close()
