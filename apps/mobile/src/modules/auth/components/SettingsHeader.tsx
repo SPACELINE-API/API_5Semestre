@@ -8,11 +8,12 @@ import {
 } from '../services/auth';
 import { hasFullRouteAccess } from '../services/authorization';
 
-export type SettingsTab = 'permissoes' | 'pessoas' | 'sessao';
+export type SettingsTab = 'permissoes' | 'pessoas' | 'idiomas' | 'sessao';
 
 const TAB_LABELS: Record<SettingsTab, string> = {
 	permissoes: 'Permissões',
 	pessoas: 'Pessoas',
+	idiomas: 'Idiomas',
 	sessao: 'Sessão',
 };
 
@@ -27,7 +28,10 @@ export function SettingsHeader({ active }: { active: SettingsTab }) {
 	const tabs: { key: SettingsTab; label: string }[] = [
 		{ key: 'permissoes', label: TAB_LABELS.permissoes },
 		...(hasFullRouteAccess(context)
-			? [{ key: 'pessoas' as const, label: TAB_LABELS.pessoas }]
+			? [
+					{ key: 'pessoas' as const, label: TAB_LABELS.pessoas },
+					{ key: 'idiomas' as const, label: TAB_LABELS.idiomas },
+				]
 			: []),
 		{ key: 'sessao', label: TAB_LABELS.sessao },
 	];
@@ -44,7 +48,7 @@ export function SettingsHeader({ active }: { active: SettingsTab }) {
 					Configurações
 				</Text>
 				<Text className="mt-2 font-inter text-gray-500 text-sm">
-					Gerencie as permissões dos perfis e as pessoas da plataforma.
+					Gerencie idiomas, permissões e pessoas da plataforma.
 				</Text>
 			</View>
 			<TabBar tabs={tabs} activeTab={active} onTabChange={changeTab} />
