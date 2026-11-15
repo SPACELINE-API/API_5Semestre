@@ -134,6 +134,7 @@ export function NotificationCenter({ topOffset }: NotificationCenterProps) {
 	const { width: windowWidth } = useWindowDimensions();
 	const isMobile = windowWidth < 768;
 	const isNative = Platform.OS !== 'web';
+	const isDesktopWeb = !isNative && !isMobile;
 	const [previewOpen, setPreviewOpen] = useState(false);
 	const {
 		notifications,
@@ -213,8 +214,8 @@ export function NotificationCenter({ topOffset }: NotificationCenterProps) {
 			)}
 			<View
 				style={{
-					top: topOffset,
-					right: 12,
+					top: topOffset + (isDesktopWeb ? 36 : 0),
+					right: isDesktopWeb ? 72 : 12,
 				}}
 				className="absolute z-50"
 			>
