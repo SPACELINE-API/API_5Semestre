@@ -295,7 +295,7 @@ export function SideBar({
 											label="Propostas"
 											isOpen={showExpanded}
 											active={isProposalsActive}
-											disabled={!permissions.includes('proposals.read')}
+											disabled={!can('proposals.read')}
 											onPress={() => navigate('/propostas')}
 										/>
 										<NavItem

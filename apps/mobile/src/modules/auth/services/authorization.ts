@@ -94,9 +94,6 @@ export function canAccess(
 ) {
 	if (isPublicPath(pathname)) return true;
 	if (isAdministratorOnlyPath(pathname)) return hasFullRouteAccess(context);
-	if (pathname === '/propostas' || pathname.startsWith('/propostas/')) {
-		return Boolean(context?.permissions.includes('proposals.read'));
-	}
 	if (
 		pathname === '/configuracoes/sessao' ||
 		pathname.startsWith('/configuracoes/sessao/')
