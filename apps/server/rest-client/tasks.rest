@@ -25,7 +25,7 @@ Content-Type: application/json
 GET {{serverUrl}}/api/auth/me
 Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
 
-### Criar tarefa para exatamente um funcionário interno (exige tasks.write)
+### Criar tarefa para exatamente um funcionário interno (exige assignments.write, a mesma permissão do agente)
 ### O prazo é opcional. Sem idempotency_key, cada chamada cria uma nova tarefa.
 # @name createTask
 POST {{serverUrl}}/api/tasks

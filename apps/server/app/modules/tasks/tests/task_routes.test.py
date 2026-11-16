@@ -1,9 +1,14 @@
+import uuid
+
 import pytest
 
 from app.main import app
 from app.modules.auth.dependencies.dependencies import get_current_user
 from app.modules.tasks.models.task_history import TaskHistory
+from app.modules.tasks.schemas.task import TaskCreate
+from app.modules.tasks.services.task_service import TaskService
 from app.modules.tasks.tests.conftest import TasksEnv, pdf_file
+from app.modules.translators.models.translator import Translator
 
 
 def _post(env: TasksEnv, path: str, json: dict | None = None):
@@ -34,7 +39,7 @@ def test_create_task_registers_requester_assignee_and_pending_status(env: TasksE
     assert task["attachments"] == []
 
 
-def test_create_task_requires_tasks_write_permission(env: TasksEnv) -> None:
+def test_create_task_requires_the_agent_task_permission(env: TasksEnv) -> None:
     employee = env.user()
     env.act_as(env.user())
 
@@ -45,9 +50,9 @@ def test_create_task_requires_tasks_write_permission(env: TasksEnv) -> None:
     assert response.status_code == 403
 
 
-def test_user_with_tasks_write_can_create_but_not_review(env: TasksEnv) -> None:
+def test_user_with_assignments_write_can_create_but_not_review(env: TasksEnv) -> None:
     employee = env.user()
-    manager = env.user(permissions=("tasks.write",))
+    manager = env.user(permissions=("assignments.write",))
     env.act_as(manager)
 
     created = env.client.post(
@@ -382,3 +387,35 @@ def test_other_employee_cannot_download_attachment(env: TasksEnv) -> None:
     response = env.client.get(f"/api/tasks/{task_id}/attachments/{attachment_id}/file")
 
     assert response.status_code == 404
+
+
+# TAREFAS DO AGENTE DE IA (TRADUTORES)
+
+
+def test_agent_tasks_for_translators_stay_out_of_the_internal_flow(env: TasksEnv) -> None:
+    translator = Translator(
+        id=uuid.uuid4(),
+        name="Ana Tradutora",
+        email=f"ana-{uuid.uuid4().hex[:6]}@example.com",
+        phone="11999990000",
+        is_active=True,
+    )
+    env.db.add(translator)
+    env.db.flush()
+    agent_task = TaskService(env.db).create(
+        TaskCreate(
+            description="Traduzir contrato",
+            translator_ids=[translator.id],
+            idempotency_key="agent-task",
+        ),
+        requester=env.admin,
+    )
+    internal = env.create_task(env.user())
+
+    listed = env.client.get("/api/tasks").json()
+
+    assert agent_task.assignee_id is None
+    assert agent_task.translator_ids == [translator.id]
+    assert [item["id"] for item in listed] == [internal["id"]]
+    assert env.client.get(f"/api/tasks/{agent_task.id}").status_code == 404
+    assert _post(env, f"{agent_task.id}/approve").status_code == 404

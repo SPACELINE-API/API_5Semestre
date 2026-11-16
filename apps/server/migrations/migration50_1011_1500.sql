@@ -1,10 +1,8 @@
--- TAREFAS PASSAM A TER EXATAMENTE UM FUNCIONARIO INTERNO RESPONSAVEL.
--- AS TAREFAS ANTIGAS ERAM ATRIBUIDAS A TRADUTORES E NAO TEM RESPONSAVEL INTERNO; SAO REMOVIDAS.
-DELETE FROM task_proposals;
-DELETE FROM tasks;
-DROP TABLE task_translators;
+-- TAREFAS CRIADAS PELA API TEM EXATAMENTE UM FUNCIONARIO INTERNO RESPONSAVEL.
+-- AS TAREFAS EXISTENTES, A TABELA task_translators E O FLUXO DO AGENTE DE IA SAO MANTIDOS:
+-- AS TAREFAS DO AGENTE CONTINUAM ATRIBUIDAS A TRADUTORES E FICAM SEM RESPONSAVEL INTERNO.
 
--- NOVOS STATUS DO FLUXO DE EXECUCAO E AVALIACAO
+-- NOVOS STATUS DO FLUXO DE EXECUCAO E AVALIACAO (AS TAREFAS EXISTENTES CONTINUAM PENDENTES)
 ALTER TABLE tasks ALTER COLUMN status DROP DEFAULT;
 ALTER TYPE task_status RENAME TO task_status_old;
 CREATE TYPE task_status AS ENUM ('pending', 'in_progress', 'in_review', 'completed', 'rejected');
@@ -13,7 +11,7 @@ ALTER TABLE tasks ALTER COLUMN status SET DEFAULT 'pending';
 DROP TYPE task_status_old;
 
 ALTER TABLE tasks
-    ADD COLUMN assignee_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    ADD COLUMN assignee_id UUID REFERENCES users(id) ON DELETE RESTRICT,
     ADD COLUMN execution_description TEXT,
     ADD COLUMN rejection_reason TEXT,
     ADD COLUMN reviewed_by_id UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -53,18 +51,19 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('task-attachments', 'task-attachments', FALSE)
 ON CONFLICT (id) DO NOTHING;
 
--- PERMISSOES DE CRIACAO (ENDPOINT E AGENTE) E DE AVALIACAO DAS TAREFAS
+-- AVALIACAO DAS TAREFAS. A CRIACAO USA A MESMA PERMISSAO DO AGENTE (assignments.write)
 INSERT INTO permissions (id, code, description)
-VALUES
-    (gen_random_uuid(), 'tasks.write', 'Criar tarefas para funcionários internos'),
-    (gen_random_uuid(), 'tasks.review', 'Consultar, aprovar e reprovar tarefas dos funcionários')
+VALUES (
+    gen_random_uuid(),
+    'tasks.review',
+    'Consultar, aprovar e reprovar tarefas dos funcionários'
+)
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT roles.id, permissions.id
 FROM roles
 CROSS JOIN permissions
-WHERE (permissions.code IN ('tasks.write', 'tasks.review')
-       AND lower(roles.name) IN ('administrador', 'admin'))
-   OR (permissions.code = 'tasks.write' AND lower(roles.name) = 'projetos')
+WHERE permissions.code = 'tasks.review'
+  AND lower(roles.name) IN ('administrador', 'admin')
 ON CONFLICT DO NOTHING;

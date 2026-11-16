@@ -17,11 +17,13 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.modules.tasks.models.task_translator import task_translators
 from app.shared.database import Base
 
 if TYPE_CHECKING:
     from app.modules.auth.models.user import User
     from app.modules.tasks.models.task_attachment import TaskAttachment
+    from app.modules.translators.models.translator import Translator
 
 
 class TaskStatus(StrEnum):
@@ -54,9 +56,10 @@ class Task(Base):
     requester_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
-    # FUNCIONARIO INTERNO RESPONSAVEL PELA EXECUCAO; CADA TAREFA TEM EXATAMENTE UM
-    assignee_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
+    # FUNCIONARIO INTERNO RESPONSAVEL; A TAREFA CRIADA PELA API TEM EXATAMENTE UM.
+    # AS TAREFAS DO AGENTE DE IA AINDA SAO ATRIBUIDAS A TRADUTORES E FICAM SEM RESPONSAVEL
+    assignee_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=True
     )
     idempotency_key: Mapped[str] = mapped_column(String(255), nullable=False)
     execution_description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -73,11 +76,18 @@ class Task(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
+    translators: Mapped[list["Translator"]] = relationship(
+        secondary=task_translators, lazy="selectin"
+    )
     requester: Mapped["User"] = relationship(foreign_keys=[requester_id], lazy="joined")
-    assignee: Mapped["User"] = relationship(foreign_keys=[assignee_id], lazy="joined")
+    assignee: Mapped["User | None"] = relationship(foreign_keys=[assignee_id], lazy="joined")
     attachments: Mapped[list["TaskAttachment"]] = relationship(
         back_populates="task",
         cascade="all, delete-orphan",
         order_by="TaskAttachment.created_at",
         lazy="selectin",
     )
+
+    @property
+    def translator_ids(self) -> list[uuid.UUID]:
+        return [translator.id for translator in self.translators]

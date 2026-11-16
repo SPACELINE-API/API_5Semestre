@@ -9,8 +9,8 @@ from app.modules.auth.models.user import User
 from app.modules.internal_users.services.identity_rules import TRANSLATOR_LEGACY_ROLE
 from app.modules.tasks.models.task import Task, TaskStatus
 
-# PERMISSOES COMPARTILHADAS PELO ENDPOINT E PELO AGENTE DE IA
-TASKS_WRITE_PERMISSION = "tasks.write"
+# CRIAR TAREFAS EXIGE A MESMA PERMISSAO DA FERRAMENTA criar_tarefa DO AGENTE DE IA
+TASKS_CREATE_PERMISSION = "assignments.write"
 TASKS_REVIEW_PERMISSION = "tasks.review"
 
 ACTION_CREATED = "created"

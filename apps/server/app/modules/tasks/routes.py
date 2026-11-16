@@ -13,7 +13,6 @@ from app.modules.tasks.dependencies import (
 )
 from app.modules.tasks.models.task import TaskStatus
 from app.modules.tasks.schemas.task import (
-    TaskCreate,
     TaskCreateRequest,
     TaskExecutionUpdate,
     TaskFileResponse,
@@ -42,13 +41,7 @@ def _can_review(user: User) -> bool:
 
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 def create_task(data: TaskCreateRequest, db: DbSession, requester: TaskWriter):
-    payload = TaskCreate(
-        description=data.description,
-        due_date=data.due_date,
-        assignee_id=data.assignee_id,
-        idempotency_key=data.idempotency_key or str(uuid.uuid4()),
-    )
-    return TaskService(db).create(payload, requester=requester)
+    return TaskService(db).create_for_assignee(data, requester=requester)
 
 
 @router.get("", response_model=list[TaskResponse])

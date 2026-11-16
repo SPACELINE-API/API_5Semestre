@@ -1,19 +1,19 @@
 import hashlib
 import json
 import secrets
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.modules.auth.models.user import User
 from app.modules.tasks.models.task import Task, TaskStatus
 from app.modules.tasks.models.task_execution_audit import TaskExecutionAudit
 from app.modules.tasks.models.task_history import TaskHistory
 from app.modules.tasks.models.task_proposal import TaskProposal, TaskProposalStatus
-from app.modules.tasks.schemas.task import TaskCreate
+from app.modules.tasks.schemas.task import TaskCreate, TaskCreateRequest
 from app.modules.tasks.services.task_rules import ACTION_CREATED, load_assignee
+from app.modules.translators.models.translator import Translator
 from app.shared.google_adk.tool_catalog.contract import Usuario
 
 INVALID_ASSIGNEE = "O responsável deve ser um funcionário interno ativo"
@@ -24,13 +24,24 @@ class TaskService:
         self.db = db
 
     def create(self, data: TaskCreate, *, requester: Usuario) -> Task:
-        existing = self._find_existing(data, requester)
+        existing = (
+            self.db.query(Task)
+            .filter(
+                Task.requester_id == requester.id,
+                Task.idempotency_key == data.idempotency_key,
+            )
+            .first()
+        )
         if existing:
             self._record_existing_attempt(existing, data, requester)
             return existing
 
-        assignee = load_assignee(self.db, data.assignee_id)
-        if assignee is None:
+        translators = (
+            self.db.query(Translator)
+            .filter(Translator.id.in_(data.translator_ids), Translator.is_active.is_(True))
+            .all()
+        )
+        if len(translators) != len(data.translator_ids):
             self._record_audit(
                 task_id=None,
                 data=data,
@@ -39,18 +50,41 @@ class TaskService:
                 details=self._details(data),
                 commit=True,
             )
-            raise HTTPException(status_code=422, detail=INVALID_ASSIGNEE)
+            raise HTTPException(
+                status_code=422, detail="One or more translators are missing or inactive"
+            )
 
-        task = self._new_task(data, requester, assignee)
+        task = Task(
+            description=data.description,
+            due_date=data.due_date,
+            status=TaskStatus.PENDING,
+            requester_id=requester.id,
+            idempotency_key=data.idempotency_key,
+            translators=translators,
+        )
+        self.db.add(task)
         try:
             self.db.flush()
-            self._record_creation(task, data, requester)
+            self._record_audit(
+                task_id=task.id,
+                data=data,
+                requester=requester,
+                result="created",
+                details=self._details(data),
+            )
             self.db.commit()
             self.db.refresh(task)
             return task
         except IntegrityError:
             self.db.rollback()
-            existing = self._find_existing(data, requester)
+            existing = (
+                self.db.query(Task)
+                .filter(
+                    Task.requester_id == requester.id,
+                    Task.idempotency_key == data.idempotency_key,
+                )
+                .first()
+            )
             if existing:
                 self._record_existing_attempt(existing, data, requester)
                 return existing
@@ -95,25 +129,40 @@ class TaskService:
         ):
             raise HTTPException(status_code=409, detail="Task proposal is invalid or already used")
 
-        assignee = load_assignee(self.db, data.assignee_id)
-        if assignee is None:
+        task_data = data
+        translators = (
+            self.db.query(Translator)
+            .filter(Translator.id.in_(task_data.translator_ids), Translator.is_active.is_(True))
+            .with_for_update()
+            .all()
+        )
+        if len(translators) != len(task_data.translator_ids):
             self._record_audit(
                 task_id=None,
-                data=data,
+                data=task_data,
                 requester=requester,
                 result="validation_failed",
-                details=self._details(data),
+                details=self._details(task_data),
             )
             self.db.commit()
-            raise HTTPException(status_code=422, detail=INVALID_ASSIGNEE)
+            raise HTTPException(
+                status_code=422, detail="One or more translators are missing or inactive"
+            )
 
-        existing = self._find_existing(data, requester)
+        existing = (
+            self.db.query(Task)
+            .filter(
+                Task.requester_id == requester.id,
+                Task.idempotency_key == task_data.idempotency_key,
+            )
+            .first()
+        )
         if existing:
             proposal.status = TaskProposalStatus.CONSUMED
             proposal.task_id = existing.id
             self._record_audit(
                 task_id=existing.id,
-                data=data,
+                data=task_data,
                 requester=requester,
                 result="idempotent_replay",
                 details={"proposal_id": str(proposal.id)},
@@ -122,14 +171,28 @@ class TaskService:
             self.db.refresh(existing)
             return existing
 
-        task = self._new_task(data, requester, assignee)
+        task = Task(
+            description=task_data.description,
+            due_date=task_data.due_date,
+            status=TaskStatus.PENDING,
+            requester_id=requester.id,
+            idempotency_key=task_data.idempotency_key,
+            translators=translators,
+        )
+        self.db.add(task)
         self.db.flush()
-        self._record_creation(task, data, requester)
+        self._record_audit(
+            task_id=task.id,
+            data=task_data,
+            requester=requester,
+            result="created",
+            details=self._details(task_data),
+        )
         proposal.status = TaskProposalStatus.CONSUMED
         proposal.task_id = task.id
         self._record_audit(
             task_id=task.id,
-            data=data,
+            data=task_data,
             requester=requester,
             result="proposal_consumed",
             details={"proposal_id": str(proposal.id), "payload_hash": proposal.payload_hash},
@@ -138,36 +201,40 @@ class TaskService:
         self.db.refresh(task)
         return task
 
-    def _find_existing(self, data: TaskCreate, requester: Usuario) -> Task | None:
-        return (
-            self.db.query(Task)
-            .filter(
-                Task.requester_id == requester.id,
-                Task.idempotency_key == data.idempotency_key,
-            )
-            .first()
-        )
+    # CRIACAO PARA EXATAMENTE UM FUNCIONARIO INTERNO (ENDPOINT). REAPROVEITA A TABELA, A
+    # AUDITORIA E A IDEMPOTENCIA DO FLUXO DO AGENTE, QUE CONTINUA ATRIBUINDO A TRADUTORES
+    def create_for_assignee(self, data: TaskCreateRequest, *, requester: Usuario) -> Task:
+        key = data.idempotency_key or str(uuid4())
+        details = self._assignee_details(data)
 
-    def _new_task(self, data: TaskCreate, requester: Usuario, assignee: User) -> Task:
+        existing = self._find_by_key(requester, key)
+        if existing is not None:
+            return self._replay_assignee_request(existing, data, requester, key)
+
+        if load_assignee(self.db, data.assignee_id) is None:
+            self._add_audit(None, requester, key, "validation_failed", details)
+            self.db.commit()
+            raise HTTPException(status_code=422, detail=INVALID_ASSIGNEE)
+
         task = Task(
             description=data.description,
             due_date=data.due_date,
             status=TaskStatus.PENDING,
             requester_id=requester.id,
-            assignee_id=assignee.id,
-            idempotency_key=data.idempotency_key,
+            assignee_id=data.assignee_id,
+            idempotency_key=key,
         )
         self.db.add(task)
-        return task
+        try:
+            self.db.flush()
+        except IntegrityError:
+            self.db.rollback()
+            existing = self._find_by_key(requester, key)
+            if existing is None:
+                raise
+            return self._replay_assignee_request(existing, data, requester, key)
 
-    def _record_creation(self, task: Task, data: TaskCreate, requester: Usuario) -> None:
-        self._record_audit(
-            task_id=task.id,
-            data=data,
-            requester=requester,
-            result="created",
-            details=self._details(data),
-        )
+        self._add_audit(task.id, requester, key, "created", details)
         self.db.add(
             TaskHistory(
                 task_id=task.id,
@@ -175,16 +242,19 @@ class TaskService:
                 action=ACTION_CREATED,
                 from_status=None,
                 to_status=TaskStatus.PENDING.value,
-                details=self._details(data),
+                details=details,
             )
         )
+        self.db.commit()
+        self.db.refresh(task)
+        return task
 
     @staticmethod
     def _payload_hash(data: TaskCreate) -> str:
         payload = {
             "description": data.description.strip(),
             "due_date": data.due_date.isoformat() if data.due_date else None,
-            "assignee_id": str(data.assignee_id),
+            "translator_ids": sorted(str(translator_id) for translator_id in data.translator_ids),
         }
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical.encode()).hexdigest()
@@ -213,10 +283,11 @@ class TaskService:
     def _record_existing_attempt(
         self, existing: Task, data: TaskCreate, requester: Usuario
     ) -> None:
+        existing_translator_ids = {translator.id for translator in existing.translators}
         if (
             existing.description != data.description
             or existing.due_date != data.due_date
-            or existing.assignee_id != data.assignee_id
+            or existing_translator_ids != set(data.translator_ids)
         ):
             self._record_audit(
                 task_id=existing.id,
@@ -262,6 +333,58 @@ class TaskService:
 
     @staticmethod
     def _details(data: TaskCreate) -> dict[str, object]:
+        return {
+            "description": data.description,
+            "due_date": data.due_date.isoformat() if data.due_date else None,
+            "translator_ids": [str(translator_id) for translator_id in data.translator_ids],
+        }
+
+    def _find_by_key(self, requester: Usuario, key: str) -> Task | None:
+        return (
+            self.db.query(Task)
+            .filter(Task.requester_id == requester.id, Task.idempotency_key == key)
+            .first()
+        )
+
+    # A MESMA CHAVE COM OS MESMOS DADOS DEVOLVE A TAREFA JA CRIADA; COM OUTROS DADOS, E RECUSADA
+    def _replay_assignee_request(
+        self, existing: Task, data: TaskCreateRequest, requester: Usuario, key: str
+    ) -> Task:
+        details = self._assignee_details(data)
+        if (
+            existing.description != data.description
+            or existing.due_date != data.due_date
+            or existing.assignee_id != data.assignee_id
+        ):
+            self._add_audit(existing.id, requester, key, "idempotency_conflict", details)
+            self.db.commit()
+            raise HTTPException(
+                status_code=409, detail="Idempotency key already used with other data"
+            )
+        self._add_audit(existing.id, requester, key, "idempotent_replay", details)
+        self.db.commit()
+        return existing
+
+    def _add_audit(
+        self,
+        task_id: UUID | None,
+        requester: Usuario,
+        key: str,
+        result: str,
+        details: dict[str, object],
+    ) -> None:
+        self.db.add(
+            TaskExecutionAudit(
+                task_id=task_id,
+                requester_id=requester.id,
+                idempotency_key=key,
+                result=result,
+                details=details,
+            )
+        )
+
+    @staticmethod
+    def _assignee_details(data: TaskCreateRequest) -> dict[str, object]:
         return {
             "description": data.description,
             "due_date": data.due_date.isoformat() if data.due_date else None,
