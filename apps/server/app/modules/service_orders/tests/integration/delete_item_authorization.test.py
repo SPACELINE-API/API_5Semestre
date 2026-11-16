@@ -32,7 +32,9 @@ def _create_item(db: Session) -> tuple[ServiceOrder, ServiceOrderItem]:
     )
     db.add(company)
     db.flush()
-    quote = Quote(company_id=company.id, status="approved", customer_name="Maria Teste", email=company.email)
+    quote = Quote(
+        company_id=company.id, status="approved", customer_name="Maria Teste", email=company.email
+    )
     db.add(quote)
     db.flush()
     order = ServiceOrder(quote_id=quote.id, company_id=company.id, project_name="Projeto de teste")
