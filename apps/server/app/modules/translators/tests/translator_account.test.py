@@ -340,13 +340,16 @@ def test_relevant_operations_are_audited(env: AccountEnv) -> None:
 
     actions = env.audit_actions()
 
-    assert actions == [
-        "translator_account_created",
-        "translator_role_added",
-        "password_setup_link_sent",
-        "password_setup_link_resent",
-        "password_defined",
-    ]
+    # NO TESTE TUDO RODA EM UMA TRANSACAO: O now() DO BANCO EMPATA E A ORDEM NAO E GARANTIDA
+    assert sorted(actions) == sorted(
+        [
+            "translator_account_created",
+            "translator_role_added",
+            "password_setup_link_sent",
+            "password_setup_link_resent",
+            "password_defined",
+        ]
+    )
     created = env.db.query(AuthorizationAuditLog).filter_by(action="translator_account_created")
     assert created.one().actor_user_id == env.admin.id
 
