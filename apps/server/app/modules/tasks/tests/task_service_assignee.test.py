@@ -10,7 +10,7 @@ from app.modules.tasks.models.task import Task, TaskStatus
 from app.modules.tasks.models.task_execution_audit import TaskExecutionAudit
 from app.modules.tasks.models.task_history import TaskHistory
 from app.modules.tasks.schemas.task import TaskCreateRequest
-from app.modules.tasks.services.task_assignment_service import TaskAssignmentService
+from app.modules.tasks.services.task_service import TaskService
 
 
 def add_user(db, *, role: str = "admin", is_active: bool = True) -> User:
@@ -60,7 +60,7 @@ def test_create_persists_assignee_requester_status_audit_and_history(
     employee = add_employee(db)
     db.flush()
 
-    created = TaskAssignmentService(db).create(
+    created = TaskService(db).create_for_assignee(
         request(employee.id, due_date=date(2026, 12, 1), idempotency_key="req-1"),
         requester=requester,
     )
@@ -83,10 +83,10 @@ def test_create_without_key_always_creates_a_new_task(isolated_db_session) -> No
     requester = add_user(db)
     employee = add_employee(db)
     db.flush()
-    service = TaskAssignmentService(db)
+    service = TaskService(db)
 
-    first = service.create(request(employee.id), requester=requester)
-    second = service.create(request(employee.id), requester=requester)
+    first = service.create_for_assignee(request(employee.id), requester=requester)
+    second = service.create_for_assignee(request(employee.id), requester=requester)
 
     assert first.id != second.id
     assert first.idempotency_key != second.idempotency_key
@@ -104,7 +104,7 @@ def test_create_rejects_assignee_that_is_not_an_active_employee(isolated_db_sess
     db.flush()
 
     with pytest.raises(HTTPException) as exc_info:
-        TaskAssignmentService(db).create(request(assignee_id), requester=requester)
+        TaskService(db).create_for_assignee(request(assignee_id), requester=requester)
 
     assert exc_info.value.status_code == 422
     assert db.query(Task).count() == 0
@@ -116,11 +116,11 @@ def test_same_key_and_data_returns_the_existing_task(isolated_db_session) -> Non
     requester = add_user(db)
     employee = add_employee(db)
     db.flush()
-    service = TaskAssignmentService(db)
+    service = TaskService(db)
     payload = request(employee.id, idempotency_key="same-request")
 
-    first = service.create(payload, requester=requester)
-    repeated = service.create(payload, requester=requester)
+    first = service.create_for_assignee(payload, requester=requester)
+    repeated = service.create_for_assignee(payload, requester=requester)
 
     assert repeated.id == first.id
     assert db.query(Task).count() == 1
@@ -136,11 +136,15 @@ def test_same_key_with_other_assignee_is_rejected(isolated_db_session) -> None:
     employee = add_employee(db)
     other = add_employee(db)
     db.flush()
-    service = TaskAssignmentService(db)
-    service.create(request(employee.id, idempotency_key="conflict"), requester=requester)
+    service = TaskService(db)
+    service.create_for_assignee(
+        request(employee.id, idempotency_key="conflict"), requester=requester
+    )
 
     with pytest.raises(HTTPException) as exc_info:
-        service.create(request(other.id, idempotency_key="conflict"), requester=requester)
+        service.create_for_assignee(
+            request(other.id, idempotency_key="conflict"), requester=requester
+        )
 
     assert exc_info.value.status_code == 409
     assert db.query(Task).count() == 1

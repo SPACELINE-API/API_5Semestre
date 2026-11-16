@@ -39,7 +39,7 @@ def test_create_task_registers_requester_assignee_and_pending_status(env: TasksE
     assert task["attachments"] == []
 
 
-def test_create_task_requires_tasks_write_permission(env: TasksEnv) -> None:
+def test_create_task_requires_the_agent_task_permission(env: TasksEnv) -> None:
     employee = env.user()
     env.act_as(env.user())
 
@@ -50,9 +50,9 @@ def test_create_task_requires_tasks_write_permission(env: TasksEnv) -> None:
     assert response.status_code == 403
 
 
-def test_user_with_tasks_write_can_create_but_not_review(env: TasksEnv) -> None:
+def test_user_with_assignments_write_can_create_but_not_review(env: TasksEnv) -> None:
     employee = env.user()
-    manager = env.user(permissions=("tasks.write",))
+    manager = env.user(permissions=("assignments.write",))
     env.act_as(manager)
 
     created = env.client.post(
