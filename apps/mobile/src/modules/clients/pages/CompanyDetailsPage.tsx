@@ -45,6 +45,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	const { contacts, refreshContacts } = useContactsByCompany(company?.id);
 	const { toast, showToast } = useToast();
 	const canWriteClients = usePermission('clients.write');
+	const canReadContacts = usePermission('contacts.read');
 	const canWriteContacts = usePermission('contacts.write');
 
 	async function handleDelete() {
@@ -172,7 +173,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 					<View>
 						<CompanyDetailsHeader
 							company={company}
-							contactCount={contacts.length}
+							contactCount={canReadContacts ? contacts.length : null}
 							onEdit={() => setIsEditVisible(true)}
 							onDelete={() => setIsDeleteConfirmVisible(true)}
 						/>

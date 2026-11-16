@@ -69,6 +69,7 @@ export function NewQuoteModal({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState('');
 	const canWriteDocuments = usePermission('documents.write');
+	const canWriteQuotes = usePermission('quotes.write');
 	const [bannerMessage, setBannerMessage] = useState<string | null>(null);
 
 	const handleAddItem = () => {
@@ -86,6 +87,7 @@ export function NewQuoteModal({
 	};
 
 	const handlePickFile = async (itemId: string) => {
+		if (!canWriteDocuments) return;
 		const file = await pickDocument();
 		if (!file) return;
 
@@ -114,6 +116,7 @@ export function NewQuoteModal({
 	};
 
 	const handleSubmitQuote = async () => {
+		if (!canWriteQuotes) return;
 		setSubmitError('');
 		const validItems = items.filter((item) => item.source && item.target);
 		if (!validItems.length) {
@@ -379,10 +382,15 @@ export function NewQuoteModal({
 							</TouchableOpacity>
 							<TouchableOpacity
 								accessibilityRole="button"
-								disabled={isSubmitting}
+								disabled={isSubmitting || !canWriteQuotes}
+								accessibilityState={{
+									disabled: isSubmitting || !canWriteQuotes,
+								}}
 								onPress={() => void handleSubmitQuote()}
 								className={`${isDesktop ? 'rounded-lg px-5 py-2.5' : 'w-full min-h-[44px] items-center justify-center rounded-lg px-5 py-2.5'} ${
-									isSubmitting ? 'bg-gray-300 opacity-60' : 'bg-blue-600'
+									isSubmitting || !canWriteQuotes
+										? 'bg-gray-300 opacity-60'
+										: 'bg-blue-600'
 								}`}
 							>
 								<Text className="font-inter font-semibold text-white text-sm">

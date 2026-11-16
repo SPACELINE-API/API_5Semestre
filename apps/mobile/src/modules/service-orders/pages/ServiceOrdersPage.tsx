@@ -130,6 +130,7 @@ export function ServiceOrdersPage() {
 	}
 
 	async function handleBulkDelete() {
+		if (!canWriteServiceOrders || selectedServiceOrders.length === 0) return;
 		setIsBulkDeleting(true);
 
 		try {

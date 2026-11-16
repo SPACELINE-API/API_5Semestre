@@ -295,7 +295,7 @@ export function SideBar({
 											label="Propostas"
 											isOpen={showExpanded}
 											active={isProposalsActive}
-											disabled={!can('proposals.read')}
+											disabled={!permissions.includes('proposals.read')}
 											onPress={() => navigate('/propostas')}
 										/>
 										<NavItem
@@ -356,8 +356,18 @@ export function SideBar({
 							label="Configurações"
 							isOpen={showExpanded}
 							active={pathname.startsWith('/configuracoes')}
-							disabled={!can('roles.read')}
-							onPress={() => navigate('/configuracoes/permissoes')}
+							disabled={
+								!can('roles.read') &&
+								!can('settings.read') &&
+								!can('settings.write')
+							}
+							onPress={() =>
+								navigate(
+									can('roles.read')
+										? '/configuracoes/permissoes'
+										: '/configuracoes/sessao',
+								)
+							}
 						/>
 					)}
 					<TouchableOpacity

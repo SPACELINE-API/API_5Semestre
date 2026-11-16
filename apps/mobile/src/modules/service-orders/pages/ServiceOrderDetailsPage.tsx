@@ -67,6 +67,8 @@ export function ServiceOrderDetailsPage({
 	const { toast, showToast } = useToast();
 	const canWriteServiceOrders = usePermission('service_orders.write');
 	const canWriteAssignments = usePermission('assignments.write');
+	const canManageAssignments = usePermission('assignments.manage');
+	const canReadContacts = usePermission('contacts.read');
 	const canWriteDocuments = usePermission('documents.write');
 
 	const [view, setView] = useState<ServiceOrderView>('detalhes');
@@ -98,10 +100,12 @@ export function ServiceOrderDetailsPage({
 
 	const companyContacts = useMemo(
 		() =>
-			contacts.filter(
-				(contact) => contact.company_id === serviceOrder?.company_id,
-			),
-		[contacts, serviceOrder],
+			canReadContacts
+				? contacts.filter(
+						(contact) => contact.company_id === serviceOrder?.company_id,
+					)
+				: [],
+		[canReadContacts, contacts, serviceOrder],
 	);
 
 	const translatorsById = useMemo(
@@ -255,12 +259,17 @@ export function ServiceOrderDetailsPage({
 										/>
 									)}
 
-									{detailTab === 'cliente' && (
-										<ClientInfoTab
-											company={company ?? null}
-											contacts={companyContacts}
-										/>
-									)}
+									{detailTab === 'cliente' &&
+										(canReadContacts ? (
+											<ClientInfoTab
+												company={company ?? null}
+												contacts={companyContacts}
+											/>
+										) : (
+											<Text className="font-inter text-gray-500 text-sm">
+												Sem permissão para consultar contatos.
+											</Text>
+										))}
 
 									{detailTab === 'geral' && (
 										<GeneralInfoTab
@@ -439,11 +448,13 @@ export function ServiceOrderDetailsPage({
 				visible={inviteTargetItem !== null}
 				translators={translators}
 				pendingTranslatorIds={
-					new Set(
-						inviteTargetItemInvites
-							.filter((invite) => invite.status === 'pendente')
-							.map((invite) => invite.translator_id),
-					)
+					canManageAssignments
+						? new Set(
+								inviteTargetItemInvites
+									.filter((invite) => invite.status === 'pendente')
+									.map((invite) => invite.translator_id),
+							)
+						: new Set()
 				}
 				onClose={() => setInviteTargetItem(null)}
 				onSubmit={async (translatorIds) => {

@@ -109,6 +109,7 @@ export default function GenerateQuoteFromRequestPage() {
 		: rawRequestId;
 	const router = useRouter();
 	const canWriteRequests = usePermission('requests.write');
+	const canWriteQuotes = usePermission('quotes.write');
 	const [request, setRequest] = useState<RequestItem | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [loadError, setLoadError] = useState('');
@@ -153,11 +154,15 @@ export default function GenerateQuoteFromRequestPage() {
 	);
 	const isApproved = request?.status === 'approved';
 	const canGenerate = Boolean(
-		request && isApproved && !request.quote_id && missingFields.length === 0,
+		canWriteQuotes &&
+		request &&
+		isApproved &&
+		!request.quote_id &&
+		missingFields.length === 0,
 	);
 
 	async function handleGenerateQuote() {
-		if (!request || !canGenerate || generating) return;
+		if (!request || !canGenerate || generating || !canWriteQuotes) return;
 		setGenerationError('');
 		setGenerating(true);
 		const result = await generateQuoteFromRequest(request.id);
