@@ -32,13 +32,18 @@ logger = logging.getLogger(__name__)
 TASK_NOT_FOUND = "Tarefa não encontrada"
 
 
+# SO AS TAREFAS DE FUNCIONARIOS INTERNOS ENTRAM NESTE FLUXO; AS DO AGENTE (TRADUTORES) NAO
+def _internal_tasks():
+    return select(Task).where(Task.assignee_id.is_not(None))
+
+
 # EXECUCAO PELO FUNCIONARIO E AVALIACAO PELOS USUARIOS ADMINISTRATIVOS
 class TaskWorkflowService:
     def __init__(self, db: Session):
         self.db = db
 
     def list_for_assignee(self, user: User, task_status: TaskStatus | None = None) -> list[Task]:
-        statement = select(Task).where(Task.assignee_id == user.id)
+        statement = _internal_tasks().where(Task.assignee_id == user.id)
         if task_status is not None:
             statement = statement.where(Task.status == task_status)
         return list(self.db.scalars(statement.order_by(Task.created_at.desc())).unique().all())
@@ -49,7 +54,7 @@ class TaskWorkflowService:
         task_status: TaskStatus | None = None,
         assignee_id: uuid.UUID | None = None,
     ) -> list[Task]:
-        statement = select(Task)
+        statement = _internal_tasks()
         if task_status is not None:
             statement = statement.where(Task.status == task_status)
         if assignee_id is not None:
@@ -214,7 +219,7 @@ class TaskWorkflowService:
         return task
 
     def _get_or_404(self, task_id: uuid.UUID, *, for_update: bool = False) -> Task:
-        statement = select(Task).where(Task.id == task_id)
+        statement = _internal_tasks().where(Task.id == task_id)
         if for_update:
             statement = statement.with_for_update(of=Task)
         task = self.db.scalars(statement).unique().first()

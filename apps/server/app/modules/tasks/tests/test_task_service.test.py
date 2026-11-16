@@ -8,51 +8,60 @@ from pydantic import ValidationError
 from app.modules.auth.models.user import User
 from app.modules.tasks.models.task import Task, TaskStatus
 from app.modules.tasks.models.task_execution_audit import TaskExecutionAudit
-from app.modules.tasks.models.task_history import TaskHistory
 from app.modules.tasks.models.task_proposal import TaskProposalStatus
 from app.modules.tasks.schemas.task import TaskCreate
 from app.modules.tasks.services.task_service import TaskService
+from app.modules.translators.models.translator import Translator
 
 
-def add_user(db, *, role: str = "admin", is_active: bool = True) -> User:
+def add_user(db) -> User:
     user = User(
         id=uuid.uuid4(),
-        email=f"{role}-{uuid.uuid4()}@example.com",
+        email=f"requester-{uuid.uuid4()}@example.com",
         password_hash="hash",
-        role=role,
-        is_active=is_active,
+        role="admin",
     )
     db.add(user)
     return user
 
 
-def add_employee(db, *, is_active: bool = True) -> User:
-    return add_user(db, role="interno", is_active=is_active)
+def add_translator(db, *, is_active: bool = True) -> Translator:
+    translator = Translator(
+        id=uuid.uuid4(),
+        name="Tradutor teste",
+        email=f"translator-{uuid.uuid4()}@example.com",
+        phone="11999990000",
+        is_active=is_active,
+    )
+    db.add(translator)
+    return translator
 
 
-def test_task_create_requires_description_and_assignee() -> None:
+def test_task_create_requires_description_and_translators() -> None:
     with pytest.raises(ValidationError):
-        TaskCreate(description="", idempotency_key="key")  # type: ignore[call-arg]
+        TaskCreate(description="", translator_ids=[])
 
 
-def test_task_create_accepts_a_single_assignee_only() -> None:
+def test_task_create_rejects_duplicate_translators() -> None:
+    translator_id = uuid.uuid4()
     with pytest.raises(ValidationError):
         TaskCreate(
             description="Revisar",
-            assignee_id=[uuid.uuid4(), uuid.uuid4()],  # type: ignore[arg-type]
-            idempotency_key="many-assignees",
+            translator_ids=[translator_id, translator_id],
+            idempotency_key="duplicate-translator",
         )
 
 
-def test_create_task_persists_assignee_requester_status_and_audit(isolated_db_session) -> None:
+def test_create_task_persists_assignees_requester_status_and_audit(isolated_db_session) -> None:
     db = isolated_db_session
     user = add_user(db)
-    employee = add_employee(db)
+    translator_a = add_translator(db)
+    translator_b = add_translator(db)
     db.flush()
     payload = TaskCreate(
-        description="Organizar contratos",
+        description="Traduzir contrato",
         due_date=date(2026, 12, 1),
-        assignee_id=employee.id,
+        translator_ids=[translator_a.id, translator_b.id],
         idempotency_key="task-request-1",
     )
 
@@ -60,28 +69,27 @@ def test_create_task_persists_assignee_requester_status_and_audit(isolated_db_se
 
     assert created.status == TaskStatus.PENDING
     assert created.requester_id == user.id
-    assert created.assignee_id == employee.id
     assert created.due_date == date(2026, 12, 1)
+    assert {translator.id for translator in created.translators} == {
+        translator_a.id,
+        translator_b.id,
+    }
     audit = db.query(TaskExecutionAudit).filter_by(task_id=created.id).one()
     assert audit.requester_id == user.id
     assert audit.idempotency_key == "task-request-1"
     assert audit.result == "created"
-    history = db.query(TaskHistory).filter_by(task_id=created.id).one()
-    assert history.action == "created"
-    assert history.actor_id == user.id
-    assert history.to_status == TaskStatus.PENDING.value
 
 
 def test_create_task_allows_missing_deadline(isolated_db_session) -> None:
     db = isolated_db_session
     user = add_user(db)
-    employee = add_employee(db)
+    translator = add_translator(db)
     db.flush()
 
     created = TaskService(db).create(
         TaskCreate(
-            description="Revisar planilha",
-            assignee_id=employee.id,
+            description="Revisar tradução",
+            translator_ids=[translator.id],
             idempotency_key="no-deadline",
         ),
         requester=user,
@@ -90,24 +98,21 @@ def test_create_task_allows_missing_deadline(isolated_db_session) -> None:
     assert created.due_date is None
 
 
-@pytest.mark.parametrize("case", ["inactive", "translator", "missing"])
-def test_create_task_rejects_assignee_that_is_not_an_active_employee(
-    isolated_db_session, case
-) -> None:
+@pytest.mark.parametrize("active", [False, None])
+def test_create_task_rejects_inactive_or_missing_translator(isolated_db_session, active) -> None:
     db = isolated_db_session
     user = add_user(db)
-    assignee_id = uuid.uuid4()
-    if case == "inactive":
-        assignee_id = add_employee(db, is_active=False).id
-    elif case == "translator":
-        assignee_id = add_user(db, role="tradutor").id
+    translator_id = uuid.uuid4()
+    if active is not None:
+        translator = add_translator(db, is_active=active)
+        translator_id = translator.id
     db.flush()
 
     with pytest.raises(HTTPException) as exc_info:
         TaskService(db).create(
             TaskCreate(
-                description="Organizar arquivos",
-                assignee_id=assignee_id,
+                description="Traduzir documento",
+                translator_ids=[translator_id],
                 idempotency_key="invalid-assignee",
             ),
             requester=user,
@@ -120,12 +125,12 @@ def test_create_task_rejects_assignee_that_is_not_an_active_employee(
 def test_create_task_is_idempotent_per_requester_and_key(isolated_db_session) -> None:
     db = isolated_db_session
     user = add_user(db)
-    employee = add_employee(db)
+    translator = add_translator(db)
     db.flush()
     service = TaskService(db)
     first_payload = TaskCreate(
-        description="Organizar contratos",
-        assignee_id=employee.id,
+        description="Traduzir documento",
+        translator_ids=[translator.id],
         idempotency_key="same-request",
     )
 
@@ -145,14 +150,14 @@ def test_idempotency_key_is_scoped_to_requester(isolated_db_session) -> None:
     db = isolated_db_session
     requester_a = add_user(db)
     requester_b = add_user(db)
-    employee = add_employee(db)
+    translator = add_translator(db)
     db.flush()
     service = TaskService(db)
 
     task_a = service.create(
         TaskCreate(
             description="Solicitação A",
-            assignee_id=employee.id,
+            translator_ids=[translator.id],
             idempotency_key="shared-key",
         ),
         requester=requester_a,
@@ -160,7 +165,7 @@ def test_idempotency_key_is_scoped_to_requester(isolated_db_session) -> None:
     task_b = service.create(
         TaskCreate(
             description="Solicitação B",
-            assignee_id=employee.id,
+            translator_ids=[translator.id],
             idempotency_key="shared-key",
         ),
         requester=requester_b,
@@ -169,17 +174,16 @@ def test_idempotency_key_is_scoped_to_requester(isolated_db_session) -> None:
     assert task_a.id != task_b.id
 
 
-def test_reusing_idempotency_key_with_different_assignee_is_rejected(isolated_db_session) -> None:
+def test_reusing_idempotency_key_with_different_payload_is_rejected(isolated_db_session) -> None:
     db = isolated_db_session
     user = add_user(db)
-    employee = add_employee(db)
-    other_employee = add_employee(db)
+    translator = add_translator(db)
     db.flush()
     service = TaskService(db)
     service.create(
         TaskCreate(
             description="Original",
-            assignee_id=employee.id,
+            translator_ids=[translator.id],
             idempotency_key="conflict-key",
         ),
         requester=user,
@@ -188,8 +192,8 @@ def test_reusing_idempotency_key_with_different_assignee_is_rejected(isolated_db
     with pytest.raises(HTTPException) as exc_info:
         service.create(
             TaskCreate(
-                description="Original",
-                assignee_id=other_employee.id,
+                description="Alterada",
+                translator_ids=[translator.id],
                 idempotency_key="conflict-key",
             ),
             requester=user,
@@ -199,18 +203,18 @@ def test_reusing_idempotency_key_with_different_assignee_is_rejected(isolated_db
     assert "idempotency_conflict" in {audit.result for audit in db.query(TaskExecutionAudit).all()}
 
 
-def test_invalid_assignee_attempt_is_audited(isolated_db_session) -> None:
+def test_invalid_translator_attempt_is_audited(isolated_db_session) -> None:
     db = isolated_db_session
     user = add_user(db)
-    inactive = add_employee(db, is_active=False)
+    inactive = add_translator(db, is_active=False)
     db.flush()
 
     with pytest.raises(HTTPException):
         TaskService(db).create(
             TaskCreate(
-                description="Organizar arquivos",
-                assignee_id=inactive.id,
-                idempotency_key="inactive-employee",
+                description="Traduzir documento",
+                translator_ids=[inactive.id],
+                idempotency_key="inactive-translator",
             ),
             requester=user,
         )
@@ -224,11 +228,11 @@ def test_invalid_assignee_attempt_is_audited(isolated_db_session) -> None:
 def test_propose_task_persists_unpredictable_token_and_payload_hash(isolated_db_session) -> None:
     db = isolated_db_session
     user = add_user(db)
-    employee = add_employee(db)
+    translator = add_translator(db)
     db.flush()
     data = TaskCreate(
         description="Proposta segura",
-        assignee_id=employee.id,
+        translator_ids=[translator.id],
         idempotency_key="proposal-key",
     )
 
@@ -245,12 +249,12 @@ def test_propose_task_persists_unpredictable_token_and_payload_hash(isolated_db_
 def test_confirm_task_proposal_creates_and_consumes_atomically(isolated_db_session) -> None:
     db = isolated_db_session
     user = add_user(db)
-    employee = add_employee(db)
+    translator = add_translator(db)
     db.flush()
     service = TaskService(db)
     data = TaskCreate(
         description="Proposta confirmada",
-        assignee_id=employee.id,
+        translator_ids=[translator.id],
         idempotency_key="proposal-confirm-key",
     )
     proposal, token = service.propose(data, requester=user)
@@ -259,20 +263,18 @@ def test_confirm_task_proposal_creates_and_consumes_atomically(isolated_db_sessi
 
     db.refresh(proposal)
     assert created.requester_id == user.id
-    assert created.assignee_id == employee.id
     assert proposal.status == TaskProposalStatus.CONSUMED
     assert proposal.task_id == created.id
-    assert db.query(TaskHistory).filter_by(task_id=created.id, action="created").count() == 1
 
 
 def test_confirming_duplicate_proposals_is_idempotent(isolated_db_session) -> None:
     db = isolated_db_session
     user = add_user(db)
-    employee = add_employee(db)
+    translator = add_translator(db)
     db.flush()
     data = TaskCreate(
         description="Solicitação repetida",
-        assignee_id=employee.id,
+        translator_ids=[translator.id],
         idempotency_key="same-payload-key",
     )
     service = TaskService(db)
@@ -292,16 +294,16 @@ def test_invalid_proposal_confirmation_never_creates_task(isolated_db_session, c
     db = isolated_db_session
     requester = add_user(db)
     other_requester = add_user(db)
-    employee = add_employee(db)
+    translator = add_translator(db)
     db.flush()
     service = TaskService(db)
     original = TaskCreate(
         description="Payload aprovado",
-        assignee_id=employee.id,
+        translator_ids=[translator.id],
         idempotency_key="approved-payload",
     )
     proposal, token = service.propose(original, requester=requester)
-    confirmed_data = original
+    confirmed_data = original.model_copy(update={"description": "Payload alterado"})
     supplied_token = token
     confirmed_requester = requester
     if case == "unknown_token":
@@ -324,12 +326,12 @@ def test_reusing_consumed_token_with_changed_payload_never_creates_second_task(
 ) -> None:
     db = isolated_db_session
     user = add_user(db)
-    employee = add_employee(db)
+    translator = add_translator(db)
     db.flush()
     service = TaskService(db)
     original = TaskCreate(
         description="Uma tarefa",
-        assignee_id=employee.id,
+        translator_ids=[translator.id],
         idempotency_key="single-task-proposal",
     )
     _, token = service.propose(original, requester=user)

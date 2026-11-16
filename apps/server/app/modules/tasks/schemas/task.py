@@ -14,13 +14,13 @@ def _strip_required(value: str) -> str:
     return normalized
 
 
-# DADOS DE CRIACAO USADOS PELO ENDPOINT E PELO AGENTE DE IA
+# DADOS DE CRIACAO USADOS PELO AGENTE DE IA (CONTRATO DA FERRAMENTA criar_tarefa)
 class TaskCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     description: str = Field(min_length=1, max_length=5000)
     due_date: date | None = None
-    assignee_id: uuid.UUID
+    translator_ids: list[uuid.UUID] = Field(min_length=1)
     idempotency_key: str = Field(min_length=1, max_length=255)
 
     @field_validator("description", "idempotency_key")
@@ -28,8 +28,16 @@ class TaskCreate(BaseModel):
     def strip_required_text(cls, value: str) -> str:
         return _strip_required(value)
 
+    @field_validator("translator_ids")
+    @classmethod
+    def reject_duplicate_translators(cls, value: list[uuid.UUID]) -> list[uuid.UUID]:
+        if len(value) != len(set(value)):
+            raise ValueError("Translator IDs must be unique")
+        return value
 
-# CORPO DO ENDPOINT; SEM CHAVE DE IDEMPOTENCIA, CADA CHAMADA CRIA UMA NOVA TAREFA
+
+# CORPO DO ENDPOINT: A TAREFA E DE EXATAMENTE UM FUNCIONARIO INTERNO.
+# SEM CHAVE DE IDEMPOTENCIA, CADA CHAMADA CRIA UMA NOVA TAREFA
 class TaskCreateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
