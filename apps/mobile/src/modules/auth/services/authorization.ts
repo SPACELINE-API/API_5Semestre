@@ -18,6 +18,7 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/usuarios': 'users.read',
 	'/configuracoes': 'roles.read',
 	'/projetos': 'projects.read',
+	'/tarefas/equipe': 'tasks.review',
 };
 
 const FULL_ROUTE_ACCESS_ROLES = new Set(['administrador', 'admin']);
