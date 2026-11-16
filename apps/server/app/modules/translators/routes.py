@@ -8,6 +8,7 @@ from app.modules.auth.dependencies.dependencies import (
     get_supabase_admin_client,
     require_permission,
 )
+from app.modules.auth.exceptions.exceptions import SupabaseAdminUnexpectedError
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.auth.services.supabase_admin_client import SupabaseAdminClient
 from app.modules.translators.models.translator_language import ProficiencyLevel
@@ -41,6 +42,19 @@ DbSession = Annotated[Session, Depends(get_db)]
 CurrentUser = Annotated[SupabaseAuthenticatedUser, Depends(profile_permission)]
 AdminClient = Annotated[SupabaseAdminClient, Depends(get_supabase_admin_client)]
 TranslatorsWriter = Annotated[SupabaseAuthenticatedUser, Depends(translators_write_permission)]
+
+
+# NA EDICAO, O SUPABASE SO E NECESSARIO SE O E-MAIL MUDAR (A CONTA DE ACESSO ACOMPANHA)
+def get_optional_supabase_admin_client() -> SupabaseAdminClient | None:
+    try:
+        return get_supabase_admin_client()
+    except SupabaseAdminUnexpectedError:
+        return None
+
+
+OptionalAdminClient = Annotated[
+    SupabaseAdminClient | None, Depends(get_optional_supabase_admin_client)
+]
 
 
 def _read_limited(upload: UploadFile, max_bytes: int) -> bytes:
@@ -204,7 +218,7 @@ def update_translator(
     translator_id: uuid.UUID,
     data: TranslatorUpdate,
     db: DbSession,
-    admin_client: AdminClient,
+    admin_client: OptionalAdminClient,
     actor: TranslatorsWriter,
 ):
     return TranslatorService(db, admin_client).update(translator_id, data, actor)
