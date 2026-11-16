@@ -27,4 +27,14 @@ test.describe('acesso às telas de tarefas', () => {
 		expect(canAccess(context(['Tradutor']), '/tarefas')).toBe(false);
 		expect(canAccess(null, '/tarefas')).toBe(false);
 	});
+
+	test('a área administrativa exige tasks.review', () => {
+		expect(
+			canAccess(context(['Atendimento'], ['tasks.write']), '/tarefas/equipe'),
+		).toBe(false);
+		expect(
+			canAccess(context(['Revisão'], ['tasks.review']), '/tarefas/equipe'),
+		).toBe(true);
+		expect(canAccess(context(['Administrador']), '/tarefas/equipe')).toBe(true);
+	});
 });
