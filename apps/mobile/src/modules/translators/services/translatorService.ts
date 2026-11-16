@@ -38,6 +38,10 @@ export function createLanguage(
 	);
 }
 
+export function deleteLanguage(id: string): Promise<void> {
+	return apiDeleteAuth(`/api/support/languages/${encodeURIComponent(id)}`);
+}
+
 export function listTranslators(): Promise<Translator[]> {
 	return apiGetAuth<Translator[]>(BASE);
 }

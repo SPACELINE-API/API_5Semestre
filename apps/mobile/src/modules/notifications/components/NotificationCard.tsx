@@ -32,7 +32,7 @@ export function NotificationCard({
 				onPress={() => onOpen(notification)}
 				accessibilityRole="button"
 				accessibilityLabel={`Abrir notificação: ${notification.title}`}
-				className="min-w-0 flex-1 gap-0.5"
+				className="min-w-0 gap-0.5"
 			>
 				<View className="flex-row items-start gap-2">
 					{!isRead && (

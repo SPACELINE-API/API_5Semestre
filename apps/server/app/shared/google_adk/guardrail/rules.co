@@ -6,6 +6,15 @@ define user ask about support
   "Como gerenciar os tradutores?"
   "Como funciona o sistema de tradução?"
   "Quais são os status de uma ordem de serviço?"
+  "Gere um relatório de produtividade"
+  "Gere o relatório de produtividade deste mês"
+  "Gerar relatório de produtividade do mês passado"
+  "Mostre a produtividade de uma tradutora"
+  "Qual a produtividade da Maria em outubro?"
+  "Gere o relatório de produtividade da ordem de serviço X"
+  "Quantos documentos foram traduzidos neste mês?"
+  "Quais tradutores entregaram no prazo?"
+  "Qual o tempo médio de execução das traduções?"
   "Como redefinir a senha de um usuário?"
   "Olá, preciso de ajuda com o sistema"
   "Como funciona o sistema?"
@@ -24,7 +33,7 @@ define user ask out of topic
   "Qual o sentido da vida?"
 
 define bot refuse request
-  "Só consigo ajudar com assuntos do suporte: clientes, ordens de serviço, tradutores, orçamentos e usuários."
+  "Só consigo ajudar com assuntos do suporte: clientes, ordens de serviço, tradutores, orçamentos, produtividade e usuários."
 
 define flow restrict topic
   user ask out of topic
