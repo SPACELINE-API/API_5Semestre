@@ -48,17 +48,33 @@ export function hasPermission(
 	);
 }
 
-const TRANSLATOR_ROLE = 'recursos externos';
+// MESMOS NOMES QUE O BACKEND TRATA COMO PERFIL EXTERNO (TRADUTOR)
+const TRANSLATOR_ROLES = new Set([
+	'recursos externos',
+	'tradutor',
+	'tradutora',
+]);
 
 export function isTranslatorProfile(context: AuthorizationContext | null) {
 	return (
 		!hasFullRouteAccess(context) &&
 		Boolean(
-			context?.roles.some(
-				(role) => normalizeRoleName(role.name) === TRANSLATOR_ROLE,
+			context?.roles.some((role) =>
+				TRANSLATOR_ROLES.has(normalizeRoleName(role.name)),
 			),
 		)
 	);
+}
+
+// TELAS DE QUALQUER FUNCIONARIO INTERNO, SEM PERMISSAO ESPECIFICA (TRADUTORES NAO ACESSAM)
+const INTERNAL_USER_PATHS = ['/tarefas'];
+
+export function isInternalUserPath(pathname: string) {
+	return INTERNAL_USER_PATHS.includes(pathname);
+}
+
+export function isInternalUser(context: AuthorizationContext | null) {
+	return Boolean(context) && !isTranslatorProfile(context);
 }
 
 export function requiredPermission(pathname: string) {
@@ -91,6 +107,7 @@ export function canAccess(
 ) {
 	if (isPublicPath(pathname)) return true;
 	if (isAdministratorOnlyPath(pathname)) return hasFullRouteAccess(context);
+	if (isInternalUserPath(pathname)) return isInternalUser(context);
 	const permission = requiredPermission(pathname);
 	return Boolean(
 		permission &&

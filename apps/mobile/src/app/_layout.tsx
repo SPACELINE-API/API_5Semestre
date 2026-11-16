@@ -34,6 +34,7 @@ import { ApiError } from '../shared/services/publicApiClient';
 import {
 	canAccess,
 	firstAllowedRoute,
+	isInternalUserPath,
 	isPublicPath,
 	requiredPermission,
 } from '../modules/auth/services/authorization';
@@ -141,7 +142,7 @@ export default function AppLayout() {
 	if (
 		!isPublic &&
 		authorizationLoaded &&
-		requiredPermission(pathname) &&
+		(requiredPermission(pathname) || isInternalUserPath(pathname)) &&
 		!canAccess(authorizationContext, pathname)
 	) {
 		return <Redirect href={firstAllowedRoute(authorizationContext) as never} />;
