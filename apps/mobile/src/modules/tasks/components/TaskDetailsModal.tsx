@@ -6,6 +6,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import { CheckCircle2 } from 'lucide-react-native';
 import { AppModal } from '../../../shared/components/AppModal';
 import {
 	resumeTask,
@@ -23,7 +24,7 @@ const EXECUTION_MAX = 5000;
 type TaskDetailsModalProps = {
 	task: Task | null;
 	onClose: () => void;
-	onChanged: (task: Task, message?: string) => void;
+	onChanged: (task: Task) => void;
 };
 
 type PendingAction = 'start' | 'save' | 'submit' | 'resume';
@@ -36,12 +37,18 @@ export function TaskDetailsModal({
 	const [draft, setDraft] = useState('');
 	const [pending, setPending] = useState<PendingAction | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	// A CONFIRMACAO FICA NO MODAL: NO CELULAR, O TOAST DA PAGINA FICA ATRAS DELE
+	const [notice, setNotice] = useState<string | null>(null);
 
 	const savedDescription = task?.execution_description ?? '';
 	useEffect(() => {
 		setDraft(savedDescription);
 		setError(null);
 	}, [task?.id, savedDescription]);
+
+	useEffect(() => {
+		setNotice(null);
+	}, [task?.id]);
 
 	if (!task) return null;
 
@@ -57,8 +64,10 @@ export function TaskDetailsModal({
 	) {
 		setPending(action);
 		setError(null);
+		setNotice(null);
 		try {
-			onChanged(await request(), message);
+			onChanged(await request());
+			setNotice(message);
 		} catch (cause) {
 			setError(
 				cause instanceof Error && cause.message
@@ -91,20 +100,20 @@ export function TaskDetailsModal({
 				}`}
 			>
 				{isLoading && <ActivityIndicator size="small" color="#FFFFFF" />}
-				<Text className="font-inter font-semibold text-sm text-white">
+				<Text className="text-center font-inter font-semibold text-sm text-white">
 					{isLoading ? 'Aguarde…' : label}
 				</Text>
 			</TouchableOpacity>
 		);
 	}
 
-	const footer = (
+	const buttons = (
 		<>
 			<TouchableOpacity
 				onPress={onClose}
 				disabled={isBusy}
 				accessibilityRole="button"
-				className="flex-1 items-center rounded-lg border border-gray-300 px-4 py-2.5"
+				className="flex-1 items-center justify-center rounded-lg border border-gray-300 px-4 py-2.5"
 			>
 				<Text className="font-inter font-medium text-gray-800 text-sm">
 					Fechar
@@ -145,6 +154,24 @@ export function TaskDetailsModal({
 						),
 				)}
 		</>
+	);
+
+	// O RODAPE FICA SEMPRE VISIVEL, ENTAO A CONFIRMACAO APARECE ACIMA DOS BOTOES
+	const footer = (
+		<View className="flex-1 gap-3">
+			{notice && (
+				<View
+					accessibilityRole="alert"
+					className="flex-row items-center gap-2 rounded-lg bg-green-50 px-3 py-2"
+				>
+					<CheckCircle2 size={16} color="#15803D" />
+					<Text className="flex-1 font-inter font-medium text-green-800 text-sm">
+						{notice}
+					</Text>
+				</View>
+			)}
+			<View className="flex-row gap-3">{buttons}</View>
+		</View>
 	);
 
 	return (
@@ -230,7 +257,7 @@ export function TaskDetailsModal({
 			<TaskAttachments
 				task={task}
 				editable={actions.canEditExecution}
-				onChanged={(updated) => onChanged(updated)}
+				onChanged={onChanged}
 			/>
 
 			{error && (

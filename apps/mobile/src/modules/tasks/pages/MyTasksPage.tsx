@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { Toast } from '../../../shared/components/Toast';
-import { useToast } from '../../../shared/hooks/useToast';
 import { TaskDetailsModal } from '../components/TaskDetailsModal';
 import { TaskList } from '../components/TaskList';
 import {
@@ -10,7 +8,6 @@ import {
 } from '../components/TaskStatusFilter';
 import { useTasks } from '../hooks/useTasks';
 import { listMyTasks } from '../services/taskService';
-import type { Task } from '../types/task';
 import { countByStatus } from '../utils/taskStatus';
 
 export function MyTasksPage() {
@@ -18,17 +15,11 @@ export function MyTasksPage() {
 		useTasks(listMyTasks);
 	const [filter, setFilter] = useState<TaskStatusFilterValue>('all');
 	const [selectedId, setSelectedId] = useState<string | null>(null);
-	const { toast, showToast } = useToast();
 
 	const counts = useMemo(() => countByStatus(tasks), [tasks]);
 	const visible =
 		filter === 'all' ? tasks : tasks.filter((task) => task.status === filter);
 	const selected = tasks.find((task) => task.id === selectedId) ?? null;
-
-	function handleChanged(updated: Task, message?: string) {
-		replaceTask(updated);
-		if (message) showToast(message);
-	}
 
 	return (
 		<View className="relative flex-1 bg-white">
@@ -78,9 +69,8 @@ export function MyTasksPage() {
 			<TaskDetailsModal
 				task={selected}
 				onClose={() => setSelectedId(null)}
-				onChanged={handleChanged}
+				onChanged={replaceTask}
 			/>
-			<Toast toast={toast} />
 		</View>
 	);
 }
