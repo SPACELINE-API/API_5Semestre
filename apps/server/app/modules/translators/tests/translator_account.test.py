@@ -22,6 +22,7 @@ from app.modules.internal_users.models.password_setup_token import PasswordSetup
 from app.modules.internal_users.tests.conftest import FakeSupabaseAdminClient
 from app.modules.system_parameters.models.language import Language
 from app.modules.translators.models.translator import Translator
+from app.modules.translators.routes import get_optional_supabase_admin_client
 from app.shared.database import get_db
 
 SETUP_LINK_PATTERN = re.compile(r"definir-senha\?token=([A-Za-z0-9_\-]+)")
@@ -111,6 +112,7 @@ def env(isolated_db_session: Session, monkeypatch: pytest.MonkeyPatch) -> Iterat
     )
     app.dependency_overrides[get_db] = lambda: db
     app.dependency_overrides[get_supabase_admin_client] = lambda: environment.admin_client
+    app.dependency_overrides[get_optional_supabase_admin_client] = lambda: environment.admin_client
     environment.act_as(admin)
     try:
         yield environment
@@ -380,6 +382,22 @@ def test_email_change_while_pending_moves_account_and_invalidates_link(env: Acco
     assert account.name == "Ana Nova"
     assert env.db.query(PasswordSetupToken).one().status == "rejeitado"
     assert "nova@example.com" in env.admin_client.users
+
+
+def test_editing_without_email_change_does_not_need_supabase(env: AccountEnv) -> None:
+    translator_id = env.create().json()["id"]
+    # SEM A CHAVE DO SUPABASE (COMO NA CI) A DEPENDENCIA OPCIONAL DEVOLVE None
+    app.dependency_overrides[get_optional_supabase_admin_client] = lambda: None
+
+    response = env.client.put(
+        f"/api/translators/{translator_id}",
+        json=_update_payload("ana@example.com", "Ana Renomeada"),
+    )
+
+    assert response.status_code == 200, response.text
+    account = env.account()
+    assert account is not None
+    assert account.name == "Ana Renomeada"
 
 
 def test_email_change_after_activation_is_blocked(env: AccountEnv) -> None:
