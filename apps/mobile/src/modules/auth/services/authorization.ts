@@ -92,10 +92,7 @@ export function canAccess(
 	if (isPublicPath(pathname)) return true;
 	if (isAdministratorOnlyPath(pathname)) return hasFullRouteAccess(context);
 	const permission = requiredPermission(pathname);
-	return Boolean(
-		permission &&
-		(hasFullRouteAccess(context) || context?.permissions.includes(permission)),
-	);
+	return permission ? hasPermission(context, permission) : false;
 }
 
 export const LANDING_ROUTES = new Set([

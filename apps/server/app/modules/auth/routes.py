@@ -41,7 +41,7 @@ from app.modules.auth.schemas.roles import (
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.auth.services.authorization_audit_service import record_authorization_change
 from app.modules.auth.services.login_service import LoginService
-from app.modules.auth.services.roles_service import get_effective_permissions
+from app.modules.auth.services.roles_service import get_user_effective_permissions
 from app.modules.auth.services.supabase_auth_client import SupabaseAuthClient
 from app.shared.database import get_db
 from app.shared.EnvProvider import env_provider
@@ -98,11 +98,14 @@ def get_authenticated_access(
             detail="Usuário sem permissão de acesso",
         )
 
-    active_roles = [role for role in user.roles if role.is_active]
     return AuthenticatedAccessResponse(
         user=AuthenticatedUserResponse(id=user.id, email=user.email),
-        roles=[AuthenticatedRoleResponse(id=role.id, name=role.name) for role in active_roles],
-        permissions=sorted(get_effective_permissions(active_roles)),
+        roles=[
+            AuthenticatedRoleResponse(id=role.id, name=role.name)
+            for role in user.roles
+            if role.is_active
+        ],
+        permissions=sorted(get_user_effective_permissions(user)),
     )
 
 

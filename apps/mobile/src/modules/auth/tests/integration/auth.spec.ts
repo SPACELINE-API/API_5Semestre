@@ -80,16 +80,54 @@ test.describe('autenticação mobile unificada', () => {
 		).toBe(false);
 	});
 
+	test('TI can render the dashboard with client read permission', async ({
+		page,
+	}) => {
+		const pageErrors: string[] = [];
+		page.on('pageerror', (error) => pageErrors.push(error.message));
+		await useExternalProfile(page, ['dashboard.read', 'clients.read'], 'TI');
+		await page.route('**/api/clients', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([]),
+			}),
+		);
+
+		await page.goto('/dashboard');
+
+		await expect(page).toHaveURL(/\/dashboard$/);
+		await expect(page.getByText('Painel', { exact: true })).toBeVisible();
+		expect(
+			pageErrors.some((error) => error.includes('Maximum update depth')),
+		).toBe(false);
+	});
+
 	test('desabilita orçamento e bloqueia acesso direto para perfil sem quotes.read', async ({
 		page,
 	}) => {
-		await useExternalProfile(page);
-		await page.goto('/visualizar-requisicoes');
+		await useExternalProfile(page, ['dashboard.read']);
+		await page.goto('/dashboard');
 		await expect(
 			page.getByRole('button', { name: 'Orçamento', exact: true }),
 		).toBeDisabled();
 		await page.goto('/orcamento/novo-orcamento');
-		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
+		await expect(page.getByText('Acesso negado')).toBeVisible();
+		await expect(
+			page.getByText('Redirecionando para o dashboard em 3 segundos...'),
+		).toBeVisible();
+		await expect(page).toHaveURL(/\/dashboard$/, { timeout: 5000 });
+	});
+
+	test('desabilita o menu de tradutor sem assignments.read', async ({
+		page,
+	}) => {
+		await useExternalProfile(page, ['dashboard.read'], 'Recursos externos');
+		await page.goto('/dashboard');
+
+		for (const label of ['Convites', 'Meus itens', 'Meu perfil']) {
+			await expect(page.getByRole('button', { name: label })).toBeDisabled();
+		}
 	});
 
 	test('sidebar navega entre rotas permitidas pelo perfil', async ({
