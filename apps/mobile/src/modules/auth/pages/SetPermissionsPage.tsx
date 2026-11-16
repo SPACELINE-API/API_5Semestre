@@ -23,7 +23,6 @@ import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 
 const MODULE_LABELS: Record<string, string> = {
-	dashboard: 'Dashboard',
 	requests: 'Requisições',
 	quotes: 'Orçamentos',
 	service_orders: 'Ordens de serviço',
@@ -39,7 +38,6 @@ const MODULE_LABELS: Record<string, string> = {
 };
 
 const VISIBLE_PERMISSIONS = new Set([
-	'dashboard.read',
 	'requests.read',
 	'requests.write',
 	'quotes.read',

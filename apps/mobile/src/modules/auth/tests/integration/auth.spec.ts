@@ -302,6 +302,7 @@ test.describe('configuração de permissões', () => {
 				status: 200,
 				contentType: 'application/json',
 				body: JSON.stringify([
+					{ id: 'dashboard-read', code: 'dashboard.read', description: null },
 					{ id: 'clients-read', code: 'clients.read', description: null },
 					{ id: 'clients-write', code: 'clients.write', description: null },
 				]),
@@ -333,6 +334,11 @@ test.describe('configuração de permissões', () => {
 						description: null,
 						is_active: true,
 						permissions: [
+							{
+								id: 'dashboard-read',
+								code: 'dashboard.read',
+								description: null,
+							},
 							{ id: 'clients-read', code: 'clients.read', description: null },
 						],
 					},
@@ -342,6 +348,7 @@ test.describe('configuração de permissões', () => {
 
 		await page.goto('/configuracoes/permissoes');
 		await expect(page.getByText('Atendimento').first()).toBeVisible();
+		await expect(page.getByText('Dashboard', { exact: true })).toHaveCount(1);
 
 		await page.getByRole('button', { name: 'Novo perfil' }).click();
 		await page.getByPlaceholder('Ex: Comercial').fill('Comercial');
