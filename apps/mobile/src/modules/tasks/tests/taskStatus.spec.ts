@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
-import type { TaskStatus } from '../../types/task';
-import { formatDueDate } from '../../utils/format';
+import type { TaskStatus } from '../types/task';
+import { formatDueDate } from '../utils/format';
 import {
 	canReview,
 	countByStatus,
 	employeeActionsFor,
 	showsRejectionReason,
-} from '../../utils/taskStatus';
+} from '../utils/taskStatus';
 
 function actions(status: TaskStatus, description: string | null = null) {
 	return employeeActionsFor({ status, execution_description: description });

@@ -70,7 +70,7 @@ export function loginAsAdmin(page: Page) {
 	return loginAs(page, {
 		user: { id: ADMIN.id, email: ADMIN.email, role: 'admin' },
 		roles: [{ id: 'admin-role', name: 'Administrador' }],
-		permissions: ['tasks.write', 'tasks.review', 'dashboard.read'],
+		permissions: ['assignments.write', 'tasks.review', 'dashboard.read'],
 	});
 }
 

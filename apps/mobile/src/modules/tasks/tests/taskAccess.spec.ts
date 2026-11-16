@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import type { AuthorizationContext } from '../../../auth/services/auth';
-import { canAccess } from '../../../auth/services/authorization';
+import type { AuthorizationContext } from '../../auth/services/auth';
+import { canAccess } from '../../auth/services/authorization';
 
 function context(
 	roles: string[],
@@ -30,7 +30,10 @@ test.describe('acesso às telas de tarefas', () => {
 
 	test('a área administrativa exige tasks.review', () => {
 		expect(
-			canAccess(context(['Atendimento'], ['tasks.write']), '/tarefas/equipe'),
+			canAccess(
+				context(['Atendimento'], ['assignments.write']),
+				'/tarefas/equipe',
+			),
 		).toBe(false);
 		expect(
 			canAccess(context(['Revisão'], ['tasks.review']), '/tarefas/equipe'),
