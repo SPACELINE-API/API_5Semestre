@@ -106,15 +106,6 @@ export function canAccess(
 			hasPermission(context, 'settings.write')
 		);
 	}
-	if (
-		pathname === '/orcamento/gerar' ||
-		pathname.startsWith('/orcamento/gerar/')
-	) {
-		return (
-			hasPermission(context, 'requests.read') &&
-			hasPermission(context, 'quotes.write')
-		);
-	}
 	const permission = requiredPermission(pathname);
 	return permission ? hasPermission(context, permission) : false;
 }
