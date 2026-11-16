@@ -21,8 +21,8 @@ from app.modules.tasks.schemas.task import (
     TaskResponse,
 )
 from app.modules.tasks.services.attachments import TASK_ATTACHMENT_MAX_BYTES
-from app.modules.tasks.services.task_assignment_service import TaskAssignmentService
 from app.modules.tasks.services.task_rules import TASKS_REVIEW_PERMISSION
+from app.modules.tasks.services.task_service import TaskService
 from app.modules.tasks.services.task_workflow_service import TaskWorkflowService
 from app.shared.database import get_db
 
@@ -41,7 +41,7 @@ def _can_review(user: User) -> bool:
 
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 def create_task(data: TaskCreateRequest, db: DbSession, requester: TaskWriter):
-    return TaskAssignmentService(db).create(data, requester=requester)
+    return TaskService(db).create_for_assignee(data, requester=requester)
 
 
 @router.get("", response_model=list[TaskResponse])

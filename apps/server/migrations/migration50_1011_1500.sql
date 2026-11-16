@@ -51,18 +51,19 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('task-attachments', 'task-attachments', FALSE)
 ON CONFLICT (id) DO NOTHING;
 
--- PERMISSOES DE CRIACAO (ENDPOINT E AGENTE) E DE AVALIACAO DAS TAREFAS
+-- AVALIACAO DAS TAREFAS. A CRIACAO USA A MESMA PERMISSAO DO AGENTE (assignments.write)
 INSERT INTO permissions (id, code, description)
-VALUES
-    (gen_random_uuid(), 'tasks.write', 'Criar tarefas para funcionários internos'),
-    (gen_random_uuid(), 'tasks.review', 'Consultar, aprovar e reprovar tarefas dos funcionários')
+VALUES (
+    gen_random_uuid(),
+    'tasks.review',
+    'Consultar, aprovar e reprovar tarefas dos funcionários'
+)
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT roles.id, permissions.id
 FROM roles
 CROSS JOIN permissions
-WHERE (permissions.code IN ('tasks.write', 'tasks.review')
-       AND lower(roles.name) IN ('administrador', 'admin'))
-   OR (permissions.code = 'tasks.write' AND lower(roles.name) = 'projetos')
+WHERE permissions.code = 'tasks.review'
+  AND lower(roles.name) IN ('administrador', 'admin')
 ON CONFLICT DO NOTHING;

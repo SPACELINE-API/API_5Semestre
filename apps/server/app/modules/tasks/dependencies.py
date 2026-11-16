@@ -6,8 +6,8 @@ from app.modules.auth.dependencies.dependencies import get_current_user, require
 from app.modules.auth.models.user import User
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.tasks.services.task_rules import (
+    TASKS_CREATE_PERMISSION,
     TASKS_REVIEW_PERMISSION,
-    TASKS_WRITE_PERMISSION,
     is_internal_user,
 )
 from app.shared.database import get_db
@@ -52,5 +52,5 @@ def _require_user_with(permission: str):
     return dependency
 
 
-require_task_writer = _require_user_with(TASKS_WRITE_PERMISSION)
+require_task_writer = _require_user_with(TASKS_CREATE_PERMISSION)
 require_task_reviewer = _require_user_with(TASKS_REVIEW_PERMISSION)
