@@ -41,6 +41,7 @@ type QuoteItem = {
 	price: string;
 	fileName: string;
 	fileUrl: string | null;
+	wordCount: number | null;
 };
 
 function createEmptyItem(): QuoteItem {
@@ -52,6 +53,7 @@ function createEmptyItem(): QuoteItem {
 		price: '',
 		fileName: '',
 		fileUrl: null,
+		wordCount: null,
 	};
 }
 
@@ -91,9 +93,13 @@ export function NewQuoteModal({
 
 		setUploadingItemId(itemId);
 		try {
-			const fileUrl = await uploadQuoteDocument(file.uri, file.name);
-			if (fileUrl) {
-				updateItem(itemId, { fileName: file.name, fileUrl });
+			const uploaded = await uploadQuoteDocument(file.uri, file.name);
+			if (uploaded) {
+				updateItem(itemId, {
+					fileName: file.name,
+					fileUrl: uploaded.file_url,
+					wordCount: uploaded.word_count,
+				});
 			} else {
 				setSubmitError('Não foi possível enviar o arquivo. Tente novamente.');
 			}
@@ -137,6 +143,7 @@ export function NewQuoteModal({
 					target_language: item.target,
 					document_type: item.docType || undefined,
 					file_url: item.fileUrl ?? undefined,
+					word_count: item.wordCount ?? undefined,
 					estimated_value: item.price ? Number(item.price) : undefined,
 				});
 			}
@@ -313,6 +320,13 @@ export function NewQuoteModal({
 														</TouchableOpacity>
 													)}
 												</View>
+												{item.fileUrl ? (
+													<Text className="mt-1 font-inter text-xs text-gray-500">
+														{item.wordCount != null
+															? `${item.wordCount.toLocaleString('pt-BR')} ${item.wordCount === 1 ? 'palavra' : 'palavras'}`
+															: 'Não foi possível contar as palavras deste arquivo'}
+													</Text>
+												) : null}
 											</View>
 											<View
 												className={isDesktop ? 'w-[32%]' : 'w-full'}

@@ -72,6 +72,7 @@ import type {
 } from '../../service-orders/types/serviceOrder';
 import { ItemsTable } from '../../service-orders/components/ItemsTable';
 import { ReopenQuoteDialog } from './ReopenQuoteDialog';
+import { ReopenedQuoteIndicator } from './ReopenedQuoteIndicator';
 import { SendQuoteDialog } from './SendQuoteDialog';
 
 export const quoteStatusStyles: Record<
@@ -148,6 +149,49 @@ function display(value: string | null | undefined) {
 
 function shortId(value: string) {
 	return value.slice(0, 8).toUpperCase();
+}
+
+function formatWordCount(value: number) {
+	return `${value.toLocaleString('pt-BR')} ${value === 1 ? 'palavra' : 'palavras'}`;
+}
+
+function summarizeWordCount(
+	items: { file_url: string | null; word_count: number | null }[],
+) {
+	const withFile = items.filter((item) => (item.file_url ?? '').trim());
+	const counted = withFile.filter((item) => item.word_count != null);
+	return {
+		hasDocuments: withFile.length > 0,
+		total: counted.reduce((sum, item) => sum + (item.word_count ?? 0), 0),
+		uncounted: withFile.length - counted.length,
+	};
+}
+
+function WordCountSummary({
+	items,
+}: {
+	items: { file_url: string | null; word_count: number | null }[];
+}) {
+	const summary = summarizeWordCount(items);
+	if (!summary.hasDocuments) return null;
+
+	return (
+		<View
+			testID="quote-word-count-total"
+			className="mb-4 flex-row flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-gray-50 px-3 py-2"
+		>
+			<Text className="font-inter-semibold text-sm text-gray-900">
+				Total de palavras: {summary.total.toLocaleString('pt-BR')}
+			</Text>
+			{summary.uncounted > 0 ? (
+				<Text className="font-inter text-xs text-gray-500">
+					{summary.uncounted === 1
+						? '1 documento sem contagem'
+						: `${summary.uncounted} documentos sem contagem`}
+				</Text>
+			) : null}
+		</View>
+	);
 }
 
 function formatPrice(value: number | string | null) {
@@ -406,6 +450,7 @@ type DraftItem = {
 	document_type: string;
 	estimated_value: string;
 	file_url: string | null;
+	word_count: number | null;
 };
 
 function toDraftItem(item: QuoteManagerItem): DraftItem {
@@ -418,6 +463,7 @@ function toDraftItem(item: QuoteManagerItem): DraftItem {
 		estimated_value:
 			item.estimated_value == null ? '' : String(item.estimated_value),
 		file_url: item.file_url,
+		word_count: item.word_count ?? null,
 	};
 }
 
@@ -449,6 +495,7 @@ export function QuoteCard({
 	const [sendError, setSendError] = useState('');
 	const [feedbackMessage, setFeedbackMessage] = useState('');
 	const [reopenDialogOpen, setReopenDialogOpen] = useState(false);
+	const [reopenIndicatorOpen, setReopenIndicatorOpen] = useState(false);
 	const canWriteQuotes = usePermission('quotes.write');
 	const canApproveQuotes = usePermission('quotes.approve');
 	const canReopenQuotes = usePermission('quotes.reopen');
@@ -637,6 +684,7 @@ export function QuoteCard({
 				document_type: '',
 				estimated_value: '',
 				file_url: null,
+				word_count: null,
 			},
 		]);
 	}
@@ -734,9 +782,12 @@ export function QuoteCard({
 
 		setUploadingItemId(itemId);
 		try {
-			const fileUrl = await uploadQuoteDocument(file.uri, file.name);
-			if (fileUrl) {
-				updateDraftItem(itemId, { file_url: fileUrl });
+			const uploaded = await uploadQuoteDocument(file.uri, file.name);
+			if (uploaded) {
+				updateDraftItem(itemId, {
+					file_url: uploaded.file_url,
+					word_count: uploaded.word_count,
+				});
 			} else {
 				setSaveError('Não foi possível enviar o arquivo. Tente novamente.');
 			}
@@ -797,6 +848,7 @@ export function QuoteCard({
 							? Number(draft.estimated_value.replace(',', '.'))
 							: null,
 						file_url: draft.file_url,
+						word_count: draft.word_count,
 					};
 					return draft.isNew
 						? createQuoteItem(quote.id, {
@@ -804,6 +856,7 @@ export function QuoteCard({
 								target_language: payload.target_language,
 								document_type: payload.document_type ?? undefined,
 								file_url: payload.file_url ?? undefined,
+								word_count: payload.word_count ?? undefined,
 								estimated_value: payload.estimated_value ?? undefined,
 							})
 						: updateQuoteItem(quote.id, draft.id, payload);
@@ -872,7 +925,10 @@ export function QuoteCard({
 	}
 
 	return (
-		<View className="mb-5 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+		<View
+			className="mb-5 rounded-2xl border border-gray-200 bg-white"
+			style={{ zIndex: reopenIndicatorOpen ? 20 : 0 }}
+		>
 			<TouchableOpacity
 				activeOpacity={0.7}
 				accessibilityRole="button"
@@ -880,6 +936,7 @@ export function QuoteCard({
 				accessibilityLabel={`${expanded ? 'Recolher' : 'Expandir'} orçamento ${shortId(quote.id)}`}
 				onPress={() => setExpanded((current) => !current)}
 				className="flex-row flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-5 py-4 md:px-6"
+				style={{ zIndex: reopenIndicatorOpen ? 10 : 0 }}
 			>
 				<View className="flex-row items-center gap-3">
 					<View className="h-11 w-11 items-center justify-center rounded-xl bg-blue-50">
@@ -907,6 +964,15 @@ export function QuoteCard({
 									{status.label}
 								</Text>
 							</View>
+							{quote.reopened_at ? (
+								<ReopenedQuoteIndicator
+									reopenedAt={quote.reopened_at}
+									reason={quote.reopen_reason}
+									reopenedByEmail={quote.reopened_by_email}
+									reopenCount={quote.reopen_count}
+									onOpenChange={setReopenIndicatorOpen}
+								/>
+							) : null}
 							<Text className="font-inter text-xs text-gray-500">
 								{quote.request_id
 									? 'Vinculado a uma solicitação'
@@ -1265,6 +1331,7 @@ export function QuoteCard({
 						<SectionTitle>
 							Documentos ({isEditing ? draftItems.length : quote.items.length})
 						</SectionTitle>
+						<WordCountSummary items={isEditing ? draftItems : quote.items} />
 						{isEditing ? (
 							<View className="gap-3">
 								{draftItems.map((item) => (
@@ -1346,6 +1413,13 @@ export function QuoteCard({
 													<ExternalLink size={14} color="#1d4ed8" />
 												</TouchableOpacity>
 											)}
+											{item.file_url ? (
+												<Text className="shrink-0 font-inter text-xs text-gray-500">
+													{item.word_count != null
+														? formatWordCount(item.word_count)
+														: 'Sem contagem'}
+												</Text>
+											) : null}
 											<TouchableOpacity
 												accessibilityRole="button"
 												accessibilityLabel="Remover item"
@@ -1421,6 +1495,16 @@ export function QuoteCard({
 													Arquivo ainda não anexado
 												</Text>
 											)}
+											{item.file_url ? (
+												<Text
+													testID="quote-item-word-count"
+													className="mt-2 font-inter text-xs text-gray-600"
+												>
+													{item.word_count != null
+														? formatWordCount(item.word_count)
+														: 'Não foi possível contar as palavras deste arquivo'}
+												</Text>
+											) : null}
 											<Text className="mt-2 font-inter text-xs text-gray-400">
 												Criado {formatDate(item.created_at)} · Atualizado{' '}
 												{formatDate(item.updated_at)}

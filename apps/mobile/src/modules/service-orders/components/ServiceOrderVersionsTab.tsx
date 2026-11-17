@@ -12,6 +12,7 @@ const FIELD_LABELS: Record<string, string> = {
 	target_language: 'Idioma de destino',
 	document_type: 'Tipo de documento',
 	file_url: 'Arquivo',
+	word_count: 'Palavras',
 	price: 'Valor',
 };
 

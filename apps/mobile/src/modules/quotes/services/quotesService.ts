@@ -73,6 +73,10 @@ export type QuoteResponse = {
 	valid_until?: string | null;
 	sent_to_customer_at?: string | null;
 	sent_to_customer_email?: string | null;
+	reopened_at?: string | null;
+	reopen_reason?: string | null;
+	reopened_by_email?: string | null;
+	reopen_count?: number;
 	created_at: string;
 	updated_at: string;
 };
@@ -84,6 +88,7 @@ export type QuoteManagerItem = {
 	target_language: string;
 	document_type: string | null;
 	file_url: string | null;
+	word_count: number | null;
 	estimated_value: number | string | null;
 	created_at: string;
 	updated_at: string;
@@ -222,6 +227,7 @@ export type QuoteTranslationItemUpdateInput = Partial<{
 	target_language: string;
 	document_type: string | null;
 	file_url: string | null;
+	word_count: number | null;
 	estimated_value: number | null;
 }>;
 
@@ -267,6 +273,7 @@ export type QuoteTranslationItemCreate = {
 	target_language: string;
 	document_type?: string;
 	file_url?: string;
+	word_count?: number;
 	estimated_value?: number;
 };
 
@@ -412,10 +419,15 @@ export async function createQuoteItem(
 	}
 }
 
+export type UploadedQuoteDocument = {
+	file_url: string;
+	word_count: number | null;
+};
+
 export async function uploadQuoteDocument(
 	fileUri: string,
 	fileName: string,
-): Promise<string | null> {
+): Promise<UploadedQuoteDocument | null> {
 	try {
 		const isWeb =
 			typeof window !== 'undefined' && typeof window.document !== 'undefined';
@@ -433,7 +445,10 @@ export async function uploadQuoteDocument(
 			} as UploadableFile;
 		}
 
-		const data = await uploadFileMultipart<{ file_url: string }>(
+		const data = await uploadFileMultipart<{
+			file_url: string;
+			word_count?: number | null;
+		}>(
 			`${API_BASE_URL}/api/quotes/upload-document`,
 			file,
 			{},
@@ -442,7 +457,7 @@ export async function uploadQuoteDocument(
 			true,
 		);
 
-		return data.file_url;
+		return { file_url: data.file_url, word_count: data.word_count ?? null };
 	} catch (error) {
 		console.error('Error uploading document:', error);
 		return null;
