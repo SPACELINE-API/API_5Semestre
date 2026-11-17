@@ -131,7 +131,7 @@ export function LanguageSelect({
 						className="absolute bg-surface border border-border rounded-lg shadow-sm overflow-hidden"
 						style={{
 							...dropdownLayout,
-							backgroundColor: 'white',
+							backgroundColor: themeColors.surface,
 						}}
 					>
 						<ScrollView nestedScrollEnabled>

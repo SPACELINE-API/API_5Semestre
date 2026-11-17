@@ -276,7 +276,7 @@ function CompanyLinkField({
 							left: anchor.x,
 							width: anchor.width,
 							maxHeight: 280,
-							backgroundColor: 'white',
+							backgroundColor: themeColors.surface,
 						}}
 					>
 						<View className="flex-row items-center gap-2 border-b border-border-subtle px-3 py-2">

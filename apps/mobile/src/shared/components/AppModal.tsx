@@ -19,6 +19,8 @@ import {
 } from 'lucide-react-native';
 
 import { useThemeColors } from '../theme/ThemeProvider';
+
+import { type ThemeColors } from '../theme/types';
 export type AppModalType = 'success' | 'warning' | 'error' | 'confirmation';
 
 type AppModalProps = {
@@ -43,22 +45,22 @@ type AppModalProps = {
 
 const TYPE_STYLES: Record<
 	AppModalType,
-	{ icon: LucideIcon; color: string; background: string }
+	{ icon: LucideIcon; color: keyof ThemeColors; background: string }
 > = {
 	success: {
 		icon: CheckCircle2,
-		color: '#15803D',
+		color: 'successText',
 		background: 'bg-success-soft',
 	},
 	warning: {
 		icon: TriangleAlert,
-		color: '#B45309',
+		color: 'warningText',
 		background: 'bg-warning-soft',
 	},
-	error: { icon: XCircle, color: '#B91C1C', background: 'bg-danger-soft' },
+	error: { icon: XCircle, color: 'danger', background: 'bg-danger-soft' },
 	confirmation: {
 		icon: CircleHelp,
-		color: '#1D4ED8',
+		color: 'primaryText',
 		background: 'bg-primary-soft',
 	},
 };
@@ -109,7 +111,11 @@ export function AppModal({
 							<View
 								className={`h-14 w-14 items-center justify-center rounded-full ${style.background}`}
 							>
-								<Icon size={26} color={style.color} strokeWidth={2} />
+								<Icon
+									size={26}
+									color={themeColors[style.color]}
+									strokeWidth={2}
+								/>
 							</View>
 							<View className="gap-1.5">
 								<Text

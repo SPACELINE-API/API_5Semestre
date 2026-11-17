@@ -80,7 +80,7 @@ export default function SelectRole({
 							left: anchor.x,
 							width: anchor.width,
 							maxHeight: 240,
-							backgroundColor: 'white',
+							backgroundColor: themeColors.surface,
 						}}
 					>
 						<ScrollView nestedScrollEnabled>

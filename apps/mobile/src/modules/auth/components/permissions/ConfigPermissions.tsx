@@ -1,13 +1,7 @@
 import { View, Text, Switch } from 'react-native';
 import type { PermissionModule, Role } from '../../types/roles';
 
-const TOGGLE_COLORS = {
-	trackOff: '#e5e7eb',
-	trackOn: '#93c5fd',
-	thumbOff: '#f9fafb',
-	thumbOn: '#2563eb',
-};
-
+import { useThemeColors } from '../../../../shared/theme/ThemeProvider';
 export interface ConfigPermissionsProps {
 	module: PermissionModule;
 	profile: Role;
@@ -104,14 +98,16 @@ type PermissionToggleProps = {
 	onChange: (enabled: boolean) => void;
 };
 
-const webThumbProps = { activeThumbColor: TOGGLE_COLORS.thumbOn } as object;
-
 function PermissionToggle({
 	label,
 	value,
 	disabled,
 	onChange,
 }: PermissionToggleProps) {
+	const themeColors = useThemeColors();
+	const webThumbProps = {
+		activeThumbColor: themeColors.primaryForeground,
+	} as object;
 	return (
 		<View className="flex-row items-center gap-2">
 			<Switch
@@ -120,10 +116,12 @@ function PermissionToggle({
 				disabled={disabled}
 				onValueChange={onChange}
 				trackColor={{
-					false: TOGGLE_COLORS.trackOff,
-					true: TOGGLE_COLORS.trackOn,
+					false: themeColors.border,
+					true: themeColors.primary,
 				}}
-				thumbColor={value ? TOGGLE_COLORS.thumbOn : TOGGLE_COLORS.thumbOff}
+				thumbColor={
+					value ? themeColors.primaryForeground : themeColors.surfaceSubtle
+				}
 				{...webThumbProps}
 				style={{ transform: [{ scale: 0.7 }] }}
 			/>

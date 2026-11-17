@@ -1,6 +1,8 @@
 import { View, Text } from 'react-native';
 import { CheckCircle2, XCircle } from 'lucide-react-native';
 
+import { useThemeColors } from '../theme/ThemeProvider';
+import { type ThemeColors } from '../theme/types';
 export type ToastType = 'success' | 'error';
 
 export type ToastData = {
@@ -16,7 +18,7 @@ const TOAST_STYLE: Record<
 		border: string;
 		title_color: string;
 		text_color: string;
-		icon: string;
+		icon: keyof ThemeColors;
 	}
 > = {
 	success: {
@@ -25,7 +27,7 @@ const TOAST_STYLE: Record<
 		border: 'border-success/25',
 		title_color: 'text-success-text',
 		text_color: 'text-success-text',
-		icon: '#085041',
+		icon: 'successText',
 	},
 	error: {
 		title: 'Erro',
@@ -33,11 +35,12 @@ const TOAST_STYLE: Record<
 		border: 'border-danger/25',
 		title_color: 'text-danger-text',
 		text_color: 'text-danger-text',
-		icon: '#791F1F',
+		icon: 'dangerText',
 	},
 };
 
 export function ToastMessage({ toast }: { toast: ToastData }) {
+	const themeColors = useThemeColors();
 	const style = TOAST_STYLE[toast.type];
 	const Icon = toast.type === 'success' ? CheckCircle2 : XCircle;
 
@@ -45,7 +48,7 @@ export function ToastMessage({ toast }: { toast: ToastData }) {
 		<View
 			className={`w-[320px] flex-row items-start gap-3 rounded-xl border px-4 py-3.5 shadow-lg ${style.bg} ${style.border}`}
 		>
-			<Icon size={20} color={style.icon} />
+			<Icon size={20} color={themeColors[style.icon]} />
 			<View className="flex-1 gap-0.5">
 				<Text className={`font-inter font-bold text-sm ${style.title_color}`}>
 					{style.title}

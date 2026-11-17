@@ -35,6 +35,8 @@ import { PROFICIENCY_LABELS } from '../types/translator';
 import { formatFileSize } from '../utils/profileFiles';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
+
+import { type ThemeColors } from '../../../shared/theme/types';
 type CertificateReviewModalProps = {
 	translatorId: string;
 	certificate: TranslatorCertificate | null;
@@ -48,7 +50,7 @@ const BANNERS: Record<
 	CertificateStatus,
 	{
 		icon: typeof Clock;
-		color: string;
+		color: keyof ThemeColors;
 		background: string;
 		border: string;
 		title: string;
@@ -57,7 +59,7 @@ const BANNERS: Record<
 > = {
 	pending: {
 		icon: Clock,
-		color: '#B45309',
+		color: 'warningText',
 		background: 'bg-warning-soft',
 		border: 'border-warning/40',
 		title: 'Aguardando avaliação',
@@ -66,7 +68,7 @@ const BANNERS: Record<
 	},
 	approved: {
 		icon: CheckCircle2,
-		color: '#15803D',
+		color: 'successText',
 		background: 'bg-success-soft',
 		border: 'border-success/30',
 		title: 'Certificado aprovado',
@@ -75,7 +77,7 @@ const BANNERS: Record<
 	},
 	rejected: {
 		icon: XCircle,
-		color: '#B91C1C',
+		color: 'danger',
 		background: 'bg-danger-soft',
 		border: 'border-danger/30',
 		title: 'Certificado recusado',
@@ -289,7 +291,7 @@ export function CertificateReviewModal({
 				<View
 					className={`flex-row items-start gap-3 rounded-xl border px-4 py-3 ${banner.background} ${banner.border}`}
 				>
-					<BannerIcon size={18} color={banner.color} />
+					<BannerIcon size={18} color={themeColors[banner.color]} />
 					<View className="flex-1 gap-0.5">
 						<Text className="font-inter font-semibold text-foreground text-sm">
 							{banner.title}

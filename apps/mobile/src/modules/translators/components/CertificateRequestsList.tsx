@@ -17,29 +17,31 @@ import { PROFICIENCY_LABELS } from '../types/translator';
 import { formatFileSize } from '../utils/profileFiles';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
+
+import { type ThemeColors } from '../../../shared/theme/types';
 type StatusFilter = 'all' | CertificateStatus;
 
 const STATUS_STYLES: Record<
 	CertificateStatus,
-	{ bar: string; badgeBg: string; badgeText: string; icon: string }
+	{ bar: string; badgeBg: string; badgeText: string; icon: keyof ThemeColors }
 > = {
 	pending: {
 		bar: 'bg-warning',
 		badgeBg: 'bg-warning-soft',
 		badgeText: 'text-warning-text',
-		icon: '#B45309',
+		icon: 'warningText',
 	},
 	approved: {
 		bar: 'bg-success',
 		badgeBg: 'bg-success-soft',
 		badgeText: 'text-success-text',
-		icon: '#15803D',
+		icon: 'successText',
 	},
 	rejected: {
 		bar: 'bg-danger',
 		badgeBg: 'bg-danger-soft',
 		badgeText: 'text-danger-text',
-		icon: '#B91C1C',
+		icon: 'danger',
 	},
 };
 
@@ -264,7 +266,7 @@ export function CertificateRequestsList({
 								<View
 									className={`flex-row items-center gap-1 rounded-full px-2 py-0.5 ${style.badgeBg}`}
 								>
-									<StatusIcon size={12} color={style.icon} />
+									<StatusIcon size={12} color={themeColors[style.icon]} />
 									<Text
 										className={`font-inter font-medium text-xs ${style.badgeText}`}
 									>

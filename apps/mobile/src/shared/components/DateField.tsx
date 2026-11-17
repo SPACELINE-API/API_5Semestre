@@ -106,7 +106,7 @@ function CalendarPopover({
 				left: position.left,
 				zIndex: 10000,
 				backgroundColor: themeColors.surface,
-				border: '1px solid #e5e7eb',
+				border: `1px solid ${themeColors.border}`,
 				borderRadius: 12,
 				boxShadow: '0 16px 32px rgba(15, 23, 42, 0.18)',
 			}}
