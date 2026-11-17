@@ -9,9 +9,39 @@ import Svg, {
 	Stop,
 } from 'react-native-svg';
 
+import { useTheme } from '../../../shared/theme/ThemeProvider';
 const DOT_GAP = 14;
 
+const PALETTES = {
+	light: {
+		circleStrong: '#3a86c0',
+		circleMid: '#9cbfdc',
+		circleSoft: '#c3dcf3',
+		circleFaint: '#cfe2f5',
+		glow0: '#3b9be6',
+		glow1: '#74bff5',
+		glow2: '#bfe0f9',
+		dotBlue: '#8fb8dd',
+		base: '#f6faff',
+		white: '#ffffff',
+	},
+	dark: {
+		circleStrong: '#1f5b94',
+		circleMid: '#2a4a6b',
+		circleSoft: '#1d3350',
+		circleFaint: '#233f5f',
+		glow0: '#1c4f86',
+		glow1: '#173f6b',
+		glow2: '#112d4c',
+		dotBlue: '#2a4766',
+		base: '#0d1520',
+		white: '#0d1520',
+	},
+};
+
 export function LoginBackground() {
+	const { isDark } = useTheme();
+	const palette = PALETTES[isDark ? 'dark' : 'light'];
 	const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 	const width = Math.max(windowWidth, 1);
 	const height = Math.max(windowHeight, 1);
@@ -32,21 +62,21 @@ export function LoginBackground() {
 					cx: width * 0.92,
 					cy: height * 0.08,
 					r: reference * 0.32,
-					fill: '#3a86c0',
+					fill: palette.circleStrong,
 					opacity: 0.4,
 				},
 				{
 					cx: width * 0.78,
 					cy: height * 0.9,
 					r: reference * 0.34,
-					fill: '#9cbfdc',
+					fill: palette.circleMid,
 					opacity: 0.45,
 				},
 				{
 					cx: width * 0.08,
 					cy: height * 0.96,
 					r: reference * 0.3,
-					fill: '#c3dcf3',
+					fill: palette.circleSoft,
 					opacity: 0.8,
 				},
 			]
@@ -55,28 +85,28 @@ export function LoginBackground() {
 					cx: width * 0.9,
 					cy: height * 0.2,
 					r: Math.min(width * 0.16, height * 0.3),
-					fill: '#3a86c0',
+					fill: palette.circleStrong,
 					opacity: 0.42,
 				},
 				{
 					cx: width * 0.57,
 					cy: height * 0.57,
 					r: Math.min(width * 0.15, height * 0.22),
-					fill: '#9cbfdc',
+					fill: palette.circleMid,
 					opacity: 0.45,
 				},
 				{
 					cx: width * 0.47,
 					cy: height * 0.79,
 					r: Math.min(width * 0.08, height * 0.12),
-					fill: '#cfe2f5',
+					fill: palette.circleFaint,
 					opacity: 0.7,
 				},
 				{
 					cx: width * 0.07,
 					cy: height * 0.9,
 					r: Math.min(width * 0.12, height * 0.17),
-					fill: '#c3dcf3',
+					fill: palette.circleSoft,
 					opacity: 0.85,
 				},
 			];
@@ -119,14 +149,14 @@ export function LoginBackground() {
 						cy={glow.cy}
 						r={glow.r}
 					>
-						<Stop offset="0" stopColor="#3b9be6" stopOpacity="1" />
-						<Stop offset="0.42" stopColor="#74bff5" stopOpacity="1" />
-						<Stop offset="0.72" stopColor="#bfe0f9" stopOpacity="0.55" />
-						<Stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+						<Stop offset="0" stopColor={palette.glow0} stopOpacity="1" />
+						<Stop offset="0.42" stopColor={palette.glow1} stopOpacity="1" />
+						<Stop offset="0.72" stopColor={palette.glow2} stopOpacity="0.55" />
+						<Stop offset="1" stopColor={palette.white} stopOpacity="0" />
 					</RadialGradient>
 					<LinearGradient id="loginShade" x1="0" y1="0" x2="1" y2="0">
-						<Stop offset="0" stopColor="#ffffff" stopOpacity="0.9" />
-						<Stop offset="0.55" stopColor="#ffffff" stopOpacity="0" />
+						<Stop offset="0" stopColor={palette.white} stopOpacity="0.9" />
+						<Stop offset="0.55" stopColor={palette.white} stopOpacity="0" />
 					</LinearGradient>
 					<Pattern
 						id="loginDots"
@@ -134,7 +164,12 @@ export function LoginBackground() {
 						width={DOT_GAP}
 						height={DOT_GAP}
 					>
-						<Circle cx={DOT_GAP / 2} cy={DOT_GAP / 2} r={1.3} fill="#ffffff" />
+						<Circle
+							cx={DOT_GAP / 2}
+							cy={DOT_GAP / 2}
+							r={1.3}
+							fill={palette.white}
+						/>
 					</Pattern>
 					<Pattern
 						id="loginDotsBlue"
@@ -142,10 +177,15 @@ export function LoginBackground() {
 						width={DOT_GAP}
 						height={DOT_GAP}
 					>
-						<Circle cx={DOT_GAP / 2} cy={DOT_GAP / 2} r={1.3} fill="#8fb8dd" />
+						<Circle
+							cx={DOT_GAP / 2}
+							cy={DOT_GAP / 2}
+							r={1.3}
+							fill={palette.dotBlue}
+						/>
 					</Pattern>
 				</Defs>
-				<Rect width={width} height={height} fill="#f6faff" />
+				<Rect width={width} height={height} fill={palette.base} />
 				<Rect width={width} height={height} fill="url(#loginGlow)" />
 				{!isPortrait && (
 					<Rect width={width * 0.6} height={height} fill="url(#loginShade)" />

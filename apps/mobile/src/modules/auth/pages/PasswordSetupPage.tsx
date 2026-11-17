@@ -67,7 +67,13 @@ function passwordStrength(password: string) {
 }
 
 const STRENGTH_LABELS = ['', 'Fraca', 'Razoável', 'Boa', 'Forte'];
-const STRENGTH_COLORS = ['#d5e3f1', '#ef4444', '#f59e0b', '#2d83cd', '#10b981'];
+const STRENGTH_COLORS = [
+	'transparent',
+	'#ef4444',
+	'#f59e0b',
+	'#2d83cd',
+	'#10b981',
+];
 
 function Requirement({ met, label }: { met: boolean; label: string }) {
 	const themeColors = useThemeColors();
@@ -100,13 +106,17 @@ function StatusCard({
 	tone: 'blue' | 'green';
 	children?: React.ReactNode;
 }) {
+	const themeColors = useThemeColors();
 	const isGreen = tone === 'green';
 	return (
 		<View className="items-center">
 			<View
 				className={`mb-5 h-16 w-16 items-center justify-center rounded-full ${isGreen ? 'bg-success-soft' : 'bg-surface-subtle'}`}
 			>
-				<Icon size={30} color={isGreen ? '#059669' : '#2d83cd'} />
+				<Icon
+					size={30}
+					color={isGreen ? themeColors.success : themeColors.primaryText}
+				/>
 			</View>
 			<Text className="text-center text-[24px] font-extrabold tracking-[-0.6px] text-foreground">
 				{title}
@@ -313,7 +323,9 @@ export function PasswordSetupPage() {
 								className="h-1.5 flex-1 rounded-full"
 								style={{
 									backgroundColor:
-										step <= strength ? STRENGTH_COLORS[strength] : '#e3edf7',
+										step <= strength
+											? STRENGTH_COLORS[strength]
+											: themeColors.surfaceMuted,
 								}}
 							/>
 						))}

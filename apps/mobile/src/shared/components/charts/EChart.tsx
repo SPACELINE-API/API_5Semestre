@@ -9,6 +9,7 @@ import { SvgXml } from 'react-native-svg';
 import { init, use } from 'echarts/core';
 import { SVGRenderer } from 'echarts/renderers';
 import './registerCharts';
+import { themeChartOption } from './chartTheme';
 import { stripPointerEvents } from './svg';
 import type { ChartOption, EChartProps } from './types';
 
@@ -39,8 +40,11 @@ export function EChart({
 	const [renderedSvg, setRenderedSvg] = useState<string | null>(null);
 
 	const svg = useMemo(
-		() => (width > 0 ? renderSvg(option, width, height) : null),
-		[option, width, height],
+		() =>
+			width > 0
+				? renderSvg(themeChartOption(option, themeColors), width, height)
+				: null,
+		[option, width, height, themeColors],
 	);
 	const isLoading = showLoadingIndicator && (!svg || renderedSvg !== svg);
 

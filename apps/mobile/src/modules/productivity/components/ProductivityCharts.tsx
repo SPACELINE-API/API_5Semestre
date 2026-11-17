@@ -12,7 +12,6 @@ import { ChartCard } from './ChartCard';
 
 const METRICS: ChartMetric[] = ['documents', 'words', 'value'];
 const ACTIVE_TOGGLE_STYLE = {
-	backgroundColor: '#FFFFFF',
 	shadowColor: '#000000',
 	shadowOffset: { width: 0, height: 1 },
 	shadowOpacity: 0.08,
@@ -44,7 +43,7 @@ function MetricToggle({ metric, onChange }: MetricToggleProps) {
 						activeOpacity={0.7}
 						accessibilityRole="button"
 						accessibilityState={{ selected: isActive }}
-						className="rounded-md px-3 py-1.5"
+						className={`rounded-md px-3 py-1.5 ${isActive ? 'bg-surface' : ''}`}
 						style={isActive ? ACTIVE_TOGGLE_STYLE : undefined}
 					>
 						<Text

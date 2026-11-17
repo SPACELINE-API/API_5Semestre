@@ -34,7 +34,7 @@ const QUICK_REPLIES = [
 ];
 
 const SCROLL_CLASSNAME =
-	'flex-1 [scroll-behavior:smooth] [scrollbar-width:thin] [scrollbar-color:#bcdcf5_transparent] ' +
+	'flex-1 [scroll-behavior:smooth] [scrollbar-width:thin] [scrollbar-color:rgb(var(--color-border-strong))_transparent] ' +
 	'[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent ' +
 	'[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary-soft ' +
 	'hover:[&::-webkit-scrollbar-thumb]:bg-primary';
