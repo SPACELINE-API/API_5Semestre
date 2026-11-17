@@ -1,6 +1,26 @@
+const plugin = require('tailwindcss/plugin');
+const palette = require('./src/shared/theme/palette');
+
+function cssVariables(scheme) {
+	return Object.fromEntries(
+		palette.tokens.map((token) => [
+			`--color-${token}`,
+			palette.rgb[scheme][token].join(' '),
+		]),
+	);
+}
+
+const themeColors = Object.fromEntries(
+	palette.tokens.map((token) => [
+		token,
+		`rgb(var(--color-${token}) / <alpha-value>)`,
+	]),
+);
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
 	presets: [require('nativewind/preset')],
+	darkMode: 'class',
 
 	content: ['./app/**/*.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],
 	theme: {
@@ -14,6 +34,7 @@ module.exports = {
 				'poppins-bold': ['Poppins-Bold'],
 			},
 			colors: {
+				...themeColors,
 				black: '#000000',
 				white: '#FFFFFF',
 				gray: {
@@ -45,5 +66,12 @@ module.exports = {
 			},
 		},
 	},
-	plugins: [],
+	plugins: [
+		plugin(({ addBase }) => {
+			addBase({
+				':root': cssVariables('light'),
+				'.dark:root': cssVariables('dark'),
+			});
+		}),
+	],
 };

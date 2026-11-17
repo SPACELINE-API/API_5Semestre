@@ -23,6 +23,7 @@ import {
 } from '@expo-google-fonts/poppins';
 
 import '../shared/styles/global.css';
+import { ThemeProvider } from '../shared/theme/ThemeProvider';
 import {
 	getSession,
 	loadAuthorizationContext,
@@ -42,6 +43,14 @@ import { useInactivityLogout } from '../modules/auth/hooks/useInactivityLogout';
 SplashScreen.preventAutoHideAsync();
 
 export default function AppLayout() {
+	return (
+		<ThemeProvider>
+			<AppLayoutContent />
+		</ThemeProvider>
+	);
+}
+
+function AppLayoutContent() {
 	const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 	const [fontsLoaded, error] = useFonts({
 		Inter: Inter_400Regular,

@@ -13,6 +13,8 @@ import {
 } from '../modules/auth/services/authorization';
 import type { LucideIcon } from 'lucide-react-native';
 import {
+	Moon as MoonIcon,
+	Sun as SunIcon,
 	BarChart3 as ProdutividadeIcon,
 	FileBarChart as ProposalsIcon,
 	X as CloseIcon,
@@ -31,6 +33,7 @@ import {
 	AbrirIcon,
 	FecharIcon,
 } from '../shared/components/icon/icon';
+import { useTheme } from '../shared/theme/ThemeProvider';
 
 type NavItemProps = {
 	icon: LucideIcon;
@@ -120,6 +123,7 @@ export function SideBar({
 	const pathname = usePathname();
 	const insets = useSafeAreaInsets();
 	const [isOpen, setIsOpen] = useState<boolean>(true);
+	const { isDark, toggleScheme } = useTheme();
 
 	const isDashboardActive = pathname === '/dashboard' || pathname === '/';
 	const isProductivityActive = pathname.startsWith('/produtividade');
@@ -345,6 +349,13 @@ export function SideBar({
 				</ScrollView>
 
 				<View className="relative flex-col gap-1 pt-4 mt-2 border-t border-gray-100">
+					<NavItem
+						icon={isDark ? SunIcon : MoonIcon}
+						label={isDark ? 'Modo claro' : 'Modo escuro'}
+						isOpen={showExpanded}
+						active={false}
+						onPress={toggleScheme}
+					/>
 					{!isTranslator && (
 						<NavItem
 							icon={ConfiguracoesIcon}
