@@ -400,6 +400,8 @@ export function QuoteCard({
 	const [decisionError, setDecisionError] = useState('');
 	const canWriteQuotes = usePermission('quotes.write');
 	const canApproveQuotes = usePermission('quotes.approve');
+	const canWriteClients = usePermission('clients.write');
+	const canWriteServiceOrders = usePermission('service_orders.write');
 	const canApproveQuote = Boolean(quote.company_id && quote.items.length > 0);
 	const canWriteDocuments = usePermission('documents.write');
 
@@ -527,6 +529,7 @@ export function QuoteCard({
 	};
 
 	function startEditing() {
+		if (!canWriteQuotes) return;
 		setCustomerName(quote.customer_name ?? '');
 		setEnterprise(quote.enterprise ?? '');
 		setEmail(quote.email ?? '');
@@ -575,12 +578,14 @@ export function QuoteCard({
 	}
 
 	function requestCreateCompany(searchText: string) {
+		if (!canWriteClients) return;
 		setCreateCompanySeed(searchText || enterprise);
 		setCreateCompanyError(null);
 		setShowCreateCompany(true);
 	}
 
 	async function handleCreateCompany(data: CompanyCreateInput) {
+		if (!canWriteClients) return;
 		try {
 			const company = await createCompany(data);
 			setCompanies((current) => [...current, company]);
@@ -610,6 +615,7 @@ export function QuoteCard({
 	async function handleCreateAdditionalService(
 		data: AdditionalServiceFormData,
 	) {
+		if (!canWriteQuotes) return;
 		const service = await createAdditionalService({
 			...data,
 			quote_id: quote.id,
@@ -618,6 +624,7 @@ export function QuoteCard({
 	}
 
 	async function handleCompleteAdditionalService(service: AdditionalService) {
+		if (!canWriteQuotes) return;
 		setSaveError('');
 		try {
 			const updated = await updateAdditionalServiceStatus(
@@ -641,7 +648,7 @@ export function QuoteCard({
 		data: CreateServiceOrderItemInput,
 		file: UploadableFile | null,
 	) {
-		if (!quote.service_order_id) return;
+		if (!canWriteServiceOrders || !quote.service_order_id) return;
 
 		const item = await createServiceOrderItem(
 			quote.service_order_id,
@@ -656,6 +663,7 @@ export function QuoteCard({
 		data: UpdateServiceOrderItemInput,
 		file: UploadableFile | null,
 	) {
+		if (!canWriteServiceOrders) return;
 		const updated = await updateServiceOrderItem(itemId, data, file);
 		setServiceOrderItems((current) =>
 			current.map((item) => (item.id === updated.id ? updated : item)),
@@ -663,7 +671,8 @@ export function QuoteCard({
 	}
 
 	async function handleDeleteServiceOrderItem() {
-		if (!quote.service_order_id || !deletingItem) return;
+		if (!canWriteServiceOrders || !quote.service_order_id || !deletingItem)
+			return;
 
 		setIsDeletingItem(true);
 		setSaveError('');
@@ -686,6 +695,7 @@ export function QuoteCard({
 	}
 
 	async function handlePickItemFile(itemId: string) {
+		if (!canWriteDocuments) return;
 		const file = await pickDocument();
 		if (!file) return;
 
@@ -703,6 +713,7 @@ export function QuoteCard({
 	}
 
 	async function handleSave() {
+		if (!canWriteQuotes) return;
 		if (
 			draftAdditionalServices.some(
 				(service) => !service.description.trim() || !service.price,
@@ -933,8 +944,9 @@ export function QuoteCard({
 									<View className="flex-row flex-wrap gap-3">
 										<TouchableOpacity
 											accessibilityRole="button"
-											disabled={updating}
+											disabled={updating || !canApproveQuotes}
 											onPress={() => {
+												if (updating || !canApproveQuotes) return;
 												if (!reprovalReason.trim()) {
 													setDecisionError('Informe o motivo da reprovação.');
 													return;
@@ -990,11 +1002,13 @@ export function QuoteCard({
 												disabled={
 													updating || !canApproveQuotes || !canApproveQuote
 												}
-												onPress={() =>
+												onPress={() => {
+													if (updating || !canApproveQuotes || !canApproveQuote)
+														return;
 													void onDecide('approved').then((message) => {
 														if (message) setDecisionError(message);
-													})
-												}
+													});
+												}}
 												className={`rounded-lg px-4 py-2.5 ${updating || !canApproveQuote ? 'bg-gray-300' : 'bg-emerald-600'} ${!canApproveQuotes || !canApproveQuote ? 'opacity-40' : ''}`}
 											>
 												<Text className="font-inter-medium text-sm text-white">
@@ -1409,9 +1423,10 @@ export function QuoteCard({
 						<View className="flex-row flex-wrap gap-3 border-t border-gray-100 pt-4">
 							<TouchableOpacity
 								accessibilityRole="button"
-								disabled={isSaving}
+								disabled={isSaving || !canWriteQuotes}
+								accessibilityState={{ disabled: isSaving || !canWriteQuotes }}
 								onPress={() => void handleSave()}
-								className={`rounded-lg px-5 py-2.5 ${isSaving ? 'bg-gray-300' : 'bg-blue-600'}`}
+								className={`rounded-lg px-5 py-2.5 ${isSaving || !canWriteQuotes ? 'bg-gray-300' : 'bg-blue-600'}`}
 							>
 								<Text className="font-inter-semibold text-sm text-white">
 									{isSaving ? 'Salvando...' : 'Salvar alterações'}

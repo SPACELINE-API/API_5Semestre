@@ -16,7 +16,7 @@ from app.modules.auth.schemas.authorization import (
 )
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.auth.services.authorization_audit_service import record_authorization_change
-from app.modules.auth.services.roles_service import get_effective_permissions
+from app.modules.auth.services.roles_service import get_user_effective_permissions
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -112,12 +112,9 @@ def _user_roles_snapshot(user: User) -> dict[str, list[str]]:
 
 
 def _user_access_response(user: User) -> UserAccessResponse:
-    active_roles = sorted(
-        (role for role in user.roles if role.is_active), key=lambda role: role.name
-    )
     return UserAccessResponse(
         id=user.id,
         email=user.email,
         roles=[AuthenticatedRoleResponse(id=role.id, name=role.name) for role in user.roles],
-        permissions=sorted(get_effective_permissions(active_roles)),
+        permissions=sorted(get_user_effective_permissions(user)),
     )

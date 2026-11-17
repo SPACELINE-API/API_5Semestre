@@ -38,7 +38,7 @@ def test_create_internal_user_starts_inactive_with_roles_and_audit(env) -> None:
     assert body["password_defined"] is False
     assert body["latest_link"] is None
     assert [role["name"] for role in body["roles"]] == ["Financeiro", "Projetos"]
-    assert body["permissions"] == ["finance.read", "quotes.read"]
+    assert body["permissions"] == ["dashboard.read", "finance.read", "quotes.read"]
     assert audit_actions(env, body["id"]) == ["internal_user_created"]
     stored = env.db.get(User, uuid.UUID(body["id"]))
     assert stored is not None and stored.password_set_at is None

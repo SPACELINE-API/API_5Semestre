@@ -1,14 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { listContacts } from '../services/contactService';
 import type { Contact } from '../types/contact';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 export function useContactsByCompany(companyId: string | undefined) {
+	const canReadContacts = usePermission('contacts.read');
 	const [contacts, setContacts] = useState<Contact[]>([]);
 	const [isLoadingContacts, setIsLoadingContacts] = useState(true);
 	const [contactsError, setContactsError] = useState<string | null>(null);
 
 	const refreshContacts = useCallback(async () => {
-		if (!companyId) return;
+		if (!companyId || !canReadContacts) {
+			setContacts([]);
+			setIsLoadingContacts(false);
+			return;
+		}
 		setIsLoadingContacts(true);
 		setContactsError(null);
 
@@ -23,7 +29,7 @@ export function useContactsByCompany(companyId: string | undefined) {
 		} finally {
 			setIsLoadingContacts(false);
 		}
-	}, [companyId]);
+	}, [companyId, canReadContacts]);
 
 	useEffect(() => {
 		refreshContacts();

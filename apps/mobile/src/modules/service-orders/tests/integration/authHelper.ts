@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 
 const SESSION_COOKIE = 'spaceline_session';
 
-export async function loginAs(page: Page) {
+export async function loginAs(page: Page, permissions?: string[]) {
 	await page.route('**/api/auth/me', (route) =>
 		route.fulfill({
 			status: 200,
@@ -10,7 +10,7 @@ export async function loginAs(page: Page) {
 			body: JSON.stringify({
 				user: { id: 'test-user-id', email: 'admin@spaceline.com.br' },
 				roles: [{ id: 'test-admin', name: 'Administrador de teste' }],
-				permissions: [
+				permissions: permissions ?? [
 					'dashboard.read',
 					'assignments.read',
 					'requests.read',

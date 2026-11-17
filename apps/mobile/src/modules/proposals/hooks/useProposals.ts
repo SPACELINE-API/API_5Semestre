@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiError } from '../../../shared/services/publicApiClient';
+import {
+	ApiError,
+	FORBIDDEN_ERROR_MESSAGE,
+} from '../../../shared/services/publicApiClient';
 import { listProposals } from '../services/proposalService';
 import type { ProposalFilters, ProposalPage } from '../types/proposal';
 
 function errorMessage(cause: unknown) {
 	if (cause instanceof ApiError && cause.status === 403) {
-		return 'Você não tem permissão para consultar propostas.';
+		return FORBIDDEN_ERROR_MESSAGE;
 	}
 	if (cause instanceof ApiError && cause.status === 422) {
 		return 'Não foi possível aplicar os filtros informados. Confira o período e a ordenação.';
