@@ -697,3 +697,152 @@ def test_service_order_exposes_versions_and_reopen_flag(
     assert versions[0]["reason"] == "Ajuste do cliente"
     assert versions[0]["origin"] == "quote_reapproval"
     assert versions[1]["origin"] == "quote_approval"
+
+
+def find_listed_quote(client: TestClient, quote: Quote) -> dict:
+    response = client.get("/api/quotes", params={"search": str(quote.id)})
+    assert response.status_code == 200, response.text
+    return next(item for item in response.json()["items"] if item["id"] == str(quote.id))
+
+
+def test_quote_never_reopened_has_no_reopen_info(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "approved")
+
+    listed = find_listed_quote(db_client, quote)
+
+    assert listed["reopened_at"] is None
+    assert listed["reopen_reason"] is None
+    assert listed["reopened_by_email"] is None
+    assert listed["reopen_count"] == 0
+
+
+def test_reopened_quote_exposes_last_reopen(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "approved")
+
+    response = db_client.post(f"/api/quotes/{quote.id}/reopen", json={"reason": "Novo prazo"})
+
+    assert response.status_code == 200
+    reopened = response.json()
+    assert reopened["reopened_at"] is not None
+    assert reopened["reopen_reason"] == "Novo prazo"
+    assert reopened["reopened_by_email"].endswith("@example.com")
+    assert reopened["reopen_count"] == 1
+    listed = find_listed_quote(db_client, quote)
+    assert listed["reopen_reason"] == "Novo prazo"
+    assert listed["reopen_count"] == 1
+
+
+def test_reopen_info_keeps_only_the_latest_reopen(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "approved")
+    assert (
+        db_client.post(f"/api/quotes/{quote.id}/reopen", json={"reason": "Primeira"})
+    ).status_code == 200
+    assert db_client.post(f"/api/quotes/{quote.id}/send").status_code == 200
+    first_reopen = isolated_db_session.query(QuoteAuditLog).filter_by(quote_id=quote.id).one()
+    first_reopen.created_at = datetime.now(UTC) - timedelta(hours=1)
+    isolated_db_session.commit()
+
+    response = db_client.post(f"/api/quotes/{quote.id}/reopen", json={"reason": "Segunda"})
+
+    assert response.status_code == 200
+    assert response.json()["reopen_reason"] == "Segunda"
+    assert response.json()["reopen_count"] == 2
+    assert find_listed_quote(db_client, quote)["reopen_reason"] == "Segunda"
+
+
+def test_translation_item_stores_word_count(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "draft")
+
+    created = db_client.post(
+        f"/api/quotes/{quote.id}/translation-items",
+        json={
+            "source_language": "pt-BR",
+            "target_language": "es-ES",
+            "file_url": "https://storage.test/procuracao.pdf",
+            "word_count": 320,
+        },
+    )
+    updated = db_client.patch(
+        f"/api/quotes/{quote.id}/translation-items/{created.json()['id']}",
+        json={"word_count": 450},
+    )
+
+    assert created.status_code == 201
+    assert created.json()["word_count"] == 320
+    assert updated.status_code == 200
+    assert updated.json()["word_count"] == 450
+    listed_items = find_listed_quote(db_client, quote)["items"]
+    assert {item["word_count"] for item in listed_items} == {None, 450}
+
+
+def test_translation_item_rejects_negative_word_count(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+
+    response = db_client.patch(
+        f"/api/quotes/{quote.id}/translation-items/{quote.items[0].id}",
+        json={"word_count": -1},
+    )
+
+    assert response.status_code == 422
+
+
+def test_approval_copies_word_count_to_service_order(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    quote.items[0].word_count = 1200
+    isolated_db_session.commit()
+
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+
+    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
+    assert os_item.word_count == 1200
+
+
+def test_reapproval_updates_word_count_in_service_order(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    quote.items[0].word_count = 1200
+    isolated_db_session.commit()
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+
+    assert (
+        db_client.patch(
+            f"/api/quotes/{quote.id}/translation-items/{quote.items[0].id}",
+            json={"file_url": "https://storage.test/contrato-v2.pdf", "word_count": 1500},
+        )
+    ).status_code == 200
+    reapprove(db_client, quote)
+
+    isolated_db_session.expire_all()
+    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
+    assert os_item.word_count == 1500
+    version = (
+        isolated_db_session.query(ServiceOrderVersion)
+        .filter_by(service_order_id=order.id, version=2)
+        .one()
+    )
+    assert version.changes[0]["fields"]["word_count"] == {"before": 1200, "after": 1500}
+
+
+def test_reapproval_keeps_service_order_word_count_when_quote_has_none(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
+    os_item.word_count = 800
+    isolated_db_session.commit()
+
+    reapprove(db_client, quote)
+
+    isolated_db_session.expire_all()
+    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
+    assert os_item.word_count == 800
