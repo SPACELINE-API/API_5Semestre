@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from app.modules.clients.models.company import Company
     from app.modules.contacts.models.contact import Contact
     from app.modules.quotes.models.additional_service import AdditionalService
+    from app.modules.quotes.models.quote_audit_log import QuoteAuditLog
     from app.modules.quotes.models.request import Request
     from app.modules.quotes.models.translation_item import QuoteTranslationItem
     from app.modules.service_orders.models.service_order import ServiceOrder
@@ -114,12 +115,40 @@ class Quote(Base):
     service_orders: Mapped[list["ServiceOrder"]] = relationship(
         "ServiceOrder", back_populates="quote", order_by="ServiceOrder.created_at.desc()"
     )
+    reopen_logs: Mapped[list["QuoteAuditLog"]] = relationship(
+        "QuoteAuditLog",
+        primaryjoin=(
+            "and_(Quote.id == foreign(QuoteAuditLog.quote_id), QuoteAuditLog.action == 'reopen')"
+        ),
+        order_by="QuoteAuditLog.created_at.desc()",
+        viewonly=True,
+    )
 
     @property
     def service_order_id(self) -> uuid.UUID | None:
         if not self.service_orders:
             return None
         return self.service_orders[0].id
+
+    @property
+    def last_reopen(self) -> "QuoteAuditLog | None":
+        return self.reopen_logs[0] if self.reopen_logs else None
+
+    @property
+    def reopened_at(self) -> datetime | None:
+        return self.last_reopen.created_at if self.last_reopen else None
+
+    @property
+    def reopen_reason(self) -> str | None:
+        return self.last_reopen.reason if self.last_reopen else None
+
+    @property
+    def reopened_by_email(self) -> str | None:
+        return self.last_reopen.actor_email if self.last_reopen else None
+
+    @property
+    def reopen_count(self) -> int:
+        return len(self.reopen_logs)
 
     @property
     def valid_until(self) -> datetime | None:

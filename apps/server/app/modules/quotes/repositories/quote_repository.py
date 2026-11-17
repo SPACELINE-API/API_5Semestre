@@ -49,6 +49,7 @@ class QuoteRepository:
                 selectinload(Quote.items),
                 selectinload(Quote.service_orders),
                 selectinload(Quote.company),
+                selectinload(Quote.reopen_logs),
             )
             .distinct()
             .order_by(Quote.created_at.desc())

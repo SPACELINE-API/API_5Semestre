@@ -68,6 +68,10 @@ class QuoteResponse(BaseModel):
     valid_until: datetime | None = None
     sent_to_customer_at: datetime | None = None
     sent_to_customer_email: str | None = None
+    reopened_at: datetime | None = None
+    reopen_reason: str | None = None
+    reopened_by_email: str | None = None
+    reopen_count: int = 0
     created_at: datetime
     updated_at: datetime
 
@@ -88,6 +92,10 @@ class QuoteManagerResponse(BaseModel):
     valid_until: datetime | None = None
     sent_to_customer_at: datetime | None = None
     sent_to_customer_email: str | None = None
+    reopened_at: datetime | None = None
+    reopen_reason: str | None = None
+    reopened_by_email: str | None = None
+    reopen_count: int = 0
     total_value: Decimal
     customer_name: str | None
     enterprise: str | None
