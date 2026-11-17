@@ -66,6 +66,7 @@ export type QuoteResponse = {
 	status: string;
 	approved_at?: string | null;
 	approved_by_email?: string | null;
+	terms_accepted_at?: string | null;
 	reproved_at?: string | null;
 	reproved_by_email?: string | null;
 	reproval_reason?: string | null;

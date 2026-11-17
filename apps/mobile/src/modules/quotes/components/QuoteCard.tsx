@@ -1261,6 +1261,15 @@ export function QuoteCard({
 								Aprovado por:{' '}
 								{quote.approved_by_email || 'Responsável não identificado'}
 							</Text>
+							{quote.terms_accepted_at ? (
+								<Text
+									testID="quote-terms-accepted"
+									className="font-inter text-xs text-emerald-700"
+								>
+									Termos e condições aceitos pelo cliente em{' '}
+									{formatDate(quote.terms_accepted_at)}
+								</Text>
+							) : null}
 						</View>
 					) : null}
 					{quote.status === 'approved' && !isEditing ? (

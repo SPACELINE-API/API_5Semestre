@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import {
 	ActivityIndicator,
 	Image,
+	Linking,
+	Pressable,
 	Text,
 	TextInput,
 	TouchableOpacity,
@@ -9,6 +11,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import {
+	Check,
 	CheckCircle2,
 	Clock3,
 	FileText,
@@ -19,6 +22,7 @@ import logoAlianca from '../../../shared/assets/logo-alianca.png';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import { LoginScroll } from '../../auth/components/LoginScroll';
 import {
+	customerQuoteTermsUrl,
 	decideCustomerQuote,
 	getCustomerQuote,
 	type CustomerQuote,
@@ -92,6 +96,7 @@ export function CustomerQuoteApprovalPage() {
 	const [mode, setMode] = useState<'choose' | 'approve' | 'reprove'>('choose');
 	const [reloadKey, setReloadKey] = useState(0);
 	const [reason, setReason] = useState('');
+	const [termsAccepted, setTermsAccepted] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
 	const [actionError, setActionError] = useState('');
 
@@ -123,10 +128,23 @@ export function CustomerQuoteApprovalPage() {
 		};
 	}, [token, reloadKey]);
 
+	function toggleTerms() {
+		setTermsAccepted((current) => !current);
+		setActionError('');
+	}
+
+	function openTerms() {
+		if (token) void Linking.openURL(customerQuoteTermsUrl(token));
+	}
+
 	async function decide(approved: boolean) {
 		if (!token) return;
 		if (!approved && !reason.trim()) {
 			setActionError('Informe o motivo da reprovação.');
+			return;
+		}
+		if (approved && !termsAccepted) {
+			setActionError('Aceite os termos e condições para aprovar o orçamento.');
 			return;
 		}
 		setSubmitting(true);
@@ -135,7 +153,7 @@ export function CustomerQuoteApprovalPage() {
 			const quote = await decideCustomerQuote(
 				token,
 				approved
-					? { status: 'approved' }
+					? { status: 'approved', terms_accepted: true }
 					: { status: 'reproved', reproval_reason: reason.trim() },
 			);
 			setState({ kind: 'ready', quote });
@@ -335,12 +353,42 @@ export function CustomerQuoteApprovalPage() {
 												aprovado, iniciamos o serviço e enviamos o comprovante
 												comercial por e-mail.
 											</Text>
+											<View className="flex-row items-start gap-2.5">
+												<Pressable
+													accessibilityRole="checkbox"
+													accessibilityLabel="Li e aceito os termos e condições deste orçamento"
+													accessibilityState={{ checked: termsAccepted }}
+													aria-checked={termsAccepted}
+													testID="customer-quote-terms-checkbox"
+													hitSlop={6}
+													onPress={toggleTerms}
+													className={`mt-0.5 h-[20px] w-[20px] items-center justify-center rounded border-[1.5px] ${termsAccepted ? 'border-emerald-600 bg-emerald-600' : 'border-gray-400 bg-white'}`}
+												>
+													{termsAccepted ? (
+														<Check color="#ffffff" size={13} strokeWidth={3} />
+													) : null}
+												</Pressable>
+												<Text className="flex-1 font-inter text-sm leading-5 text-gray-800">
+													<Text onPress={toggleTerms}>Li e aceito os </Text>
+													<Text
+														accessibilityRole="link"
+														onPress={openTerms}
+														className="font-inter-medium text-blue-600 underline"
+													>
+														termos e condições
+													</Text>
+													<Text onPress={toggleTerms}> deste orçamento.</Text>
+												</Text>
+											</View>
 											<View className="flex-row flex-wrap gap-3">
 												<TouchableOpacity
 													accessibilityRole="button"
-													disabled={submitting}
+													accessibilityState={{
+														disabled: submitting || !termsAccepted,
+													}}
+													disabled={submitting || !termsAccepted}
 													onPress={() => void decide(true)}
-													className={`rounded-lg px-4 py-3 ${submitting ? 'bg-gray-300' : 'bg-emerald-600'}`}
+													className={`rounded-lg px-4 py-3 ${submitting || !termsAccepted ? 'bg-gray-300' : 'bg-emerald-600'}`}
 												>
 													<Text className="font-inter-medium text-sm text-white">
 														{submitting ? 'Enviando...' : 'Confirmar aprovação'}
@@ -364,6 +412,7 @@ export function CustomerQuoteApprovalPage() {
 												accessibilityRole="button"
 												onPress={() => {
 													setActionError('');
+													setTermsAccepted(false);
 													setMode('approve');
 												}}
 												className="min-w-[160px] flex-1 items-center rounded-lg bg-emerald-600 px-4 py-3"

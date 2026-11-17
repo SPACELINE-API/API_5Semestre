@@ -1,4 +1,8 @@
-import { apiPost, request } from '../../../shared/services/publicApiClient';
+import {
+	apiPost,
+	apiUrl,
+	request,
+} from '../../../shared/services/publicApiClient';
 
 export type CustomerQuoteStatus =
 	'draft' | 'pending' | 'approved' | 'reproved' | 'cancelled';
@@ -21,15 +25,21 @@ export type CustomerQuote = {
 	approved_at: string | null;
 	reproved_at: string | null;
 	reproval_reason: string | null;
+	terms_accepted_at?: string | null;
 };
 
 export type CustomerDecision =
-	{ status: 'approved' } | { status: 'reproved'; reproval_reason: string };
+	| { status: 'approved'; terms_accepted: true }
+	| { status: 'reproved'; reproval_reason: string };
 
 export function getCustomerQuote(token: string) {
 	return request<CustomerQuote>(
 		`/api/public/quotes/${encodeURIComponent(token)}`,
 	);
+}
+
+export function customerQuoteTermsUrl(token: string) {
+	return `${apiUrl}/api/public/quotes/${encodeURIComponent(token)}/terms`;
 }
 
 export function decideCustomerQuote(token: string, decision: CustomerDecision) {
