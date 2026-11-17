@@ -1,7 +1,9 @@
+import re
 import uuid
 from decimal import Decimal
 
 from app.modules.quotes.models import AdditionalService, Quote, QuoteTranslationItem
+from app.modules.quotes.services import quote_sent_email
 from app.modules.quotes.services.quote_sent_email import render_quote_sent_email
 
 
@@ -57,3 +59,33 @@ def test_email_escapes_customer_data():
 
     assert "<b>Ltda</b>" not in html
     assert "&lt;b&gt;Ltda&lt;/b&gt;" in html
+
+
+def test_email_explains_terms_attached_and_acceptance():
+    _title, html = render()
+    text = " ".join(html.split())
+
+    assert "Termos e condições" in text
+    assert re.search(r"<strong>termos_orcamento_[0-9A-F]{8}\.pdf</strong>", text)
+    assert "para aprovar o orçamento, é preciso aceitar os termos na página de aprovação" in text
+
+
+def test_sent_email_attaches_terms_pdf(monkeypatch):
+    sent = {}
+    monkeypatch.setattr(quote_sent_email, "send_email", lambda **kwargs: sent.update(kwargs))
+    quote = make_quote()
+
+    quote_sent_email.send_quote_sent_email(
+        quote,
+        to_email="cliente@example.com",
+        customer_name="Maria",
+        approval_url="https://app.test/aprovar-orcamento?token=abc",
+        valid_until="10/12/2026",
+        is_update=False,
+    )
+
+    [(filename, content, content_type)] = sent["attachments"]
+    assert filename == f"termos_orcamento_{str(quote.id)[:8].upper()}.pdf"
+    assert content_type == "application/pdf"
+    assert content.startswith(b"%PDF")
+    assert filename in sent["html_body"]

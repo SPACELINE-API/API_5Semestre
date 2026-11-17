@@ -1,3 +1,4 @@
+import io
 import uuid
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -6,6 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
+from pypdf import PdfReader
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 
@@ -29,6 +31,7 @@ from app.shared.database import get_db
 LOCKED_STATUSES = ["pending", "approved", "reproved", "cancelled"]
 sent_emails = MagicMock()
 BASE_PERMISSIONS = ("quotes.read", "quotes.write", "quotes.approve", "service_orders.read")
+CUSTOMER_APPROVAL = {"status": "approved", "terms_accepted": True}
 
 
 def make_user(db: Session, permission_codes: tuple[str, ...]) -> User:
@@ -503,7 +506,7 @@ def test_customer_approves_quote_by_link(db_client: TestClient, isolated_db_sess
     token = send_and_get_token(db_client, quote)
     as_anonymous()
 
-    response = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "approved"})
+    response = db_client.post(f"/api/public/quotes/{token}/decision", json=CUSTOMER_APPROVAL)
 
     assert response.status_code == 200
     assert response.json()["status"] == "approved"
@@ -514,7 +517,7 @@ def test_customer_approves_quote_by_link(db_client: TestClient, isolated_db_sess
     assert isolated_db_session.query(ServiceOrder).filter_by(quote_id=quote.id).count() == 1
     quote_service_module.QuoteReceiptService.return_value.create_receipt.assert_called_once()
 
-    again = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "approved"})
+    again = db_client.post(f"/api/public/quotes/{token}/decision", json=CUSTOMER_APPROVAL)
     assert again.status_code == 409
     assert db_client.get(f"/api/public/quotes/{token}").json()["status"] == "approved"
 
@@ -564,7 +567,7 @@ def test_customer_cannot_approve_expired_quote(db_client: TestClient, isolated_d
     as_anonymous()
 
     assert db_client.get(f"/api/public/quotes/{token}").json()["status"] == "cancelled"
-    response = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "approved"})
+    response = db_client.post(f"/api/public/quotes/{token}/decision", json=CUSTOMER_APPROVAL)
 
     assert response.status_code == 409
     assert isolated_db_session.query(ServiceOrder).filter_by(quote_id=quote.id).count() == 0
@@ -916,8 +919,8 @@ def test_second_approval_does_not_duplicate_service_order_version(
     quote = make_quote(isolated_db_session, "draft")
     token = send_and_get_token(db_client, quote)
     as_anonymous()
-    first = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "approved"})
-    second = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "approved"})
+    first = db_client.post(f"/api/public/quotes/{token}/decision", json=CUSTOMER_APPROVAL)
+    second = db_client.post(f"/api/public/quotes/{token}/decision", json=CUSTOMER_APPROVAL)
 
     assert first.status_code == 200
     assert second.status_code == 409
@@ -945,7 +948,7 @@ def test_customer_decision_is_rejected_when_link_was_replaced_meanwhile(
     monkeypatch.setattr(service, "_get_quote_by_customer_token", lambda _: found_before_reopen)
 
     with pytest.raises(HTTPException) as error:
-        service.decide_as_customer(token, QuoteStatusUpdate(status="approved"))
+        service.decide_as_customer(token, QuoteStatusUpdate(status="approved", terms_accepted=True))
 
     assert error.value.status_code == 404
     isolated_db_session.expire_all()
@@ -1034,3 +1037,113 @@ def test_reapproval_notifies_administrators_again(
         )
     )
     assert keys == [f"quote:{quote.id}:approved:v1", f"quote:{quote.id}:approved:v2"]
+
+
+def test_customer_cannot_approve_without_accepting_terms(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    as_anonymous()
+
+    for payload in ({"status": "approved"}, {"status": "approved", "terms_accepted": False}):
+        response = db_client.post(f"/api/public/quotes/{token}/decision", json=payload)
+        assert response.status_code == 422
+        assert response.json()["detail"] == (
+            "Aceite os termos e condições para aprovar o orçamento."
+        )
+
+    isolated_db_session.expire_all()
+    stored = isolated_db_session.get(Quote, quote.id)
+    assert stored.status == "pending"
+    assert stored.terms_accepted_at is None
+    assert isolated_db_session.query(ServiceOrder).filter_by(quote_id=quote.id).count() == 0
+
+
+def test_customer_approval_records_terms_acceptance(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    as_anonymous()
+
+    response = db_client.post(f"/api/public/quotes/{token}/decision", json=CUSTOMER_APPROVAL)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["terms_accepted_at"] is not None
+    isolated_db_session.expire_all()
+    stored = isolated_db_session.get(Quote, quote.id)
+    assert stored.terms_accepted_at == stored.approved_at
+
+
+def test_customer_reproval_does_not_require_terms(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    as_anonymous()
+
+    response = db_client.post(
+        f"/api/public/quotes/{token}/decision",
+        json={"status": "reproved", "reproval_reason": "Prazo longo"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["terms_accepted_at"] is None
+
+
+def test_internal_approval_does_not_record_terms_acceptance(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    assert db_client.post(f"/api/quotes/{quote.id}/send").status_code == 200
+
+    response = db_client.patch(f"/api/quotes/{quote.id}/status", json={"status": "approved"})
+
+    assert response.status_code == 200
+    assert response.json()["terms_accepted_at"] is None
+
+
+def test_reopen_clears_terms_acceptance_until_next_approval(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    as_anonymous()
+    assert (
+        db_client.post(f"/api/public/quotes/{token}/decision", json=CUSTOMER_APPROVAL)
+    ).status_code == 200
+    act_as(make_user(isolated_db_session, (*BASE_PERMISSIONS, "quotes.reopen")))
+
+    response = db_client.post(f"/api/quotes/{quote.id}/reopen", json={"reason": "Novo prazo"})
+
+    assert response.status_code == 200
+    assert response.json()["terms_accepted_at"] is None
+    listed = find_listed_quote(db_client, quote)
+    assert listed["terms_accepted_at"] is None
+
+
+def test_customer_downloads_terms_pdf_by_link(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    as_anonymous()
+
+    response = db_client.get(f"/api/public/quotes/{token}/terms")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    code = str(quote.id)[:8].upper()
+    assert f'filename="termos_orcamento_{code}.pdf"' in response.headers["content-disposition"]
+    text = "".join(page.extract_text() for page in PdfReader(io.BytesIO(response.content)).pages)
+    assert "TERMOS E CONDIÇÕES" in text
+    assert f"#{code}" in text
+    assert "Condições da proposta" in text
+
+
+def test_terms_pdf_requires_a_valid_link(db_client: TestClient):
+    as_anonymous()
+
+    response = db_client.get("/api/public/quotes/token-inexistente/terms")
+
+    assert response.status_code == 404
