@@ -167,6 +167,11 @@ class QuoteService:
     def decide_as_customer(self, raw_token: str, data: QuoteStatusUpdate) -> Quote:
         quote = self._get_quote_by_customer_token(raw_token)
         quote = self._get_quote_for_update(quote.id)
+        if quote.customer_access_token_hash != hash_customer_token(raw_token):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=INVALID_CUSTOMER_LINK_MESSAGE,
+            )
         return self._decide(quote, data, actor_id=None, actor_email=quote.sent_to_customer_email)
 
     def _decide(
@@ -285,8 +290,7 @@ class QuoteService:
                 ),
             )
 
-        if not quote.service_orders:
-            self._ensure_ready_for_send(quote)
+        self._ensure_ready_for_send(quote)
         recipient_email, recipient_name = self._customer_recipient(quote)
 
         raw_token = secrets.token_urlsafe(32)
@@ -416,7 +420,13 @@ class QuoteService:
         return quote
 
     def _get_quote_for_update(self, quote_id: uuid.UUID) -> Quote:
-        quote = self.db.query(Quote).filter(Quote.id == quote_id).with_for_update().first()
+        quote = (
+            self.db.query(Quote)
+            .filter(Quote.id == quote_id)
+            .populate_existing()
+            .with_for_update()
+            .first()
+        )
         if quote is None:
             raise HTTPException(status_code=404, detail="Orçamento não encontrado.")
         if is_quote_expired(quote):
