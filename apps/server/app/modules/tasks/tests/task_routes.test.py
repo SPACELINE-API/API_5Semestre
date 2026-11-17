@@ -419,3 +419,79 @@ def test_agent_tasks_for_translators_stay_out_of_the_internal_flow(env: TasksEnv
     assert [item["id"] for item in listed] == [internal["id"]]
     assert env.client.get(f"/api/tasks/{agent_task.id}").status_code == 404
     assert _post(env, f"{agent_task.id}/approve").status_code == 404
+
+
+# CRIACAO E ACOMPANHAMENTO PELA TELA (ATRIBUIDAS POR MIM)
+
+
+def _create_as(env: TasksEnv, requester, assignee, description: str = "Conferir notas") -> dict:
+    env.act_as(requester)
+    response = env.client.post(
+        "/api/tasks", json={"description": description, "assignee_id": str(assignee.id)}
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def test_assignees_lists_only_active_internal_employees(env: TasksEnv) -> None:
+    employee = env.user()
+    env.user(legacy_role="tradutor")
+    inactive = env.user(is_active=False)
+
+    response = env.client.get("/api/tasks/assignees")
+
+    assert response.status_code == 200
+    ids = {item["id"] for item in response.json()}
+    assert str(employee.id) in ids
+    assert str(env.admin.id) in ids
+    assert str(inactive.id) not in ids
+    assert all(set(item) == {"id", "name", "email"} for item in response.json())
+    assert len(ids) == 2
+
+
+def test_assignees_requires_permission_to_create_tasks(env: TasksEnv) -> None:
+    env.act_as(env.user())
+
+    assert env.client.get("/api/tasks/assignees").status_code == 403
+
+
+def test_assigned_by_me_lists_only_tasks_created_by_the_user(env: TasksEnv) -> None:
+    manager = env.user(permissions=("assignments.write",))
+    employee = env.user()
+    mine = _create_as(env, manager, employee, "Minha atribuição")
+    env.create_task(employee, "Atribuída pelo admin")
+    env.act_as(manager)
+
+    response = env.client.get("/api/tasks/assigned-by-me")
+
+    assert response.status_code == 200
+    assert [item["id"] for item in response.json()] == [mine["id"]]
+
+
+def test_assigned_by_me_requires_permission_to_create_tasks(env: TasksEnv) -> None:
+    env.act_as(env.user())
+
+    assert env.client.get("/api/tasks/assigned-by-me").status_code == 403
+
+
+def test_requester_follows_the_task_but_cannot_review_without_permission(
+    env: TasksEnv,
+) -> None:
+    manager = env.user(permissions=("assignments.write",))
+    employee = env.user()
+    task_id = _create_as(env, manager, employee)["id"]
+    env.act_as(employee)
+    _post(env, f"{task_id}/start")
+    attachment_id = env.client.post(f"/api/tasks/{task_id}/attachments", files=pdf_file()).json()[
+        "attachments"
+    ][0]["id"]
+    env.client.patch(f"/api/tasks/{task_id}/execution", json={"execution_description": "Feito"})
+    _post(env, f"{task_id}/submit")
+    env.act_as(manager)
+
+    assert env.client.get(f"/api/tasks/{task_id}").status_code == 200
+    assert env.client.get(f"/api/tasks/{task_id}/history").status_code == 200
+    assert (
+        env.client.get(f"/api/tasks/{task_id}/attachments/{attachment_id}/file").status_code == 200
+    )
+    assert _post(env, f"{task_id}/approve").status_code == 403
