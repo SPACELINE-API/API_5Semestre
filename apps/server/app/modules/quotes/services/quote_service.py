@@ -268,6 +268,7 @@ class QuoteService:
                     target_language=translation_item.target_language,
                     document_type=translation_item.document_type,
                     file_url=translation_item.file_url,
+                    word_count=translation_item.word_count,
                     price=translation_item.estimated_value,
                 )
             )

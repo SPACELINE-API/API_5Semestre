@@ -1,3 +1,4 @@
+import io
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
@@ -48,6 +49,7 @@ from app.modules.quotes.services.receipt_service import (
 from app.modules.quotes.services.request_service import RequestService
 from app.modules.quotes.services.storage import upload_quote_document
 from app.modules.quotes.services.translation_item_service import TranslationItemService
+from app.modules.quotes.services.word_counter import count_document_words
 from app.shared.database import get_db
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
@@ -67,13 +69,15 @@ def upload_document(
     _user=Depends(documents_write_permission),
 ):
     content_type = file.content_type or "application/octet-stream"
+    filename = file.filename or "uploaded_file"
+    data = file.file.read()
     file_url = upload_quote_document(
-        filename=file.filename or "uploaded_file",
-        file_data=file.file,
+        filename=filename,
+        file_data=io.BytesIO(data),
         content_type=content_type,
     )
 
-    return {"file_url": file_url}
+    return {"file_url": file_url, "word_count": count_document_words(data, filename)}
 
 
 @router.post("", response_model=QuoteResponse, status_code=201)

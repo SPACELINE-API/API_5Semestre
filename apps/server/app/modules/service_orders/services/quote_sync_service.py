@@ -26,7 +26,9 @@ SYNCED_FIELDS = {
     "document_type": "document_type",
     "file_url": "file_url",
     "price": "estimated_value",
+    "word_count": "word_count",
 }
+OPTIONAL_SYNCED_FIELDS = {"word_count"}
 
 ITEM_IN_PROGRESS_MESSAGE = (
     "Este documento já está em andamento na ordem de serviço (tradutor atribuído ou entrega "
@@ -136,6 +138,7 @@ def sync_service_order_with_quote(
                 target_language=quote_item.target_language,
                 document_type=quote_item.document_type,
                 file_url=quote_item.file_url,
+                word_count=quote_item.word_count,
                 price=quote_item.estimated_value,
             )
             service_order.items.append(new_item)
@@ -146,6 +149,8 @@ def sync_service_order_with_quote(
         for os_field, quote_field in SYNCED_FIELDS.items():
             before = getattr(os_item, os_field)
             after = getattr(quote_item, quote_field)
+            if after is None and os_field in OPTIONAL_SYNCED_FIELDS:
+                continue
             if _serialize(before) != _serialize(after):
                 field_changes[os_field] = {"before": _serialize(before), "after": _serialize(after)}
                 setattr(os_item, os_field, after)

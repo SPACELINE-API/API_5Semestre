@@ -33,6 +33,7 @@ class TranslationItemService:
             target_language=item_data.target_language,
             document_type=item_data.document_type,
             file_url=item_data.file_url,
+            word_count=item_data.word_count,
             estimated_value=item_data.estimated_value,
         )
         self.db.add(item)
