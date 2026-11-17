@@ -176,7 +176,7 @@ def test_update_quote_not_found_raises_404(mock_db_session):
 
 def pending_quote_with_service_order(mock_db_session):
     quote = MagicMock(id=uuid.uuid4(), status="pending", service_orders=[MagicMock()])
-    query = mock_db_session.query.return_value.filter.return_value.with_for_update.return_value
+    query = mock_db_session.query.return_value.filter.return_value.populate_existing.return_value.with_for_update.return_value
     query.first.return_value = quote
     return quote
 
@@ -236,7 +236,7 @@ def pending_quote_without_service_order(mock_db_session, file_urls):
         company_id=uuid.uuid4(),
         items=items,
     )
-    query = mock_db_session.query.return_value.filter.return_value.with_for_update.return_value
+    query = mock_db_session.query.return_value.filter.return_value.populate_existing.return_value.with_for_update.return_value
     query.first.return_value = quote
     return quote
 
@@ -276,7 +276,7 @@ def test_update_status_reproval_does_not_require_document_file(mock_db_session, 
 
 def quote_for_update(mock_db_session, status):
     quote = MagicMock(id=uuid.uuid4(), status=status, service_orders=[])
-    query = mock_db_session.query.return_value.filter.return_value.with_for_update.return_value
+    query = mock_db_session.query.return_value.filter.return_value.populate_existing.return_value.with_for_update.return_value
     query.first.return_value = quote
     return quote
 
@@ -464,7 +464,7 @@ def test_reopen_rejects_draft_and_cancelled(mock_db_session, status):
 
 
 def test_reopen_not_found_raises_404(mock_db_session):
-    query = mock_db_session.query.return_value.filter.return_value.with_for_update.return_value
+    query = mock_db_session.query.return_value.filter.return_value.populate_existing.return_value.with_for_update.return_value
     query.first.return_value = None
     user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
 

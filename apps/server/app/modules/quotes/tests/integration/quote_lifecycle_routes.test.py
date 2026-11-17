@@ -4,7 +4,9 @@ from decimal import Decimal
 from unittest.mock import MagicMock
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from app.main import app
@@ -14,8 +16,10 @@ from app.modules.auth.models.user import User
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
 from app.modules.quotes.models import AdditionalService, Quote, QuoteAuditLog, QuoteTranslationItem
+from app.modules.quotes.schemas.quote import QuoteStatusUpdate
 from app.modules.quotes.services import quote_service as quote_service_module
 from app.modules.quotes.services.quote_expiration import expire_overdue_quotes
+from app.modules.quotes.services.quote_service import QuoteService
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 from app.modules.service_orders.models.service_order_version import ServiceOrderVersion
@@ -846,3 +850,160 @@ def test_reapproval_keeps_service_order_word_count_when_quote_has_none(
     isolated_db_session.expire_all()
     os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
     assert os_item.word_count == 800
+
+
+def test_reopened_quote_without_documents_cannot_be_resent(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+    assert (
+        db_client.delete(f"/api/quotes/{quote.id}/translation-items/{quote.items[0].id}")
+    ).status_code == 204
+
+    response = db_client.post(f"/api/quotes/{quote.id}/send")
+
+    assert response.status_code == 422
+    assert "Adicione ao menos um documento" in response.json()["detail"]
+    isolated_db_session.refresh(quote)
+    assert quote.status == "draft"
+
+
+def test_reopened_quote_with_document_without_file_cannot_be_resent(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+    assert (
+        db_client.post(
+            f"/api/quotes/{quote.id}/translation-items",
+            json={"source_language": "pt-BR", "target_language": "es-ES"},
+        )
+    ).status_code == 201
+
+    response = db_client.post(f"/api/quotes/{quote.id}/send")
+
+    assert response.status_code == 422
+    assert "Anexe o arquivo de todos os documentos" in response.json()["detail"]
+
+
+def approve_behind_the_session(db: Session, quote: Quote) -> None:
+    db.execute(
+        update(Quote).where(Quote.id == quote.id).values(status="approved"),
+        execution_options={"synchronize_session": False},
+    )
+
+
+def test_decision_rereads_status_after_lock(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "pending")
+    assert isolated_db_session.get(Quote, quote.id).status == "pending"
+    approve_behind_the_session(isolated_db_session, quote)
+    user = SupabaseAuthenticatedUser(id=str(uuid.uuid4()), email="equipe@example.com")
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(isolated_db_session).update_status(
+            quote.id, QuoteStatusUpdate(status="approved"), user
+        )
+
+    assert error.value.status_code == 409
+    assert isolated_db_session.query(ServiceOrder).filter_by(quote_id=quote.id).count() == 0
+
+
+def test_second_approval_does_not_duplicate_service_order_version(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    as_anonymous()
+    first = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "approved"})
+    second = db_client.post(f"/api/public/quotes/{token}/decision", json={"status": "approved"})
+
+    assert first.status_code == 200
+    assert second.status_code == 409
+    order = isolated_db_session.query(ServiceOrder).filter_by(quote_id=quote.id).one()
+    assert (
+        isolated_db_session.query(ServiceOrderVersion).filter_by(service_order_id=order.id).count()
+        == 1
+    )
+
+
+def test_customer_decision_is_rejected_when_link_was_replaced_meanwhile(
+    db_client: TestClient, isolated_db_session: Session, monkeypatch
+):
+    quote = make_quote(isolated_db_session, "draft")
+    token = send_and_get_token(db_client, quote)
+    service = QuoteService(isolated_db_session)
+    found_before_reopen = service.get_for_customer(token)
+    assert found_before_reopen.status == "pending"
+    isolated_db_session.execute(
+        update(Quote)
+        .where(Quote.id == quote.id)
+        .values(status="draft", customer_access_token_hash=None),
+        execution_options={"synchronize_session": False},
+    )
+    monkeypatch.setattr(service, "_get_quote_by_customer_token", lambda _: found_before_reopen)
+
+    with pytest.raises(HTTPException) as error:
+        service.decide_as_customer(token, QuoteStatusUpdate(status="approved"))
+
+    assert error.value.status_code == 404
+    isolated_db_session.expire_all()
+    assert isolated_db_session.get(Quote, quote.id).status == "draft"
+
+
+def reopen_with_service_order(client: TestClient, db: Session) -> tuple[Quote, ServiceOrder]:
+    quote = make_quote(db, "draft")
+    order = approve_reopen_and_get_order(client, db, quote)
+    assert (
+        client.patch(
+            f"/api/quotes/{quote.id}/translation-items/{quote.items[0].id}",
+            json={"target_language": "fr-FR", "estimated_value": "150.00"},
+        )
+    ).status_code == 200
+    return quote, order
+
+
+def snapshot_service_order(db: Session, order: ServiceOrder) -> tuple:
+    db.expire_all()
+    items = db.query(ServiceOrderItem).filter_by(service_order_id=order.id).all()
+    versions = db.query(ServiceOrderVersion).filter_by(service_order_id=order.id).count()
+    return (
+        sorted((item.target_language, item.price, item.removed_from_quote_at) for item in items),
+        versions,
+    )
+
+
+def test_reproved_after_reopen_keeps_service_order_as_it_was(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote, order = reopen_with_service_order(db_client, isolated_db_session)
+    before = snapshot_service_order(isolated_db_session, order)
+    assert db_client.post(f"/api/quotes/{quote.id}/send").status_code == 200
+
+    response = db_client.patch(
+        f"/api/quotes/{quote.id}/status",
+        json={"status": "reproved", "reproval_reason": "Cliente desistiu da alteração"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "reproved"
+    assert snapshot_service_order(isolated_db_session, order) == before
+    assert before[0][0][0] == "en-US"
+    detail = db_client.get(f"/api/service-orders/{order.id}")
+    assert detail.status_code == 200
+    assert detail.json()["current_version"] == 1
+
+
+def test_cancelled_after_reopen_keeps_service_order_as_it_was(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote, order = reopen_with_service_order(db_client, isolated_db_session)
+    before = snapshot_service_order(isolated_db_session, order)
+    age_quote(isolated_db_session, quote, 31)
+
+    assert expire_overdue_quotes(isolated_db_session) >= 1
+
+    isolated_db_session.refresh(quote)
+    assert quote.status == "cancelled"
+    assert snapshot_service_order(isolated_db_session, order) == before
+    assert db_client.get(f"/api/service-orders/{order.id}").status_code == 200
