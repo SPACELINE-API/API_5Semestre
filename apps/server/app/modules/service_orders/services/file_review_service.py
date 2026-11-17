@@ -66,8 +66,8 @@ class ServiceOrderFileReviewService:
                 event_type=notification_message.event_type,
                 title=notification_message.title,
                 message=notification_message.message,
-                related_type="service_order_file",
-                related_id=file.id,
+                related_type="service_order_item",
+                related_id=item.id,
                 idempotency_key=f"document:{file.id}:review:approved:{file.reviewed_at.isoformat()}",
             )
 
@@ -93,8 +93,8 @@ class ServiceOrderFileReviewService:
                 event_type=notification_message.event_type,
                 title=notification_message.title,
                 message=notification_message.message,
-                related_type="service_order_file",
-                related_id=file.id,
+                related_type="service_order_item",
+                related_id=item.id,
                 idempotency_key=(
                     f"document:{file.id}:review:changes_requested:{file.reviewed_at.isoformat()}"
                 ),

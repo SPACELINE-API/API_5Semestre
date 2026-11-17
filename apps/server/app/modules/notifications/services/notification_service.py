@@ -115,6 +115,39 @@ class NotificationService:
             idempotency_key=idempotency_key,
         )
 
+    def notify_administrators(
+        self,
+        *,
+        event_type: str,
+        title: str,
+        message: str,
+        related_type: str,
+        related_id: uuid.UUID,
+        idempotency_key: str,
+    ) -> list[Notification]:
+        users = (
+            self.db.scalars(select(User).options(selectinload(User.roles)).where(User.is_active))
+            .unique()
+            .all()
+        )
+        recipients = [
+            user
+            for user in users
+            if any(
+                role.is_active and role.name.strip().casefold() in {"administrador", "admin"}
+                for role in user.roles
+            )
+        ]
+        return self._create_for_users(
+            recipients,
+            event_type=event_type,
+            title=title,
+            message=message,
+            related_type=related_type,
+            related_id=related_id,
+            idempotency_key=idempotency_key,
+        )
+
     def notify_translator(
         self,
         translator: Translator,

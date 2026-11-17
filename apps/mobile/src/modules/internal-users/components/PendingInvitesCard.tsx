@@ -74,7 +74,7 @@ export function PendingInvitesCard({
 							key={person.id}
 							className="flex-col gap-3 border-t border-amber-200 bg-white px-4 py-3 md:flex-row md:items-center md:gap-4"
 						>
-							<View className="min-w-0 flex-1">
+							<View className="min-w-0 md:flex-1">
 								<Text
 									className="font-inter font-semibold text-gray-900 text-sm"
 									numberOfLines={1}
