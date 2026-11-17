@@ -30,6 +30,7 @@ class QuoteUpdate(BaseModel):
 class QuoteStatusUpdate(BaseModel):
     status: str = Field(pattern="^(approved|reproved)$")
     reproval_reason: str | None = Field(default=None, max_length=500)
+    terms_accepted: bool = False
 
     @model_validator(mode="after")
     def require_reproval_reason(self):
@@ -64,6 +65,7 @@ class QuoteResponse(BaseModel):
     reproved_at: datetime | None = None
     reproved_by_email: str | None = None
     reproval_reason: str | None = None
+    terms_accepted_at: datetime | None = None
     validity_starts_at: datetime | None = None
     valid_until: datetime | None = None
     sent_to_customer_at: datetime | None = None
@@ -87,6 +89,7 @@ class QuoteManagerResponse(BaseModel):
     reproved_at: datetime | None
     reproved_by_email: str | None
     reproval_reason: str | None
+    terms_accepted_at: datetime | None = None
     service_order_id: uuid.UUID | None = None
     validity_starts_at: datetime | None = None
     valid_until: datetime | None = None
@@ -172,3 +175,4 @@ class QuoteCustomerResponse(BaseModel):
     approved_at: datetime | None = None
     reproved_at: datetime | None = None
     reproval_reason: str | None = None
+    terms_accepted_at: datetime | None = None

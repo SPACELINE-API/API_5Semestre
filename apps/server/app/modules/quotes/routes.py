@@ -1,7 +1,7 @@
 import io
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import require_permission
@@ -41,6 +41,7 @@ from app.modules.quotes.services.additional_service import (
     AdditionalServiceService,
 )
 from app.modules.quotes.services.quote_service import QuoteService
+from app.modules.quotes.services.quote_terms_pdf import generate_quote_terms_pdf, terms_filename
 from app.modules.quotes.services.receipt_formatting import short_quote_code
 from app.modules.quotes.services.receipt_service import (
     QuoteReceiptNotFoundError,
@@ -408,12 +409,23 @@ def to_customer_response(quote) -> QuoteCustomerResponse:
         approved_at=quote.approved_at,
         reproved_at=quote.reproved_at,
         reproval_reason=quote.reproval_reason,
+        terms_accepted_at=quote.terms_accepted_at,
     )
 
 
 @public_router.get("/{token}", response_model=QuoteCustomerResponse)
 def get_quote_for_customer(token: str, db: Session = Depends(get_db)):
     return to_customer_response(QuoteService(db).get_for_customer(token))
+
+
+@public_router.get("/{token}/terms")
+def get_quote_terms_for_customer(token: str, db: Session = Depends(get_db)):
+    quote = QuoteService(db).get_for_customer(token)
+    return Response(
+        content=generate_quote_terms_pdf(quote),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{terms_filename(quote)}"'},
+    )
 
 
 @public_router.post("/{token}/decision", response_model=QuoteCustomerResponse)

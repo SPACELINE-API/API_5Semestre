@@ -71,6 +71,7 @@ SEND_BLOCKED_MESSAGES = {
 INVALID_CUSTOMER_LINK_MESSAGE = (
     "Este link de orçamento não é válido. Use o link mais recente enviado por e-mail."
 )
+TERMS_NOT_ACCEPTED_MESSAGE = "Aceite os termos e condições para aprovar o orçamento."
 
 
 def hash_customer_token(raw_token: str) -> str:
@@ -174,7 +175,18 @@ class QuoteService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=INVALID_CUSTOMER_LINK_MESSAGE,
             )
-        return self._decide(quote, data, actor_id=None, actor_email=quote.sent_to_customer_email)
+        if data.status == "approved" and not data.terms_accepted:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=TERMS_NOT_ACCEPTED_MESSAGE,
+            )
+        return self._decide(
+            quote,
+            data,
+            actor_id=None,
+            actor_email=quote.sent_to_customer_email,
+            terms_accepted=data.status == "approved",
+        )
 
     def _decide(
         self,
@@ -183,6 +195,7 @@ class QuoteService:
         *,
         actor_id: uuid.UUID | None,
         actor_email: str | None,
+        terms_accepted: bool = False,
     ) -> Quote:
         if quote.status != QUOTE_STATUS_PENDING:
             reason = DECISION_BLOCKED_MESSAGES.get(
@@ -218,6 +231,7 @@ class QuoteService:
         quote.reproved_by = None if approved else actor_id
         quote.reproved_by_email = None if approved else actor_email
         quote.reproval_reason = None if approved else (data.reproval_reason or "").strip()
+        quote.terms_accepted_at = decided_at if terms_accepted else None
         if approved:
             message = quote_approved_message(quote.company_name)
             NotificationService(self.db).notify_administrators(
@@ -411,6 +425,7 @@ class QuoteService:
         quote.status = QUOTE_STATUS_DRAFT
         quote.validity_starts_at = datetime.now(UTC)
         quote.customer_access_token_hash = None
+        quote.terms_accepted_at = None
         self.db.add(
             QuoteAuditLog(
                 quote_id=quote.id,

@@ -2,6 +2,7 @@ from html import escape
 from pathlib import Path
 
 from app.modules.quotes.models.quote import Quote
+from app.modules.quotes.services.quote_terms_pdf import generate_quote_terms_pdf, terms_filename
 from app.modules.quotes.services.receipt_formatting import format_brl, short_quote_code
 from app.shared.email.smtp_client import send_email
 from app.shared.EnvProvider import env_provider
@@ -75,6 +76,7 @@ def render_quote_sent_email(
         "{{total_value}}": format_brl(quote.total_value),
         "{{valid_until}}": escape(valid_until),
         "{{approval_url}}": escape(approval_url, quote=True),
+        "{{terms_filename}}": escape(terms_filename(quote)),
     }
     html_body = TEMPLATE_PATH.read_text(encoding="utf-8")
     for placeholder, value in replacements.items():
@@ -105,5 +107,6 @@ def send_quote_sent_email(
         to=to_email,
         subject=f"{title} - Aliança Traduções",
         html_body=html_body,
+        attachments=[(terms_filename(quote), generate_quote_terms_pdf(quote), "application/pdf")],
         inline_images=inline_images,
     )

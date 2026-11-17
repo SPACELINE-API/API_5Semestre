@@ -62,6 +62,7 @@ class Quote(Base):
     reproved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     reproved_by_email: Mapped[str | None] = mapped_column(String(255))
     reproval_reason: Mapped[str | None] = mapped_column(String(500))
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     customer_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     enterprise: Mapped[str | None] = mapped_column(String(155), nullable=True)
     email: Mapped[str | None] = mapped_column(String(155), nullable=True)
