@@ -28,7 +28,7 @@ function HeaderCell({ label, width }: { label: string; width: `${number}%` }) {
 	return (
 		<Text
 			style={{ width }}
-			className="font-inter font-medium text-[11px] uppercase tracking-wide text-gray-400"
+			className="font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle"
 		>
 			{label}
 		</Text>
@@ -53,7 +53,7 @@ function AddItemButton({
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityLabel="Adicionar item"
-				className={`h-11 w-11 items-center justify-center self-end rounded-full bg-blue-300 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+				className={`h-11 w-11 items-center justify-center self-end rounded-full bg-primary ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 			>
 				<Plus size={20} color="#042C53" />
 			</TouchableOpacity>
@@ -67,10 +67,10 @@ function AddItemButton({
 			activeOpacity={0.7}
 			accessibilityRole="button"
 			accessibilityLabel="Adicionar item"
-			className={`flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+			className={`flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-border-strong px-4 py-2.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 		>
 			<Plus size={14} color="#353535" />
-			<Text className="font-inter-medium text-sm text-gray-700">
+			<Text className="font-inter-medium text-sm text-foreground-secondary">
 				Adicionar item
 			</Text>
 		</TouchableOpacity>
@@ -92,9 +92,9 @@ function ItemCard({
 }) {
 	const canWriteServiceOrders = usePermission('service_orders.write');
 	return (
-		<View className="gap-4 rounded-xl border border-gray-200 bg-white p-4">
+		<View className="gap-4 rounded-xl border border-border bg-surface p-4">
 			<View className="flex-row flex-wrap items-center justify-between gap-2">
-				<Text className="flex-1 font-inter font-semibold text-gray-900 text-sm">
+				<Text className="flex-1 font-inter font-semibold text-foreground text-sm">
 					{item.source_language} → {item.target_language}
 				</Text>
 				<StatusBadge status={item.status} />
@@ -103,14 +103,18 @@ function ItemCard({
 			<View className="gap-3">
 				<View className="flex-row gap-4">
 					<View className="min-w-0 flex-1 gap-1">
-						<Text className="font-inter text-gray-400 text-xs">Documento</Text>
-						<Text className="font-inter text-gray-700 text-sm">
+						<Text className="font-inter text-foreground-subtle text-xs">
+							Documento
+						</Text>
+						<Text className="font-inter text-foreground-secondary text-sm">
 							{item.document_type ?? 'Não informado'}
 						</Text>
 					</View>
 					<View className="min-w-0 flex-1 gap-1">
-						<Text className="font-inter text-gray-400 text-xs">Preço</Text>
-						<Text className="font-inter text-gray-700 text-sm">
+						<Text className="font-inter text-foreground-subtle text-xs">
+							Preço
+						</Text>
+						<Text className="font-inter text-foreground-secondary text-sm">
 							{formatPrice(item.price)}
 						</Text>
 					</View>
@@ -118,15 +122,19 @@ function ItemCard({
 
 				<View className="flex-row gap-4">
 					<View className="min-w-0 flex-1 gap-1">
-						<Text className="font-inter text-gray-400 text-xs">Prazo</Text>
-						<Text className="font-inter text-gray-700 text-sm">
+						<Text className="font-inter text-foreground-subtle text-xs">
+							Prazo
+						</Text>
+						<Text className="font-inter text-foreground-secondary text-sm">
 							{formatDate(item.deadline)}
 						</Text>
 					</View>
 					<View className="min-w-0 flex-1 gap-1">
-						<Text className="font-inter text-gray-400 text-xs">Tradutor</Text>
+						<Text className="font-inter text-foreground-subtle text-xs">
+							Tradutor
+						</Text>
 						<Text
-							className="font-inter text-gray-700 text-sm"
+							className="font-inter text-foreground-secondary text-sm"
 							numberOfLines={2}
 						>
 							{translatorName}
@@ -134,7 +142,7 @@ function ItemCard({
 					</View>
 				</View>
 
-				<View className="flex-row flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-gray-100 pt-3">
+				<View className="flex-row flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-border-subtle pt-3">
 					{item.file_url ? (
 						<TouchableOpacity
 							accessibilityRole="link"
@@ -142,7 +150,7 @@ function ItemCard({
 							className="min-w-0 max-w-full flex-row items-center gap-1 self-start"
 						>
 							<Text
-								className="min-w-0 flex-shrink font-inter-medium text-blue-700 text-xs"
+								className="min-w-0 flex-shrink font-inter-medium text-primary-text text-xs"
 								numberOfLines={1}
 							>
 								{getTruncatedFileName(item.file_url)}
@@ -150,7 +158,7 @@ function ItemCard({
 							<ExternalLink size={12} color="#1d4ed8" />
 						</TouchableOpacity>
 					) : (
-						<Text className="min-w-0 flex-1 font-inter text-gray-400 text-xs">
+						<Text className="min-w-0 flex-1 font-inter text-foreground-subtle text-xs">
 							Nenhum documento
 						</Text>
 					)}
@@ -165,7 +173,7 @@ function ItemCard({
 								className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 							>
 								<Pencil size={14} color="#353535" />
-								<Text className="font-inter font-medium text-gray-700 text-xs">
+								<Text className="font-inter font-medium text-foreground-secondary text-xs">
 									Editar
 								</Text>
 							</TouchableOpacity>
@@ -178,7 +186,7 @@ function ItemCard({
 								className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 							>
 								<Trash2 size={14} color="#B91C1C" />
-								<Text className="font-inter font-medium text-red-700 text-xs">
+								<Text className="font-inter font-medium text-danger text-xs">
 									Excluir
 								</Text>
 							</TouchableOpacity>
@@ -205,7 +213,7 @@ export function ItemsTable({
 	if (items.length === 0 && layout === 'cards') {
 		return (
 			<View className="gap-3">
-				<Text className="font-inter text-sm text-gray-500">
+				<Text className="font-inter text-sm text-foreground-muted">
 					Este orçamento ainda não possui itens.
 				</Text>
 				{!isInServiceOrder && (
@@ -219,11 +227,11 @@ export function ItemsTable({
 		return (
 			<View className="items-center justify-center gap-4 py-12">
 				<View className="items-center">
-					<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+					<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
 						<ClipboardList size={18} color="#9CA3AF" />
 					</View>
 
-					<Text className="font-inter font-medium text-gray-800 text-sm">
+					<Text className="font-inter font-medium text-foreground text-sm">
 						Esta ordem de serviço não possui itens
 					</Text>
 				</View>
@@ -261,12 +269,12 @@ export function ItemsTable({
 	}
 
 	return (
-		<View className="gap-4 bg-white">
+		<View className="gap-4 bg-surface">
 			{!isInServiceOrder && (
 				<AddItemButton onPress={onAddItem!} layout={layout} />
 			)}
 
-			<View className="hidden h-11 flex-row items-center border-b border-gray-200 md:flex">
+			<View className="hidden h-11 flex-row items-center border-b border-border md:flex">
 				<HeaderCell label="Idiomas" width="16%" />
 				<HeaderCell label="Documento" width="14%" />
 				<HeaderCell label="Preço" width="10%" />
@@ -284,29 +292,29 @@ export function ItemsTable({
 				return (
 					<View
 						key={item.id}
-						className={`${index === 0 ? 'pt-2 pb-4' : 'border-t border-gray-100 py-4'}`}
+						className={`${index === 0 ? 'pt-2 pb-4' : 'border-t border-border-subtle py-4'}`}
 					>
 						<View className="flex-col gap-2 md:flex-row md:flex-wrap md:items-center md:gap-x-0 md:gap-y-2">
 							<View className="md:w-[16%]">
-								<Text className="font-inter font-semibold text-gray-900 text-sm">
+								<Text className="font-inter font-semibold text-foreground text-sm">
 									{item.source_language} → {item.target_language}
 								</Text>
 							</View>
 
 							<View className="md:w-[12%]">
-								<Text className="font-inter text-gray-500 text-xs md:text-sm">
+								<Text className="font-inter text-foreground-muted text-xs md:text-sm">
 									{item.document_type ?? 'Não informado'}
 								</Text>
 							</View>
 
 							<View className="md:w-[10%]">
-								<Text className="font-inter text-gray-600 text-sm">
+								<Text className="font-inter text-foreground-secondary text-sm">
 									{formatPrice(item.price)}
 								</Text>
 							</View>
 
 							<View className="md:w-[10%]">
-								<Text className="font-inter text-gray-600 text-sm">
+								<Text className="font-inter text-foreground-secondary text-sm">
 									{formatDate(item.deadline)}
 								</Text>
 							</View>
@@ -316,7 +324,7 @@ export function ItemsTable({
 							</View>
 
 							<View className="md:w-[14%]">
-								<Text className="font-inter text-gray-600 text-sm">
+								<Text className="font-inter text-foreground-secondary text-sm">
 									{translator?.name ?? 'Não atribuído'}
 								</Text>
 							</View>
@@ -329,7 +337,7 @@ export function ItemsTable({
 										className="min-w-0 max-w-full flex-row items-center gap-1"
 									>
 										<Text
-											className="min-w-0 flex-shrink font-inter-medium text-blue-700 text-xs"
+											className="min-w-0 flex-shrink font-inter-medium text-primary-text text-xs"
 											numberOfLines={1}
 										>
 											{getTruncatedFileName(item.file_url)}
@@ -337,7 +345,7 @@ export function ItemsTable({
 										<ExternalLink size={12} color="#1d4ed8" />
 									</TouchableOpacity>
 								) : (
-									<Text className="font-inter text-gray-400 text-xs">
+									<Text className="font-inter text-foreground-subtle text-xs">
 										Nenhum
 									</Text>
 								)}
@@ -354,7 +362,7 @@ export function ItemsTable({
 										className={`mb-1 flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 									>
 										<Pencil size={14} color="#353535" />
-										<Text className="font-inter font-medium text-gray-700 text-sm">
+										<Text className="font-inter font-medium text-foreground-secondary text-sm">
 											Editar
 										</Text>
 									</TouchableOpacity>
@@ -367,7 +375,7 @@ export function ItemsTable({
 										className={`flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 									>
 										<Trash2 size={14} color="#B91C1C" />
-										<Text className="font-inter font-medium text-red-700 text-sm">
+										<Text className="font-inter font-medium text-danger text-sm">
 											Excluir
 										</Text>
 									</TouchableOpacity>

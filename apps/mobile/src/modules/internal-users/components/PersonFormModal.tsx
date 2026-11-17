@@ -42,7 +42,7 @@ function Field({
 }) {
 	return (
 		<View className="gap-1.5">
-			<Text className="font-inter font-semibold text-gray-800 text-xs">
+			<Text className="font-inter font-semibold text-foreground text-xs">
 				{label}
 			</Text>
 			{children}
@@ -51,7 +51,7 @@ function Field({
 }
 
 const INPUT_CLASS =
-	'rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-sm text-gray-900 outline-none';
+	'rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none';
 
 export function PersonFormModal({
 	visible,
@@ -137,8 +137,10 @@ export function PersonFormModal({
 
 				<Field label="E-mail">
 					{emailLocked ? (
-						<View className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
-							<Text className="font-inter text-gray-500 text-sm">{email}</Text>
+						<View className="rounded-lg border border-border bg-surface-subtle px-3 py-2.5">
+							<Text className="font-inter text-foreground-muted text-sm">
+								{email}
+							</Text>
 						</View>
 					) : (
 						<TextInput
@@ -154,7 +156,7 @@ export function PersonFormModal({
 						/>
 					)}
 					{emailLocked && (
-						<Text className="font-inter text-gray-400 text-xs">
+						<Text className="font-inter text-foreground-subtle text-xs">
 							O e-mail não pode ser alterado depois que a senha é definida.
 						</Text>
 					)}
@@ -184,8 +186,8 @@ export function PersonFormModal({
 				</Field>
 
 				{error && (
-					<View className="rounded-lg bg-red-50 px-3 py-2.5">
-						<Text className="font-inter text-red-900 text-sm">{error}</Text>
+					<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+						<Text className="font-inter text-danger-text text-sm">{error}</Text>
 					</View>
 				)}
 			</View>

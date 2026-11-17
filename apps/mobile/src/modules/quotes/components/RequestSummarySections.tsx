@@ -20,8 +20,10 @@ function formatDate(value?: string) {
 function InfoField({ label, value }: { label: string; value?: string | null }) {
 	return (
 		<View className="flex-1 min-w-[180px] gap-1">
-			<Text className="font-inter-medium text-xs text-gray-500">{label}</Text>
-			<Text className="font-inter text-sm text-gray-900">
+			<Text className="font-inter-medium text-xs text-foreground-muted">
+				{label}
+			</Text>
+			<Text className="font-inter text-sm text-foreground">
 				{value?.trim() || 'Não informado'}
 			</Text>
 		</View>
@@ -51,7 +53,7 @@ function RequestDocumentButton({ request }: { request: RequestItem }) {
 			<TouchableOpacity
 				onPress={handlePress}
 				disabled={opening}
-				className="min-h-[44px] bg-blue-50 border border-blue-200 rounded-lg flex-row items-center justify-center gap-2 px-4"
+				className="min-h-[44px] bg-primary-soft border border-primary/30 rounded-lg flex-row items-center justify-center gap-2 px-4"
 			>
 				{opening ? (
 					<ActivityIndicator size="small" color="#2563eb" />
@@ -59,15 +61,13 @@ function RequestDocumentButton({ request }: { request: RequestItem }) {
 					<FileText size={20} color="#2563eb" />
 				)}
 				<Text
-					className="font-inter-medium text-sm text-blue-700"
+					className="font-inter-medium text-sm text-primary-text"
 					numberOfLines={1}
 				>
 					{request.document_filename || 'Abrir documento'}
 				</Text>
 			</TouchableOpacity>
-			{error && (
-				<Text className="font-inter text-xs text-red-600">{error}</Text>
-			)}
+			{error && <Text className="font-inter text-xs text-danger">{error}</Text>}
 		</View>
 	);
 }
@@ -75,16 +75,16 @@ function RequestDocumentButton({ request }: { request: RequestItem }) {
 export function RequestSummarySections({ request }: { request: RequestItem }) {
 	return (
 		<>
-			<View className="bg-white rounded-lg border border-gray-200 p-4 md:p-6 mb-6">
+			<View className="bg-surface rounded-lg border border-border p-4 md:p-6 mb-6">
 				<View className="flex-row items-center gap-3 mb-5">
-					<View className="h-10 w-10 rounded-lg bg-blue-50 items-center justify-center">
+					<View className="h-10 w-10 rounded-lg bg-primary-soft items-center justify-center">
 						<FileText size={20} color="#2563eb" />
 					</View>
 					<View className="flex-1">
-						<Text className="font-inter-bold text-sm text-gray-900">
+						<Text className="font-inter-bold text-sm text-foreground">
 							Dados da requisição
 						</Text>
-						<Text className="font-inter text-xs text-gray-500 mt-0.5">
+						<Text className="font-inter text-xs text-foreground-muted mt-0.5">
 							Solicitação #{request.id.slice(0, 8).toUpperCase()}
 						</Text>
 					</View>
@@ -111,20 +111,20 @@ export function RequestSummarySections({ request }: { request: RequestItem }) {
 					)}
 				</View>
 				<View className="mt-5 gap-2">
-					<Text className="font-inter-medium text-xs text-gray-500">
+					<Text className="font-inter-medium text-xs text-foreground-muted">
 						Documento anexado
 					</Text>
 					{request.has_document ? (
 						<RequestDocumentButton request={request} />
 					) : (
-						<Text className="font-inter text-sm text-gray-500">
+						<Text className="font-inter text-sm text-foreground-muted">
 							Nenhum documento anexado.
 						</Text>
 					)}
 				</View>
 			</View>
-			<View className="bg-white rounded-lg border border-gray-200 p-4 md:p-6 mb-6">
-				<Text className="font-inter-bold text-sm text-gray-900 mb-5">
+			<View className="bg-surface rounded-lg border border-border p-4 md:p-6 mb-6">
+				<Text className="font-inter-bold text-sm text-foreground mb-5">
 					Dados do serviço solicitado
 				</Text>
 				<View className="flex-row flex-wrap gap-x-8 gap-y-5">
@@ -137,10 +137,10 @@ export function RequestSummarySections({ request }: { request: RequestItem }) {
 						value={request.translation_language}
 					/>
 					<View className="w-full gap-1">
-						<Text className="font-inter-medium text-xs text-gray-500">
+						<Text className="font-inter-medium text-xs text-foreground-muted">
 							Necessidade
 						</Text>
-						<Text className="font-inter text-sm text-gray-900">
+						<Text className="font-inter text-sm text-foreground">
 							{request.customer_need?.trim() || 'Não informado'}
 						</Text>
 					</View>

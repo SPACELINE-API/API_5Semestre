@@ -305,10 +305,10 @@ export function CompanyFormModal({
 			animationType="none"
 			onRequestClose={handleClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="w-full max-w-[520px] max-h-[85%] rounded-xl bg-white overflow-hidden">
-					<View className="flex-row items-center justify-between border-b border-gray-300 px-6 py-4">
-						<Text className="font-inter font-bold text-gray-900 text-lg">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+				<View className="w-full max-w-[520px] max-h-[85%] rounded-xl bg-surface overflow-hidden">
+					<View className="flex-row items-center justify-between border-b border-border-strong px-6 py-4">
+						<Text className="font-inter font-bold text-foreground text-lg">
 							Novo cliente
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
@@ -326,7 +326,9 @@ export function CompanyFormModal({
 									<View
 										key={s.title}
 										className={`h-1.5 flex-1 rounded-full ${
-											isActive || isCompleted ? 'bg-blue-300' : 'bg-gray-100'
+											isActive || isCompleted
+												? 'bg-primary'
+												: 'bg-surface-muted'
 										}`}
 									/>
 								);
@@ -342,8 +344,8 @@ export function CompanyFormModal({
 										key={s.title}
 										className={`flex-1 text-center font-inter text-[11px] ${
 											isActive || isCompleted
-												? 'font-semibold text-blue-900'
-												: 'text-gray-400'
+												? 'font-semibold text-primary-strong'
+												: 'text-foreground-subtle'
 										}`}
 									>
 										{s.title}
@@ -484,18 +486,20 @@ export function CompanyFormModal({
 						)}
 
 						{error && (
-							<View className="rounded-lg bg-red-50 px-3 py-2.5">
-								<Text className="font-inter text-red-900 text-sm">{error}</Text>
+							<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+								<Text className="font-inter text-danger-text text-sm">
+									{error}
+								</Text>
 							</View>
 						)}
 					</KeyboardContainer>
 
-					<View className="flex-row items-center justify-between border-t border-gray-300 px-6 py-4">
+					<View className="flex-row items-center justify-between border-t border-border-strong px-6 py-4">
 						<TouchableOpacity
 							onPress={step === 0 ? handleClose : handleBack}
-							className="rounded-lg border border-gray-300 px-5 py-2.5"
+							className="rounded-lg border border-border-strong px-5 py-2.5"
 						>
-							<Text className="font-inter font-medium text-gray-800 text-sm">
+							<Text className="font-inter font-medium text-foreground text-sm">
 								{step === 0 ? 'Cancelar' : 'Voltar'}
 							</Text>
 						</TouchableOpacity>
@@ -504,18 +508,18 @@ export function CompanyFormModal({
 							<TouchableOpacity
 								onPress={handleSubmit}
 								disabled={isSubmitting}
-								className={`rounded-lg bg-blue-300 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+								className={`rounded-lg bg-primary px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 							>
-								<Text className="font-inter font-semibold text-blue-900 text-sm">
+								<Text className="font-inter font-semibold text-primary-strong text-sm">
 									{isSubmitting ? 'Salvando…' : 'Salvar'}
 								</Text>
 							</TouchableOpacity>
 						) : (
 							<TouchableOpacity
 								onPress={handleNext}
-								className="rounded-lg bg-blue-300 px-5 py-2.5"
+								className="rounded-lg bg-primary px-5 py-2.5"
 							>
-								<Text className="font-inter font-semibold text-blue-900 text-sm">
+								<Text className="font-inter font-semibold text-primary-strong text-sm">
 									Avançar
 								</Text>
 							</TouchableOpacity>

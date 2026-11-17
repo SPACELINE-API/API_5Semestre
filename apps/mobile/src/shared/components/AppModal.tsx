@@ -44,13 +44,21 @@ const TYPE_STYLES: Record<
 	AppModalType,
 	{ icon: LucideIcon; color: string; background: string }
 > = {
-	success: { icon: CheckCircle2, color: '#15803D', background: 'bg-green-50' },
-	warning: { icon: TriangleAlert, color: '#B45309', background: 'bg-amber-50' },
-	error: { icon: XCircle, color: '#B91C1C', background: 'bg-red-50' },
+	success: {
+		icon: CheckCircle2,
+		color: '#15803D',
+		background: 'bg-success-soft',
+	},
+	warning: {
+		icon: TriangleAlert,
+		color: '#B45309',
+		background: 'bg-warning-soft',
+	},
+	error: { icon: XCircle, color: '#B91C1C', background: 'bg-danger-soft' },
 	confirmation: {
 		icon: CircleHelp,
 		color: '#1D4ED8',
-		background: 'bg-blue-50',
+		background: 'bg-primary-soft',
 	},
 };
 
@@ -87,10 +95,10 @@ export function AppModal({
 			animationType="fade"
 			onRequestClose={isLoading ? undefined : onClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4 py-6">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4 py-6">
 				<View
 					accessibilityViewIsModal
-					className={`max-h-[90%] w-full overflow-hidden rounded-xl bg-white ${
+					className={`max-h-[90%] w-full overflow-hidden rounded-xl bg-surface ${
 						size === 'md' ? 'max-w-[560px]' : 'max-w-[400px]'
 					}`}
 				>
@@ -104,12 +112,12 @@ export function AppModal({
 							<View className="gap-1.5">
 								<Text
 									accessibilityRole="header"
-									className="text-center font-inter font-bold text-gray-900 text-lg"
+									className="text-center font-inter font-bold text-foreground text-lg"
 								>
 									{title}
 								</Text>
 								{message ? (
-									<Text className="text-center font-inter text-gray-500 text-sm">
+									<Text className="text-center font-inter text-foreground-muted text-sm">
 										{message}
 									</Text>
 								) : null}
@@ -120,12 +128,12 @@ export function AppModal({
 							<View className="flex-1 gap-1">
 								<Text
 									accessibilityRole="header"
-									className="font-inter font-bold text-gray-900 text-lg"
+									className="font-inter font-bold text-foreground text-lg"
 								>
 									{title}
 								</Text>
 								{message ? (
-									<Text className="font-inter text-gray-500 text-sm">
+									<Text className="font-inter text-foreground-muted text-sm">
 										{message}
 									</Text>
 								) : null}
@@ -175,11 +183,11 @@ export function AppModal({
 										onPress={onClose}
 										disabled={isLoading}
 										accessibilityRole="button"
-										className={`items-center rounded-lg border border-gray-300 px-4 py-2.5 ${
+										className={`items-center rounded-lg border border-border-strong px-4 py-2.5 ${
 											isCentered ? 'flex-1' : ''
 										}`}
 									>
-										<Text className="font-inter font-medium text-gray-800 text-sm">
+										<Text className="font-inter font-medium text-foreground text-sm">
 											{cancelLabel}
 										</Text>
 									</TouchableOpacity>
@@ -191,14 +199,14 @@ export function AppModal({
 											disabled: isLoading || confirmDisabled,
 											busy: isLoading,
 										}}
-										className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${
+										className={`flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${
 											isCentered ? 'flex-1' : ''
 										} ${isLoading || confirmDisabled ? 'opacity-50' : ''}`}
 									>
 										{isLoading && (
 											<ActivityIndicator size="small" color="#FFFFFF" />
 										)}
-										<Text className="font-inter font-semibold text-sm text-white">
+										<Text className="font-inter font-semibold text-sm text-primary-foreground">
 											{isLoading ? 'Aguarde…' : confirmLabel}
 										</Text>
 									</TouchableOpacity>
@@ -207,11 +215,11 @@ export function AppModal({
 								<TouchableOpacity
 									onPress={onClose}
 									accessibilityRole="button"
-									className={`items-center rounded-lg bg-blue-600 px-4 py-2.5 ${
+									className={`items-center rounded-lg bg-primary px-4 py-2.5 ${
 										isCentered ? 'flex-1' : ''
 									}`}
 								>
-									<Text className="font-inter font-semibold text-sm text-white">
+									<Text className="font-inter font-semibold text-sm text-primary-foreground">
 										{closeLabel}
 									</Text>
 								</TouchableOpacity>

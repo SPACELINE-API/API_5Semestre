@@ -57,8 +57,8 @@ export default function ConfigPermissions({
 	}
 
 	return (
-		<View className="w-full sm:w-[200px] sm:h-[210px] rounded-xl border border-gray-200 bg-white p-4 gap-4">
-			<Text className="font-inter font-medium text-gray-900 text-sm">
+		<View className="w-full sm:w-[200px] sm:h-[210px] rounded-xl border border-border bg-surface p-4 gap-4">
+			<Text className="font-inter font-medium text-foreground text-sm">
 				{module.label}
 			</Text>
 
@@ -127,7 +127,9 @@ function PermissionToggle({
 				{...webThumbProps}
 				style={{ transform: [{ scale: 0.7 }] }}
 			/>
-			<Text className="font-inter text-gray-700 text-xs">{label}</Text>
+			<Text className="font-inter text-foreground-secondary text-xs">
+				{label}
+			</Text>
 		</View>
 	);
 }

@@ -79,9 +79,9 @@ export function MyProfilePage() {
 
 	if (isLoading && !profile) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white">
+			<View className="flex-1 items-center justify-center bg-surface">
 				<ActivityIndicator color="#6B7280" />
-				<Text className="mt-3 font-inter text-gray-400 text-sm">
+				<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 					Carregando perfil...
 				</Text>
 			</View>
@@ -90,16 +90,16 @@ export function MyProfilePage() {
 
 	if (error || !profile) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white px-6">
+			<View className="flex-1 items-center justify-center bg-surface px-6">
 				<AlertCircle size={32} color="#DC2626" />
-				<Text className="mt-3 text-center font-inter font-semibold text-gray-800 text-base">
+				<Text className="mt-3 text-center font-inter font-semibold text-foreground text-base">
 					{error ?? 'Perfil não encontrado'}
 				</Text>
 				<TouchableOpacity
 					onPress={() => void refresh()}
-					className="mt-4 rounded-lg border border-gray-300 px-4 py-2"
+					className="mt-4 rounded-lg border border-border-strong px-4 py-2"
 				>
-					<Text className="font-inter text-gray-700 text-sm">
+					<Text className="font-inter text-foreground-secondary text-sm">
 						Tentar novamente
 					</Text>
 				</TouchableOpacity>
@@ -108,7 +108,7 @@ export function MyProfilePage() {
 	}
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<KeyboardContainer
 				className="flex-1"
 				showsVerticalScrollIndicator={false}
@@ -120,11 +120,11 @@ export function MyProfilePage() {
 							keyboardShouldPersistTaps: 'handled' as const,
 						})}
 			>
-				<View className="mb-6 border-b border-gray-200 pb-6">
-					<Text className="font-inter font-bold text-gray-950 text-2xl">
+				<View className="mb-6 border-b border-border pb-6">
+					<Text className="font-inter font-bold text-foreground text-2xl">
 						Meu perfil
 					</Text>
-					<Text className="mt-2 font-inter text-gray-500 text-sm">
+					<Text className="mt-2 font-inter text-foreground-muted text-sm">
 						Mantenha seus dados atualizados e solicite novos idiomas de
 						trabalho.
 					</Text>

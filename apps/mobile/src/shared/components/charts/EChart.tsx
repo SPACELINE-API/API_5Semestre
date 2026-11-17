@@ -67,9 +67,9 @@ export function EChart({
 				/>
 			) : null}
 			{isLoading ? (
-				<View className="absolute inset-0 items-center justify-center bg-white">
+				<View className="absolute inset-0 items-center justify-center bg-surface">
 					<ActivityIndicator color="#1C6FB0" />
-					<Text className="mt-3 font-inter text-gray-400 text-xs">
+					<Text className="mt-3 font-inter text-foreground-subtle text-xs">
 						Carregando gráfico...
 					</Text>
 				</View>

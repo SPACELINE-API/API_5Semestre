@@ -16,7 +16,7 @@ export function QuickReplyButton({
 }: QuickReplyButtonProps) {
 	return (
 		<Pressable
-			className={`w-full flex-row items-center gap-2.5 rounded-full border border-[#bcdcf5] bg-white px-4 py-2.5 md:w-[calc(50%-6px)] md:px-5 md:py-3 ${disabled ? 'opacity-40' : ''}`}
+			className={`w-full flex-row items-center gap-2.5 rounded-full border border-[#bcdcf5] bg-surface px-4 py-2.5 md:w-[calc(50%-6px)] md:px-5 md:py-3 ${disabled ? 'opacity-40' : ''}`}
 			onPress={onPress}
 			disabled={disabled}
 		>

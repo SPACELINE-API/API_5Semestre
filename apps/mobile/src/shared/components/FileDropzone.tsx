@@ -112,24 +112,24 @@ export function FileDropzone({
 			ref={dropRef}
 			className={`items-center gap-3 rounded-xl border-2 border-dashed px-4 py-6 ${
 				isDragging
-					? 'border-blue-400 bg-blue-50'
-					: 'border-gray-300 bg-gray-100'
+					? 'border-primary bg-primary-soft'
+					: 'border-border-strong bg-surface-muted'
 			} ${disabled ? 'opacity-60' : ''}`}
 		>
 			{file ? (
 				<>
-					<View className="h-12 w-12 items-center justify-center rounded-full bg-white">
+					<View className="h-12 w-12 items-center justify-center rounded-full bg-surface">
 						<FileText size={24} color="#1D4ED8" />
 					</View>
 					<View className="w-full items-center gap-0.5">
 						<Text
-							className="text-center font-inter font-semibold text-gray-900 text-sm"
+							className="text-center font-inter font-semibold text-foreground text-sm"
 							numberOfLines={2}
 						>
 							{file.name}
 						</Text>
 						{selectedDetail ? (
-							<Text className="font-inter text-gray-500 text-xs">
+							<Text className="font-inter text-foreground-muted text-xs">
 								{selectedDetail}
 							</Text>
 						) : null}
@@ -138,21 +138,21 @@ export function FileDropzone({
 						onPress={() => void handleImport()}
 						disabled={disabled}
 						accessibilityRole="button"
-						className="flex-row items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2"
+						className="flex-row items-center gap-1.5 rounded-lg border border-border-strong bg-surface px-3 py-2"
 					>
 						<RefreshCw size={14} color="#374151" />
-						<Text className="font-inter font-semibold text-gray-800 text-xs">
+						<Text className="font-inter font-semibold text-foreground text-xs">
 							Trocar arquivo
 						</Text>
 					</TouchableOpacity>
 				</>
 			) : (
 				<>
-					<View className="h-12 w-12 items-center justify-center rounded-full bg-white">
+					<View className="h-12 w-12 items-center justify-center rounded-full bg-surface">
 						<FileUp size={24} color="#6B7280" />
 					</View>
 					<View className="items-center gap-1">
-						<Text className="text-center font-inter font-medium text-gray-700 text-sm">
+						<Text className="text-center font-inter font-medium text-foreground-secondary text-sm">
 							{isWeb
 								? isDragging
 									? 'Solte o arquivo para anexar'
@@ -160,23 +160,25 @@ export function FileDropzone({
 								: 'Selecione o arquivo no seu dispositivo'}
 						</Text>
 						{isWeb && (
-							<Text className="font-inter text-gray-400 text-xs">ou</Text>
+							<Text className="font-inter text-foreground-subtle text-xs">
+								ou
+							</Text>
 						)}
 					</View>
 					<TouchableOpacity
 						onPress={() => void handleImport()}
 						disabled={disabled}
 						accessibilityRole="button"
-						className="flex-row items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5"
+						className="flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5"
 					>
 						<FileUp size={16} color="#FFFFFF" />
-						<Text className="font-inter font-semibold text-sm text-white">
+						<Text className="font-inter font-semibold text-sm text-primary-foreground">
 							Importar documento
 						</Text>
 					</TouchableOpacity>
 				</>
 			)}
-			<Text className="text-center font-inter text-gray-500 text-xs">
+			<Text className="text-center font-inter text-foreground-muted text-xs">
 				{hint}
 			</Text>
 		</View>

@@ -97,7 +97,7 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 	const canSend = !isConcluded && canSendDelivery(item?.delivered_files ?? []);
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8"
@@ -108,7 +108,9 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 					className="mb-6 flex-row items-center gap-2 self-start"
 				>
 					<ArrowLeft size={16} color="#6B7280" />
-					<Text className="font-inter text-gray-500 text-sm">Meus itens</Text>
+					<Text className="font-inter text-foreground-muted text-sm">
+						Meus itens
+					</Text>
 				</TouchableOpacity>
 
 				{isLoading && (
@@ -120,7 +122,7 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 				{!isLoading && error && (
 					<View className="flex-row items-center gap-2 py-8">
 						<AlertCircle size={16} color="#DC2626" />
-						<Text className="font-inter font-semibold text-red-600 text-sm">
+						<Text className="font-inter font-semibold text-danger text-sm">
 							{error}
 						</Text>
 					</View>
@@ -128,33 +130,37 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 
 				{!isLoading && !error && item && (
 					<View className="gap-6">
-						<View className="gap-1 border-b border-gray-200 pb-6">
-							<Text className="font-inter font-bold text-gray-950 text-xl">
+						<View className="gap-1 border-b border-border pb-6">
+							<Text className="font-inter font-bold text-foreground text-xl">
 								{item.source_language} → {item.target_language}
 							</Text>
-							<Text className="font-inter text-gray-500 text-sm">
+							<Text className="font-inter text-foreground-muted text-sm">
 								{item.document_type ?? 'Tipo de documento não informado'}
 							</Text>
 						</View>
 
 						<View className="flex-row flex-wrap gap-x-10 gap-y-4">
 							<View className="gap-0.5">
-								<Text className="font-inter text-gray-400 text-xs">Prazo</Text>
-								<Text className="font-inter font-medium text-gray-800 text-sm">
+								<Text className="font-inter text-foreground-subtle text-xs">
+									Prazo
+								</Text>
+								<Text className="font-inter font-medium text-foreground text-sm">
 									{formatDate(item.deadline)}
 								</Text>
 							</View>
 							<View className="gap-0.5">
-								<Text className="font-inter text-gray-400 text-xs">Preço</Text>
-								<Text className="font-inter font-medium text-gray-800 text-sm">
+								<Text className="font-inter text-foreground-subtle text-xs">
+									Preço
+								</Text>
+								<Text className="font-inter font-medium text-foreground text-sm">
 									{formatPrice(item.price)}
 								</Text>
 							</View>
 							<View className="gap-0.5">
-								<Text className="font-inter text-gray-400 text-xs">
+								<Text className="font-inter text-foreground-subtle text-xs">
 									Quantidade de palavras
 								</Text>
-								<Text className="font-inter font-medium text-gray-800 text-sm">
+								<Text className="font-inter font-medium text-foreground text-sm">
 									{item.word_count ?? 'Não informado'}
 								</Text>
 							</View>
@@ -163,41 +169,41 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 						<InviteItemProgress status={item.status} />
 
 						<View className="gap-2">
-							<Text className="font-inter font-semibold text-gray-900 text-sm">
+							<Text className="font-inter font-semibold text-foreground text-sm">
 								Documento para traduzir
 							</Text>
 							{item.file_url ? (
 								<FilePreview fileUrl={item.file_url} openInNewPage />
 							) : (
-								<Text className="font-inter text-gray-400 text-sm">
+								<Text className="font-inter text-foreground-subtle text-sm">
 									Nenhum documento anexado
 								</Text>
 							)}
 						</View>
 
 						{changesRequest && (
-							<View className="gap-1.5 rounded-xl border border-red-100 bg-red-50 p-4">
+							<View className="gap-1.5 rounded-xl border border-danger/25 bg-danger-soft p-4">
 								<View className="flex-row items-center gap-2">
 									<AlertCircle size={16} color="#B91C1C" />
-									<Text className="font-inter font-semibold text-red-900 text-sm">
+									<Text className="font-inter font-semibold text-danger-text text-sm">
 										Ajustes solicitados na sua tradução
 									</Text>
 								</View>
-								<Text className="font-inter text-red-900 text-sm">
+								<Text className="font-inter text-danger-text text-sm">
 									{changesRequest.review_note}
 								</Text>
-								<Text className="font-inter text-red-800 text-xs">
+								<Text className="font-inter text-danger-text text-xs">
 									Faça os ajustes e envie uma nova versão abaixo.
 								</Text>
 							</View>
 						)}
 
-						<View className="gap-4 rounded-xl border border-gray-100 p-4">
+						<View className="gap-4 rounded-xl border border-border-subtle p-4">
 							<View className="gap-1">
-								<Text className="font-inter font-semibold text-gray-900 text-sm">
+								<Text className="font-inter font-semibold text-foreground text-sm">
 									Enviar tradução
 								</Text>
-								<Text className="font-inter text-gray-500 text-xs">
+								<Text className="font-inter text-foreground-muted text-xs">
 									{isConcluded
 										? 'Este item já foi concluído e não aceita novos envios.'
 										: !canSend
@@ -212,11 +218,11 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 										onPress={() => void handlePickFile()}
 										activeOpacity={0.7}
 										accessibilityRole="button"
-										className="min-h-11 flex-row items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white px-3 py-2.5"
+										className="min-h-11 flex-row items-center gap-2 rounded-lg border border-dashed border-border-strong bg-surface px-3 py-2.5"
 									>
 										<Paperclip size={14} color="#6B7280" />
 										<Text
-											className="flex-1 font-inter text-gray-600 text-sm"
+											className="flex-1 font-inter text-foreground-secondary text-sm"
 											numberOfLines={1}
 										>
 											{file
@@ -226,8 +232,8 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 									</TouchableOpacity>
 
 									{sendError && (
-										<View className="rounded-lg bg-red-50 px-3 py-2.5">
-											<Text className="font-inter text-red-900 text-sm">
+										<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+											<Text className="font-inter text-danger-text text-sm">
 												{sendError}
 											</Text>
 										</View>
@@ -238,14 +244,14 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 										disabled={isSending}
 										activeOpacity={0.7}
 										accessibilityRole="button"
-										className={`flex-row items-center justify-center gap-2 self-end rounded-lg bg-blue-600 px-5 py-2.5 ${isSending ? 'opacity-60' : ''}`}
+										className={`flex-row items-center justify-center gap-2 self-end rounded-lg bg-primary px-5 py-2.5 ${isSending ? 'opacity-60' : ''}`}
 									>
 										{isSending ? (
 											<ActivityIndicator size="small" color="#ffffff" />
 										) : (
 											<Upload size={15} color="#ffffff" />
 										)}
-										<Text className="font-inter-medium text-sm text-white">
+										<Text className="font-inter-medium text-sm text-primary-foreground">
 											{isSending ? 'Enviando…' : 'Enviar tradução'}
 										</Text>
 									</TouchableOpacity>
@@ -255,13 +261,13 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 
 						{item.delivered_files.length > 0 && (
 							<View className="gap-3">
-								<Text className="font-inter font-semibold text-gray-900 text-sm">
+								<Text className="font-inter font-semibold text-foreground text-sm">
 									Arquivos enviados
 								</Text>
 								{item.delivered_files.map((delivered) => (
 									<View
 										key={delivered.id}
-										className="flex-row items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5"
+										className="flex-row items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5"
 									>
 										<TouchableOpacity
 											accessibilityRole="link"
@@ -270,7 +276,7 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 										>
 											<FileText size={16} color="#1C6FB0" />
 											<Text
-												className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-sm"
+												className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-sm"
 												numberOfLines={1}
 											>
 												{delivered.filename}
@@ -287,7 +293,7 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 													{DELIVERY_REVIEW_LABELS[delivered.review_status]}
 												</Text>
 											</View>
-											<Text className="font-inter text-gray-400 text-xs">
+											<Text className="font-inter text-foreground-subtle text-xs">
 												{formatDate(delivered.uploaded_at)}
 											</Text>
 										</View>

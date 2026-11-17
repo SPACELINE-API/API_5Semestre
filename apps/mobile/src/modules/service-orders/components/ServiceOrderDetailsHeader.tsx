@@ -38,27 +38,31 @@ export function ServiceOrderDetailsHeader({
 	const canWriteServiceOrders = usePermission('service_orders.write');
 
 	return (
-		<View className="flex-row flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-7">
+		<View className="flex-row flex-wrap items-start justify-between gap-4 border-b border-border pb-7">
 			<View className="flex-1 min-w-[220px]">
 				<View className="flex-row flex-wrap items-center gap-3">
-					<Text className="font-inter font-bold text-gray-950 text-xl">
+					<Text className="font-inter font-bold text-foreground text-xl">
 						{serviceOrder.project_name}
 					</Text>
 					<StatusBadge status={serviceOrder.status} />
 				</View>
-				<Text className="mt-1 font-inter text-gray-400 text-sm">
+				<Text className="mt-1 font-inter text-foreground-subtle text-sm">
 					{companyName}
 				</Text>
 				<View className="mt-4 flex-row flex-wrap gap-x-10 gap-y-3">
 					<View className="gap-0.5">
-						<Text className="font-inter text-gray-400 text-xs">Prazo</Text>
-						<Text className="font-inter font-medium text-gray-800 text-sm">
+						<Text className="font-inter text-foreground-subtle text-xs">
+							Prazo
+						</Text>
+						<Text className="font-inter font-medium text-foreground text-sm">
 							{formatDate(serviceOrder.deadline)}
 						</Text>
 					</View>
 					<View className="gap-0.5">
-						<Text className="font-inter text-gray-400 text-xs">Itens</Text>
-						<Text className="font-inter font-medium text-gray-800 text-sm">
+						<Text className="font-inter text-foreground-subtle text-xs">
+							Itens
+						</Text>
+						<Text className="font-inter font-medium text-foreground text-sm">
 							{serviceOrder.items.length}
 						</Text>
 					</View>
@@ -73,10 +77,10 @@ export function ServiceOrderDetailsHeader({
 						activeOpacity={0.85}
 						accessibilityRole="button"
 						accessibilityLabel="Concluir Ordem de Serviço"
-						className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+						className={`flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 					>
 						<CheckCheck size={16} color="#FFFFFF" />
-						<Text className="font-inter font-semibold text-white text-xs">
+						<Text className="font-inter font-semibold text-primary-foreground text-xs">
 							Concluir Ordem de Serviço
 						</Text>
 					</TouchableOpacity>
@@ -87,12 +91,12 @@ export function ServiceOrderDetailsHeader({
 					activeOpacity={0.7}
 					accessibilityRole="button"
 					accessibilityLabel="Excluir ordem de serviço"
-					className={`h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+					className={`h-9 w-9 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft hover:bg-danger-soft ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 				>
 					<Trash2 size={16} color="#791F1F" />
 				</TouchableOpacity>
 				<View
-					className={`flex-row gap-2 rounded-lg bg-gray-100 p-1 ${Platform.OS === 'web' ? '' : 'hidden'}`}
+					className={`flex-row gap-2 rounded-lg bg-surface-muted p-1 ${Platform.OS === 'web' ? '' : 'hidden'}`}
 				>
 					{viewOptions.map((option) => {
 						const selected = option.key === view;
@@ -104,10 +108,10 @@ export function ServiceOrderDetailsHeader({
 								accessibilityRole="tab"
 								accessibilityState={{ selected }}
 								accessibilityLabel={`Ver ${option.label}`}
-								className={`rounded-md px-4 py-2 ${selected ? 'bg-white shadow-sm' : ''}`}
+								className={`rounded-md px-4 py-2 ${selected ? 'bg-surface shadow-sm' : ''}`}
 							>
 								<Text
-									className={`font-inter text-sm ${selected ? 'font-semibold text-gray-900' : 'font-medium text-gray-500'}`}
+									className={`font-inter text-sm ${selected ? 'font-semibold text-foreground' : 'font-medium text-foreground-muted'}`}
 								>
 									{option.label}
 								</Text>
@@ -154,7 +158,7 @@ export function ServiceOrderDetailTabs({
 		<ScrollView
 			horizontal
 			showsHorizontalScrollIndicator={false}
-			className="mt-5 border-b border-gray-200"
+			className="mt-5 border-b border-border"
 			contentContainerClassName="flex-row gap-7"
 		>
 			{detailTabOptions.map((tab) => {
@@ -167,18 +171,18 @@ export function ServiceOrderDetailTabs({
 						accessibilityRole="tab"
 						accessibilityState={{ selected: active }}
 						accessibilityLabel={`Ver aba ${tab.label}`}
-						className={`border-b-2 py-3 ${active ? 'border-blue-600' : 'border-transparent'}`}
+						className={`border-b-2 py-3 ${active ? 'border-primary' : 'border-transparent'}`}
 					>
 						<View className="flex-row items-center gap-1.5">
 							<Text
-								className={`font-inter text-sm ${active ? 'font-semibold text-blue-600' : 'font-medium text-gray-400'}`}
+								className={`font-inter text-sm ${active ? 'font-semibold text-primary-text' : 'font-medium text-foreground-subtle'}`}
 								numberOfLines={1}
 							>
 								{tab.label}
 							</Text>
 							{tab.key === 'revisao' && reviewCount > 0 && (
-								<View className="min-w-[18px] items-center rounded-full bg-amber-100 px-1.5 py-0.5">
-									<Text className="font-inter font-semibold text-amber-900 text-xs">
+								<View className="min-w-[18px] items-center rounded-full bg-warning-soft px-1.5 py-0.5">
+									<Text className="font-inter font-semibold text-warning-text text-xs">
 										{reviewCount}
 									</Text>
 								</View>

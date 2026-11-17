@@ -77,12 +77,12 @@ const EMPTY_FORM: FormState = {
 function SectionLabel({ step, label }: { step: number; label: string }) {
 	return (
 		<View className="flex-row items-center gap-2">
-			<View className="h-5 w-5 items-center justify-center rounded-full bg-gray-900">
-				<Text className="font-inter font-bold text-white text-[10px]">
+			<View className="h-5 w-5 items-center justify-center rounded-full bg-foreground">
+				<Text className="font-inter font-bold text-foreground-inverse text-[10px]">
 					{step}
 				</Text>
 			</View>
-			<Text className="font-inter font-semibold text-gray-800 text-sm">
+			<Text className="font-inter font-semibold text-foreground text-sm">
 				{label}
 			</Text>
 		</View>
@@ -105,14 +105,14 @@ function createManualItem(): ManualItemState {
 function DropdownPanel({ children }: { children: ReactNode }) {
 	if (Platform.OS !== 'web') {
 		return (
-			<View className="rounded-xl border border-gray-100 bg-white shadow-lg overflow-hidden">
+			<View className="rounded-xl border border-border-subtle bg-surface shadow-lg overflow-hidden">
 				<View>{children}</View>
 			</View>
 		);
 	}
 
 	return (
-		<View className="rounded-xl border border-gray-100 bg-white shadow-lg max-h-[220px] overflow-hidden">
+		<View className="rounded-xl border border-border-subtle bg-surface shadow-lg max-h-[220px] overflow-hidden">
 			<ScrollView showsVerticalScrollIndicator={false}>
 				<View>{children}</View>
 			</ScrollView>
@@ -138,11 +138,11 @@ function DropdownRow({
 			accessibilityRole="radio"
 			accessibilityState={{ checked: selected }}
 			accessibilityLabel={accessibilityLabel}
-			className={`flex-row items-center justify-between gap-2.5 border-b border-gray-50 px-3.5 py-3 last:border-b-0 ${selected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+			className={`flex-row items-center justify-between gap-2.5 border-b border-border-subtle px-3.5 py-3 last:border-b-0 ${selected ? 'bg-primary-soft' : 'hover:bg-surface-subtle'}`}
 		>
 			{children}
 			{selected && (
-				<View className="h-5 w-5 items-center justify-center rounded-full bg-blue-500">
+				<View className="h-5 w-5 items-center justify-center rounded-full bg-primary">
 					<Check size={12} color="#FFFFFF" strokeWidth={3} />
 				</View>
 			)}
@@ -317,21 +317,21 @@ export function GenerateOrderModal({
 			animationType="none"
 			onRequestClose={handleClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="w-full max-w-[560px] max-h-[88%] rounded-2xl bg-white overflow-hidden shadow-2xl">
-					<View className="flex-row items-center justify-between gap-3 border-b border-gray-100 px-6 py-5">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+				<View className="w-full max-w-[560px] max-h-[88%] rounded-2xl bg-surface overflow-hidden shadow-2xl">
+					<View className="flex-row items-center justify-between gap-3 border-b border-border-subtle px-6 py-5">
 						<View className="flex-1">
-							<Text className="font-inter font-bold text-gray-900 text-lg">
+							<Text className="font-inter font-bold text-foreground text-lg">
 								Gerar ordem de serviço
 							</Text>
-							<Text className="mt-0.5 font-inter text-gray-400 text-xs">
+							<Text className="mt-0.5 font-inter text-foreground-subtle text-xs">
 								Crie uma ordem de serviço manual
 							</Text>
 						</View>
 						<TouchableOpacity
 							onPress={handleClose}
 							activeOpacity={0.7}
-							className="h-8 w-8 shrink-0 items-center justify-center rounded-full hover:bg-gray-100"
+							className="h-8 w-8 shrink-0 items-center justify-center rounded-full hover:bg-surface-muted"
 						>
 							<X size={18} color="#6B7280" />
 						</TouchableOpacity>
@@ -349,30 +349,32 @@ export function GenerateOrderModal({
 								<TouchableOpacity
 									onPress={handleChangeCompany}
 									activeOpacity={0.7}
-									className="flex-row items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5"
+									className="flex-row items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary-soft px-3 py-2.5"
 								>
 									<View className="min-w-0 flex-1 flex-row items-center gap-2.5">
-										<View className="h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
-											<Text className="font-inter font-bold text-blue-700 text-xs">
+										<View className="h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-soft">
+											<Text className="font-inter font-bold text-primary-text text-xs">
 												{selectedCompany.trade_name.slice(0, 2).toUpperCase()}
 											</Text>
 										</View>
 										<Text
-											className="flex-1 font-inter font-medium text-gray-800 text-sm"
+											className="flex-1 font-inter font-medium text-foreground text-sm"
 											numberOfLines={1}
 										>
 											{selectedCompany.trade_name}
 										</Text>
 									</View>
-									<Text className="shrink-0 font-inter font-semibold text-blue-600 text-xs">
+									<Text className="shrink-0 font-inter font-semibold text-primary-text text-xs">
 										Trocar
 									</Text>
 								</TouchableOpacity>
 							) : (
 								<>
 									<View
-										className={`flex-row items-center gap-2 rounded-lg border bg-gray-50 px-3 py-2.5 ${
-											fieldErrors.company ? 'border-red-900' : 'border-gray-200'
+										className={`flex-row items-center gap-2 rounded-lg border bg-surface-subtle px-3 py-2.5 ${
+											fieldErrors.company
+												? 'border-danger-text'
+												: 'border-border'
 										}`}
 									>
 										<Search size={16} color="#9CA3AF" />
@@ -386,13 +388,13 @@ export function GenerateOrderModal({
 													: 'Buscar empresa por nome'
 											}
 											placeholderTextColor="#9CA3AF"
-											className="flex-1 font-inter text-sm text-gray-900 outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
+											className="flex-1 font-inter text-sm text-foreground outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 											accessibilityLabel="Buscar empresa"
 										/>
 									</View>
 
 									{fieldErrors.company && (
-										<Text className="font-inter text-red-900 text-xs">
+										<Text className="font-inter text-danger-text text-xs">
 											{fieldErrors.company}
 										</Text>
 									)}
@@ -410,12 +412,12 @@ export function GenerateOrderModal({
 														accessibilityLabel={`Selecionar empresa ${company.trade_name}`}
 													>
 														<View className="flex-row items-center gap-2.5">
-															<View className="h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-																<Text className="font-inter font-bold text-blue-700 text-xs">
+															<View className="h-8 w-8 items-center justify-center rounded-full bg-primary-soft">
+																<Text className="font-inter font-bold text-primary-text text-xs">
 																	{company.trade_name.slice(0, 2).toUpperCase()}
 																</Text>
 															</View>
-															<Text className="font-inter font-medium text-gray-800 text-sm">
+															<Text className="font-inter font-medium text-foreground text-sm">
 																{company.trade_name}
 															</Text>
 														</View>
@@ -424,7 +426,7 @@ export function GenerateOrderModal({
 											})}
 
 											{filteredCompanies.length === 0 && (
-												<Text className="px-3.5 py-3 font-inter text-gray-400 text-sm">
+												<Text className="px-3.5 py-3 font-inter text-foreground-subtle text-sm">
 													Nenhuma empresa encontrada.
 												</Text>
 											)}
@@ -435,15 +437,15 @@ export function GenerateOrderModal({
 						</View>
 
 						{Boolean(form.company_id) && primaryContact && (
-							<View className="flex-row items-center gap-3 rounded-lg bg-gray-50 px-3.5 py-3">
-								<View className="h-9 w-9 items-center justify-center rounded-full bg-white">
+							<View className="flex-row items-center gap-3 rounded-lg bg-surface-subtle px-3.5 py-3">
+								<View className="h-9 w-9 items-center justify-center rounded-full bg-surface">
 									<User size={16} color="#6B7280" />
 								</View>
 								<View className="flex-1">
-									<Text className="font-inter font-semibold text-gray-800 text-xs">
+									<Text className="font-inter font-semibold text-foreground text-xs">
 										Contato principal
 									</Text>
-									<Text className="mt-0.5 font-inter text-gray-500 text-xs">
+									<Text className="mt-0.5 font-inter text-foreground-muted text-xs">
 										{primaryContact.name} · {primaryContact.department}
 									</Text>
 								</View>
@@ -451,11 +453,11 @@ export function GenerateOrderModal({
 						)}
 
 						{Boolean(form.company_id) && !primaryContact && (
-							<View className="flex-row items-center gap-3 rounded-lg bg-gray-50 px-3.5 py-3">
-								<View className="h-9 w-9 items-center justify-center rounded-full bg-white">
+							<View className="flex-row items-center gap-3 rounded-lg bg-surface-subtle px-3.5 py-3">
+								<View className="h-9 w-9 items-center justify-center rounded-full bg-surface">
 									<User size={16} color="#9CA3AF" />
 								</View>
-								<Text className="flex-1 font-inter text-gray-400 text-xs">
+								<Text className="flex-1 font-inter text-foreground-subtle text-xs">
 									Nenhum contato cadastrado para esta empresa.
 								</Text>
 							</View>
@@ -466,10 +468,10 @@ export function GenerateOrderModal({
 							{manualItems.map((item, index) => (
 								<View
 									key={item.id}
-									className="gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4"
+									className="gap-3 rounded-xl border border-border bg-surface-subtle p-4"
 								>
 									<View className="flex-row items-center justify-between">
-										<Text className="font-inter font-semibold text-gray-800 text-sm">
+										<Text className="font-inter font-semibold text-foreground text-sm">
 											Item {index + 1}
 										</Text>
 										{manualItems.length > 1 && (
@@ -482,7 +484,7 @@ export function GenerateOrderModal({
 													)
 												}
 											>
-												<Text className="font-inter font-semibold text-red-600 text-xs">
+												<Text className="font-inter font-semibold text-danger text-xs">
 													Remover
 												</Text>
 											</TouchableOpacity>
@@ -490,7 +492,7 @@ export function GenerateOrderModal({
 									</View>
 									<View className="flex-col gap-3 md:flex-row">
 										<View className="min-w-0 md:flex-1">
-											<Text className="mb-1 font-inter font-semibold text-gray-800 text-xs">
+											<Text className="mb-1 font-inter font-semibold text-foreground text-xs">
 												Idioma de origem
 											</Text>
 											<LanguageSelect
@@ -504,7 +506,7 @@ export function GenerateOrderModal({
 											/>
 										</View>
 										<View className="min-w-0 md:flex-1">
-											<Text className="mb-1 font-inter font-semibold text-gray-800 text-xs">
+											<Text className="mb-1 font-inter font-semibold text-foreground text-xs">
 												Idioma de destino
 											</Text>
 											<LanguageSelect
@@ -519,7 +521,7 @@ export function GenerateOrderModal({
 										</View>
 									</View>
 									<View className="gap-1.5">
-										<Text className="font-inter font-semibold text-gray-800 text-xs">
+										<Text className="font-inter font-semibold text-foreground text-xs">
 											Arquivo (opcional)
 										</Text>
 										<TouchableOpacity
@@ -531,7 +533,7 @@ export function GenerateOrderModal({
 												const picked = await pickDocument();
 												if (picked) updateManualItem(item.id, { file: picked });
 											}}
-											className="flex-row items-center gap-2 rounded-lg border border-gray-300 px-3 py-2.5"
+											className="flex-row items-center gap-2 rounded-lg border border-border-strong px-3 py-2.5"
 										>
 											{item.file ? (
 												<FileText size={16} color="#1C6FB0" />
@@ -539,7 +541,7 @@ export function GenerateOrderModal({
 												<Upload size={16} color="#353535" />
 											)}
 											<Text
-												className="flex-1 font-inter text-gray-700 text-sm"
+												className="flex-1 font-inter text-foreground-secondary text-sm"
 												numberOfLines={1}
 											>
 												{item.file ? item.file.name : 'Selecionar arquivo'}
@@ -605,7 +607,7 @@ export function GenerateOrderModal({
 								</View>
 							))}
 							{fieldErrors.items && (
-								<Text className="font-inter text-red-900 text-xs">
+								<Text className="font-inter text-danger-text text-xs">
 									{fieldErrors.items}
 								</Text>
 							)}
@@ -613,9 +615,9 @@ export function GenerateOrderModal({
 								onPress={() =>
 									setManualItems((current) => [...current, createManualItem()])
 								}
-								className="self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5"
+								className="self-start rounded-lg border border-dashed border-border-strong px-4 py-2.5"
 							>
-								<Text className="font-inter font-semibold text-gray-700 text-sm">
+								<Text className="font-inter font-semibold text-foreground-secondary text-sm">
 									Adicionar item
 								</Text>
 							</TouchableOpacity>
@@ -655,7 +657,7 @@ export function GenerateOrderModal({
 							</View>
 
 							<View className="gap-1.5">
-								<Text className="font-inter font-semibold text-gray-800 text-xs">
+								<Text className="font-inter font-semibold text-foreground text-xs">
 									Notas externas (opcional)
 								</Text>
 								<TextInput
@@ -665,12 +667,12 @@ export function GenerateOrderModal({
 									placeholderTextColor="#8A8A8A"
 									multiline
 									numberOfLines={2}
-									className="min-h-[64px] rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-sm text-gray-900 outline-none"
+									className="min-h-[64px] rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none"
 								/>
 							</View>
 
 							<View className="gap-1.5">
-								<Text className="font-inter font-semibold text-gray-800 text-xs">
+								<Text className="font-inter font-semibold text-foreground text-xs">
 									Notas internas (opcional)
 								</Text>
 								<TextInput
@@ -680,25 +682,27 @@ export function GenerateOrderModal({
 									placeholderTextColor="#8A8A8A"
 									multiline
 									numberOfLines={2}
-									className="min-h-[64px] rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-sm text-gray-900 outline-none"
+									className="min-h-[64px] rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none"
 								/>
 							</View>
 						</View>
 
 						{error && (
-							<View className="rounded-lg bg-red-50 px-3.5 py-2.5">
-								<Text className="font-inter text-red-900 text-sm">{error}</Text>
+							<View className="rounded-lg bg-danger-soft px-3.5 py-2.5">
+								<Text className="font-inter text-danger-text text-sm">
+									{error}
+								</Text>
 							</View>
 						)}
 					</KeyboardContainer>
 
-					<View className="flex-row items-center justify-end gap-3 border-t border-gray-100 px-6 py-4">
+					<View className="flex-row items-center justify-end gap-3 border-t border-border-subtle px-6 py-4">
 						<TouchableOpacity
 							onPress={handleClose}
 							activeOpacity={0.7}
-							className="rounded-lg border border-gray-200 px-5 py-2.5 hover:bg-gray-50"
+							className="rounded-lg border border-border px-5 py-2.5 hover:bg-surface-subtle"
 						>
-							<Text className="font-inter font-medium text-gray-700 text-sm">
+							<Text className="font-inter font-medium text-foreground-secondary text-sm">
 								Cancelar
 							</Text>
 						</TouchableOpacity>
@@ -707,9 +711,9 @@ export function GenerateOrderModal({
 							onPress={handleSubmit}
 							disabled={isSubmitting}
 							activeOpacity={0.85}
-							className={`rounded-lg bg-blue-600 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+							className={`rounded-lg bg-primary px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 						>
-							<Text className="font-inter font-semibold text-white text-sm">
+							<Text className="font-inter font-semibold text-primary-foreground text-sm">
 								{isSubmitting ? 'Gerando…' : 'Gerar ordem'}
 							</Text>
 						</TouchableOpacity>

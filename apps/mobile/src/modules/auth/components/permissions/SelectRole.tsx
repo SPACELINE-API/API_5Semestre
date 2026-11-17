@@ -41,18 +41,18 @@ export default function SelectRole({
 
 	return (
 		<View className="w-full sm:w-[280px] gap-1">
-			<Text className="font-inter-medium text-xs text-gray-500">
+			<Text className="font-inter-medium text-xs text-foreground-muted">
 				Perfil de acesso
 			</Text>
 			<TouchableOpacity
 				ref={triggerRef}
 				accessibilityRole="button"
 				accessibilityLabel="Selecionar perfil de acesso"
-				className="border border-gray-200 rounded-xl p-3 bg-white flex-row justify-between items-center mt-1"
+				className="border border-border rounded-xl p-3 bg-surface flex-row justify-between items-center mt-1"
 				onPress={openDropdown}
 			>
 				<Text
-					className={`text-sm font-inter ${selectedRole ? 'text-gray-900' : 'text-gray-400'}`}
+					className={`text-sm font-inter ${selectedRole ? 'text-foreground' : 'text-foreground-subtle'}`}
 				>
 					{selectedRole?.name ?? 'Selecione um perfil'}
 				</Text>
@@ -72,7 +72,7 @@ export default function SelectRole({
 
 				{anchor && (
 					<View
-						className="absolute bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+						className="absolute bg-surface border border-border rounded-lg shadow-sm overflow-hidden"
 						style={{
 							top: anchor.y + anchor.height + 4,
 							left: anchor.x,
@@ -85,14 +85,14 @@ export default function SelectRole({
 							{roles.map((role) => (
 								<TouchableOpacity
 									key={role.id}
-									className={`py-2 px-3 border-b border-gray-50 ${role.id === selectedRoleId ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`}
+									className={`py-2 px-3 border-b border-border-subtle ${role.id === selectedRoleId ? 'bg-primary-soft' : 'bg-surface hover:bg-surface-subtle'}`}
 									onPress={() => {
 										onSelect(role.id);
 										setIsOpen(false);
 									}}
 								>
 									<Text
-										className={`font-inter text-sm ${role.id === selectedRoleId ? 'text-blue-700 font-inter-medium' : 'text-gray-700'}`}
+										className={`font-inter text-sm ${role.id === selectedRoleId ? 'text-primary-text font-inter-medium' : 'text-foreground-secondary'}`}
 									>
 										{role.name}
 									</Text>

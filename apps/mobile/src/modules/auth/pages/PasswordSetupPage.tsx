@@ -77,7 +77,7 @@ function Requirement({ met, label }: { met: boolean; label: string }) {
 				<Circle size={16} color="#94a3b8" />
 			)}
 			<Text
-				className={`text-[13px] ${met ? 'font-semibold text-emerald-700' : 'text-[#52647e]'}`}
+				className={`text-[13px] ${met ? 'font-semibold text-success-text' : 'text-[#52647e]'}`}
 			>
 				{label}
 			</Text>
@@ -102,7 +102,7 @@ function StatusCard({
 	return (
 		<View className="items-center">
 			<View
-				className={`mb-5 h-16 w-16 items-center justify-center rounded-full ${isGreen ? 'bg-emerald-50' : 'bg-[#eaf3fc]'}`}
+				className={`mb-5 h-16 w-16 items-center justify-center rounded-full ${isGreen ? 'bg-success-soft' : 'bg-[#eaf3fc]'}`}
 			>
 				<Icon size={30} color={isGreen ? '#059669' : '#2d83cd'} />
 			</View>
@@ -328,13 +328,13 @@ export function PasswordSetupPage() {
 				</View>
 				{formError ? (
 					<View
-						className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3"
+						className="mb-4 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3"
 						accessibilityRole="alert"
 					>
-						<Text className="text-sm font-bold text-red-900">
+						<Text className="text-sm font-bold text-danger-text">
 							Não foi possível definir a senha
 						</Text>
-						<Text className="mt-1 text-sm text-red-800">{formError}</Text>
+						<Text className="mt-1 text-sm text-danger-text">{formError}</Text>
 					</View>
 				) : null}
 				<GradientButton
@@ -377,7 +377,7 @@ export function PasswordSetupPage() {
 					</View>
 
 					<View className="w-full self-center md:w-[46%] md:max-w-[480px] md:justify-center">
-						<View className="w-full rounded-[22px] border border-[#e1ebf5] bg-white px-6 py-7 shadow-xl shadow-[#173a68]/10 sm:px-8">
+						<View className="w-full rounded-[22px] border border-[#e1ebf5] bg-surface px-6 py-7 shadow-xl shadow-[#173a68]/10 sm:px-8">
 							{renderCard()}
 						</View>
 					</View>

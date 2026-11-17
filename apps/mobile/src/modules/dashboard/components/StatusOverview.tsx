@@ -40,7 +40,7 @@ function groupTotals(group: OverviewGroup) {
 
 function Card({ children }: { children: React.ReactNode }) {
 	return (
-		<View className="rounded-2xl border border-gray-100 bg-white p-4 md:p-6">
+		<View className="rounded-2xl border border-border-subtle bg-surface p-4 md:p-6">
 			{children}
 		</View>
 	);
@@ -59,7 +59,7 @@ export function StatusOverview({
 			<Card>
 				<View className="min-h-[220px] items-center justify-center gap-3">
 					<ActivityIndicator size="large" color="#2563eb" />
-					<Text className="font-inter text-sm text-gray-500">
+					<Text className="font-inter text-sm text-foreground-muted">
 						Carregando dados do período...
 					</Text>
 				</View>
@@ -73,13 +73,13 @@ export function StatusOverview({
 		return (
 			<Card>
 				<View className="min-h-[220px] items-center justify-center px-4">
-					<View className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+					<View className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-surface-muted">
 						<Inbox size={22} color="#6b7280" />
 					</View>
-					<Text className="font-inter-semibold text-base text-gray-800">
+					<Text className="font-inter-semibold text-base text-foreground">
 						Nenhum registro no período
 					</Text>
-					<Text className="mt-1 max-w-sm text-center font-inter text-sm text-gray-500">
+					<Text className="mt-1 max-w-sm text-center font-inter text-sm text-foreground-muted">
 						Não há dados entre {rangeLabel}. Tente selecionar um período maior.
 					</Text>
 				</View>
@@ -118,15 +118,15 @@ export function StatusOverview({
 							onPress={() => setSelectedId(g.id)}
 							className={`rounded-full border px-3.5 py-1.5 transition-colors ${
 								selected
-									? 'border-blue-500 bg-blue-50'
-									: 'border-gray-200 bg-white hover:bg-gray-50 active:bg-gray-100'
+									? 'border-primary bg-primary-soft'
+									: 'border-border bg-surface hover:bg-surface-subtle active:bg-surface-muted'
 							}`}
 						>
 							<Text
 								className={`text-xs md:text-sm ${
 									selected
-										? 'font-inter-semibold text-blue-700'
-										: 'font-inter-medium text-gray-600'
+										? 'font-inter-semibold text-primary-text'
+										: 'font-inter-medium text-foreground-secondary'
 								}`}
 							>
 								{g.title}
@@ -135,13 +135,13 @@ export function StatusOverview({
 					);
 				})}
 			</View>
-			<Text className="mt-2 font-inter text-xs text-gray-400">
+			<Text className="mt-2 font-inter text-xs text-foreground-subtle">
 				{rangeLabel}
 			</Text>
 
 			{totals.count === 0 ? (
 				<View className="min-h-[160px] items-center justify-center">
-					<Text className="text-center font-inter text-sm text-gray-500">
+					<Text className="text-center font-inter text-sm text-foreground-muted">
 						Nenhum registro de {group.title.toLowerCase()} neste período.
 					</Text>
 				</View>
@@ -150,21 +150,21 @@ export function StatusOverview({
 					{/* Resumo + gráfico */}
 					<View className="gap-4 md:flex-1">
 						<View className="flex-row gap-3">
-							<View className="flex-1 rounded-xl bg-gray-50 p-3.5">
-								<Text className="font-inter text-xs text-gray-500">
+							<View className="flex-1 rounded-xl bg-surface-subtle p-3.5">
+								<Text className="font-inter text-xs text-foreground-muted">
 									Quantidade
 								</Text>
-								<Text className="mt-0.5 font-poppins-bold text-2xl text-gray-900 md:text-3xl">
+								<Text className="mt-0.5 font-poppins-bold text-2xl text-foreground md:text-3xl">
 									{totals.count}
 								</Text>
 							</View>
 							{group.hasAmount && (
-								<View className="flex-[1.4] rounded-xl bg-gray-50 p-3.5">
-									<Text className="font-inter text-xs text-gray-500">
+								<View className="flex-[1.4] rounded-xl bg-surface-subtle p-3.5">
+									<Text className="font-inter text-xs text-foreground-muted">
 										Valor total
 									</Text>
 									<Text
-										className="mt-0.5 font-poppins-bold text-xl text-gray-900 md:text-2xl"
+										className="mt-0.5 font-poppins-bold text-xl text-foreground md:text-2xl"
 										numberOfLines={1}
 										adjustsFontSizeToFit
 									>
@@ -176,11 +176,11 @@ export function StatusOverview({
 
 						<View>
 							<View className="mb-2 flex-row items-center justify-between">
-								<Text className="font-inter-medium text-xs text-gray-600">
+								<Text className="font-inter-medium text-xs text-foreground-secondary">
 									Distribuição por status
 								</Text>
 								{group.hasAmount && (
-									<View className="flex-row rounded-lg bg-gray-100 p-0.5">
+									<View className="flex-row rounded-lg bg-surface-muted p-0.5">
 										{(['count', 'amount'] as const).map((m) => (
 											<Pressable
 												key={m}
@@ -188,14 +188,14 @@ export function StatusOverview({
 												accessibilityState={{ selected: metric === m }}
 												onPress={() => setChartMetric(m)}
 												className={`rounded-md px-2.5 py-1 ${
-													metric === m ? 'bg-white' : ''
+													metric === m ? 'bg-surface' : ''
 												}`}
 											>
 												<Text
 													className={`text-[11px] ${
 														metric === m
-															? 'font-inter-semibold text-gray-900'
-															: 'font-inter-medium text-gray-500'
+															? 'font-inter-semibold text-foreground'
+															: 'font-inter-medium text-foreground-muted'
 													}`}
 												>
 													{m === 'count' ? 'Qtd.' : 'Valor'}
@@ -205,7 +205,7 @@ export function StatusOverview({
 									</View>
 								)}
 							</View>
-							<View className="h-3 flex-row overflow-hidden rounded-full bg-gray-100">
+							<View className="h-3 flex-row overflow-hidden rounded-full bg-surface-muted">
 								{segments.map(
 									(s) =>
 										s.pct > 0 && (
@@ -225,7 +225,7 @@ export function StatusOverview({
 							<View
 								key={s.status}
 								className={`flex-row items-center gap-3 py-2.5 ${
-									i < segments.length - 1 ? 'border-b border-gray-100' : ''
+									i < segments.length - 1 ? 'border-b border-border-subtle' : ''
 								}`}
 							>
 								<View
@@ -233,17 +233,17 @@ export function StatusOverview({
 									style={{ backgroundColor: s.color }}
 								/>
 								<Text
-									className="flex-1 font-inter text-sm text-gray-700"
+									className="flex-1 font-inter text-sm text-foreground-secondary"
 									numberOfLines={1}
 								>
 									{s.label}
 								</Text>
 								<View className="items-end">
-									<Text className="font-inter-semibold text-sm text-gray-900">
+									<Text className="font-inter-semibold text-sm text-foreground">
 										{s.count}
 									</Text>
 									{group.hasAmount && s.amount !== null && (
-										<Text className="font-inter text-xs text-gray-500">
+										<Text className="font-inter text-xs text-foreground-muted">
 											{formatCurrency(s.amount)}
 										</Text>
 									)}

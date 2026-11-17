@@ -169,7 +169,7 @@ export default function FormsRequest() {
 	}
 
 	return (
-		<View className="w-full rounded-[28px] border border-white/80 bg-white/90 px-6 py-7 shadow-2xl shadow-[#173a68]/15 sm:px-9 sm:py-8">
+		<View className="w-full rounded-[28px] border border-white/80 bg-surface/90 px-6 py-7 shadow-2xl shadow-[#173a68]/15 sm:px-9 sm:py-8">
 			<View className="mb-6">
 				<Text className="text-[22px] font-extrabold tracking-[-0.6px] text-[#101b35]">
 					Solicitação de serviço
@@ -180,7 +180,7 @@ export default function FormsRequest() {
 			</View>
 
 			<View className="gap-3">
-				<Text className="text-sm font-bold text-blue-500 mt-4">
+				<Text className="text-sm font-bold text-primary-text mt-4">
 					DADOS PESSOAIS
 				</Text>
 
@@ -188,7 +188,7 @@ export default function FormsRequest() {
 					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Nome
-							<Text className="text-red-500">*</Text>
+							<Text className="text-danger">*</Text>
 						</Text>
 						<TextInput
 							value={customerName}
@@ -202,7 +202,7 @@ export default function FormsRequest() {
 					<View className="w-full md:min-w-[200px] md:flex-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Email
-							<Text className="text-red-500">*</Text>
+							<Text className="text-danger">*</Text>
 						</Text>
 
 						<TextInput
@@ -226,14 +226,14 @@ export default function FormsRequest() {
 						/>
 
 						{emailError ? (
-							<Text className="mt-1 text-sm text-red-600">{emailError}</Text>
+							<Text className="mt-1 text-sm text-danger">{emailError}</Text>
 						) : null}
 					</View>
 
 					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Empresa
-							<Text className="text-red-500">*</Text>
+							<Text className="text-danger">*</Text>
 						</Text>
 						<TextInput
 							value={enterprise}
@@ -247,13 +247,15 @@ export default function FormsRequest() {
 			</View>
 
 			<View className="mt-6 gap-3">
-				<Text className="text-sm font-bold text-blue-500 mt-4">SERVIÇO</Text>
+				<Text className="text-sm font-bold text-primary-text mt-4">
+					SERVIÇO
+				</Text>
 
 				<View className="flex flex-col gap-4 md:flex-row md:flex-wrap">
 					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
 						<Text className="mb-1 text-sm font-bold text-[#101b35]">
 							Tipo de documento
-							<Text className="text-red-500">*</Text>
+							<Text className="text-danger">*</Text>
 						</Text>
 						<TextInput
 							value={customerNeed}
@@ -282,12 +284,12 @@ export default function FormsRequest() {
 				</View>
 
 				{languageLoadError ? (
-					<Text className="text-sm text-red-600">{languageLoadError}</Text>
+					<Text className="text-sm text-danger">{languageLoadError}</Text>
 				) : null}
 			</View>
 
 			<View className="mt-6 gap-3">
-				<Text className="text-sm font-bold text-blue-500 mt-4">
+				<Text className="text-sm font-bold text-primary-text mt-4">
 					DOCUMENTO (PDF/DOCX)
 				</Text>
 
@@ -303,7 +305,7 @@ export default function FormsRequest() {
 					</TouchableOpacity>
 
 					{document ? (
-						<View className="mt-6 w-full flex-row items-center gap-3 rounded-xl border border-[#c7dced] bg-white p-4">
+						<View className="mt-6 w-full flex-row items-center gap-3 rounded-xl border border-[#c7dced] bg-surface p-4">
 							<Text
 								className="min-w-0 flex-1 text-sm text-[#12233c]"
 								numberOfLines={2}
@@ -325,30 +327,30 @@ export default function FormsRequest() {
 			</View>
 
 			{error ? (
-				<Text className="mb-2 mt-4 text-sm text-red-600">{error}</Text>
+				<Text className="mb-2 mt-4 text-sm text-danger">{error}</Text>
 			) : null}
 
 			<View className="mt-8 w-full flex-col gap-3 sm:w-auto sm:flex-row sm:self-end">
 				<TouchableOpacity
 					onPress={handleSubmit}
 					disabled={submitting}
-					className="h-12 w-full items-center justify-center rounded-full bg-[#2d83cd] px-5 shadow-md shadow-blue-600/30 sm:w-auto"
+					className="h-12 w-full items-center justify-center rounded-full bg-[#2d83cd] px-5 shadow-md shadow-primary/30 sm:w-auto"
 				>
-					<Text className="text-sm font-bold text-white">
+					<Text className="text-sm font-bold text-primary-foreground">
 						{submitting ? 'ENVIANDO...' : 'ENVIAR SOLICITAÇÃO'}
 					</Text>
 				</TouchableOpacity>
 
 				<TouchableOpacity
 					onPress={() => router.replace('/login')}
-					className="h-12 w-full items-center justify-center rounded-full border border-[#2d83cd] bg-white px-5 sm:w-auto"
+					className="h-12 w-full items-center justify-center rounded-full border border-[#2d83cd] bg-surface px-5 sm:w-auto"
 				>
 					<Text className="text-sm font-bold text-[#2d83cd]">VOLTAR</Text>
 				</TouchableOpacity>
 			</View>
 
 			{success ? (
-				<Text className="mt-5 text-center text-sm font-semibold text-emerald-600">
+				<Text className="mt-5 text-center text-sm font-semibold text-success-text">
 					{success}
 				</Text>
 			) : null}

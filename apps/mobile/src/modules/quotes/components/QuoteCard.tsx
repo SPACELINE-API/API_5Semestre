@@ -80,9 +80,12 @@ import { EditItemModal } from '../../service-orders/components/EditItemModal';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 
 const statusStyles: Record<string, { label: string; classes: string }> = {
-	approved: { label: 'Aprovado', classes: 'bg-emerald-50 text-emerald-700' },
-	pending: { label: 'Pendente', classes: 'bg-gray-100 text-gray-700' },
-	reproved: { label: 'Reprovado', classes: 'bg-red-50 text-red-700' },
+	approved: { label: 'Aprovado', classes: 'bg-success-soft text-success-text' },
+	pending: {
+		label: 'Pendente',
+		classes: 'bg-surface-muted text-foreground-secondary',
+	},
+	reproved: { label: 'Reprovado', classes: 'bg-danger-soft text-danger' },
 };
 
 function formatDate(value: string) {
@@ -117,8 +120,10 @@ function formatPrice(value: number | string | null) {
 function QuoteField({ label, value }: { label: string; value: string }) {
 	return (
 		<View className="w-full gap-1 md:w-[47%]">
-			<Text className="font-inter-medium text-xs text-gray-500">{label}</Text>
-			<Text selectable className="font-inter text-sm leading-5 text-gray-900">
+			<Text className="font-inter-medium text-xs text-foreground-muted">
+				{label}
+			</Text>
+			<Text selectable className="font-inter text-sm leading-5 text-foreground">
 				{value}
 			</Text>
 		</View>
@@ -138,12 +143,14 @@ function EditField({
 }) {
 	return (
 		<View className="w-full gap-1 md:w-[47%]">
-			<Text className="font-inter-medium text-xs text-gray-500">{label}</Text>
+			<Text className="font-inter-medium text-xs text-foreground-muted">
+				{label}
+			</Text>
 			<TextInput
 				value={value}
 				onChangeText={onChangeText}
 				keyboardType={keyboardType}
-				className="rounded-lg border border-gray-300 bg-white px-3 py-2 font-inter text-sm text-gray-900"
+				className="rounded-lg border border-border-strong bg-surface px-3 py-2 font-inter text-sm text-foreground"
 			/>
 		</View>
 	);
@@ -160,14 +167,16 @@ function CurrencyField({
 }) {
 	return (
 		<View className="w-full gap-1 md:w-[47%]">
-			<Text className="font-inter-medium text-xs text-gray-500">{label}</Text>
+			<Text className="font-inter-medium text-xs text-foreground-muted">
+				{label}
+			</Text>
 			<TextInput
 				value={value ? decimalStringToBRL(value) : ''}
 				onChangeText={(text) => onChangeValue(maskCurrencyDigits(text))}
 				keyboardType="numeric"
 				placeholder="R$ 0,00"
 				placeholderTextColor="#9CA3AF"
-				className="rounded-lg border border-gray-300 bg-white px-3 py-2 font-inter text-sm text-gray-900"
+				className="rounded-lg border border-border-strong bg-surface px-3 py-2 font-inter text-sm text-foreground"
 			/>
 		</View>
 	);
@@ -219,17 +228,17 @@ function CompanyLinkField({
 
 	return (
 		<View className="w-full gap-1">
-			<Text className="font-inter-medium text-xs text-gray-500">
+			<Text className="font-inter-medium text-xs text-foreground-muted">
 				Empresa vinculada
 			</Text>
 			<View ref={triggerRef} collapsable={false}>
 				{selected ? (
-					<View className="flex-row items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2">
-						<Text className="font-inter text-sm text-gray-900">
+					<View className="flex-row items-center justify-between rounded-lg border border-border-strong bg-surface px-3 py-2">
+						<Text className="font-inter text-sm text-foreground">
 							{selected.trade_name}
 						</Text>
 						<TouchableOpacity accessibilityRole="button" onPress={openPicker}>
-							<Text className="font-inter-medium text-xs text-blue-600">
+							<Text className="font-inter-medium text-xs text-primary-text">
 								Trocar
 							</Text>
 						</TouchableOpacity>
@@ -238,10 +247,10 @@ function CompanyLinkField({
 					<TouchableOpacity
 						accessibilityRole="button"
 						onPress={openPicker}
-						className="flex-row items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white px-3 py-2.5"
+						className="flex-row items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong bg-surface px-3 py-2.5"
 					>
 						<Building2 size={14} color="#6b7280" />
-						<Text className="font-inter-medium text-sm text-gray-600">
+						<Text className="font-inter-medium text-sm text-foreground-secondary">
 							Vincular empresa
 						</Text>
 					</TouchableOpacity>
@@ -258,7 +267,7 @@ function CompanyLinkField({
 
 				{anchor && (
 					<View
-						className="absolute rounded-lg border border-gray-200 bg-white shadow-sm"
+						className="absolute rounded-lg border border-border bg-surface shadow-sm"
 						style={{
 							top: anchor.y + anchor.height + 4,
 							left: anchor.x,
@@ -267,7 +276,7 @@ function CompanyLinkField({
 							backgroundColor: 'white',
 						}}
 					>
-						<View className="flex-row items-center gap-2 border-b border-gray-100 px-3 py-2">
+						<View className="flex-row items-center gap-2 border-b border-border-subtle px-3 py-2">
 							<Search size={14} color="#9CA3AF" />
 							<TextInput
 								autoFocus
@@ -275,7 +284,7 @@ function CompanyLinkField({
 								onChangeText={setSearch}
 								placeholder="Buscar empresa"
 								placeholderTextColor="#9CA3AF"
-								className="flex-1 font-inter text-sm text-gray-800 max-md:min-w-0 max-md:shrink max-md:leading-5"
+								className="flex-1 font-inter text-sm text-foreground max-md:min-w-0 max-md:shrink max-md:leading-5"
 							/>
 							<TouchableOpacity
 								accessibilityRole="button"
@@ -293,18 +302,18 @@ function CompanyLinkField({
 										onSelectCompany(company.id);
 										closePicker();
 									}}
-									className="border-b border-gray-50 px-3 py-2"
+									className="border-b border-border-subtle px-3 py-2"
 								>
-									<Text className="font-inter text-sm text-gray-800">
+									<Text className="font-inter text-sm text-foreground">
 										{company.trade_name}
 									</Text>
-									<Text className="font-inter text-xs text-gray-400">
+									<Text className="font-inter text-xs text-foreground-subtle">
 										{company.legal_name}
 									</Text>
 								</TouchableOpacity>
 							))}
 							{filtered.length === 0 && (
-								<Text className="px-3 py-3 font-inter text-sm text-gray-400">
+								<Text className="px-3 py-3 font-inter text-sm text-foreground-subtle">
 									Nenhuma empresa encontrada.
 								</Text>
 							)}
@@ -316,10 +325,10 @@ function CompanyLinkField({
 								closePicker();
 							}}
 							disabled={!canWriteClients}
-							className={`flex-row items-center gap-2 border-t border-gray-100 bg-gray-50 px-3 py-2.5 ${!canWriteClients ? 'opacity-40' : ''}`}
+							className={`flex-row items-center gap-2 border-t border-border-subtle bg-surface-subtle px-3 py-2.5 ${!canWriteClients ? 'opacity-40' : ''}`}
 						>
 							<Plus size={14} color="#1d4ed8" />
-							<Text className="font-inter-medium text-xs text-blue-700">
+							<Text className="font-inter-medium text-xs text-primary-text">
 								Criar nova empresa
 							</Text>
 						</TouchableOpacity>
@@ -332,7 +341,7 @@ function CompanyLinkField({
 
 function SectionTitle({ children }: { children: ReactNode }) {
 	return (
-		<Text className="mb-4 font-inter-semibold text-sm text-gray-900">
+		<Text className="mb-4 font-inter-semibold text-sm text-foreground">
 			{children}
 		</Text>
 	);
@@ -523,7 +532,7 @@ export function QuoteCard({
 
 	const status = statusStyles[quote.status.toLowerCase()] ?? {
 		label: quote.status,
-		classes: 'bg-gray-100 text-gray-700',
+		classes: 'bg-surface-muted text-foreground-secondary',
 	};
 
 	function startEditing() {
@@ -829,25 +838,25 @@ export function QuoteCard({
 	}
 
 	return (
-		<View className="mb-5 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+		<View className="mb-5 overflow-hidden rounded-2xl border border-border bg-surface">
 			<TouchableOpacity
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityState={{ expanded }}
 				accessibilityLabel={`${expanded ? 'Recolher' : 'Expandir'} orçamento ${shortId(quote.id)}`}
 				onPress={() => setExpanded((current) => !current)}
-				className="flex-row flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-5 py-4 md:px-6"
+				className="flex-row flex-wrap items-center justify-between gap-4 border-b border-border-subtle px-5 py-4 md:px-6"
 			>
 				<View className="flex-row items-center gap-3">
-					<View className="h-11 w-11 items-center justify-center rounded-xl bg-blue-50">
+					<View className="h-11 w-11 items-center justify-center rounded-xl bg-primary-soft">
 						<FileText size={21} color="#2563eb" />
 					</View>
 					<View className="gap-1">
-						<Text className="font-inter-bold text-base text-gray-900">
+						<Text className="font-inter-bold text-base text-foreground">
 							Orçamento #{shortId(quote.id)}
 						</Text>
 						<Text
-							className="font-inter-medium text-sm text-gray-700"
+							className="font-inter-medium text-sm text-foreground-secondary"
 							numberOfLines={1}
 						>
 							{quote.company_name ||
@@ -864,7 +873,7 @@ export function QuoteCard({
 									{status.label}
 								</Text>
 							</View>
-							<Text className="font-inter text-xs text-gray-500">
+							<Text className="font-inter text-xs text-foreground-muted">
 								{quote.request_id
 									? 'Vinculado a uma solicitação'
 									: 'Criado manualmente'}
@@ -875,7 +884,7 @@ export function QuoteCard({
 				<View className="flex-row flex-wrap items-center gap-3">
 					<View className="flex-row items-center gap-2">
 						<CalendarDays size={15} color="#6b7280" />
-						<Text className="font-inter text-xs text-gray-500">
+						<Text className="font-inter text-xs text-foreground-muted">
 							Atualizado {formatDate(quote.updated_at)}
 						</Text>
 					</View>
@@ -894,25 +903,25 @@ export function QuoteCard({
 							accessibilityRole="button"
 							accessibilityLabel={`Abrir ordem de serviço do orçamento ${shortId(quote.id)}`}
 							onPress={onOpenServiceOrder}
-							className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-blue-200 px-3 py-2"
+							className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-primary/30 px-3 py-2"
 						>
 							<FileText size={16} color="#1d4ed8" />
-							<Text className="font-inter-medium text-sm text-blue-700">
+							<Text className="font-inter-medium text-sm text-primary-text">
 								Abrir ordem de serviço
 							</Text>
 						</TouchableOpacity>
 					) : null}
 
 					{quote.status === 'pending' && !isEditing ? (
-						<View className="rounded-xl border border-blue-100 bg-blue-50/60 p-4">
-							<Text className="font-inter-semibold text-sm text-gray-900">
+						<View className="rounded-xl border border-primary/30 bg-primary-soft/60 p-4">
+							<Text className="font-inter-semibold text-sm text-foreground">
 								Decisão do orçamento
 							</Text>
-							<Text className="mt-1 font-inter text-sm text-gray-600">
+							<Text className="mt-1 font-inter text-sm text-foreground-secondary">
 								Aprove este orçamento ou registre o motivo da reprovação.
 							</Text>
 							{decisionError ? (
-								<Text className="mt-3 font-inter text-sm text-red-700">
+								<Text className="mt-3 font-inter text-sm text-danger">
 									{decisionError}
 								</Text>
 							) : null}
@@ -928,7 +937,7 @@ export function QuoteCard({
 										multiline
 										textAlignVertical="top"
 										placeholder="Motivo da reprovação"
-										className="min-h-24 rounded-lg border border-gray-300 bg-white px-3 py-2 font-inter text-sm text-gray-900"
+										className="min-h-24 rounded-lg border border-border-strong bg-surface px-3 py-2 font-inter text-sm text-foreground"
 									/>
 									<View className="flex-row flex-wrap gap-3">
 										<TouchableOpacity
@@ -946,9 +955,9 @@ export function QuoteCard({
 													},
 												);
 											}}
-											className={`rounded-lg px-4 py-2.5 ${updating ? 'bg-gray-300' : 'bg-red-600'}`}
+											className={`rounded-lg px-4 py-2.5 ${updating ? 'bg-border-strong' : 'bg-danger'}`}
 										>
-											<Text className="font-inter-medium text-sm text-white">
+											<Text className="font-inter-medium text-sm text-primary-foreground">
 												{updating ? 'Salvando...' : 'Confirmar reprovação'}
 											</Text>
 										</TouchableOpacity>
@@ -956,9 +965,9 @@ export function QuoteCard({
 											accessibilityRole="button"
 											disabled={updating}
 											onPress={() => setRejectionFormOpen(false)}
-											className="rounded-lg border border-gray-300 px-4 py-2.5"
+											className="rounded-lg border border-border-strong px-4 py-2.5"
 										>
-											<Text className="font-inter-medium text-sm text-gray-700">
+											<Text className="font-inter-medium text-sm text-foreground-secondary">
 												Cancelar
 											</Text>
 										</TouchableOpacity>
@@ -967,17 +976,17 @@ export function QuoteCard({
 							) : (
 								<View className="mt-4 gap-3">
 									{!quote.company_id && (
-										<View className="flex-row items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+										<View className="flex-row items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft p-3">
 											<CircleAlert size={16} color="#b45309" />
-											<Text className="flex-1 font-inter text-sm text-amber-800">
+											<Text className="flex-1 font-inter text-sm text-warning-text">
 												Vincule uma empresa a este orçamento antes de aprová-lo.
 											</Text>
 										</View>
 									)}
 									{quote.company_id && quote.items.length === 0 && (
-										<View className="flex-row items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+										<View className="flex-row items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft p-3">
 											<CircleAlert size={16} color="#b45309" />
-											<Text className="flex-1 font-inter text-sm text-amber-800">
+											<Text className="flex-1 font-inter text-sm text-warning-text">
 												Adicione ao menos um documento ao orçamento antes de
 												aprová-lo.
 											</Text>
@@ -995,9 +1004,9 @@ export function QuoteCard({
 														if (message) setDecisionError(message);
 													})
 												}
-												className={`rounded-lg px-4 py-2.5 ${updating || !canApproveQuote ? 'bg-gray-300' : 'bg-emerald-600'} ${!canApproveQuotes || !canApproveQuote ? 'opacity-40' : ''}`}
+												className={`rounded-lg px-4 py-2.5 ${updating || !canApproveQuote ? 'bg-border-strong' : 'bg-success'} ${!canApproveQuotes || !canApproveQuote ? 'opacity-40' : ''}`}
 											>
-												<Text className="font-inter-medium text-sm text-white">
+												<Text className="font-inter-medium text-sm text-primary-foreground">
 													{updating ? 'Salvando...' : 'Aprovar orçamento'}
 												</Text>
 											</TouchableOpacity>
@@ -1006,9 +1015,9 @@ export function QuoteCard({
 												accessibilityRole="button"
 												onPress={startEditing}
 												disabled={!canWriteQuotes}
-												className={`rounded-lg bg-blue-600 px-4 py-2.5 ${!canWriteQuotes ? 'opacity-40' : ''}`}
+												className={`rounded-lg bg-primary px-4 py-2.5 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 											>
-												<Text className="font-inter-medium text-sm text-white">
+												<Text className="font-inter-medium text-sm text-primary-foreground">
 													Vincular empresa
 												</Text>
 											</TouchableOpacity>
@@ -1017,9 +1026,9 @@ export function QuoteCard({
 											accessibilityRole="button"
 											disabled={updating || !canApproveQuotes}
 											onPress={() => setRejectionFormOpen(true)}
-											className={`rounded-lg border border-red-200 px-4 py-2.5 ${!canApproveQuotes ? 'opacity-40' : ''}`}
+											className={`rounded-lg border border-danger/30 px-4 py-2.5 ${!canApproveQuotes ? 'opacity-40' : ''}`}
 										>
-											<Text className="font-inter-medium text-sm text-red-700">
+											<Text className="font-inter-medium text-sm text-danger">
 												Reprovar orçamento
 											</Text>
 										</TouchableOpacity>
@@ -1029,19 +1038,19 @@ export function QuoteCard({
 						</View>
 					) : null}
 					{quote.status === 'reproved' ? (
-						<View className="rounded-xl border border-red-200 bg-red-50 p-4">
-							<Text className="font-inter-semibold text-sm text-red-900">
+						<View className="rounded-xl border border-danger/30 bg-danger-soft p-4">
+							<Text className="font-inter-semibold text-sm text-danger-text">
 								Motivo da reprovação
 							</Text>
-							<Text className="mt-1 font-inter text-sm text-red-800">
+							<Text className="mt-1 font-inter text-sm text-danger-text">
 								{quote.reproval_reason || 'Motivo não informado'}
 							</Text>
 							{quote.reproved_at ? (
-								<Text className="mt-2 font-inter text-xs text-red-700">
+								<Text className="mt-2 font-inter text-xs text-danger">
 									Reprovado em {formatDate(quote.reproved_at)}
 								</Text>
 							) : null}
-							<Text className="mt-2 font-inter text-xs text-red-700">
+							<Text className="mt-2 font-inter text-xs text-danger">
 								Reprovado por:{' '}
 								{quote.reproved_by_email || 'Responsável não identificado'}
 							</Text>
@@ -1050,11 +1059,11 @@ export function QuoteCard({
 					{quote.status === 'approved' ? (
 						<View className="gap-1">
 							{quote.approved_at ? (
-								<Text className="font-inter text-xs text-emerald-700">
+								<Text className="font-inter text-xs text-success-text">
 									Aprovado em {formatDate(quote.approved_at)}
 								</Text>
 							) : null}
-							<Text className="font-inter text-xs text-emerald-700">
+							<Text className="font-inter text-xs text-success-text">
 								Aprovado por:{' '}
 								{quote.approved_by_email || 'Responsável não identificado'}
 							</Text>
@@ -1071,7 +1080,7 @@ export function QuoteCard({
 					) : null}
 
 					{saveError ? (
-						<Text className="font-inter text-sm text-red-700">{saveError}</Text>
+						<Text className="font-inter text-sm text-danger">{saveError}</Text>
 					) : null}
 
 					<View>
@@ -1083,7 +1092,7 @@ export function QuoteCard({
 									accessibilityLabel="Editar orçamento"
 									onPress={startEditing}
 									disabled={!canWriteQuotes}
-									className={`h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 ${!canWriteQuotes ? 'opacity-40' : ''}`}
+									className={`h-8 w-8 items-center justify-center rounded-lg border border-border hover:bg-surface-subtle ${!canWriteQuotes ? 'opacity-40' : ''}`}
 								>
 									<Pencil size={14} color="#6B7280" />
 								</TouchableOpacity>
@@ -1136,11 +1145,11 @@ export function QuoteCard({
 								{draftItems.map((item) => (
 									<View
 										key={item.id}
-										className="gap-3 rounded-xl border border-gray-200 bg-white p-4"
+										className="gap-3 rounded-xl border border-border bg-surface p-4"
 									>
 										<View className="flex-row flex-wrap gap-x-5 gap-y-3">
 											<View className="w-full gap-1 md:w-[47%]">
-												<Text className="font-inter-medium text-xs text-gray-500">
+												<Text className="font-inter-medium text-xs text-foreground-muted">
 													Idioma de origem
 												</Text>
 												<LanguageSelect
@@ -1151,7 +1160,7 @@ export function QuoteCard({
 												/>
 											</View>
 											<View className="w-full gap-1 md:w-[47%]">
-												<Text className="font-inter-medium text-xs text-gray-500">
+												<Text className="font-inter-medium text-xs text-foreground-muted">
 													Idioma de destino
 												</Text>
 												<LanguageSelect
@@ -1176,7 +1185,7 @@ export function QuoteCard({
 												}
 											/>
 										</View>
-										<View className="flex-row items-center gap-3 border-t border-gray-100 pt-3">
+										<View className="flex-row items-center gap-3 border-t border-border-subtle pt-3">
 											{!item.file_url && (
 												<TouchableOpacity
 													accessibilityRole="button"
@@ -1188,7 +1197,7 @@ export function QuoteCard({
 													className={`shrink-0 flex-row items-center gap-2 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 												>
 													<Paperclip size={14} color="#1d4ed8" />
-													<Text className="font-inter-medium text-sm text-blue-700">
+													<Text className="font-inter-medium text-sm text-primary-text">
 														{uploadingItemId === item.id
 															? 'Enviando...'
 															: 'Anexar arquivo'}
@@ -1203,7 +1212,7 @@ export function QuoteCard({
 													className="min-w-0 flex-1 flex-row items-center gap-2"
 												>
 													<Text
-														className="min-w-0 flex-1 font-inter-medium text-sm text-blue-700"
+														className="min-w-0 flex-1 font-inter-medium text-sm text-primary-text"
 														numberOfLines={1}
 														ellipsizeMode="tail"
 													>
@@ -1216,7 +1225,7 @@ export function QuoteCard({
 												accessibilityRole="button"
 												accessibilityLabel="Remover item"
 												onPress={() => removeDraftItem(item.id)}
-												className="h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50"
+												className="h-8 w-8 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft"
 											>
 												<Trash2 size={14} color="#b91c1c" />
 											</TouchableOpacity>
@@ -1226,10 +1235,10 @@ export function QuoteCard({
 								<TouchableOpacity
 									accessibilityRole="button"
 									onPress={addDraftItem}
-									className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5"
+									className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-border-strong px-4 py-2.5"
 								>
 									<Plus size={15} color="#374151" />
-									<Text className="font-inter-medium text-sm text-gray-700">
+									<Text className="font-inter-medium text-sm text-foreground-secondary">
 										Adicionar item
 									</Text>
 								</TouchableOpacity>
@@ -1239,29 +1248,29 @@ export function QuoteCard({
 								{quote.items.map((item) => (
 									<View
 										key={item.id}
-										className="rounded-xl border border-gray-200 p-4"
+										className="rounded-xl border border-border p-4"
 									>
 										<View className="flex-row flex-wrap items-start justify-between gap-3">
 											<View className="flex-row flex-1 items-center gap-3">
-												<View className="h-9 w-9 items-center justify-center rounded-lg bg-gray-100">
+												<View className="h-9 w-9 items-center justify-center rounded-lg bg-surface-muted">
 													<FileText size={17} color="#4b5563" />
 												</View>
 												<View className="min-w-0 flex-1">
-													<Text className="font-inter-semibold text-sm text-gray-900">
+													<Text className="font-inter-semibold text-sm text-foreground">
 														{display(item.document_type)}
 													</Text>
-													<Text className="mt-1 font-inter text-xs text-gray-500">
+													<Text className="mt-1 font-inter text-xs text-foreground-muted">
 														{item.source_language} → {item.target_language}
 													</Text>
 												</View>
 											</View>
-											<Text className="rounded-lg bg-blue-50 px-3 py-2 font-inter-semibold text-sm text-blue-700">
+											<Text className="rounded-lg bg-primary-soft px-3 py-2 font-inter-semibold text-sm text-primary-text">
 												{formatPrice(item.estimated_value)}
 											</Text>
 										</View>
 
-										<View className="mt-4 border-t border-gray-100 pt-3">
-											<Text className="mb-1 font-inter-medium text-xs text-gray-500">
+										<View className="mt-4 border-t border-border-subtle pt-3">
+											<Text className="mb-1 font-inter-medium text-xs text-foreground-muted">
 												Arquivo
 											</Text>
 											{item.file_url ? (
@@ -1272,7 +1281,7 @@ export function QuoteCard({
 													className="min-w-0 flex-1 flex-row items-center gap-2"
 												>
 													<Text
-														className="min-w-0 flex-1 font-inter-medium text-sm text-blue-700"
+														className="min-w-0 flex-1 font-inter-medium text-sm text-primary-text"
 														numberOfLines={2}
 														ellipsizeMode="tail"
 													>
@@ -1283,11 +1292,11 @@ export function QuoteCard({
 													</View>
 												</TouchableOpacity>
 											) : (
-												<Text className="font-inter text-sm text-gray-400">
+												<Text className="font-inter text-sm text-foreground-subtle">
 													Arquivo ainda não anexado
 												</Text>
 											)}
-											<Text className="mt-2 font-inter text-xs text-gray-400">
+											<Text className="mt-2 font-inter text-xs text-foreground-subtle">
 												Criado {formatDate(item.created_at)} · Atualizado{' '}
 												{formatDate(item.updated_at)}
 											</Text>
@@ -1296,7 +1305,7 @@ export function QuoteCard({
 								))}
 							</View>
 						) : (
-							<Text className="font-inter text-sm text-gray-500">
+							<Text className="font-inter text-sm text-foreground-muted">
 								Este orçamento ainda não possui documentos.
 							</Text>
 						)}
@@ -1315,7 +1324,7 @@ export function QuoteCard({
 									return draft ? (
 										<View
 											key={draft.id}
-											className="flex-row flex-wrap gap-x-5 gap-y-3 rounded-xl border border-gray-200 bg-white p-4"
+											className="flex-row flex-wrap gap-x-5 gap-y-3 rounded-xl border border-border bg-surface p-4"
 										>
 											<EditField
 												label="Descrição do serviço"
@@ -1341,11 +1350,11 @@ export function QuoteCard({
 									);
 								})
 							) : additionalServicesLoading ? (
-								<Text className="font-inter text-sm text-gray-500">
+								<Text className="font-inter text-sm text-foreground-muted">
 									Carregando serviços adicionais...
 								</Text>
 							) : additionalServicesError ? (
-								<Text className="font-inter text-sm text-red-700">
+								<Text className="font-inter text-sm text-danger">
 									{additionalServicesError}
 								</Text>
 							) : additionalServices.length ? (
@@ -1359,7 +1368,7 @@ export function QuoteCard({
 									/>
 								))
 							) : (
-								<Text className="font-inter text-sm text-gray-500">
+								<Text className="font-inter text-sm text-foreground-muted">
 									Este orçamento ainda não possui serviços adicionais.
 								</Text>
 							)}
@@ -1368,10 +1377,10 @@ export function QuoteCard({
 									accessibilityRole="button"
 									onPress={() => setShowAdditionalServiceModal(true)}
 									disabled={!canWriteQuotes}
-									className={`flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-gray-300 px-4 py-2.5 ${!canWriteQuotes ? 'opacity-40' : ''}`}
+									className={`flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-border-strong px-4 py-2.5 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 								>
 									<Plus size={15} color="#374151" />
-									<Text className="font-inter-medium text-sm text-gray-700">
+									<Text className="font-inter-medium text-sm text-foreground-secondary">
 										Novo serviço adicional
 									</Text>
 								</TouchableOpacity>
@@ -1385,11 +1394,11 @@ export function QuoteCard({
 								Itens do orçamento ({serviceOrderItems.length})
 							</SectionTitle>
 							{serviceOrderItemsLoading ? (
-								<Text className="font-inter text-sm text-gray-500">
+								<Text className="font-inter text-sm text-foreground-muted">
 									Carregando itens do orçamento...
 								</Text>
 							) : serviceOrderItemsError ? (
-								<Text className="font-inter text-sm text-red-700">
+								<Text className="font-inter text-sm text-danger">
 									{serviceOrderItemsError}
 								</Text>
 							) : (
@@ -1406,14 +1415,14 @@ export function QuoteCard({
 					) : null}
 
 					{isEditing ? (
-						<View className="flex-row flex-wrap gap-3 border-t border-gray-100 pt-4">
+						<View className="flex-row flex-wrap gap-3 border-t border-border-subtle pt-4">
 							<TouchableOpacity
 								accessibilityRole="button"
 								disabled={isSaving}
 								onPress={() => void handleSave()}
-								className={`rounded-lg px-5 py-2.5 ${isSaving ? 'bg-gray-300' : 'bg-blue-600'}`}
+								className={`rounded-lg px-5 py-2.5 ${isSaving ? 'bg-border-strong' : 'bg-primary'}`}
 							>
-								<Text className="font-inter-semibold text-sm text-white">
+								<Text className="font-inter-semibold text-sm text-primary-foreground">
 									{isSaving ? 'Salvando...' : 'Salvar alterações'}
 								</Text>
 							</TouchableOpacity>
@@ -1421,10 +1430,10 @@ export function QuoteCard({
 								accessibilityRole="button"
 								disabled={isSaving}
 								onPress={cancelEditing}
-								className="flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-5 py-2.5"
+								className="flex-row items-center gap-1.5 rounded-lg border border-border-strong px-5 py-2.5"
 							>
 								<X size={14} color="#374151" />
-								<Text className="font-inter-medium text-sm text-gray-700">
+								<Text className="font-inter-medium text-sm text-foreground-secondary">
 									Cancelar
 								</Text>
 							</TouchableOpacity>
@@ -1434,14 +1443,14 @@ export function QuoteCard({
 							accessibilityRole="button"
 							accessibilityState={{ expanded: showTechnicalDetails }}
 							onPress={() => setShowTechnicalDetails((visible) => !visible)}
-							className="flex-row items-center gap-2 self-start border-t border-gray-100 pt-4"
+							className="flex-row items-center gap-2 self-start border-t border-border-subtle pt-4"
 						>
 							{showTechnicalDetails ? (
 								<ChevronUp size={16} color="#6b7280" />
 							) : (
 								<ChevronDown size={16} color="#6b7280" />
 							)}
-							<Text className="font-inter-medium text-xs text-gray-500">
+							<Text className="font-inter-medium text-xs text-foreground-muted">
 								{showTechnicalDetails
 									? 'Ocultar referências técnicas'
 									: 'Ver referências técnicas'}
@@ -1449,18 +1458,27 @@ export function QuoteCard({
 						</TouchableOpacity>
 					)}
 					{!isEditing && showTechnicalDetails && (
-						<View className="gap-2 rounded-lg bg-gray-50 p-3">
-							<Text selectable className="font-inter text-xs text-gray-500">
+						<View className="gap-2 rounded-lg bg-surface-subtle p-3">
+							<Text
+								selectable
+								className="font-inter text-xs text-foreground-muted"
+							>
 								ID do orçamento: {quote.id}
 							</Text>
 							{quote.request_id && (
-								<Text selectable className="font-inter text-xs text-gray-500">
+								<Text
+									selectable
+									className="font-inter text-xs text-foreground-muted"
+								>
 									ID da solicitação: {quote.request_id}
 								</Text>
 							)}
 							{quote.items.map((item) => (
 								<View key={item.id} className="gap-1">
-									<Text selectable className="font-inter text-xs text-gray-500">
+									<Text
+										selectable
+										className="font-inter text-xs text-foreground-muted"
+									>
 										ID do documento: {item.id}
 									</Text>
 								</View>

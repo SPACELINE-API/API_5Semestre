@@ -21,18 +21,18 @@ const TOAST_STYLE: Record<
 > = {
 	success: {
 		title: 'Sucesso',
-		bg: 'bg-green-50',
-		border: 'border-green-100',
-		title_color: 'text-green-900',
-		text_color: 'text-green-800',
+		bg: 'bg-success-soft',
+		border: 'border-success/25',
+		title_color: 'text-success-text',
+		text_color: 'text-success-text',
 		icon: '#085041',
 	},
 	error: {
 		title: 'Erro',
-		bg: 'bg-red-50',
-		border: 'border-red-100',
-		title_color: 'text-red-900',
-		text_color: 'text-red-800',
+		bg: 'bg-danger-soft',
+		border: 'border-danger/25',
+		title_color: 'text-danger-text',
+		text_color: 'text-danger-text',
 		icon: '#791F1F',
 	},
 };

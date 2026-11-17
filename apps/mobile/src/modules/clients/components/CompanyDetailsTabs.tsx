@@ -46,7 +46,7 @@ export function CompanyDetailsTabs({
 			<ScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
-				className="border-b border-gray-200"
+				className="border-b border-border"
 				contentContainerClassName="flex-row gap-7"
 			>
 				{visibleTabs.map((tab) => {
@@ -58,14 +58,14 @@ export function CompanyDetailsTabs({
 							onPress={() => onTabChange(tab.key)}
 							activeOpacity={0.7}
 							className={`border-b-2 py-3 ${
-								isSelected ? 'border-blue-600' : 'border-transparent'
+								isSelected ? 'border-primary' : 'border-transparent'
 							}`}
 						>
 							<Text
 								className={`font-inter text-sm ${
 									isSelected
-										? 'font-semibold text-blue-600'
-										: 'font-medium text-gray-400'
+										? 'font-semibold text-primary-text'
+										: 'font-medium text-foreground-subtle'
 								}`}
 							>
 								{tab.label}

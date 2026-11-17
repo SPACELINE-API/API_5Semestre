@@ -269,7 +269,7 @@ export function CertificateUploadModal({
 			onClose={close}
 		>
 			<View className="gap-1.5">
-				<Text className="font-inter font-medium text-gray-700 text-[13px]">
+				<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
 					Idioma
 				</Text>
 				<TouchableOpacity
@@ -278,10 +278,10 @@ export function CertificateUploadModal({
 					accessibilityRole="button"
 					accessibilityLabel="Selecionar idioma"
 					accessibilityState={{ expanded: isPickerOpen }}
-					className="h-12 flex-row items-center justify-between rounded-lg border border-gray-300 bg-white px-4"
+					className="h-12 flex-row items-center justify-between rounded-lg border border-border-strong bg-surface px-4"
 				>
 					<Text
-						className={`flex-1 text-sm ${selectedLanguage ? 'text-gray-900' : 'text-gray-400'}`}
+						className={`flex-1 text-sm ${selectedLanguage ? 'text-foreground' : 'text-foreground-subtle'}`}
 						numberOfLines={1}
 					>
 						{isLoadingLanguages
@@ -298,12 +298,12 @@ export function CertificateUploadModal({
 				</TouchableOpacity>
 
 				{languagesError && (
-					<View className="flex-row items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2">
-						<Text className="flex-1 font-inter text-red-900 text-xs">
+					<View className="flex-row items-center justify-between gap-2 rounded-lg bg-danger-soft px-3 py-2">
+						<Text className="flex-1 font-inter text-danger-text text-xs">
 							{languagesError}
 						</Text>
 						<TouchableOpacity onPress={() => void loadLanguages()}>
-							<Text className="font-inter font-semibold text-red-900 text-xs">
+							<Text className="font-inter font-semibold text-danger-text text-xs">
 								Tentar novamente
 							</Text>
 						</TouchableOpacity>
@@ -311,14 +311,14 @@ export function CertificateUploadModal({
 				)}
 
 				{!isLoadingLanguages && !languagesError && languages.length === 0 && (
-					<Text className="font-inter text-gray-500 text-xs">
+					<Text className="font-inter text-foreground-muted text-xs">
 						Todos os idiomas cadastrados já fazem parte do seu perfil.
 					</Text>
 				)}
 
 				{isPickerOpen && languages.length > 0 && (
-					<View className="overflow-hidden rounded-lg border border-gray-200">
-						<View className="flex-row items-center gap-2 border-b border-gray-200 px-3">
+					<View className="overflow-hidden rounded-lg border border-border">
+						<View className="flex-row items-center gap-2 border-b border-border px-3">
 							<Search size={14} color="#9CA3AF" />
 							<TextInput
 								value={search}
@@ -326,7 +326,7 @@ export function CertificateUploadModal({
 								placeholder="Buscar idioma"
 								placeholderTextColor="#9CA3AF"
 								accessibilityLabel="Buscar idioma"
-								className="h-10 flex-1 font-inter text-sm text-gray-900 outline-none"
+								className="h-10 flex-1 font-inter text-sm text-foreground outline-none"
 							/>
 						</View>
 						<ScrollView
@@ -344,10 +344,10 @@ export function CertificateUploadModal({
 									}}
 									accessibilityRole="button"
 									className={`flex-row items-center justify-between px-4 py-2.5 ${
-										item.id === languageId ? 'bg-blue-50' : ''
+										item.id === languageId ? 'bg-primary-soft' : ''
 									}`}
 								>
-									<Text className="font-inter text-gray-800 text-sm">
+									<Text className="font-inter text-foreground text-sm">
 										{item.name}
 									</Text>
 									{item.id === languageId && (
@@ -356,7 +356,7 @@ export function CertificateUploadModal({
 								</TouchableOpacity>
 							))}
 							{filteredLanguages.length === 0 && (
-								<Text className="px-4 py-3 font-inter text-gray-400 text-sm">
+								<Text className="px-4 py-3 font-inter text-foreground-subtle text-sm">
 									Nenhum idioma encontrado.
 								</Text>
 							)}
@@ -366,7 +366,7 @@ export function CertificateUploadModal({
 			</View>
 
 			<View className="gap-1.5">
-				<Text className="font-inter font-medium text-gray-700 text-[13px]">
+				<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
 					Proficiência
 				</Text>
 				<View className="flex-row flex-wrap gap-2">
@@ -381,13 +381,15 @@ export function CertificateUploadModal({
 								accessibilityState={{ checked: isSelected }}
 								className={`rounded-full border px-3 py-1.5 ${
 									isSelected
-										? 'border-blue-600 bg-blue-50'
-										: 'border-gray-300 bg-white'
+										? 'border-primary bg-primary-soft'
+										: 'border-border-strong bg-surface'
 								}`}
 							>
 								<Text
 									className={`font-inter text-xs ${
-										isSelected ? 'font-semibold text-blue-800' : 'text-gray-700'
+										isSelected
+											? 'font-semibold text-primary-strong'
+											: 'text-foreground-secondary'
 									}`}
 								>
 									{option.label}
@@ -399,7 +401,7 @@ export function CertificateUploadModal({
 			</View>
 
 			<View className="gap-1.5">
-				<Text className="font-inter font-medium text-gray-700 text-[13px]">
+				<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
 					Certificado
 				</Text>
 				<FileDropzone
@@ -418,10 +420,10 @@ export function CertificateUploadModal({
 			{missingMessage && (
 				<View
 					accessibilityLiveRegion="polite"
-					className="flex-row items-center gap-2 rounded-lg bg-blue-50 px-3 py-2.5"
+					className="flex-row items-center gap-2 rounded-lg bg-primary-soft px-3 py-2.5"
 				>
 					<CircleAlert size={16} color="#1D4ED8" />
-					<Text className="flex-1 font-inter text-blue-900 text-xs">
+					<Text className="flex-1 font-inter text-primary-strong text-xs">
 						{missingMessage}
 					</Text>
 				</View>

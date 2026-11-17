@@ -62,7 +62,7 @@ function NavItem({
 			accessibilityLabel={label}
 			accessibilityState={{ disabled, selected: active }}
 			className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl outline-none transition-colors ${
-				active ? 'bg-blue-50' : disabled ? '' : 'hover:bg-gray-50'
+				active ? 'bg-primary-soft' : disabled ? '' : 'hover:bg-surface-subtle'
 			} ${!isOpen ? 'justify-center px-0' : ''}`}
 		>
 			<Icon
@@ -74,18 +74,18 @@ function NavItem({
 				<Text
 					className={`font-inter text-sm flex-1 ${
 						active
-							? 'font-semibold text-blue-600'
+							? 'font-semibold text-primary-text'
 							: disabled
-								? 'font-medium text-gray-300'
-								: 'font-medium text-gray-700'
+								? 'font-medium text-foreground-subtle'
+								: 'font-medium text-foreground-secondary'
 					}`}
 				>
 					{label}
 				</Text>
 			)}
 			{isOpen && badge != null && (
-				<View className="bg-gray-100 rounded-full px-2 py-0.5">
-					<Text className="font-inter text-[11px] font-semibold text-gray-600">
+				<View className="bg-surface-muted rounded-full px-2 py-0.5">
+					<Text className="font-inter text-[11px] font-semibold text-foreground-secondary">
 						{badge}
 					</Text>
 				</View>
@@ -102,7 +102,7 @@ type GroupLabelProps = {
 function GroupLabel({ isOpen, children }: GroupLabelProps) {
 	if (!isOpen) return null;
 	return (
-		<Text className="font-inter font-bold text-blue-600 text-[11px] uppercase px-3 mb-2 tracking-wider">
+		<Text className="font-inter font-bold text-primary-text text-[11px] uppercase px-3 mb-2 tracking-wider">
 			{children}
 		</Text>
 	);
@@ -161,37 +161,37 @@ export function SideBar({
 					onPress={onCloseMobile}
 					accessibilityRole="button"
 					accessibilityLabel="Fechar menu"
-					className="absolute inset-0 z-30 bg-black/30 md:hidden"
+					className="absolute inset-0 z-30 bg-overlay/30 md:hidden"
 				/>
 			)}
 
 			<View
 				style={mobileOpen ? { paddingTop: insets.top } : undefined}
-				className={`h-full bg-white border-r border-gray-100 z-40 flex-col py-6 shadow-sm ${
+				className={`h-full bg-surface border-r border-border-subtle z-40 flex-col py-6 shadow-sm ${
 					mobileOpen ? 'absolute inset-y-0 left-0 flex' : 'hidden'
 				} md:relative md:z-10 md:flex ${showExpanded ? 'w-72 px-4' : 'w-20 px-2'}`}
 			>
 				<View
-					className={`items-center mb-6 pb-5 px-3 border-b border-gray-100 ${
+					className={`items-center mb-6 pb-5 px-3 border-b border-border-subtle ${
 						showExpanded ? 'flex-row justify-between' : 'flex-col gap-3 px-0'
 					}`}
 				>
 					<View className="min-w-0 flex-1 flex-row items-center gap-3">
-						<View className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 bg-blue-500 items-center justify-center shrink-0">
-							<Text className="font-inter font-bold text-white text-sm">
+						<View className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 bg-primary items-center justify-center shrink-0">
+							<Text className="font-inter font-bold text-primary-foreground text-sm">
 								{displayInitials}
 							</Text>
 						</View>
 						{showExpanded && (
 							<View className="min-w-0 flex-1 flex-col">
 								<Text
-									className="font-inter font-bold text-gray-900 text-sm leading-tight"
+									className="font-inter font-bold text-foreground text-sm leading-tight"
 									numberOfLines={1}
 								>
 									{displayName}
 								</Text>
 								<Text
-									className="font-inter text-gray-500 text-xs mt-0.5"
+									className="font-inter text-foreground-muted text-xs mt-0.5"
 									numberOfLines={1}
 								>
 									{displayRole}
@@ -201,13 +201,13 @@ export function SideBar({
 					</View>
 					<TouchableOpacity
 						onPress={onCloseMobile ?? (() => setIsOpen(!isOpen))}
-						className="items-center justify-center w-8 h-8 rounded-lg outline-none hover:bg-gray-50 shrink-0 md:hidden"
+						className="items-center justify-center w-8 h-8 rounded-lg outline-none hover:bg-surface-subtle shrink-0 md:hidden"
 					>
 						<CloseIcon size={20} color="#1f2937" strokeWidth={2.0} />
 					</TouchableOpacity>
 					<TouchableOpacity
 						onPress={() => setIsOpen(!isOpen)}
-						className="hidden items-center justify-center w-8 h-8 rounded-lg outline-none hover:bg-gray-50 shrink-0 md:flex"
+						className="hidden items-center justify-center w-8 h-8 rounded-lg outline-none hover:bg-surface-subtle shrink-0 md:flex"
 					>
 						{isOpen ? (
 							<FecharIcon size={20} color="#1f2937" strokeWidth={2.0} />
@@ -348,7 +348,7 @@ export function SideBar({
 					</View>
 				</ScrollView>
 
-				<View className="relative flex-col gap-1 pt-4 mt-2 border-t border-gray-100">
+				<View className="relative flex-col gap-1 pt-4 mt-2 border-t border-border-subtle">
 					<NavItem
 						icon={isDark ? SunIcon : MoonIcon}
 						label={isDark ? 'Modo claro' : 'Modo escuro'}
@@ -374,13 +374,13 @@ export function SideBar({
 							onCloseMobile?.();
 							router.replace('/login' as never);
 						}}
-						className={`flex-row items-center gap-3 px-3 py-2.5 mt-1 rounded-xl outline-none hover:bg-red-50 ${
+						className={`flex-row items-center gap-3 px-3 py-2.5 mt-1 rounded-xl outline-none hover:bg-danger-soft ${
 							!showExpanded ? 'justify-center px-0' : ''
 						}`}
 					>
 						<SairIcon size={20} color="#dc2626" strokeWidth={1.8} />
 						{showExpanded && (
-							<Text className="font-inter font-medium text-red-600 text-sm">
+							<Text className="font-inter font-medium text-danger text-sm">
 								Sair do sistema
 							</Text>
 						)}

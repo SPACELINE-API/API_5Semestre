@@ -20,7 +20,9 @@ function Box({ checked }: { checked: boolean }) {
 	return (
 		<View
 			className={`h-5 w-5 items-center justify-center rounded border ${
-				checked ? 'border-blue-600 bg-blue-600' : 'border-gray-400 bg-white'
+				checked
+					? 'border-primary bg-primary'
+					: 'border-border-strong bg-surface'
 			}`}
 		>
 			{checked && <Check size={14} color="#FFFFFF" />}
@@ -73,12 +75,14 @@ export function RoleMultiSelect({
 				accessibilityLabel="Perfis"
 				accessibilityState={{ expanded: open }}
 				className={`h-11 flex-row items-center justify-between rounded-lg border px-3 ${
-					open ? 'border-blue-600' : 'border-gray-300'
+					open ? 'border-primary' : 'border-border-strong'
 				}`}
 			>
 				<Text
 					className={`font-inter text-sm ${
-						selectedIds.length === 0 ? 'text-gray-400' : 'text-gray-900'
+						selectedIds.length === 0
+							? 'text-foreground-subtle'
+							: 'text-foreground'
 					}`}
 				>
 					{summary}
@@ -87,8 +91,8 @@ export function RoleMultiSelect({
 			</TouchableOpacity>
 
 			{open && (
-				<View className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-					<View className="flex-row items-center gap-2 border-b border-gray-200 px-3">
+				<View className="overflow-hidden rounded-lg border border-border bg-surface">
+					<View className="flex-row items-center gap-2 border-b border-border px-3">
 						<Search size={14} color="#9CA3AF" />
 						<TextInput
 							value={query}
@@ -96,7 +100,7 @@ export function RoleMultiSelect({
 							placeholder="Pesquisar"
 							placeholderTextColor="#9CA3AF"
 							accessibilityLabel="Pesquisar perfil"
-							className="h-10 flex-1 font-inter text-gray-900 text-sm outline-none"
+							className="h-10 flex-1 font-inter text-foreground text-sm outline-none"
 						/>
 					</View>
 					<ScrollView
@@ -104,7 +108,7 @@ export function RoleMultiSelect({
 						keyboardShouldPersistTaps="handled"
 						nestedScrollEnabled
 					>
-						<View className="flex-row items-center justify-between border-b border-gray-200 bg-gray-50 px-3 py-2.5">
+						<View className="flex-row items-center justify-between border-b border-border bg-surface-subtle px-3 py-2.5">
 							<TouchableOpacity
 								onPress={toggleAll}
 								accessibilityRole="checkbox"
@@ -113,7 +117,7 @@ export function RoleMultiSelect({
 								className="flex-row items-center gap-3"
 							>
 								<Box checked={allSelected} />
-								<Text className="font-inter font-semibold text-gray-800 text-sm">
+								<Text className="font-inter font-semibold text-foreground text-sm">
 									Selecionar todos ({roles.length})
 								</Text>
 							</TouchableOpacity>
@@ -122,11 +126,13 @@ export function RoleMultiSelect({
 								accessibilityRole="button"
 								accessibilityLabel="Limpar seleção de perfis"
 							>
-								<Text className="font-inter text-blue-600 text-sm">Limpar</Text>
+								<Text className="font-inter text-primary-text text-sm">
+									Limpar
+								</Text>
 							</TouchableOpacity>
 						</View>
 						{visibleRoles.length === 0 ? (
-							<Text className="p-3 font-inter text-gray-500 text-sm">
+							<Text className="p-3 font-inter text-foreground-muted text-sm">
 								Nenhum perfil encontrado.
 							</Text>
 						) : (
@@ -141,11 +147,11 @@ export function RoleMultiSelect({
 										accessibilityLabel={role.name}
 										activeOpacity={0.7}
 										className={`flex-row items-center gap-3 px-3 py-2.5 ${
-											selected ? 'bg-blue-50' : ''
+											selected ? 'bg-primary-soft' : ''
 										}`}
 									>
 										<Box checked={selected} />
-										<Text className="flex-1 font-inter text-gray-800 text-sm">
+										<Text className="flex-1 font-inter text-foreground text-sm">
 											{role.name}
 										</Text>
 									</TouchableOpacity>
@@ -153,15 +159,15 @@ export function RoleMultiSelect({
 							})
 						)}
 					</ScrollView>
-					<View className="flex-row items-center justify-between border-t border-gray-200 bg-white px-3 py-2.5">
-						<Text className="font-inter text-gray-500 text-xs">
+					<View className="flex-row items-center justify-between border-t border-border bg-surface px-3 py-2.5">
+						<Text className="font-inter text-foreground-muted text-xs">
 							{selectedIds.length} de {roles.length} selecionados
 						</Text>
 						<TouchableOpacity
 							onPress={() => setOpen(false)}
 							accessibilityRole="button"
 						>
-							<Text className="font-inter font-semibold text-blue-600 text-sm">
+							<Text className="font-inter font-semibold text-primary-text text-sm">
 								Concluir
 							</Text>
 						</TouchableOpacity>
@@ -174,9 +180,9 @@ export function RoleMultiSelect({
 					{selectedRoles.map((role) => (
 						<View
 							key={role.id}
-							className="flex-row items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1.5"
+							className="flex-row items-center gap-1 rounded-full bg-primary-soft px-2.5 py-1.5"
 						>
-							<Text className="font-inter text-blue-800 text-xs">
+							<Text className="font-inter text-primary-strong text-xs">
 								{role.name}
 							</Text>
 							<TouchableOpacity

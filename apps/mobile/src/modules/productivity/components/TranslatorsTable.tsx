@@ -56,11 +56,11 @@ export function TranslatorsTable({ rows, onSelect }: TranslatorsTableProps) {
 						activeOpacity={0.7}
 						accessibilityRole="button"
 						accessibilityLabel={`Ver detalhes de ${row.translator_name}`}
-						className="gap-3 rounded-xl border border-gray-200 p-4"
+						className="gap-3 rounded-xl border border-border p-4"
 					>
 						<View className="flex-row items-center justify-between gap-2">
 							<Text
-								className="flex-1 font-inter font-semibold text-gray-900 text-sm"
+								className="flex-1 font-inter font-semibold text-foreground text-sm"
 								numberOfLines={1}
 							>
 								{row.translator_name}
@@ -70,10 +70,10 @@ export function TranslatorsTable({ rows, onSelect }: TranslatorsTableProps) {
 						<View className="flex-row flex-wrap gap-x-6 gap-y-3">
 							{HEADERS.map((header, index) => (
 								<View key={header.label} className="min-w-[88px] gap-0.5">
-									<Text className="font-inter text-gray-400 text-xs">
+									<Text className="font-inter text-foreground-subtle text-xs">
 										{header.label}
 									</Text>
-									<Text className="font-inter font-medium text-gray-800 text-sm">
+									<Text className="font-inter font-medium text-foreground text-sm">
 										{cells(row)[index]}
 									</Text>
 								</View>
@@ -86,15 +86,15 @@ export function TranslatorsTable({ rows, onSelect }: TranslatorsTableProps) {
 	}
 
 	return (
-		<View className="overflow-hidden rounded-xl border border-gray-200">
-			<View className="flex-row items-center border-b border-gray-200 bg-gray-50 px-4 py-3">
-				<Text className="flex-1 font-inter font-semibold text-gray-500 text-xs uppercase">
+		<View className="overflow-hidden rounded-xl border border-border">
+			<View className="flex-row items-center border-b border-border bg-surface-subtle px-4 py-3">
+				<Text className="flex-1 font-inter font-semibold text-foreground-muted text-xs uppercase">
 					Profissional
 				</Text>
 				{HEADERS.map((header) => (
 					<Text
 						key={header.label}
-						className={`${header.width} font-inter font-semibold text-gray-500 text-xs uppercase`}
+						className={`${header.width} font-inter font-semibold text-foreground-muted text-xs uppercase`}
 					>
 						{header.label}
 					</Text>
@@ -108,10 +108,10 @@ export function TranslatorsTable({ rows, onSelect }: TranslatorsTableProps) {
 					activeOpacity={0.7}
 					accessibilityRole="button"
 					accessibilityLabel={`Ver detalhes de ${row.translator_name}`}
-					className="flex-row items-center border-b border-gray-100 px-4 py-3.5 last:border-b-0"
+					className="flex-row items-center border-b border-border-subtle px-4 py-3.5 last:border-b-0"
 				>
 					<Text
-						className="flex-1 font-inter font-semibold text-gray-900 text-sm"
+						className="flex-1 font-inter font-semibold text-foreground text-sm"
 						numberOfLines={1}
 					>
 						{row.translator_name}
@@ -119,7 +119,7 @@ export function TranslatorsTable({ rows, onSelect }: TranslatorsTableProps) {
 					{HEADERS.map((header, index) => (
 						<Text
 							key={header.label}
-							className={`${header.width} font-inter text-gray-700 text-sm`}
+							className={`${header.width} font-inter text-foreground-secondary text-sm`}
 						>
 							{cells(row)[index]}
 						</Text>

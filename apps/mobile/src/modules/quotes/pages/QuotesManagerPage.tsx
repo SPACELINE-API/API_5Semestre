@@ -105,7 +105,7 @@ export default function QuotesManagerPage() {
 	}, [quoteId]);
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="
@@ -120,10 +120,10 @@ export default function QuotesManagerPage() {
 			>
 				<View className="mb-7 flex-row flex-wrap items-center justify-between gap-4">
 					<View className="flex-1">
-						<Text className="font-inter font-bold text-gray-950 text-2xl">
+						<Text className="font-inter font-bold text-foreground text-2xl">
 							Orçamentos
 						</Text>
-						<Text className="mt-1 font-inter text-gray-500 text-sm">
+						<Text className="mt-1 font-inter text-foreground-muted text-sm">
 							Gerencie os orçamentos e consulte os documentos cadastrados.
 						</Text>
 					</View>
@@ -131,10 +131,10 @@ export default function QuotesManagerPage() {
 						accessibilityRole="button"
 						onPress={() => setShowNewQuoteModal(true)}
 						disabled={!canWriteQuotes}
-						className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteQuotes ? 'opacity-40' : ''}`}
+						className={`flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 					>
 						<Plus size={18} color="#ffffff" />
-						<Text className="font-inter-medium text-sm text-white">
+						<Text className="font-inter-medium text-sm text-primary-foreground">
 							Novo orçamento
 						</Text>
 					</TouchableOpacity>
@@ -153,23 +153,23 @@ export default function QuotesManagerPage() {
 				/>
 
 				{loading ? (
-					<View className="items-center gap-3 rounded-xl border border-gray-200 bg-white p-10">
+					<View className="items-center gap-3 rounded-xl border border-border bg-surface p-10">
 						<ActivityIndicator color="#2563eb" />
-						<Text className="font-inter text-sm text-gray-500">
+						<Text className="font-inter text-sm text-foreground-muted">
 							Carregando orçamentos...
 						</Text>
 					</View>
 				) : error ? (
-					<View className="rounded-2xl border border-red-100 bg-white p-5 md:p-6">
+					<View className="rounded-2xl border border-danger/25 bg-surface p-5 md:p-6">
 						<View className="flex-row items-start gap-3">
-							<View className="h-10 w-10 items-center justify-center rounded-full bg-red-50">
+							<View className="h-10 w-10 items-center justify-center rounded-full bg-danger-soft">
 								<CircleAlert size={20} color="#dc2626" />
 							</View>
 							<View className="flex-1 gap-1">
-								<Text className="font-inter-semibold text-base text-gray-900">
+								<Text className="font-inter-semibold text-base text-foreground">
 									Não foi possível carregar os orçamentos
 								</Text>
-								<Text className="font-inter text-sm leading-5 text-gray-600">
+								<Text className="font-inter text-sm leading-5 text-foreground-secondary">
 									{error}
 								</Text>
 							</View>
@@ -177,17 +177,17 @@ export default function QuotesManagerPage() {
 						<TouchableOpacity
 							accessibilityRole="button"
 							onPress={() => void loadQuotes()}
-							className="mt-5 flex-row items-center gap-2 self-start rounded-lg bg-blue-600 px-4 py-2.5"
+							className="mt-5 flex-row items-center gap-2 self-start rounded-lg bg-primary px-4 py-2.5"
 						>
 							<RefreshCw size={15} color="#ffffff" />
-							<Text className="font-inter-medium text-sm text-white">
+							<Text className="font-inter-medium text-sm text-primary-foreground">
 								Tentar novamente
 							</Text>
 						</TouchableOpacity>
 					</View>
 				) : quotes.length ? (
 					<>
-						<Text className="mb-4 font-inter text-sm text-gray-500">
+						<Text className="mb-4 font-inter text-sm text-foreground-muted">
 							Exibindo {(page - 1) * 10 + 1}–{Math.min(page * 10, totalQuotes)}{' '}
 							de {totalQuotes} {totalQuotes === 1 ? 'orçamento' : 'orçamentos'}
 						</Text>
@@ -221,16 +221,16 @@ export default function QuotesManagerPage() {
 						/>
 					</>
 				) : (
-					<View className="items-center rounded-xl border border-gray-200 bg-white px-6 py-12">
-						<View className="mb-4 h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+					<View className="items-center rounded-xl border border-border bg-surface px-6 py-12">
+						<View className="mb-4 h-12 w-12 items-center justify-center rounded-full bg-primary-soft">
 							<FileText size={22} color="#2563eb" />
 						</View>
-						<Text className="font-inter-bold text-base text-gray-900">
+						<Text className="font-inter-bold text-base text-foreground">
 							{totalQuotes === 0 && (appliedSearch || statusFilter !== 'all')
 								? 'Nenhum orçamento encontrado'
 								: 'Nenhum orçamento cadastrado'}
 						</Text>
-						<Text className="mt-1 text-center font-inter text-sm text-gray-500">
+						<Text className="mt-1 text-center font-inter text-sm text-foreground-muted">
 							{totalQuotes === 0 && (appliedSearch || statusFilter !== 'all')
 								? 'Tente alterar a pesquisa ou selecionar outro status.'
 								: 'Crie um orçamento para começar a gerenciar os registros.'}
@@ -244,12 +244,12 @@ export default function QuotesManagerPage() {
 					<TouchableOpacity
 						activeOpacity={1}
 						onPress={() => setShowFilters(false)}
-						className="absolute inset-0 z-10 bg-black/10"
+						className="absolute inset-0 z-10 bg-overlay/10"
 					/>
 
-					<View className="absolute bottom-0 right-0 top-0 z-20 w-[300px] gap-5 border-l border-gray-200 bg-white p-5 shadow-xl">
+					<View className="absolute bottom-0 right-0 top-0 z-20 w-[300px] gap-5 border-l border-border bg-surface p-5 shadow-xl">
 						<View className="flex-row items-center justify-between">
-							<Text className="font-inter font-bold text-gray-900 text-base">
+							<Text className="font-inter font-bold text-foreground text-base">
 								Filtros
 							</Text>
 
@@ -278,7 +278,7 @@ export default function QuotesManagerPage() {
 								activeOpacity={0.7}
 								className="self-start"
 							>
-								<Text className="font-inter font-semibold text-blue-600 text-sm">
+								<Text className="font-inter font-semibold text-primary-text text-sm">
 									Limpar filtros
 								</Text>
 							</TouchableOpacity>

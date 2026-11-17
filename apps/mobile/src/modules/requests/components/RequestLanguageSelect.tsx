@@ -57,7 +57,7 @@ export function RequestLanguageSelect({
 		<View className="w-full gap-1">
 			<Text className="mb-1 text-sm font-bold text-[#101b35]">
 				{label}
-				<Text className="text-red-500">*</Text>
+				<Text className="text-danger">*</Text>
 			</Text>
 			<TouchableOpacity
 				accessibilityRole="button"
@@ -93,13 +93,13 @@ export function RequestLanguageSelect({
 			>
 				<View className="flex-1 items-center justify-center px-4">
 					<Pressable
-						className="absolute inset-0 bg-black/40"
+						className="absolute inset-0 bg-overlay/40"
 						onPress={closePicker}
 						accessibilityLabel="Fechar seleção de idioma"
 					/>
-					<View className="max-h-[80%] w-full max-w-[400px] overflow-hidden rounded-xl bg-white pb-4">
-						<View className="flex-row items-center justify-between border-b border-gray-300 p-4">
-							<Text className="font-inter font-bold text-lg text-gray-900">
+					<View className="max-h-[80%] w-full max-w-[400px] overflow-hidden rounded-xl bg-surface pb-4">
+						<View className="flex-row items-center justify-between border-b border-border-strong p-4">
+							<Text className="font-inter font-bold text-lg text-foreground">
 								Selecione o idioma
 							</Text>
 							<TouchableOpacity
@@ -109,7 +109,7 @@ export function RequestLanguageSelect({
 								<X size={20} color="#5A5A5A" />
 							</TouchableOpacity>
 						</View>
-						<View className="mx-4 mt-4 flex-row items-center gap-2 rounded-lg border border-gray-300 bg-white px-3">
+						<View className="mx-4 mt-4 flex-row items-center gap-2 rounded-lg border border-border-strong bg-surface px-3">
 							<Search size={17} color="#9CA3AF" />
 							<TextInput
 								value={search}
@@ -123,7 +123,7 @@ export function RequestLanguageSelect({
 								autoCapitalize="none"
 								autoCorrect={false}
 								accessibilityLabel="Buscar idioma"
-								className="h-11 flex-1 text-sm text-gray-900 max-md:min-w-0 max-md:shrink max-md:leading-5"
+								className="h-11 flex-1 text-sm text-foreground max-md:min-w-0 max-md:shrink max-md:leading-5"
 							/>
 						</View>
 						<ScrollView className="px-4" keyboardShouldPersistTaps="handled">
@@ -137,10 +137,10 @@ export function RequestLanguageSelect({
 											onChange(language.id);
 											closePicker();
 										}}
-										className="flex-row items-center gap-3 border-b border-gray-100 px-2 py-3"
+										className="flex-row items-center gap-3 border-b border-border-subtle px-2 py-3"
 									>
 										<Text className="text-lg">{getLanguageFlag(language)}</Text>
-										<Text className="flex-1 font-inter font-medium text-sm text-gray-800">
+										<Text className="flex-1 font-inter font-medium text-sm text-foreground">
 											{language.name}
 										</Text>
 										{selected && <Check size={16} color="#1C6FB0" />}
@@ -148,7 +148,7 @@ export function RequestLanguageSelect({
 								);
 							})}
 							{filteredLanguages.length === 0 && (
-								<Text className="px-2 py-6 text-center text-sm text-gray-500">
+								<Text className="px-2 py-6 text-center text-sm text-foreground-muted">
 									Nenhum idioma encontrado.
 								</Text>
 							)}

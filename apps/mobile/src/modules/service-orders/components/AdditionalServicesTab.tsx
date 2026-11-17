@@ -22,7 +22,7 @@ export function AdditionalServicesTab({
 		return (
 			<View className="items-center justify-center py-12">
 				<ActivityIndicator size="small" color="#6B7280" />
-				<Text className="mt-3 font-inter text-gray-400 text-sm">
+				<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 					Carregando serviços adicionais...
 				</Text>
 			</View>
@@ -33,7 +33,7 @@ export function AdditionalServicesTab({
 		return (
 			<View className="flex-row items-center gap-2 py-8">
 				<AlertCircle size={16} color="#DC2626" />
-				<Text className="font-inter text-red-600 text-sm">{error}</Text>
+				<Text className="font-inter text-danger text-sm">{error}</Text>
 			</View>
 		);
 	}
@@ -42,14 +42,14 @@ export function AdditionalServicesTab({
 		return (
 			<View className="items-center justify-center gap-4 py-12">
 				<View className="items-center">
-					<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+					<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
 						<PackagePlus size={18} color="#9CA3AF" />
 					</View>
 
-					<Text className="text-center font-inter font-medium text-gray-800 text-sm">
+					<Text className="text-center font-inter font-medium text-foreground text-sm">
 						Esta ordem de serviço não possui serviços adicionais
 					</Text>
-					<Text className="mt-1 text-center font-inter text-gray-400 text-xs">
+					<Text className="mt-1 text-center font-inter text-foreground-subtle text-xs">
 						Os serviços cadastrados no orçamento de origem aparecem nesta lista
 					</Text>
 				</View>

@@ -86,25 +86,25 @@ export function ItemReviewTab({
 			<View className="gap-3">
 				<View className="flex-row items-center gap-2">
 					<ClipboardCheck size={16} color="#1C6FB0" />
-					<Text className="font-inter font-bold text-gray-900 text-base">
+					<Text className="font-inter font-bold text-foreground text-base">
 						Aguardando revisão
 					</Text>
-					<View className="rounded-full bg-amber-50 px-2 py-0.5">
-						<Text className="font-inter font-semibold text-amber-900 text-xs">
+					<View className="rounded-full bg-warning-soft px-2 py-0.5">
+						<Text className="font-inter font-semibold text-warning-text text-xs">
 							{pending.length}
 						</Text>
 					</View>
 				</View>
 
 				{pending.length === 0 ? (
-					<View className="items-center justify-center rounded-xl border border-gray-100 py-10">
-						<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+					<View className="items-center justify-center rounded-xl border border-border-subtle py-10">
+						<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
 							<CheckCircle2 size={18} color="#9CA3AF" />
 						</View>
-						<Text className="font-inter font-medium text-gray-800 text-sm">
+						<Text className="font-inter font-medium text-foreground text-sm">
 							Nenhuma entrega aguardando revisão
 						</Text>
-						<Text className="mt-1 text-center font-inter text-gray-400 text-xs">
+						<Text className="mt-1 text-center font-inter text-foreground-subtle text-xs">
 							Quando um tradutor enviar uma tradução, ela aparece aqui.
 						</Text>
 					</View>
@@ -118,13 +118,13 @@ export function ItemReviewTab({
 						return (
 							<View
 								key={file.id}
-								className="gap-4 rounded-xl border border-gray-200 p-4"
+								className="gap-4 rounded-xl border border-border p-4"
 							>
 								<View className="gap-0.5">
-									<Text className="font-inter font-semibold text-gray-900 text-sm">
+									<Text className="font-inter font-semibold text-foreground text-sm">
 										{itemLabel(item)}
 									</Text>
-									<Text className="font-inter text-gray-500 text-xs">
+									<Text className="font-inter text-foreground-muted text-xs">
 										Enviado por {deliveredBy(file)} em{' '}
 										{formatDate(file.uploaded_at)}
 									</Text>
@@ -139,7 +139,7 @@ export function ItemReviewTab({
 								>
 									<FileText size={15} color="#1C6FB0" />
 									<Text
-										className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-sm"
+										className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-sm"
 										numberOfLines={1}
 									>
 										{file.filename}
@@ -154,9 +154,9 @@ export function ItemReviewTab({
 										activeOpacity={0.7}
 										accessibilityRole="button"
 										accessibilityLabel="Pedir ajustes"
-										className="rounded-lg border border-gray-300 px-4 py-2.5"
+										className="rounded-lg border border-border-strong px-4 py-2.5"
 									>
-										<Text className="font-inter font-medium text-gray-700 text-sm">
+										<Text className="font-inter font-medium text-foreground-secondary text-sm">
 											Pedir ajustes
 										</Text>
 									</TouchableOpacity>
@@ -166,10 +166,10 @@ export function ItemReviewTab({
 										activeOpacity={0.7}
 										accessibilityRole="button"
 										accessibilityLabel="Aprovar entrega"
-										className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${isBusy ? 'opacity-60' : ''}`}
+										className={`flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${isBusy ? 'opacity-60' : ''}`}
 									>
 										{isBusy && <ActivityIndicator size="small" color="#fff" />}
-										<Text className="font-inter-medium text-sm text-white">
+										<Text className="font-inter-medium text-sm text-primary-foreground">
 											Aprovar
 										</Text>
 									</TouchableOpacity>
@@ -182,7 +182,7 @@ export function ItemReviewTab({
 
 			{history.length > 0 && (
 				<View className="gap-3">
-					<Text className="font-inter font-bold text-gray-900 text-base">
+					<Text className="font-inter font-bold text-foreground text-base">
 						Histórico de revisões
 					</Text>
 					{history.map((file) => {
@@ -194,14 +194,14 @@ export function ItemReviewTab({
 						return (
 							<View
 								key={file.id}
-								className="gap-2 rounded-xl border border-gray-100 p-4"
+								className="gap-2 rounded-xl border border-border-subtle p-4"
 							>
 								<View className="flex-row flex-wrap items-start justify-between gap-2">
 									<View className="min-w-0 flex-1 gap-0.5">
-										<Text className="font-inter font-semibold text-gray-900 text-sm">
+										<Text className="font-inter font-semibold text-foreground text-sm">
 											{itemLabel(item)}
 										</Text>
-										<Text className="font-inter text-gray-500 text-xs">
+										<Text className="font-inter text-foreground-muted text-xs">
 											{deliveredBy(file)} · revisado em{' '}
 											{formatDate(file.reviewed_at)}
 										</Text>
@@ -217,7 +217,7 @@ export function ItemReviewTab({
 									</View>
 								</View>
 								{file.review_note && (
-									<Text className="font-inter text-gray-600 text-sm">
+									<Text className="font-inter text-foreground-secondary text-sm">
 										{file.review_note}
 									</Text>
 								)}
@@ -229,7 +229,7 @@ export function ItemReviewTab({
 								>
 									<FileText size={14} color="#1C6FB0" />
 									<Text
-										className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-xs"
+										className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-xs"
 										numberOfLines={1}
 									>
 										{file.filename}

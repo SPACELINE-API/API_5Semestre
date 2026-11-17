@@ -229,14 +229,14 @@ function AppShell({
 				{showNavigation ? (
 					<View
 						style={{ paddingTop: insets.top }}
-						className="flex-row items-center border-b border-gray-100 bg-white px-4 py-3 pr-16 md:hidden"
+						className="flex-row items-center border-b border-border-subtle bg-surface px-4 py-3 pr-16 md:hidden"
 					>
 						<TouchableOpacity
 							onPress={onOpenMobileNav}
 							activeOpacity={0.7}
 							accessibilityRole="button"
 							accessibilityLabel="Abrir menu"
-							className="h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50 md:invisible"
+							className="h-9 w-9 items-center justify-center rounded-lg hover:bg-surface-subtle md:invisible"
 						>
 							<Menu size={22} color="#1f2937" strokeWidth={2} />
 						</TouchableOpacity>

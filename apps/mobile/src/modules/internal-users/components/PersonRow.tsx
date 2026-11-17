@@ -32,30 +32,33 @@ export function PersonRow({
 	const linkLabel = showSend ? 'Enviar link' : 'Reenviar link';
 
 	return (
-		<View className="flex-col gap-3 border-t border-gray-100 px-4 py-4 md:flex-row md:items-center md:gap-4">
+		<View className="flex-col gap-3 border-t border-border-subtle px-4 py-4 md:flex-row md:items-center md:gap-4">
 			<View className="min-w-0 flex-row items-center gap-3 md:flex-1">
-				<View className="h-10 w-10 items-center justify-center rounded-full bg-blue-50">
-					<Text className="font-inter font-bold text-blue-700 text-sm">
+				<View className="h-10 w-10 items-center justify-center rounded-full bg-primary-soft">
+					<Text className="font-inter font-bold text-primary-text text-sm">
 						{initials(person)}
 					</Text>
 				</View>
 				<View className="min-w-0 flex-1 gap-0.5">
 					<View className="flex-row flex-wrap items-center gap-2">
 						<Text
-							className="font-inter font-semibold text-gray-900 text-sm"
+							className="font-inter font-semibold text-foreground text-sm"
 							numberOfLines={1}
 						>
 							{displayName(person)}
 						</Text>
 						{isSelf && (
-							<View className="rounded-full bg-blue-50 px-2 py-0.5">
-								<Text className="font-inter font-medium text-blue-700 text-[11px]">
+							<View className="rounded-full bg-primary-soft px-2 py-0.5">
+								<Text className="font-inter font-medium text-primary-text text-[11px]">
 									Você
 								</Text>
 							</View>
 						)}
 					</View>
-					<Text className="font-inter text-gray-500 text-xs" numberOfLines={1}>
+					<Text
+						className="font-inter text-foreground-muted text-xs"
+						numberOfLines={1}
+					>
 						{person.email}
 						{person.phone ? ` · ${maskPhone(person.phone)}` : ''}
 					</Text>
@@ -63,9 +66,9 @@ export function PersonRow({
 						{person.roles.map((role) => (
 							<View
 								key={role.id}
-								className="rounded-full bg-gray-100 px-2 py-0.5"
+								className="rounded-full bg-surface-muted px-2 py-0.5"
 							>
-								<Text className="font-inter text-gray-700 text-[11px]">
+								<Text className="font-inter text-foreground-secondary text-[11px]">
 									{role.name}
 								</Text>
 							</View>
@@ -86,7 +89,7 @@ export function PersonRow({
 						disabled={isBusy}
 						accessibilityRole="button"
 						accessibilityLabel={`${linkLabel} para ${displayName(person)}`}
-						className={`flex-row items-center gap-1.5 rounded-lg border border-blue-200 px-3 py-2 ${
+						className={`flex-row items-center gap-1.5 rounded-lg border border-primary/30 px-3 py-2 ${
 							isBusy ? 'opacity-50' : ''
 						}`}
 					>
@@ -95,7 +98,7 @@ export function PersonRow({
 						) : (
 							<Mail size={14} color="#1D4ED8" />
 						)}
-						<Text className="font-inter font-medium text-blue-700 text-xs">
+						<Text className="font-inter font-medium text-primary-text text-xs">
 							{linkLabel}
 						</Text>
 					</TouchableOpacity>
@@ -105,10 +108,10 @@ export function PersonRow({
 					disabled={isBusy}
 					accessibilityRole="button"
 					accessibilityLabel={`Editar ${displayName(person)}`}
-					className="flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2"
+					className="flex-row items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2"
 				>
 					<Pencil size={14} color="#374151" />
-					<Text className="font-inter font-medium text-gray-800 text-xs">
+					<Text className="font-inter font-medium text-foreground text-xs">
 						Editar
 					</Text>
 				</TouchableOpacity>
@@ -118,10 +121,10 @@ export function PersonRow({
 						disabled={isBusy}
 						accessibilityRole="button"
 						accessibilityLabel={`Desativar ${displayName(person)}`}
-						className="flex-row items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2"
+						className="flex-row items-center gap-1.5 rounded-lg border border-danger/30 px-3 py-2"
 					>
 						<UserX size={14} color="#B91C1C" />
-						<Text className="font-inter font-medium text-red-700 text-xs">
+						<Text className="font-inter font-medium text-danger text-xs">
 							Desativar
 						</Text>
 					</TouchableOpacity>

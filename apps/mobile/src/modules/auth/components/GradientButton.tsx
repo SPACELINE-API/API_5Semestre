@@ -20,7 +20,7 @@ export function GradientButton({
 			disabled={disabled}
 			accessibilityRole="button"
 			accessibilityState={{ disabled }}
-			className={`h-12 overflow-hidden rounded-full shadow-md shadow-blue-600/30 ${disabled ? 'opacity-70' : ''} ${className}`}
+			className={`h-12 overflow-hidden rounded-full shadow-md shadow-primary/30 ${disabled ? 'opacity-70' : ''} ${className}`}
 		>
 			<View pointerEvents="none" style={StyleSheet.absoluteFill}>
 				<Svg
@@ -39,7 +39,9 @@ export function GradientButton({
 				</Svg>
 			</View>
 			<View className="h-full items-center justify-center">
-				<Text className="font-bold text-white tracking-wide">{label}</Text>
+				<Text className="font-bold text-primary-foreground tracking-wide">
+					{label}
+				</Text>
 			</View>
 		</Pressable>
 	);

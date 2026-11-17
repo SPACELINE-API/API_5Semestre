@@ -34,9 +34,9 @@ const LEVEL_STYLES: Record<
 	{ badgeBg: string; badgeText: string; bar: string }
 > = {
 	native: {
-		badgeBg: 'bg-emerald-50',
-		badgeText: 'text-emerald-800',
-		bar: 'bg-emerald-500',
+		badgeBg: 'bg-success-soft',
+		badgeText: 'text-success-text',
+		bar: 'bg-success',
 	},
 	fluent: {
 		badgeBg: 'bg-indigo-50',
@@ -44,9 +44,9 @@ const LEVEL_STYLES: Record<
 		bar: 'bg-indigo-500',
 	},
 	advanced: {
-		badgeBg: 'bg-blue-50',
-		badgeText: 'text-blue-800',
-		bar: 'bg-blue-500',
+		badgeBg: 'bg-primary-soft',
+		badgeText: 'text-primary-strong',
+		bar: 'bg-primary',
 	},
 	intermediate: {
 		badgeBg: 'bg-sky-50',
@@ -54,9 +54,9 @@ const LEVEL_STYLES: Record<
 		bar: 'bg-sky-400',
 	},
 	basic: {
-		badgeBg: 'bg-gray-100',
-		badgeText: 'text-gray-700',
-		bar: 'bg-gray-400',
+		badgeBg: 'bg-surface-muted',
+		badgeText: 'text-foreground-secondary',
+		bar: 'bg-foreground-subtle',
 	},
 };
 
@@ -90,14 +90,14 @@ export function LanguagesList({ languages }: LanguagesListProps) {
 
 	if (languages.length === 0) {
 		return (
-			<View className="items-center gap-2 rounded-xl border border-dashed border-gray-300 px-4 py-10">
-				<View className="h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+			<View className="items-center gap-2 rounded-xl border border-dashed border-border-strong px-4 py-10">
+				<View className="h-12 w-12 items-center justify-center rounded-full bg-surface-muted">
 					<Languages size={22} color="#9CA3AF" />
 				</View>
-				<Text className="text-center font-inter font-semibold text-gray-700 text-sm">
+				<Text className="text-center font-inter font-semibold text-foreground-secondary text-sm">
 					Nenhum idioma cadastrado.
 				</Text>
-				<Text className="text-center font-inter text-gray-500 text-xs">
+				<Text className="text-center font-inter text-foreground-muted text-xs">
 					Os idiomas de trabalho aparecem aqui depois de aprovados.
 				</Text>
 			</View>
@@ -107,7 +107,7 @@ export function LanguagesList({ languages }: LanguagesListProps) {
 	return (
 		<View className="gap-5">
 			<View className="gap-3">
-				<Text className="font-inter font-semibold text-gray-900 text-sm">
+				<Text className="font-inter font-semibold text-foreground text-sm">
 					{languages.length === 1
 						? '1 idioma de trabalho'
 						: `${languages.length} idiomas de trabalho`}
@@ -142,16 +142,16 @@ export function LanguagesList({ languages }: LanguagesListProps) {
 					return (
 						<View
 							key={language.id}
-							className="min-w-[240px] flex-1 basis-[280px] gap-3 rounded-xl border border-gray-200 bg-white p-4"
+							className="min-w-[240px] flex-1 basis-[280px] gap-3 rounded-xl border border-border bg-surface p-4"
 						>
 							<View className="flex-row items-center gap-3">
-								<View className="h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-									<Text className="font-inter font-bold text-blue-700 text-xs">
+								<View className="h-10 w-10 items-center justify-center rounded-xl bg-primary-soft">
+									<Text className="font-inter font-bold text-primary-text text-xs">
 										{languageCode(language)}
 									</Text>
 								</View>
 								<Text
-									className="min-w-0 flex-1 font-inter font-semibold text-gray-900 text-sm"
+									className="min-w-0 flex-1 font-inter font-semibold text-foreground text-sm"
 									numberOfLines={2}
 								>
 									{language.language_name}
@@ -160,7 +160,7 @@ export function LanguagesList({ languages }: LanguagesListProps) {
 
 							<View className="gap-1.5">
 								<View className="flex-row items-center justify-between gap-2">
-									<Text className="font-inter text-gray-400 text-xs">
+									<Text className="font-inter text-foreground-subtle text-xs">
 										Fluência
 									</Text>
 									<View
@@ -178,7 +178,7 @@ export function LanguagesList({ languages }: LanguagesListProps) {
 										<View
 											key={segment}
 											className={`h-1.5 flex-1 rounded-full ${
-												segment <= rank ? style.bar : 'bg-gray-100'
+												segment <= rank ? style.bar : 'bg-surface-muted'
 											}`}
 										/>
 									))}

@@ -68,9 +68,9 @@ export function ProfileDataCard({
 	}
 
 	return (
-		<View className="gap-4 rounded-xl border border-gray-100 p-5">
+		<View className="gap-4 rounded-xl border border-border-subtle p-5">
 			<View className="flex-row items-center justify-between">
-				<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
+				<Text className="font-inter font-semibold text-foreground-subtle text-xs uppercase tracking-wide">
 					Dados pessoais
 				</Text>
 				{!isEditing && (
@@ -78,10 +78,10 @@ export function ProfileDataCard({
 						onPress={startEditing}
 						activeOpacity={0.7}
 						accessibilityRole="button"
-						className="flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2"
+						className="flex-row items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2"
 					>
 						<Pencil size={14} color="#353535" />
-						<Text className="font-inter font-semibold text-gray-800 text-xs">
+						<Text className="font-inter font-semibold text-foreground text-xs">
 							Editar
 						</Text>
 					</TouchableOpacity>
@@ -114,20 +114,22 @@ export function ProfileDataCard({
 						error={fieldErrors.phone}
 					/>
 					<View className="gap-1.5">
-						<Text className="font-inter font-semibold text-gray-800 text-xs">
+						<Text className="font-inter font-semibold text-foreground text-xs">
 							Email
 						</Text>
-						<Text className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 font-inter text-gray-500 text-sm">
+						<Text className="rounded-lg border border-border bg-surface-subtle px-3 py-2.5 font-inter text-foreground-muted text-sm">
 							{profile.email}
 						</Text>
-						<Text className="font-inter text-gray-400 text-xs">
+						<Text className="font-inter text-foreground-subtle text-xs">
 							O email é o seu acesso à plataforma e não pode ser alterado aqui.
 						</Text>
 					</View>
 
 					{error && (
-						<View className="rounded-lg bg-red-50 px-3 py-2.5">
-							<Text className="font-inter text-red-900 text-sm">{error}</Text>
+						<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+							<Text className="font-inter text-danger-text text-sm">
+								{error}
+							</Text>
 						</View>
 					)}
 
@@ -135,18 +137,18 @@ export function ProfileDataCard({
 						<TouchableOpacity
 							onPress={() => setIsEditing(false)}
 							disabled={isSaving}
-							className="rounded-lg border border-gray-300 px-5 py-2.5"
+							className="rounded-lg border border-border-strong px-5 py-2.5"
 						>
-							<Text className="font-inter font-medium text-gray-800 text-sm">
+							<Text className="font-inter font-medium text-foreground text-sm">
 								Cancelar
 							</Text>
 						</TouchableOpacity>
 						<TouchableOpacity
 							onPress={() => void handleSave()}
 							disabled={isSaving}
-							className={`rounded-lg bg-blue-600 px-5 py-2.5 ${isSaving ? 'opacity-60' : ''}`}
+							className={`rounded-lg bg-primary px-5 py-2.5 ${isSaving ? 'opacity-60' : ''}`}
 						>
-							<Text className="font-inter-medium text-sm text-white">
+							<Text className="font-inter-medium text-sm text-primary-foreground">
 								{isSaving ? 'Salvando…' : 'Salvar alterações'}
 							</Text>
 						</TouchableOpacity>
@@ -156,19 +158,19 @@ export function ProfileDataCard({
 				<View className="gap-3">
 					<View className="flex-row items-center gap-3">
 						<UserRound size={16} color="#6B7280" />
-						<Text className="font-inter text-gray-700 text-sm">
+						<Text className="font-inter text-foreground-secondary text-sm">
 							{profile.name}
 						</Text>
 					</View>
 					<View className="flex-row items-center gap-3">
 						<Mail size={16} color="#6B7280" />
-						<Text className="font-inter text-gray-700 text-sm">
+						<Text className="font-inter text-foreground-secondary text-sm">
 							{profile.email}
 						</Text>
 					</View>
 					<View className="flex-row items-center gap-3">
 						<Phone size={16} color="#6B7280" />
-						<Text className="font-inter text-gray-700 text-sm">
+						<Text className="font-inter text-foreground-secondary text-sm">
 							{maskPhone(profile.phone)}
 						</Text>
 					</View>

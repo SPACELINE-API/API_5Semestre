@@ -73,35 +73,35 @@ export function CertificateDetailsModal({
 			onClose={close}
 		>
 			<View className="gap-3">
-				<Text className="text-center font-inter font-semibold text-gray-800 text-sm">
+				<Text className="text-center font-inter font-semibold text-foreground text-sm">
 					{certificate.language_name} ·{' '}
 					{PROFICIENCY_LABELS[certificate.proficiency_level]}
 				</Text>
 
 				{certificate.status === 'rejected' && certificate.review_note && (
-					<View className="rounded-lg bg-red-50 px-3 py-2.5">
-						<Text className="font-inter text-red-900 text-sm">
+					<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+						<Text className="font-inter text-danger-text text-sm">
 							<Text className="font-semibold">Motivo da recusa: </Text>
 							{certificate.review_note}
 						</Text>
 					</View>
 				)}
 
-				<View className="flex-row items-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5">
+				<View className="flex-row items-center gap-2 rounded-lg border border-border px-3 py-2.5">
 					<FileText size={16} color="#6B7280" />
 					<Text
-						className="flex-1 font-inter text-gray-700 text-sm"
+						className="flex-1 font-inter text-foreground-secondary text-sm"
 						numberOfLines={1}
 					>
 						{certificate.filename}
 					</Text>
-					<Text className="font-inter text-gray-400 text-xs">
+					<Text className="font-inter text-foreground-subtle text-xs">
 						{formatFileSize(certificate.size_bytes)}
 					</Text>
 				</View>
 
 				{isUnavailable && (
-					<Text className="text-center font-inter text-gray-600 text-xs">
+					<Text className="text-center font-inter text-foreground-secondary text-xs">
 						{canReplace
 							? 'Use “Substituir” para enviar o arquivo novamente.'
 							: 'Procure o administrador para regularizar este certificado.'}
@@ -109,7 +109,7 @@ export function CertificateDetailsModal({
 				)}
 
 				{openError && (
-					<Text className="text-center font-inter text-red-700 text-xs">
+					<Text className="text-center font-inter text-danger text-xs">
 						{openError}
 					</Text>
 				)}
@@ -120,7 +120,7 @@ export function CertificateDetailsModal({
 							onPress={() => void handleView()}
 							disabled={isOpening}
 							accessibilityRole="button"
-							className={`min-w-[140px] flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 py-2.5 ${
+							className={`min-w-[140px] flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-border-strong px-3 py-2.5 ${
 								isOpening ? 'opacity-60' : ''
 							}`}
 						>
@@ -129,7 +129,7 @@ export function CertificateDetailsModal({
 							) : (
 								<Eye size={16} color="#374151" />
 							)}
-							<Text className="font-inter font-semibold text-gray-800 text-sm">
+							<Text className="font-inter font-semibold text-foreground text-sm">
 								Visualizar arquivo
 							</Text>
 						</TouchableOpacity>
@@ -138,10 +138,10 @@ export function CertificateDetailsModal({
 						<TouchableOpacity
 							onPress={() => onReplace(certificate)}
 							accessibilityRole="button"
-							className="min-w-[140px] flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-blue-600 px-3 py-2.5"
+							className="min-w-[140px] flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-primary px-3 py-2.5"
 						>
 							<RefreshCw size={16} color="#1D4ED8" />
-							<Text className="font-inter font-semibold text-blue-700 text-sm">
+							<Text className="font-inter font-semibold text-primary-text text-sm">
 								Substituir
 							</Text>
 						</TouchableOpacity>

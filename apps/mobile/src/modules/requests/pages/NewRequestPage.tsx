@@ -13,7 +13,7 @@ export default function NewRequestPage() {
 				contentContainerClassName="items-center px-6 py-10 md:px-[7.5%] md:py-12"
 			>
 				<View className="w-full max-w-3xl items-center">
-					<View className="mb-5 self-center rounded-full border border-[#2f86d1]/35 bg-white/70 px-4 py-1.5">
+					<View className="mb-5 self-center rounded-full border border-[#2f86d1]/35 bg-surface/70 px-4 py-1.5">
 						<Text className="text-[11px] font-bold tracking-[2px] text-[#2478c2]">
 							• NOVA SOLICITAÇÃO
 						</Text>

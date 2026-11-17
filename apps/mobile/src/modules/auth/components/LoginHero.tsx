@@ -9,7 +9,7 @@ export function LoginHero({
 	return (
 		<View className="w-full flex-none justify-center py-2 md:flex-1 md:py-2">
 			<View className="max-w-xl">
-				<View className="mb-7 self-start rounded-full border border-[#2f86d1]/35 bg-white/70 px-4 py-1.5">
+				<View className="mb-7 self-start rounded-full border border-[#2f86d1]/35 bg-surface/70 px-4 py-1.5">
 					<Text className="text-[11px] font-bold tracking-[2px] text-[#2478c2]">
 						• PORTAL DO CLIENTE
 					</Text>
@@ -25,8 +25,10 @@ export function LoginHero({
 				</Text>
 				{showRequestServiceButton ? (
 					<Link href="/solicitar-servico">
-						<Pressable className="w-60 h-12 mt-5 items-center justify-center rounded-full bg-[#2d83cd] shadow-md shadow-blue-600/30 transition-transform duration-300 ease-in-out hover:-translate-y-1">
-							<Text className="font-bold text-white">Solicitar serviço</Text>
+						<Pressable className="w-60 h-12 mt-5 items-center justify-center rounded-full bg-[#2d83cd] shadow-md shadow-primary/30 transition-transform duration-300 ease-in-out hover:-translate-y-1">
+							<Text className="font-bold text-primary-foreground">
+								Solicitar serviço
+							</Text>
 						</Pressable>
 					</Link>
 				) : null}

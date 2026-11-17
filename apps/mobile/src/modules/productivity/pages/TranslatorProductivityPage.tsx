@@ -38,7 +38,7 @@ export function TranslatorProductivityPage({
 	);
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8"
@@ -49,7 +49,7 @@ export function TranslatorProductivityPage({
 					className="mb-6 flex-row items-center gap-2 self-start"
 				>
 					<ArrowLeft size={16} color="#6B7280" />
-					<Text className="font-inter text-gray-500 text-sm">
+					<Text className="font-inter text-foreground-muted text-sm">
 						Produtividade
 					</Text>
 				</TouchableOpacity>
@@ -62,11 +62,11 @@ export function TranslatorProductivityPage({
 
 				{!isLoading && !error && details && (
 					<View className="gap-6">
-						<View className="gap-1 border-b border-gray-200 pb-6">
-							<Text className="font-inter font-bold text-gray-950 text-2xl">
+						<View className="gap-1 border-b border-border pb-6">
+							<Text className="font-inter font-bold text-foreground text-2xl">
 								{details.translator_name}
 							</Text>
-							<Text className="font-inter text-gray-500 text-sm">
+							<Text className="font-inter text-foreground-muted text-sm">
 								{formatIsoDate(details.period_start)} a{' '}
 								{formatIsoDate(details.period_end)}
 							</Text>
@@ -93,7 +93,7 @@ export function TranslatorProductivityPage({
 									</ChartCard>
 								)}
 								<View className="gap-3">
-									<Text className="font-inter font-bold text-gray-900 text-base">
+									<Text className="font-inter font-bold text-foreground text-base">
 										Documentos traduzidos
 									</Text>
 									<DocumentsList documents={details.documents} />

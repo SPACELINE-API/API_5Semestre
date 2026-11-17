@@ -50,13 +50,13 @@ export function DashboardCard({ shortcut }: DashboardCardProps) {
 			accessibilityRole="button"
 			accessibilityLabel={`Acessar ${shortcut.title}`}
 			onPress={() => router.push(shortcut.route as never)}
-			className="group w-[31.5%] items-center gap-2 rounded-xl border border-gray-200 bg-white px-2 py-3 transition-colors hover:border-gray-300 hover:bg-gray-50 active:bg-gray-100 md:w-auto md:max-w-[260px] md:flex-1 md:basis-[200px] md:flex-row md:gap-3 md:px-4 md:py-3.5"
+			className="group w-[31.5%] items-center gap-2 rounded-xl border border-border bg-surface px-2 py-3 transition-colors hover:border-border-strong hover:bg-surface-subtle active:bg-surface-muted md:w-auto md:max-w-[260px] md:flex-1 md:basis-[200px] md:flex-row md:gap-3 md:px-4 md:py-3.5"
 		>
-			<View className="h-9 w-9 items-center justify-center rounded-lg bg-blue-50 md:h-10 md:w-10">
+			<View className="h-9 w-9 items-center justify-center rounded-lg bg-primary-soft md:h-10 md:w-10">
 				<Icon size={18} color="#2563eb" strokeWidth={2} />
 			</View>
 			<Text
-				className="font-inter-medium text-center text-xs leading-tight text-gray-800 md:flex-1 md:text-left md:text-sm"
+				className="font-inter-medium text-center text-xs leading-tight text-foreground md:flex-1 md:text-left md:text-sm"
 				numberOfLines={2}
 			>
 				{displayTitle}

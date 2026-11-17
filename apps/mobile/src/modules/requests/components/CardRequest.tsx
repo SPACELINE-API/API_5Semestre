@@ -59,10 +59,10 @@ export default function CardRequest({
 				: 'Pendente';
 	const statusStyle =
 		status === 'approved'
-			? { container: 'bg-green-50', text: 'text-green-800' }
+			? { container: 'bg-success-soft', text: 'text-success-text' }
 			: status === 'reproved'
-				? { container: 'bg-red-50', text: 'text-red-800' }
-				: { container: 'bg-orange-100', text: 'text-orange-800' };
+				? { container: 'bg-danger-soft', text: 'text-danger-text' }
+				: { container: 'bg-warning-soft', text: 'text-warning-text' };
 	const actionLabel =
 		status === 'approved'
 			? 'Revisar e gerar orçamento'
@@ -73,16 +73,16 @@ export default function CardRequest({
 	const shouldShowAction = !(status === 'approved' && quote_id);
 
 	return (
-		<View className="basis-[320px] flex-shrink-0 gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+		<View className="basis-[320px] flex-shrink-0 gap-4 rounded-xl border border-border bg-surface p-5 shadow-sm">
 			<View className="flex-row items-start justify-between gap-2">
 				<View className="min-w-0 flex-1">
 					<Text
-						className="font-inter font-bold text-gray-900 text-base"
+						className="font-inter font-bold text-foreground text-base"
 						numberOfLines={2}
 					>
 						{customer_name}
 					</Text>
-					<Text className="mt-0.5 font-inter text-gray-400 text-sm">
+					<Text className="mt-0.5 font-inter text-foreground-subtle text-sm">
 						{enterprise}
 					</Text>
 				</View>
@@ -93,26 +93,30 @@ export default function CardRequest({
 				</View>
 			</View>
 
-			<View className="gap-2 border-t border-gray-100 pt-4">
+			<View className="gap-2 border-t border-border-subtle pt-4">
 				<View className="flex-row flex-wrap justify-between gap-x-2">
-					<Text className="font-inter text-gray-400 text-sm">Documento</Text>
-					<Text className="min-w-0 flex-1 text-right font-inter-medium text-gray-800 text-sm">
+					<Text className="font-inter text-foreground-subtle text-sm">
+						Documento
+					</Text>
+					<Text className="min-w-0 flex-1 text-right font-inter-medium text-foreground text-sm">
 						{customer_need}
 					</Text>
 				</View>
 
 				<View className="flex-row flex-wrap justify-between gap-x-2">
-					<Text className="font-inter text-gray-400 text-sm">Idioma</Text>
-					<Text className="min-w-0 flex-1 text-right font-inter-medium text-gray-800 text-sm">
+					<Text className="font-inter text-foreground-subtle text-sm">
+						Idioma
+					</Text>
+					<Text className="min-w-0 flex-1 text-right font-inter-medium text-foreground text-sm">
 						{original_language} → {translation_language}
 					</Text>
 				</View>
 
 				<View className="flex-row flex-wrap justify-between gap-x-2">
-					<Text className="font-inter text-gray-400 text-sm">
+					<Text className="font-inter text-foreground-subtle text-sm">
 						Data da solicitação
 					</Text>
-					<Text className="min-w-0 flex-1 text-right font-inter-medium text-gray-800 text-sm">
+					<Text className="min-w-0 flex-1 text-right font-inter-medium text-foreground text-sm">
 						{formatRequestDate(request_date)}
 					</Text>
 				</View>
@@ -125,10 +129,10 @@ export default function CardRequest({
 					onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
 					disabled={!canOpen}
 					className={`w-full items-center rounded-lg py-2.5 ${
-						status === 'reproved' ? 'bg-gray-500' : 'bg-blue-600'
+						status === 'reproved' ? 'bg-foreground-muted' : 'bg-primary'
 					} ${!canOpen ? 'opacity-40' : ''}`}
 				>
-					<Text className="font-inter-semibold text-sm text-white">
+					<Text className="font-inter-semibold text-sm text-primary-foreground">
 						{actionLabel}
 					</Text>
 				</TouchableOpacity>

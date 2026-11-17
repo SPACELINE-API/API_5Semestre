@@ -167,7 +167,7 @@ export function ClientsPage() {
 	}
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="
@@ -181,30 +181,30 @@ export function ClientsPage() {
 				"
 			>
 				<View className="gap-6">
-					<View className="border-b border-gray-200 pb-6">
+					<View className="border-b border-border pb-6">
 						<View className="flex-row flex-wrap items-start justify-between gap-4 md:items-center">
 							<View className="flex-1">
-								<Text className="font-inter font-bold text-gray-950 text-2xl">
+								<Text className="font-inter font-bold text-foreground text-2xl">
 									Clientes
 								</Text>
 
 								<View className="mt-2 flex-row items-center gap-2">
-									<Text className="font-inter text-gray-500 text-sm">
+									<Text className="font-inter text-foreground-muted text-sm">
 										{companies.length}{' '}
 										{companies.length === 1 ? 'cliente' : 'clientes'}
 									</Text>
 
-									<View className="h-1 w-1 rounded-full bg-gray-300" />
+									<View className="h-1 w-1 rounded-full bg-border-strong" />
 
-									<Text className="font-inter text-gray-400 text-sm">
+									<Text className="font-inter text-foreground-subtle text-sm">
 										{activeCompanies} ativos
 									</Text>
 
 									{inactiveCompanies > 0 && (
 										<>
-											<View className="h-1 w-1 rounded-full bg-gray-300" />
+											<View className="h-1 w-1 rounded-full bg-border-strong" />
 
-											<Text className="font-inter text-gray-400 text-sm">
+											<Text className="font-inter text-foreground-subtle text-sm">
 												{inactiveCompanies} inativos
 											</Text>
 										</>
@@ -218,10 +218,10 @@ export function ClientsPage() {
 								activeOpacity={0.8}
 								accessibilityRole="button"
 								accessibilityLabel="Novo cliente"
-								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteClients ? 'opacity-40' : ''}`}
+								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 ${!canWriteClients ? 'opacity-40' : ''}`}
 							>
 								<Plus size={18} color="#ffffff" />
-								<Text className="font-inter-medium text-sm text-white">
+								<Text className="font-inter-medium text-sm text-primary-foreground">
 									Novo cliente
 								</Text>
 							</TouchableOpacity>
@@ -230,7 +230,7 @@ export function ClientsPage() {
 
 					<View className="gap-3">
 						<View className="flex-row items-center gap-3">
-							<View className="h-10 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white px-3">
+							<View className="h-10 flex-1 flex-row items-center rounded-lg border border-border bg-surface px-3">
 								<Search size={17} color="#9CA3AF" />
 
 								<TextInput
@@ -242,7 +242,7 @@ export function ClientsPage() {
 											: 'Buscar por nome, CNPJ...'
 									}
 									placeholderTextColor="#9CA3AF"
-									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
+									className="ml-2 flex-1 border-0 font-inter text-foreground text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
 								/>
 
 								{search.length > 0 && (
@@ -269,8 +269,8 @@ export function ClientsPage() {
 									px-3
 									${
 										showFilters || statusFilter !== 'all'
-											? 'border-blue-300 bg-blue-50'
-											: 'border-gray-200 bg-white'
+											? 'border-primary/40 bg-primary-soft'
+											: 'border-border bg-surface'
 									}
 								`}
 							>
@@ -286,28 +286,28 @@ export function ClientsPage() {
 								<Text
 									className={`font-inter font-medium text-sm ${
 										showFilters || statusFilter !== 'all'
-											? 'text-blue-900'
-											: 'text-gray-600'
+											? 'text-primary-strong'
+											: 'text-foreground-secondary'
 									}`}
 								>
 									Filtros
 								</Text>
 
 								{statusFilter !== 'all' && (
-									<View className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+									<View className="h-1.5 w-1.5 rounded-full bg-primary" />
 								)}
 							</TouchableOpacity>
 						</View>
 
 						<View className="flex-row items-center justify-between">
-							<Text className="font-inter text-gray-400 text-xs">
+							<Text className="font-inter text-foreground-subtle text-xs">
 								{filteredCompanies.length}{' '}
 								{filteredCompanies.length === 1 ? 'resultado' : 'resultados'}
 							</Text>
 
 							{selectedIds.size > 0 && (
-								<View className="flex-row items-center gap-3 rounded-lg bg-blue-50 px-3 py-2">
-									<Text className="font-inter font-semibold text-blue-900 text-xs">
+								<View className="flex-row items-center gap-3 rounded-lg bg-primary-soft px-3 py-2">
+									<Text className="font-inter font-semibold text-primary-strong text-xs">
 										{selectedIds.size}{' '}
 										{selectedIds.size === 1 ? 'selecionada' : 'selecionadas'}
 									</Text>
@@ -318,7 +318,7 @@ export function ClientsPage() {
 										className="flex-row items-center gap-1.5"
 									>
 										<Download size={14} color="#1C6FB0" />
-										<Text className="font-inter font-semibold text-blue-600 text-xs">
+										<Text className="font-inter font-semibold text-primary-text text-xs">
 											Exportar JSON
 										</Text>
 									</TouchableOpacity>
@@ -330,7 +330,7 @@ export function ClientsPage() {
 										className={`flex-row items-center gap-1.5 ${!canWriteClients ? 'opacity-40' : ''}`}
 									>
 										<Trash2 size={14} color="#791F1F" />
-										<Text className="font-inter font-semibold text-red-900 text-xs">
+										<Text className="font-inter font-semibold text-danger-text text-xs">
 											Excluir
 										</Text>
 									</TouchableOpacity>
@@ -347,33 +347,33 @@ export function ClientsPage() {
 					</View>
 
 					{isLoading && (
-						<View className="items-center justify-center border-t border-gray-100 py-16">
+						<View className="items-center justify-center border-t border-border-subtle py-16">
 							<ActivityIndicator color="#6B7280" />
 
-							<Text className="mt-3 font-inter text-gray-400 text-sm">
+							<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 								Carregando clientes...
 							</Text>
 						</View>
 					)}
 
 					{!isLoading && error && (
-						<View className="border-t border-gray-100 py-8">
+						<View className="border-t border-border-subtle py-8">
 							<View className="flex-row items-center gap-2">
 								<AlertCircle size={16} color="#DC2626" />
 
-								<Text className="font-inter font-semibold text-red-600 text-sm">
+								<Text className="font-inter font-semibold text-danger text-sm">
 									Não foi possível carregar os clientes
 								</Text>
 							</View>
 
-							<Text className="mt-1 font-inter text-gray-500 text-sm">
+							<Text className="mt-1 font-inter text-foreground-muted text-sm">
 								{error}
 							</Text>
 						</View>
 					)}
 
 					{!isLoading && !error && (
-						<View className="border-t border-gray-200">
+						<View className="border-t border-border">
 							<CompanyTable
 								companies={filteredCompanies}
 								onSelectCompany={(company) =>
@@ -436,12 +436,12 @@ export function ClientsPage() {
 					<TouchableOpacity
 						activeOpacity={1}
 						onPress={() => setShowFilters(false)}
-						className="absolute inset-0 z-10 bg-black/10"
+						className="absolute inset-0 z-10 bg-overlay/10"
 					/>
 
-					<View className="absolute bottom-0 right-0 top-0 z-20 w-[300px] gap-5 border-l border-gray-200 bg-white p-5 shadow-xl">
+					<View className="absolute bottom-0 right-0 top-0 z-20 w-[300px] gap-5 border-l border-border bg-surface p-5 shadow-xl">
 						<View className="flex-row items-center justify-between">
-							<Text className="font-inter font-bold text-gray-900 text-base">
+							<Text className="font-inter font-bold text-foreground text-base">
 								Filtros
 							</Text>
 
@@ -464,7 +464,7 @@ export function ClientsPage() {
 								activeOpacity={0.7}
 								className="self-start"
 							>
-								<Text className="font-inter font-semibold text-blue-600 text-sm">
+								<Text className="font-inter font-semibold text-primary-text text-sm">
 									Limpar filtros
 								</Text>
 							</TouchableOpacity>

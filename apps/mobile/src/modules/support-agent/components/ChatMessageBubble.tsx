@@ -170,7 +170,9 @@ export function ChatMessageBubble({
 					{loading ? (
 						<TypingIndicator />
 					) : isUser ? (
-						<Text className="text-sm leading-6 text-white">{message}</Text>
+						<Text className="text-sm leading-6 text-primary-foreground">
+							{message}
+						</Text>
 					) : (
 						<Markdown
 							style={markdownStyles}

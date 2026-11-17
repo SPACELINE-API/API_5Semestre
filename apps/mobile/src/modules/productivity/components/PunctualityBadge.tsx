@@ -5,8 +5,8 @@ type PunctualityBadgeProps = { onTime: boolean | null };
 export function PunctualityBadge({ onTime }: PunctualityBadgeProps) {
 	if (onTime === null) {
 		return (
-			<View className="self-start rounded-full bg-gray-100 px-2.5 py-0.5">
-				<Text className="font-inter font-medium text-gray-600 text-xs">
+			<View className="self-start rounded-full bg-surface-muted px-2.5 py-0.5">
+				<Text className="font-inter font-medium text-foreground-secondary text-xs">
 					Sem prazo
 				</Text>
 			</View>
@@ -15,10 +15,10 @@ export function PunctualityBadge({ onTime }: PunctualityBadgeProps) {
 
 	return (
 		<View
-			className={`self-start rounded-full px-2.5 py-0.5 ${onTime ? 'bg-green-50' : 'bg-red-50'}`}
+			className={`self-start rounded-full px-2.5 py-0.5 ${onTime ? 'bg-success-soft' : 'bg-danger-soft'}`}
 		>
 			<Text
-				className={`font-inter font-medium text-xs ${onTime ? 'text-green-900' : 'text-red-900'}`}
+				className={`font-inter font-medium text-xs ${onTime ? 'text-success-text' : 'text-danger-text'}`}
 			>
 				{onTime ? 'No prazo' : 'Atrasado'}
 			</Text>

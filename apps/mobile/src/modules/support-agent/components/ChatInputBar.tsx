@@ -27,7 +27,7 @@ export const ChatInputBar = forwardRef<TextInput, ChatInputBarProps>(
 
 		return (
 			<View
-				className={`flex-row items-center gap-3 rounded-full border-[1.5px] bg-white py-2.5 pl-4 pr-2 transition-colors duration-200 ${
+				className={`flex-row items-center gap-3 rounded-full border-[1.5px] bg-surface py-2.5 pl-4 pr-2 transition-colors duration-200 ${
 					isFocused ? 'border-[#2d83cd]' : 'border-[#dce7f2]'
 				}`}
 			>

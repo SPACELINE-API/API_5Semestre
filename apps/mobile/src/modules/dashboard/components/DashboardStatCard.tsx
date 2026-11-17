@@ -20,16 +20,16 @@ function getMetricConfig(icon: DashboardMetric['icon']) {
 		case 'invites':
 			return {
 				Icon: Mail,
-				bgColor: 'bg-amber-50',
+				bgColor: 'bg-warning-soft',
 				iconColor: '#d97706',
-				borderColor: 'border-amber-200',
+				borderColor: 'border-warning/40',
 			};
 		case 'requests':
 			return {
 				Icon: Inbox,
-				bgColor: 'bg-blue-50',
+				bgColor: 'bg-primary-soft',
 				iconColor: '#2563eb',
-				borderColor: 'border-blue-200',
+				borderColor: 'border-primary/30',
 			};
 		case 'quotes':
 			return {
@@ -48,9 +48,9 @@ function getMetricConfig(icon: DashboardMetric['icon']) {
 		case 'clients':
 			return {
 				Icon: Building2,
-				bgColor: 'bg-emerald-50',
+				bgColor: 'bg-success-soft',
 				iconColor: '#059669',
-				borderColor: 'border-emerald-200',
+				borderColor: 'border-success/30',
 			};
 		case 'translators':
 			return {
@@ -62,16 +62,16 @@ function getMetricConfig(icon: DashboardMetric['icon']) {
 		case 'check':
 			return {
 				Icon: CheckCircle2,
-				bgColor: 'bg-emerald-50',
+				bgColor: 'bg-success-soft',
 				iconColor: '#16a34a',
-				borderColor: 'border-emerald-200',
+				borderColor: 'border-success/30',
 			};
 		default:
 			return {
 				Icon: AlertCircle,
-				bgColor: 'bg-gray-50',
+				bgColor: 'bg-surface-subtle',
 				iconColor: '#4b5563',
-				borderColor: 'border-gray-200',
+				borderColor: 'border-border',
 			};
 	}
 }
@@ -80,27 +80,27 @@ function getBadgeStyle(badgeType?: DashboardMetric['badgeType']) {
 	switch (badgeType) {
 		case 'warning':
 			return {
-				bg: 'bg-amber-50',
-				text: 'text-amber-800',
-				border: 'border-amber-200',
+				bg: 'bg-warning-soft',
+				text: 'text-warning-text',
+				border: 'border-warning/40',
 			};
 		case 'success':
 			return {
-				bg: 'bg-emerald-50',
-				text: 'text-emerald-800',
-				border: 'border-emerald-200',
+				bg: 'bg-success-soft',
+				text: 'text-success-text',
+				border: 'border-success/30',
 			};
 		case 'info':
 			return {
-				bg: 'bg-blue-50',
-				text: 'text-blue-800',
-				border: 'border-blue-200',
+				bg: 'bg-primary-soft',
+				text: 'text-primary-strong',
+				border: 'border-primary/30',
 			};
 		default:
 			return {
-				bg: 'bg-gray-100',
-				text: 'text-gray-700',
-				border: 'border-gray-200',
+				bg: 'bg-surface-muted',
+				text: 'text-foreground-secondary',
+				border: 'border-border',
 			};
 	}
 }
@@ -110,7 +110,7 @@ export function DashboardStatCard({ metric }: DashboardStatCardProps) {
 	const badgeStyle = getBadgeStyle(metric.badgeType);
 
 	return (
-		<View className="min-w-[140px] flex-1 basis-[140px] md:basis-[220px] max-w-[calc(50%-5px)] md:max-w-[340px] justify-between rounded-xl md:rounded-2xl border border-gray-100 bg-white p-3.5 md:p-5 shadow-xs">
+		<View className="min-w-[140px] flex-1 basis-[140px] md:basis-[220px] max-w-[calc(50%-5px)] md:max-w-[340px] justify-between rounded-xl md:rounded-2xl border border-border-subtle bg-surface p-3.5 md:p-5 shadow-xs">
 			<View className="flex-row items-center justify-between">
 				<View
 					className={`h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-lg md:rounded-xl ${config.bgColor}`}
@@ -132,17 +132,17 @@ export function DashboardStatCard({ metric }: DashboardStatCardProps) {
 			</View>
 
 			<View className="mt-2.5 md:mt-4">
-				<Text className="font-poppins-bold text-xl md:text-3xl text-gray-900 tracking-tight">
+				<Text className="font-poppins-bold text-xl md:text-3xl text-foreground tracking-tight">
 					{metric.value}
 				</Text>
 				<Text
-					className="mt-0.5 font-inter-semibold text-xs md:text-sm text-gray-800"
+					className="mt-0.5 font-inter-semibold text-xs md:text-sm text-foreground"
 					numberOfLines={1}
 				>
 					{metric.title}
 				</Text>
 				<Text
-					className="mt-1 font-inter text-[11px] md:text-xs text-gray-500 leading-tight"
+					className="mt-1 font-inter text-[11px] md:text-xs text-foreground-muted leading-tight"
 					numberOfLines={2}
 				>
 					{metric.description}

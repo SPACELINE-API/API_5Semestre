@@ -24,7 +24,7 @@ export function FormField({
 	return (
 		<View className="flex-1 gap-1.5">
 			<View className="flex-row items-center gap-2">
-				<Text className="font-inter font-semibold text-gray-800 text-xs">
+				<Text className="font-inter font-semibold text-foreground text-xs">
 					{label}
 				</Text>
 				{loading && <ActivityIndicator size="small" color="#1C6FB0" />}
@@ -36,12 +36,12 @@ export function FormField({
 				placeholderTextColor="#8A8A8A"
 				autoCapitalize={autoCapitalize}
 				maxLength={maxLength}
-				className={`rounded-lg border px-3 py-2.5 font-inter text-sm text-gray-900 outline-none ${
-					error ? 'border-red-900' : 'border-gray-300'
+				className={`rounded-lg border px-3 py-2.5 font-inter text-sm text-foreground outline-none ${
+					error ? 'border-danger-text' : 'border-border-strong'
 				}`}
 			/>
 			{error && (
-				<Text className="font-inter text-red-900 text-xs">{error}</Text>
+				<Text className="font-inter text-danger-text text-xs">{error}</Text>
 			)}
 		</View>
 	);

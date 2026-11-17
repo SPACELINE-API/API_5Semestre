@@ -38,12 +38,12 @@ export default function ViewRequestPage() {
 	}, [loadRequests]);
 
 	return (
-		<ScrollView className="flex-1 bg-white">
+		<ScrollView className="flex-1 bg-surface">
 			<View className="w-full max-w-6xl self-center p-4 md:p-8">
-				<Text className="font-poppins-bold text-2xl text-gray-900">
+				<Text className="font-poppins-bold text-2xl text-foreground">
 					Requisições
 				</Text>
-				<Text className="mt-1 font-inter text-sm text-gray-500">
+				<Text className="mt-1 font-inter text-sm text-foreground-muted">
 					{requests.length}{' '}
 					{requests.length === 1
 						? 'solicitação cadastrada'
@@ -51,27 +51,27 @@ export default function ViewRequestPage() {
 				</Text>
 
 				{loading ? (
-					<View className="mt-8 items-center gap-3 rounded-xl border border-gray-200 bg-white p-8">
+					<View className="mt-8 items-center gap-3 rounded-xl border border-border bg-surface p-8">
 						<ActivityIndicator color="#2563eb" />
-						<Text className="font-inter text-sm text-gray-500">
+						<Text className="font-inter text-sm text-foreground-muted">
 							Carregando solicitações...
 						</Text>
 					</View>
 				) : error ? (
-					<View className="mt-8 rounded-xl border border-red-200 bg-red-50 p-5">
+					<View className="mt-8 rounded-xl border border-danger/30 bg-danger-soft p-5">
 						<View className="flex-row items-start gap-3">
 							<CircleAlert size={20} color="#dc2626" />
-							<Text className="flex-1 font-inter text-sm text-red-800">
+							<Text className="flex-1 font-inter text-sm text-danger-text">
 								{error}
 							</Text>
 						</View>
 						<TouchableOpacity
 							accessibilityRole="button"
 							onPress={() => void loadRequests()}
-							className="mt-4 flex-row items-center gap-2 self-start rounded-lg border border-red-200 px-4 py-2.5"
+							className="mt-4 flex-row items-center gap-2 self-start rounded-lg border border-danger/30 px-4 py-2.5"
 						>
 							<RefreshCw size={15} color="#b91c1c" />
-							<Text className="font-inter-medium text-sm text-red-800">
+							<Text className="font-inter-medium text-sm text-danger-text">
 								Tentar novamente
 							</Text>
 						</TouchableOpacity>
@@ -83,8 +83,8 @@ export default function ViewRequestPage() {
 						))}
 					</View>
 				) : (
-					<View className="mt-8 rounded-xl border border-gray-200 bg-white p-8">
-						<Text className="font-inter text-sm text-gray-500">
+					<View className="mt-8 rounded-xl border border-border bg-surface p-8">
+						<Text className="font-inter text-sm text-foreground-muted">
 							Nenhuma solicitação disponível no momento.
 						</Text>
 					</View>

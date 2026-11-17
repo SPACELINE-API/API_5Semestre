@@ -41,9 +41,9 @@ export function ProductivityFilters({
 	}
 
 	return (
-		<View className="gap-4 rounded-xl border border-gray-100 bg-white p-4 md:p-5">
+		<View className="gap-4 rounded-xl border border-border-subtle bg-surface p-4 md:p-5">
 			<View className="flex-row flex-wrap items-center gap-2">
-				<Text className="mr-1 font-inter font-semibold text-gray-800 text-xs">
+				<Text className="mr-1 font-inter font-semibold text-foreground text-xs">
 					Período
 				</Text>
 				{PERIOD_PRESETS.map((item) => {
@@ -58,13 +58,15 @@ export function ProductivityFilters({
 							accessibilityState={{ selected: isActive }}
 							className={`rounded-full border px-3 py-1.5 ${
 								isActive
-									? 'border-blue-300 bg-blue-50'
-									: 'border-gray-300 bg-white'
+									? 'border-primary/40 bg-primary-soft'
+									: 'border-border-strong bg-surface'
 							}`}
 						>
 							<Text
 								className={`font-inter text-xs ${
-									isActive ? 'font-semibold text-blue-900' : 'text-gray-700'
+									isActive
+										? 'font-semibold text-primary-strong'
+										: 'text-foreground-secondary'
 								}`}
 							>
 								{item.label}
@@ -138,7 +140,7 @@ export function ProductivityFilters({
 					className="flex-row items-center gap-1.5 self-start"
 				>
 					<FilterX size={14} color="#1C6FB0" />
-					<Text className="font-inter font-semibold text-blue-600 text-sm">
+					<Text className="font-inter font-semibold text-primary-text text-sm">
 						Limpar filtros
 					</Text>
 				</TouchableOpacity>

@@ -86,9 +86,9 @@ function getStatusUpdateError(status: number, detail?: string) {
 
 function LoadingState() {
 	return (
-		<View className="bg-white rounded-lg border border-gray-200 p-8 items-center gap-3">
+		<View className="bg-surface rounded-lg border border-border p-8 items-center gap-3">
 			<ActivityIndicator color="#2563eb" />
-			<Text className="font-inter text-sm text-gray-500">
+			<Text className="font-inter text-sm text-foreground-muted">
 				Carregando dados da requisição...
 			</Text>
 		</View>
@@ -103,17 +103,19 @@ function LoadErrorState({
 	onRetry: () => void;
 }) {
 	return (
-		<View className="bg-white rounded-lg border border-gray-200 p-6">
+		<View className="bg-surface rounded-lg border border-border p-6">
 			<View className="flex-row items-start gap-3">
 				<CircleAlert size={20} color="#dc2626" />
-				<Text className="flex-1 font-inter text-sm text-red-800">{error}</Text>
+				<Text className="flex-1 font-inter text-sm text-danger-text">
+					{error}
+				</Text>
 			</View>
 			<TouchableOpacity
 				accessibilityRole="button"
 				onPress={onRetry}
-				className="self-start mt-5 rounded-lg border border-blue-200 px-4 py-2.5"
+				className="self-start mt-5 rounded-lg border border-primary/30 px-4 py-2.5"
 			>
-				<Text className="font-inter-medium text-sm text-blue-700">
+				<Text className="font-inter-medium text-sm text-primary-text">
 					Tentar novamente
 				</Text>
 			</TouchableOpacity>
@@ -216,7 +218,7 @@ export default function GenerateQuoteFromRequestPage() {
 
 	return (
 		<KeyboardContainer
-			className="flex-1 bg-gray-50"
+			className="flex-1 bg-surface-subtle"
 			contentContainerClassName="p-4 md:p-8 flex-grow"
 			{...(Platform.OS === 'web'
 				? {}

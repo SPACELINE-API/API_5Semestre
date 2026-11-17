@@ -284,7 +284,7 @@ export function LoginPage() {
 					</View>
 
 					<View className="w-full self-center md:w-[46%] md:max-w-[480px] md:justify-center">
-						<View className="w-full rounded-[22px] border border-[#e1ebf5] bg-white px-6 py-7 shadow-xl shadow-[#173a68]/10 sm:px-8">
+						<View className="w-full rounded-[22px] border border-[#e1ebf5] bg-surface px-6 py-7 shadow-xl shadow-[#173a68]/10 sm:px-8">
 							<Text className="text-[28px] font-extrabold tracking-[-0.8px] text-[#0f1b33]">
 								{heading}
 							</Text>
@@ -325,7 +325,7 @@ export function LoginPage() {
 										onPress={() => setRemember(!remember)}
 									>
 										<View
-											className={`h-[22px] w-[22px] items-center justify-center rounded-md border-[1.5px] ${remember ? 'border-[#2d83cd] bg-[#2d83cd]' : 'border-[#7db9e8] bg-white'}`}
+											className={`h-[22px] w-[22px] items-center justify-center rounded-md border-[1.5px] ${remember ? 'border-[#2d83cd] bg-[#2d83cd]' : 'border-[#7db9e8] bg-surface'}`}
 										>
 											{remember ? (
 												<Check color="#ffffff" size={14} strokeWidth={3} />
@@ -344,20 +344,20 @@ export function LoginPage() {
 							) : null}
 							{error ? (
 								<View
-									className="mb-4 mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3"
+									className="mb-4 mt-4 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3"
 									accessibilityRole="alert"
 									accessibilityLiveRegion="assertive"
 								>
-									<Text className="text-[10px] font-bold uppercase tracking-wider text-red-700">
+									<Text className="text-[10px] font-bold uppercase tracking-wider text-danger">
 										{error.code}
 									</Text>
-									<Text className="mt-1 text-sm font-bold text-red-900">
+									<Text className="mt-1 text-sm font-bold text-danger-text">
 										{error.title}
 									</Text>
-									<Text className="mt-1 text-sm text-red-800">
+									<Text className="mt-1 text-sm text-danger-text">
 										{error.description}
 									</Text>
-									<Text className="mt-2 text-xs text-red-700">
+									<Text className="mt-2 text-xs text-danger">
 										{error.action}
 									</Text>
 								</View>
@@ -379,7 +379,7 @@ export function LoginPage() {
 								</Pressable>
 							) : null}
 							{message ? (
-								<Text className="mt-5 text-center text-sm font-semibold text-emerald-600">
+								<Text className="mt-5 text-center text-sm font-semibold text-success-text">
 									{message}
 								</Text>
 							) : null}
@@ -391,7 +391,7 @@ export function LoginPage() {
 									Ainda não tem acesso? Solicite seu cadastro.
 								</Text>
 								<Link href="/solicitar-servico" asChild>
-									<Pressable className="h-12 w-full items-center justify-center rounded-full border border-[#2d83cd]/50 bg-white/85 sm:w-60">
+									<Pressable className="h-12 w-full items-center justify-center rounded-full border border-[#2d83cd]/50 bg-surface/85 sm:w-60">
 										<Text className="font-bold text-[#176ed0]">
 											Solicitar serviço
 										</Text>

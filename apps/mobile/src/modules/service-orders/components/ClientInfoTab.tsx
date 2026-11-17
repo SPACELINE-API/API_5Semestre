@@ -14,7 +14,7 @@ type ClientInfoTabProps = {
 export function ClientInfoTab({ company, contacts }: ClientInfoTabProps) {
 	if (!company) {
 		return (
-			<Text className="font-inter text-gray-400 text-sm">
+			<Text className="font-inter text-foreground-subtle text-sm">
 				Empresa não encontrada.
 			</Text>
 		);
@@ -23,7 +23,7 @@ export function ClientInfoTab({ company, contacts }: ClientInfoTabProps) {
 	return (
 		<View className="gap-8">
 			<View className="gap-4">
-				<Text className="font-inter font-semibold text-gray-900 text-sm">
+				<Text className="font-inter font-semibold text-foreground text-sm">
 					Dados da empresa
 				</Text>
 
@@ -40,9 +40,9 @@ export function ClientInfoTab({ company, contacts }: ClientInfoTabProps) {
 				</View>
 			</View>
 
-			<View className="border-t border-gray-100 pt-7">
+			<View className="border-t border-border-subtle pt-7">
 				<View className="gap-4">
-					<Text className="font-inter font-semibold text-gray-900 text-sm">
+					<Text className="font-inter font-semibold text-foreground text-sm">
 						Endereço
 					</Text>
 
@@ -67,13 +67,13 @@ export function ClientInfoTab({ company, contacts }: ClientInfoTabProps) {
 				</View>
 			</View>
 
-			<View className="border-t border-gray-100 pt-7">
-				<Text className="mb-4 font-inter font-semibold text-gray-900 text-sm">
+			<View className="border-t border-border-subtle pt-7">
+				<Text className="mb-4 font-inter font-semibold text-foreground text-sm">
 					Contatos
 				</Text>
 
 				{contacts.length === 0 && (
-					<Text className="font-inter text-gray-400 text-sm">
+					<Text className="font-inter text-foreground-subtle text-sm">
 						Nenhum contato cadastrado para esta empresa.
 					</Text>
 				)}
@@ -82,29 +82,29 @@ export function ClientInfoTab({ company, contacts }: ClientInfoTabProps) {
 					<View
 						key={contact.id}
 						className={`flex-row items-center gap-3 py-3 ${
-							index === 0 ? '' : 'border-t border-gray-100'
+							index === 0 ? '' : 'border-t border-border-subtle'
 						}`}
 					>
-						<View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100">
+						<View className="h-9 w-9 items-center justify-center rounded-full bg-surface-muted">
 							<User size={16} color="#6B7280" />
 						</View>
 
 						<View className="flex-1">
 							<View className="flex-row items-center gap-2">
-								<Text className="font-inter font-medium text-gray-800 text-sm">
+								<Text className="font-inter font-medium text-foreground text-sm">
 									{contact.name}
 								</Text>
 
 								{index === 0 && (
-									<View className="rounded-md bg-blue-50 px-1.5 py-0.5">
-										<Text className="font-inter font-semibold text-blue-700 text-[10px]">
+									<View className="rounded-md bg-primary-soft px-1.5 py-0.5">
+										<Text className="font-inter font-semibold text-primary-text text-[10px]">
 											Contato principal
 										</Text>
 									</View>
 								)}
 							</View>
 
-							<Text className="mt-0.5 font-inter text-gray-400 text-xs">
+							<Text className="mt-0.5 font-inter text-foreground-subtle text-xs">
 								{contact.department} · {contact.email} ·{' '}
 								{contact.phone ? maskPhone(contact.phone) : contact.phone}
 							</Text>

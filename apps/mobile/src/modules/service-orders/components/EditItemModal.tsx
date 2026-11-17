@@ -132,10 +132,10 @@ export function EditItemModal({
 			animationType="none"
 			onRequestClose={handleClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="w-full max-w-[480px] max-h-[85%] rounded-xl bg-white overflow-hidden">
-					<View className="flex-row items-center justify-between border-b border-gray-300 px-6 py-4">
-						<Text className="font-inter font-bold text-gray-900 text-lg">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+				<View className="w-full max-w-[480px] max-h-[85%] rounded-xl bg-surface overflow-hidden">
+					<View className="flex-row items-center justify-between border-b border-border-strong px-6 py-4">
+						<Text className="font-inter font-bold text-foreground text-lg">
 							Editar item
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
@@ -155,7 +155,7 @@ export function EditItemModal({
 					>
 						<View className="flex-col gap-3 md:flex-row">
 							<View className="min-w-0 md:flex-1">
-								<Text className="mb-1 font-inter font-semibold text-gray-800 text-xs">
+								<Text className="mb-1 font-inter font-semibold text-foreground text-xs">
 									Idioma de origem
 								</Text>
 								<LanguageSelect
@@ -165,7 +165,7 @@ export function EditItemModal({
 								/>
 							</View>
 							<View className="min-w-0 md:flex-1">
-								<Text className="mb-1 font-inter font-semibold text-gray-800 text-xs">
+								<Text className="mb-1 font-inter font-semibold text-foreground text-xs">
 									Idioma de destino
 								</Text>
 								<LanguageSelect
@@ -198,7 +198,7 @@ export function EditItemModal({
 						/>
 
 						<View className="gap-1.5">
-							<Text className="font-inter font-semibold text-gray-800 text-xs">
+							<Text className="font-inter font-semibold text-foreground text-xs">
 								Arquivo
 							</Text>
 
@@ -212,7 +212,7 @@ export function EditItemModal({
 									if (picked) setFile(picked);
 								}}
 								activeOpacity={0.7}
-								className="flex-row items-center gap-2 rounded-lg border border-gray-300 px-3 py-2.5"
+								className="flex-row items-center gap-2 rounded-lg border border-border-strong px-3 py-2.5"
 							>
 								{file ? (
 									<FileText size={16} color="#1C6FB0" />
@@ -220,7 +220,7 @@ export function EditItemModal({
 									<Upload size={16} color="#353535" />
 								)}
 								<Text
-									className="flex-1 font-inter text-sm text-gray-700"
+									className="flex-1 font-inter text-sm text-foreground-secondary"
 									numberOfLines={1}
 								>
 									{file
@@ -244,18 +244,20 @@ export function EditItemModal({
 						</View>
 
 						{error && (
-							<View className="rounded-lg bg-red-50 px-3 py-2.5">
-								<Text className="font-inter text-red-900 text-sm">{error}</Text>
+							<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+								<Text className="font-inter text-danger-text text-sm">
+									{error}
+								</Text>
 							</View>
 						)}
 					</KeyboardContainer>
 
-					<View className="flex-row items-center justify-end gap-3 border-t border-gray-300 px-6 py-4">
+					<View className="flex-row items-center justify-end gap-3 border-t border-border-strong px-6 py-4">
 						<TouchableOpacity
 							onPress={handleClose}
-							className="rounded-lg border border-gray-300 px-5 py-2.5"
+							className="rounded-lg border border-border-strong px-5 py-2.5"
 						>
-							<Text className="font-inter font-medium text-gray-800 text-sm">
+							<Text className="font-inter font-medium text-foreground text-sm">
 								Cancelar
 							</Text>
 						</TouchableOpacity>
@@ -265,9 +267,9 @@ export function EditItemModal({
 							disabled={isSubmitting}
 							accessibilityRole="button"
 							accessibilityLabel="Confirmar edição do item"
-							className={`rounded-lg bg-blue-600 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+							className={`rounded-lg bg-primary px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 						>
-							<Text className="font-inter font-semibold text-white text-sm">
+							<Text className="font-inter font-semibold text-primary-foreground text-sm">
 								{isSubmitting ? 'Salvando…' : 'Salvar alterações'}
 							</Text>
 						</TouchableOpacity>

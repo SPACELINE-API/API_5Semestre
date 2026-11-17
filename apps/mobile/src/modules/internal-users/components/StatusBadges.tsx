@@ -3,25 +3,25 @@ import type { LinkStatus } from '../types/internalUser';
 import { LINK_STATUS_LABELS } from '../utils/departments';
 
 const LINK_STYLES: Record<LinkStatus, { bg: string; text: string }> = {
-	pendente: { bg: 'bg-amber-50', text: 'text-amber-800' },
-	aceito: { bg: 'bg-green-50', text: 'text-green-800' },
-	rejeitado: { bg: 'bg-red-50', text: 'text-red-800' },
-	expirado: { bg: 'bg-gray-100', text: 'text-gray-700' },
+	pendente: { bg: 'bg-warning-soft', text: 'text-warning-text' },
+	aceito: { bg: 'bg-success-soft', text: 'text-success-text' },
+	rejeitado: { bg: 'bg-danger-soft', text: 'text-danger-text' },
+	expirado: { bg: 'bg-surface-muted', text: 'text-foreground-secondary' },
 };
 
 export function AccountBadge({ active }: { active: boolean }) {
 	return (
 		<View
 			className={`flex-row items-center gap-1.5 rounded-full px-2.5 py-0.5 ${
-				active ? 'bg-green-50' : 'bg-gray-100'
+				active ? 'bg-success-soft' : 'bg-surface-muted'
 			}`}
 		>
 			<View
-				className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-green-600' : 'bg-gray-400'}`}
+				className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-success' : 'bg-foreground-subtle'}`}
 			/>
 			<Text
 				className={`font-inter font-medium text-xs ${
-					active ? 'text-green-800' : 'text-gray-700'
+					active ? 'text-success-text' : 'text-foreground-secondary'
 				}`}
 			>
 				{active ? 'Ativa' : 'Inativa'}

@@ -172,7 +172,7 @@ export function SupportPage() {
 				</View>
 			</View>
 
-			<View className="min-h-0 flex-1 rounded-3xl bg-white p-3 shadow-xl shadow-[#173a68]/10 md:p-6">
+			<View className="min-h-0 flex-1 rounded-3xl bg-surface p-3 shadow-xl shadow-[#173a68]/10 md:p-6">
 				<ScrollView
 					ref={scrollRef}
 					className={SCROLL_CLASSNAME}
@@ -208,12 +208,12 @@ export function SupportPage() {
 					) : null}
 
 					{status === 'error' ? (
-						<View className="mt-4 flex-row items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+						<View className="mt-4 flex-row items-start gap-2 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3">
 							<AlertCircle color="#dc2626" size={18} />
 							<View className="flex-1">
-								<Text className="text-sm text-red-700">{errorMessage}</Text>
+								<Text className="text-sm text-danger">{errorMessage}</Text>
 								<Text
-									className="mt-1.5 text-sm font-semibold text-red-700 underline"
+									className="mt-1.5 text-sm font-semibold text-danger underline"
 									onPress={retryLastQuestion}
 								>
 									Tentar novamente
@@ -248,7 +248,7 @@ export function SupportPage() {
 						maxLength={maxLength}
 					/>
 					{isOverLimit ? (
-						<Text className="mt-1.5 text-xs text-red-600">
+						<Text className="mt-1.5 text-xs text-danger">
 							Sua pergunta ultrapassa o limite de {maxLength} caracteres.
 						</Text>
 					) : (

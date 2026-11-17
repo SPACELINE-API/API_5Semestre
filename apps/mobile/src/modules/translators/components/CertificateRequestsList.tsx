@@ -23,21 +23,21 @@ const STATUS_STYLES: Record<
 	{ bar: string; badgeBg: string; badgeText: string; icon: string }
 > = {
 	pending: {
-		bar: 'bg-amber-400',
-		badgeBg: 'bg-amber-50',
-		badgeText: 'text-amber-800',
+		bar: 'bg-warning',
+		badgeBg: 'bg-warning-soft',
+		badgeText: 'text-warning-text',
 		icon: '#B45309',
 	},
 	approved: {
-		bar: 'bg-green-500',
-		badgeBg: 'bg-green-50',
-		badgeText: 'text-green-800',
+		bar: 'bg-success',
+		badgeBg: 'bg-success-soft',
+		badgeText: 'text-success-text',
 		icon: '#15803D',
 	},
 	rejected: {
-		bar: 'bg-red-500',
-		badgeBg: 'bg-red-50',
-		badgeText: 'text-red-800',
+		bar: 'bg-danger',
+		badgeBg: 'bg-danger-soft',
+		badgeText: 'text-danger-text',
 		icon: '#B91C1C',
 	},
 };
@@ -115,7 +115,7 @@ export function CertificateRequestsList({
 		return (
 			<View className="items-center py-10">
 				<ActivityIndicator color="#6B7280" />
-				<Text className="mt-2 font-inter text-gray-400 text-sm">
+				<Text className="mt-2 font-inter text-foreground-subtle text-sm">
 					Carregando solicitações...
 				</Text>
 			</View>
@@ -124,10 +124,12 @@ export function CertificateRequestsList({
 
 	if (error) {
 		return (
-			<View className="flex-row items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2.5">
-				<Text className="flex-1 font-inter text-red-900 text-sm">{error}</Text>
+			<View className="flex-row items-center justify-between gap-2 rounded-lg bg-danger-soft px-3 py-2.5">
+				<Text className="flex-1 font-inter text-danger-text text-sm">
+					{error}
+				</Text>
 				<TouchableOpacity onPress={onRetry} accessibilityRole="button">
-					<Text className="font-inter font-semibold text-red-900 text-sm">
+					<Text className="font-inter font-semibold text-danger-text text-sm">
 						Tentar novamente
 					</Text>
 				</TouchableOpacity>
@@ -137,12 +139,12 @@ export function CertificateRequestsList({
 
 	if (certificates.length === 0) {
 		return (
-			<View className="items-center gap-2 rounded-xl border border-dashed border-gray-300 px-4 py-10">
+			<View className="items-center gap-2 rounded-xl border border-dashed border-border-strong px-4 py-10">
 				<Inbox size={28} color="#9CA3AF" />
-				<Text className="text-center font-inter font-semibold text-gray-700 text-sm">
+				<Text className="text-center font-inter font-semibold text-foreground-secondary text-sm">
 					Nenhuma solicitação de certificado.
 				</Text>
-				<Text className="text-center font-inter text-gray-500 text-xs">
+				<Text className="text-center font-inter text-foreground-muted text-xs">
 					Os certificados enviados pelo tradutor aparecerão aqui.
 				</Text>
 			</View>
@@ -152,15 +154,15 @@ export function CertificateRequestsList({
 	return (
 		<View className="gap-4">
 			{counts.pending > 0 && (
-				<View className="flex-row items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+				<View className="flex-row items-center gap-3 rounded-xl border border-warning/40 bg-warning-soft px-4 py-3">
 					<Clock size={18} color="#B45309" />
 					<View className="flex-1">
-						<Text className="font-inter font-semibold text-amber-900 text-sm">
+						<Text className="font-inter font-semibold text-warning-text text-sm">
 							{counts.pending === 1
 								? '1 certificado aguarda a sua avaliação'
 								: `${counts.pending} certificados aguardam a sua avaliação`}
 						</Text>
-						<Text className="font-inter text-amber-800 text-xs">
+						<Text className="font-inter text-warning-text text-xs">
 							Ao aprovar, o idioma entra automaticamente no perfil do tradutor.
 						</Text>
 					</View>
@@ -180,25 +182,29 @@ export function CertificateRequestsList({
 							accessibilityLabel={`Filtrar por ${item.label}`}
 							className={`flex-row items-center gap-2 rounded-full border px-3.5 py-1.5 ${
 								isActive
-									? 'border-blue-600 bg-blue-600'
-									: 'border-gray-200 bg-white'
+									? 'border-primary bg-primary'
+									: 'border-border bg-surface'
 							}`}
 						>
 							<Text
 								className={`font-inter font-medium text-xs ${
-									isActive ? 'text-white' : 'text-gray-700'
+									isActive
+										? 'text-primary-foreground'
+										: 'text-foreground-secondary'
 								}`}
 							>
 								{item.label}
 							</Text>
 							<View
 								className={`min-w-[20px] items-center rounded-full px-1.5 py-0.5 ${
-									isActive ? 'bg-white/20' : 'bg-gray-100'
+									isActive ? 'bg-white/20' : 'bg-surface-muted'
 								}`}
 							>
 								<Text
 									className={`font-inter font-semibold text-[11px] ${
-										isActive ? 'text-white' : 'text-gray-600'
+										isActive
+											? 'text-primary-foreground'
+											: 'text-foreground-secondary'
 									}`}
 								>
 									{counts[item.key]}
@@ -210,9 +216,9 @@ export function CertificateRequestsList({
 			</View>
 
 			{visible.length === 0 && (
-				<View className="items-center gap-2 rounded-xl border border-dashed border-gray-300 px-4 py-8">
+				<View className="items-center gap-2 rounded-xl border border-dashed border-border-strong px-4 py-8">
 					<Inbox size={24} color="#9CA3AF" />
-					<Text className="text-center font-inter text-gray-500 text-sm">
+					<Text className="text-center font-inter text-foreground-muted text-sm">
 						{EMPTY_MESSAGES[filter]}
 					</Text>
 				</View>
@@ -230,12 +236,12 @@ export function CertificateRequestsList({
 						activeOpacity={0.7}
 						accessibilityRole="button"
 						accessibilityLabel={`Solicitação de ${certificate.language_name}: ${CERTIFICATE_STATUS_LABELS[certificate.status]}`}
-						className="flex-row items-stretch gap-3 overflow-hidden rounded-xl border border-gray-200 bg-white p-4"
+						className="flex-row items-stretch gap-3 overflow-hidden rounded-xl border border-border bg-surface p-4"
 					>
 						<View className={`w-1 rounded-full ${style.bar}`} />
 
-						<View className="h-11 w-11 items-center justify-center rounded-xl bg-blue-50">
-							<Text className="font-inter font-bold text-blue-700 text-sm">
+						<View className="h-11 w-11 items-center justify-center rounded-xl bg-primary-soft">
+							<Text className="font-inter font-bold text-primary-text text-sm">
 								{languageCode(certificate.language_id)}
 							</Text>
 						</View>
@@ -243,13 +249,13 @@ export function CertificateRequestsList({
 						<View className="min-w-0 flex-1 gap-1.5">
 							<View className="flex-row flex-wrap items-center gap-2">
 								<Text
-									className="font-inter font-semibold text-gray-900 text-sm"
+									className="font-inter font-semibold text-foreground text-sm"
 									numberOfLines={1}
 								>
 									{certificate.language_name}
 								</Text>
-								<View className="rounded-full bg-gray-100 px-2 py-0.5">
-									<Text className="font-inter font-medium text-gray-700 text-xs">
+								<View className="rounded-full bg-surface-muted px-2 py-0.5">
+									<Text className="font-inter font-medium text-foreground-secondary text-xs">
 										{PROFICIENCY_LABELS[certificate.proficiency_level]}
 									</Text>
 								</View>
@@ -268,7 +274,7 @@ export function CertificateRequestsList({
 							<View className="flex-row items-center gap-1.5">
 								<FileText size={13} color="#6B7280" />
 								<Text
-									className="min-w-0 flex-1 font-inter text-gray-500 text-xs"
+									className="min-w-0 flex-1 font-inter text-foreground-muted text-xs"
 									numberOfLines={1}
 								>
 									{certificate.filename} ·{' '}
@@ -276,16 +282,16 @@ export function CertificateRequestsList({
 								</Text>
 							</View>
 
-							<Text className="font-inter text-gray-400 text-xs">
+							<Text className="font-inter text-foreground-subtle text-xs">
 								{certificate.reviewed_at
 									? `Avaliado em ${formatDate(certificate.reviewed_at)}`
 									: `Enviado em ${formatDate(certificate.updated_at)}`}
 							</Text>
 
 							{certificate.status === 'rejected' && certificate.review_note && (
-								<View className="rounded-lg bg-red-50 px-3 py-2">
+								<View className="rounded-lg bg-danger-soft px-3 py-2">
 									<Text
-										className="font-inter text-red-900 text-xs"
+										className="font-inter text-danger-text text-xs"
 										numberOfLines={2}
 									>
 										Motivo: {certificate.review_note}
@@ -295,8 +301,8 @@ export function CertificateRequestsList({
 						</View>
 
 						{isPending ? (
-							<View className="self-center rounded-lg bg-blue-600 px-3.5 py-2">
-								<Text className="font-inter font-semibold text-white text-xs">
+							<View className="self-center rounded-lg bg-primary px-3.5 py-2">
+								<Text className="font-inter font-semibold text-primary-foreground text-xs">
 									Avaliar
 								</Text>
 							</View>
