@@ -14,7 +14,7 @@ export default function NewRequestPage() {
 			>
 				<View className="w-full max-w-3xl items-center">
 					<View className="mb-5 self-center rounded-full border border-primary/35 bg-surface/70 px-4 py-1.5">
-						<Text className="text-[11px] font-bold tracking-[2px] text-primary-text">
+						<Text className="text-[12px] font-bold tracking-[2px] text-primary-text">
 							• NOVA SOLICITAÇÃO
 						</Text>
 					</View>

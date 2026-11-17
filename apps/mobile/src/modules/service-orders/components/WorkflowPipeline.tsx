@@ -69,7 +69,7 @@ export function WorkflowPipeline({
 								{step.title}
 							</Text>
 
-							<Text className="font-inter text-foreground-subtle text-[11px]">
+							<Text className="font-inter text-foreground-subtle text-[12px]">
 								{isCurrent
 									? (assignedTranslatorName ?? 'Sem tradutor')
 									: isCompleted

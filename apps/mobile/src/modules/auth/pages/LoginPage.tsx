@@ -337,12 +337,12 @@ export function LoginPage() {
 												/>
 											) : null}
 										</View>
-										<Text className="text-[13px] text-foreground-muted">
+										<Text className="text-[14px] text-foreground-muted">
 											Lembrar-me
 										</Text>
 									</Pressable>
 									<Pressable onPress={startRecovery}>
-										<Text className="text-[13px] font-bold text-primary-text">
+										<Text className="text-[14px] font-bold text-primary-text">
 											Esqueci minha senha
 										</Text>
 									</Pressable>
@@ -354,7 +354,7 @@ export function LoginPage() {
 									accessibilityRole="alert"
 									accessibilityLiveRegion="assertive"
 								>
-									<Text className="text-[10px] font-bold uppercase tracking-wider text-danger">
+									<Text className="text-[11px] font-bold uppercase tracking-wider text-danger">
 										{error.code}
 									</Text>
 									<Text className="mt-1 text-sm font-bold text-danger-text">
@@ -393,7 +393,7 @@ export function LoginPage() {
 
 						{!recovery && !token ? (
 							<View className="mt-6 items-center gap-3">
-								<Text className="text-center text-[13px] text-foreground-muted">
+								<Text className="text-center text-[14px] text-foreground-muted">
 									Ainda não tem acesso? Solicite seu cadastro.
 								</Text>
 								<Link href="/solicitar-servico" asChild>

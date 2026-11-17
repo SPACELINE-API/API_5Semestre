@@ -111,7 +111,7 @@ export function TranslatorLanguagesStep({
 
 	return (
 		<>
-			<Text className="font-inter text-foreground-secondary text-[13px]">
+			<Text className="font-inter text-foreground-secondary text-[14px]">
 				Adicione os idiomas que o tradutor fala e informe o nível em cada um.
 			</Text>
 			{error && (
@@ -143,7 +143,7 @@ export function TranslatorLanguagesStep({
 						</View>
 
 						<View className="gap-1">
-							<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
+							<Text className="font-inter font-medium text-foreground-secondary text-[14px]">
 								Idioma
 							</Text>
 							<TouchableOpacity
@@ -174,7 +174,7 @@ export function TranslatorLanguagesStep({
 						</View>
 
 						<View className="gap-1.5">
-							<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
+							<Text className="font-inter font-medium text-foreground-secondary text-[14px]">
 								Nível de proficiência
 							</Text>
 							<View className="flex-row flex-wrap gap-2">

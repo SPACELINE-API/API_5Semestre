@@ -427,7 +427,7 @@ export function TranslatorEditModal({
 											}`}
 										>
 											{isChecked && (
-												<Text className="text-[10px] font-bold text-primary-foreground">
+												<Text className="text-[11px] font-bold text-primary-foreground">
 													✓
 												</Text>
 											)}

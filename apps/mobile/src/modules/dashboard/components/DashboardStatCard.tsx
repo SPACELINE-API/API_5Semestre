@@ -123,7 +123,7 @@ export function DashboardStatCard({ metric }: DashboardStatCardProps) {
 						className={`rounded-full border px-2 py-0.5 ${badgeStyle.bg} ${badgeStyle.border}`}
 					>
 						<Text
-							className={`font-inter-medium text-[10px] md:text-xs ${badgeStyle.text}`}
+							className={`font-inter-medium text-[11px] md:text-xs ${badgeStyle.text}`}
 						>
 							{metric.badge}
 						</Text>
@@ -142,7 +142,7 @@ export function DashboardStatCard({ metric }: DashboardStatCardProps) {
 					{metric.title}
 				</Text>
 				<Text
-					className="mt-1 font-inter text-[11px] md:text-xs text-foreground-muted leading-tight"
+					className="mt-1 font-inter text-[12px] md:text-xs text-foreground-muted leading-tight"
 					numberOfLines={2}
 				>
 					{metric.description}

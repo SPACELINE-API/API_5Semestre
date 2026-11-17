@@ -99,7 +99,7 @@ export function ClientInfoTab({ company, contacts }: ClientInfoTabProps) {
 
 								{index === 0 && (
 									<View className="rounded-md bg-primary-soft px-1.5 py-0.5">
-										<Text className="font-inter font-semibold text-primary-text text-[10px]">
+										<Text className="font-inter font-semibold text-primary-text text-[11px]">
 											Contato principal
 										</Text>
 									</View>

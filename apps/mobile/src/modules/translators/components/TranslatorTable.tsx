@@ -25,19 +25,19 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 		<View className="bg-surface">
 			{/* CABECALHO - SO APARECE NO DESKTOP */}
 			<View className="hidden h-11 flex-row items-center border-b border-border px-5 md:flex">
-				<Text className="w-[28%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[28%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Tradutor
 				</Text>
-				<Text className="w-[22%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[22%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Contato
 				</Text>
-				<Text className="w-[30%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[30%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Idiomas
 				</Text>
-				<Text className="w-[12%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[12%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Qualificações
 				</Text>
-				<Text className="w-[8%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[8%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Status
 				</Text>
 			</View>
@@ -81,7 +81,7 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 										}`}
 									/>
 									<Text
-										className={`font-inter font-medium text-[10px] ${
+										className={`font-inter font-medium text-[11px] ${
 											t.is_active
 												? 'text-success-text'
 												: 'text-foreground-muted'
@@ -98,14 +98,14 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 												key={language.id}
 												className="rounded bg-primary-soft px-1.5 py-0.5"
 											>
-												<Text className="font-inter text-primary-text text-[10px]">
+												<Text className="font-inter text-primary-text text-[11px]">
 													{language.language_name} •{' '}
 													{PROFICIENCY_LABELS[language.proficiency_level]}
 												</Text>
 											</View>
 										))}
 										{t.languages.length > 2 && (
-											<Text className="font-inter text-foreground-subtle text-[10px]">
+											<Text className="font-inter text-foreground-subtle text-[11px]">
 												+{t.languages.length - 2}
 											</Text>
 										)}
@@ -143,17 +143,17 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 											key={language.id}
 											className="rounded-full bg-primary-soft px-2 py-0.5"
 										>
-											<Text className="font-inter text-primary-strong text-[11px]">
+											<Text className="font-inter text-primary-strong text-[12px]">
 												{language.language_name}
 												{'  '}
-												<Text className="text-primary-text text-[10px]">
+												<Text className="text-primary-text text-[11px]">
 													{PROFICIENCY_LABELS[language.proficiency_level]}
 												</Text>
 											</Text>
 										</View>
 									))}
 									{t.languages.length > 3 && (
-										<Text className="self-center font-inter text-foreground-subtle text-[11px]">
+										<Text className="self-center font-inter text-foreground-subtle text-[12px]">
 											+{t.languages.length - 3}
 										</Text>
 									)}
@@ -175,7 +175,7 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 											className="rounded-full bg-surface-muted px-2 py-0.5"
 										>
 											<Text
-												className="font-inter text-foreground-secondary text-[10px]"
+												className="font-inter text-foreground-secondary text-[11px]"
 												numberOfLines={1}
 											>
 												{q.name}
@@ -183,7 +183,7 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 										</View>
 									))}
 									{t.qualifications.length > 2 && (
-										<Text className="font-inter text-foreground-subtle text-[10px]">
+										<Text className="font-inter text-foreground-subtle text-[11px]">
 											+{t.qualifications.length - 2}
 										</Text>
 									)}
@@ -204,7 +204,7 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 									}`}
 								/>
 								<Text
-									className={`font-inter font-medium text-[11px] ${
+									className={`font-inter font-medium text-[12px] ${
 										t.is_active
 											? 'text-foreground-secondary'
 											: 'text-foreground-subtle'

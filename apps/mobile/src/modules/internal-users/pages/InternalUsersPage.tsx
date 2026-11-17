@@ -246,7 +246,7 @@ export function InternalUsersPage() {
 										}`}
 									>
 										<Text
-											className={`font-inter font-semibold text-[11px] ${
+											className={`font-inter font-semibold text-[12px] ${
 												active
 													? 'text-primary-foreground'
 													: 'text-foreground-secondary'

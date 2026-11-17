@@ -214,7 +214,7 @@ export function CertificateReviewModal({
 				onClose={() => setStep('details')}
 			>
 				<View className="gap-1.5">
-					<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
+					<Text className="font-inter font-medium text-foreground-secondary text-[14px]">
 						Motivo da recusa
 					</Text>
 					<TextInput

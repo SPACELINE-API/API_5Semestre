@@ -205,7 +205,7 @@ export function CertificateRequestsList({
 								}`}
 							>
 								<Text
-									className={`font-inter font-semibold text-[11px] ${
+									className={`font-inter font-semibold text-[12px] ${
 										isActive
 											? 'text-primary-foreground'
 											: 'text-foreground-secondary'

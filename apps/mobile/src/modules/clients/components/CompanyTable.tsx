@@ -67,23 +67,23 @@ export function CompanyTable({
 					/>
 				</View>
 
-				<Text className="w-[26%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[26%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Empresa
 				</Text>
 
-				<Text className="w-[16%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[16%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					CNPJ
 				</Text>
 
-				<Text className="w-[24%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[24%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Contato
 				</Text>
 
-				<Text className="w-[14%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[14%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Área
 				</Text>
 
-				<Text className="w-[10%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[10%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Status
 				</Text>
 
@@ -186,7 +186,7 @@ export function CompanyTable({
 									/>
 
 									<Text
-										className={`font-inter font-medium text-[11px] ${
+										className={`font-inter font-medium text-[12px] ${
 											company.is_active
 												? 'text-foreground-secondary'
 												: 'text-foreground-subtle'

@@ -44,7 +44,7 @@ function ContactRow({
 		>
 			<View style={{ flex: 2 }} className="flex-row items-center gap-2.5 pr-3">
 				<View className="h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-muted">
-					<Text className="font-inter font-semibold text-foreground-muted text-[11px]">
+					<Text className="font-inter font-semibold text-foreground-muted text-[12px]">
 						{contact.name[0]?.toUpperCase() ?? '?'}
 					</Text>
 				</View>

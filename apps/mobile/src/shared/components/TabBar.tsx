@@ -48,7 +48,7 @@ export function TabBar<T extends string>({
 						</Text>
 						{hasBadge && (
 							<View className="min-w-[20px] items-center rounded-full bg-danger px-1.5 py-0.5">
-								<Text className="font-inter font-semibold text-[11px] text-primary-foreground">
+								<Text className="font-inter font-semibold text-[12px] text-primary-foreground">
 									{tab.badge}
 								</Text>
 							</View>

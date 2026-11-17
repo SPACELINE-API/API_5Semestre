@@ -153,7 +153,7 @@ function CalendarPopover({
 				{weekdayLabels.map((weekday, index) => (
 					<span
 						key={`${weekday}-${index}`}
-						className="flex h-5 items-center justify-center font-inter-medium text-[10px] text-foreground-subtle"
+						className="flex h-5 items-center justify-center font-inter-medium text-[11px] text-foreground-subtle"
 					>
 						{weekday}
 					</span>
@@ -186,7 +186,7 @@ function CalendarPopover({
 							aria-pressed={isSelected}
 							disabled={isDisabled}
 							onClick={() => onSelect(dayValue)}
-							className={`mx-auto flex h-5 w-7 items-center justify-center rounded-lg font-inter text-[11px] transition-colors ${dayClasses}`}
+							className={`mx-auto flex h-5 w-7 items-center justify-center rounded-lg font-inter text-[12px] transition-colors ${dayClasses}`}
 						>
 							{day.getDate()}
 						</button>

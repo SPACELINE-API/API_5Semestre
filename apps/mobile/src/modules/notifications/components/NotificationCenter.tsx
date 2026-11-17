@@ -238,7 +238,7 @@ export function NotificationCenter({ topOffset }: NotificationCenterProps) {
 							className={`absolute items-center justify-center rounded-full bg-danger ${isMobile ? 'left-[1px] top-[5px] h-4 w-4' : 'left-[-1px] top-[3px] h-[18px] w-[18px]'}`}
 						>
 							<Text
-								className={`font-inter font-bold text-primary-foreground ${isMobile ? 'text-[8px]' : 'text-[9px]'}`}
+								className={`font-inter font-bold text-primary-foreground ${isMobile ? 'text-[9px]' : 'text-[10px]'}`}
 							>
 								{unreadCount > 9 ? '9+' : unreadCount}
 							</Text>

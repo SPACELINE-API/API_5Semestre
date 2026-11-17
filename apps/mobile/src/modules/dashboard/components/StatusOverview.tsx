@@ -194,7 +194,7 @@ export function StatusOverview({
 												}`}
 											>
 												<Text
-													className={`text-[11px] ${
+													className={`text-[12px] ${
 														metric === m
 															? 'font-inter-semibold text-foreground'
 															: 'font-inter-medium text-foreground-muted'

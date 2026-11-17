@@ -344,7 +344,7 @@ export function CompanyFormModal({
 								return (
 									<Text
 										key={s.title}
-										className={`flex-1 text-center font-inter text-[11px] ${
+										className={`flex-1 text-center font-inter text-[12px] ${
 											isActive || isCompleted
 												? 'font-semibold text-primary-strong'
 												: 'text-foreground-subtle'

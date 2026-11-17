@@ -51,7 +51,7 @@ export function PersonRow({
 						</Text>
 						{isSelf && (
 							<View className="rounded-full bg-primary-soft px-2 py-0.5">
-								<Text className="font-inter font-medium text-primary-text text-[11px]">
+								<Text className="font-inter font-medium text-primary-text text-[12px]">
 									Você
 								</Text>
 							</View>
@@ -70,7 +70,7 @@ export function PersonRow({
 								key={role.id}
 								className="rounded-full bg-surface-muted px-2 py-0.5"
 							>
-								<Text className="font-inter text-foreground-secondary text-[11px]">
+								<Text className="font-inter text-foreground-secondary text-[12px]">
 									{role.name}
 								</Text>
 							</View>

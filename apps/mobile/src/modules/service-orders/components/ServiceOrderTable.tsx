@@ -68,23 +68,23 @@ export function ServiceOrderTable({
 					/>
 				</View>
 
-				<Text className="w-[26%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[26%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Projeto
 				</Text>
 
-				<Text className="w-[20%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[20%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Empresa
 				</Text>
 
-				<Text className="w-[12%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[12%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Itens
 				</Text>
 
-				<Text className="w-[14%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[14%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Prazo
 				</Text>
 
-				<Text className="w-[14%] font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+				<Text className="w-[14%] font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 					Status
 				</Text>
 

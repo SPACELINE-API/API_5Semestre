@@ -65,14 +65,14 @@ export function NotificationCard({
 						className="flex-row items-center gap-1 rounded-lg px-1 py-0.5 hover:bg-primary-soft"
 					>
 						<Check size={12} color={themeColors.primaryText} />
-						<Text className="font-inter font-medium text-primary-text text-[10px]">
+						<Text className="font-inter font-medium text-primary-text text-[11px]">
 							Marcar como lida
 						</Text>
 					</TouchableOpacity>
 				) : (
 					<View />
 				)}
-				<Text className="ml-auto text-right font-inter text-foreground-subtle text-[10px]">
+				<Text className="ml-auto text-right font-inter text-foreground-subtle text-[11px]">
 					{formatNotificationDate(notification.created_at)}
 				</Text>
 			</View>

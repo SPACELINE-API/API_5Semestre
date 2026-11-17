@@ -67,7 +67,7 @@ export function DashboardPage() {
 							</Text>
 							{roleLabel.length > 0 && (
 								<View className="rounded-full border border-primary/30 bg-primary-soft px-2.5 py-0.5">
-									<Text className="font-inter-medium text-[11px] text-primary-text md:text-xs">
+									<Text className="font-inter-medium text-[12px] text-primary-text md:text-xs">
 										{roleLabel}
 									</Text>
 								</View>

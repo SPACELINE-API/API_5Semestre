@@ -79,7 +79,7 @@ function SectionLabel({ step, label }: { step: number; label: string }) {
 	return (
 		<View className="flex-row items-center gap-2">
 			<View className="h-5 w-5 items-center justify-center rounded-full bg-foreground">
-				<Text className="font-inter font-bold text-foreground-inverse text-[10px]">
+				<Text className="font-inter font-bold text-foreground-inverse text-[11px]">
 					{step}
 				</Text>
 			</View>

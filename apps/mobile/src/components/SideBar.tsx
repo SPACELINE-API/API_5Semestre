@@ -93,7 +93,7 @@ function NavItem({
 			)}
 			{isOpen && badge != null && (
 				<View className="bg-surface-muted rounded-full px-2 py-0.5">
-					<Text className="font-inter text-[11px] font-semibold text-foreground-secondary">
+					<Text className="font-inter text-[12px] font-semibold text-foreground-secondary">
 						{badge}
 					</Text>
 				</View>
@@ -110,7 +110,7 @@ type GroupLabelProps = {
 function GroupLabel({ isOpen, children }: GroupLabelProps) {
 	if (!isOpen) return null;
 	return (
-		<Text className="font-inter font-bold text-primary-text text-[11px] uppercase px-3 mb-2 tracking-wider">
+		<Text className="font-inter font-bold text-primary-text text-[12px] uppercase px-3 mb-2 tracking-wider">
 			{children}
 		</Text>
 	);

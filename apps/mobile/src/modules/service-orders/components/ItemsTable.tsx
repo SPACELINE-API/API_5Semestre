@@ -29,7 +29,7 @@ function HeaderCell({ label, width }: { label: string; width: `${number}%` }) {
 	return (
 		<Text
 			style={{ width }}
-			className="font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle"
+			className="font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle"
 		>
 			{label}
 		</Text>

@@ -271,7 +271,7 @@ export function CertificateUploadModal({
 			onClose={close}
 		>
 			<View className="gap-1.5">
-				<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
+				<Text className="font-inter font-medium text-foreground-secondary text-[14px]">
 					Idioma
 				</Text>
 				<TouchableOpacity
@@ -371,7 +371,7 @@ export function CertificateUploadModal({
 			</View>
 
 			<View className="gap-1.5">
-				<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
+				<Text className="font-inter font-medium text-foreground-secondary text-[14px]">
 					Proficiência
 				</Text>
 				<View className="flex-row flex-wrap gap-2">
@@ -406,7 +406,7 @@ export function CertificateUploadModal({
 			</View>
 
 			<View className="gap-1.5">
-				<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
+				<Text className="font-inter font-medium text-foreground-secondary text-[14px]">
 					Certificado
 				</Text>
 				<FileDropzone

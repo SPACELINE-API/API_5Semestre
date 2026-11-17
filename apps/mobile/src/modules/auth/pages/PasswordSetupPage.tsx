@@ -85,7 +85,7 @@ function Requirement({ met, label }: { met: boolean; label: string }) {
 				<Circle size={16} color={themeColors.foregroundSubtle} />
 			)}
 			<Text
-				className={`text-[13px] ${met ? 'font-semibold text-success-text' : 'text-foreground-muted'}`}
+				className={`text-[14px] ${met ? 'font-semibold text-success-text' : 'text-foreground-muted'}`}
 			>
 				{label}
 			</Text>
@@ -288,7 +288,7 @@ export function PasswordSetupPage() {
 				</Text>
 				{state.info.email ? (
 					<View className="mb-5 rounded-xl border border-border bg-surface-subtle px-4 py-3">
-						<Text className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+						<Text className="text-[12px] font-bold uppercase tracking-wider text-foreground-muted">
 							Conta
 						</Text>
 						<Text className="mt-0.5 text-sm font-semibold text-foreground">

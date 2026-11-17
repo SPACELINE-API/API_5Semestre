@@ -451,13 +451,13 @@ export function TranslatorsInviteTab({
 			>
 				<View className="flex-row items-center gap-3 border-b border-border-subtle bg-surface-subtle px-4 py-2.5">
 					<Text className="w-6" />
-					<Text className="flex-1 font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+					<Text className="flex-1 font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 						Nome
 					</Text>
-					<Text className="flex-1 font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+					<Text className="flex-1 font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 						Email
 					</Text>
-					<Text className="w-24 font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
+					<Text className="w-24 font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
 						Status
 					</Text>
 				</View>

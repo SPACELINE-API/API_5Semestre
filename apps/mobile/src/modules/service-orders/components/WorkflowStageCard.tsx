@@ -32,7 +32,7 @@ export function WorkflowStageCard({
 		>
 			<View className="gap-1 px-3 pb-2.5 pt-2">
 				<View className="flex-row items-center justify-between">
-					<Text className="font-inter font-bold text-foreground-subtle text-[10px]">
+					<Text className="font-inter font-bold text-foreground-subtle text-[11px]">
 						ETAPA {stepIndex + 1}
 					</Text>
 
@@ -57,7 +57,7 @@ export function WorkflowStageCard({
 				</Text>
 
 				<Text
-					className="font-inter text-foreground-subtle text-[10px]"
+					className="font-inter text-foreground-subtle text-[11px]"
 					numberOfLines={1}
 				>
 					{assignedTranslatorName ?? 'Sem tradutor'}
@@ -74,7 +74,7 @@ export function WorkflowStageCard({
 				}`}
 			>
 				<Text
-					className={`font-inter font-bold text-[10px] uppercase tracking-wide ${
+					className={`font-inter font-bold text-[11px] uppercase tracking-wide ${
 						isUpcoming ? 'text-foreground-muted' : 'text-primary-foreground'
 					}`}
 				>

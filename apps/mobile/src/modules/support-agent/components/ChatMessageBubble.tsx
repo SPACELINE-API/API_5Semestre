@@ -17,7 +17,7 @@ type ChatMessageBubbleProps = {
 
 function buildMarkdownStyles(themeColors: ThemeColors) {
 	return {
-		body: { fontSize: 14, lineHeight: 22, color: themeColors.foreground },
+		body: { fontSize: 15, lineHeight: 23, color: themeColors.foreground },
 		paragraph: { marginTop: 0, marginBottom: 8 },
 		strong: { fontWeight: '700' as const, color: themeColors.foreground },
 		em: { fontStyle: 'italic' as const },
@@ -64,7 +64,7 @@ function buildMarkdownStyles(themeColors: ThemeColors) {
 			paddingVertical: 1,
 			borderRadius: 4,
 			fontFamily: 'monospace',
-			fontSize: 13,
+			fontSize: 14,
 		},
 		code_block: {
 			backgroundColor: themeColors.foreground,
@@ -72,7 +72,7 @@ function buildMarkdownStyles(themeColors: ThemeColors) {
 			padding: 10,
 			borderRadius: 8,
 			fontFamily: 'monospace',
-			fontSize: 13,
+			fontSize: 14,
 			marginVertical: 6,
 		},
 		fence: {
@@ -81,7 +81,7 @@ function buildMarkdownStyles(themeColors: ThemeColors) {
 			padding: 10,
 			borderRadius: 8,
 			fontFamily: 'monospace',
-			fontSize: 13,
+			fontSize: 14,
 			marginVertical: 6,
 		},
 		blockquote: {

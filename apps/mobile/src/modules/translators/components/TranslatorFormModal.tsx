@@ -304,7 +304,7 @@ export function TranslatorFormModal({
 								return (
 									<Text
 										key={s.title}
-										className={`flex-1 text-center font-inter text-[11px] ${
+										className={`flex-1 text-center font-inter text-[12px] ${
 											isActive || isCompleted
 												? 'font-semibold text-primary-strong'
 												: 'text-foreground-subtle'
@@ -381,7 +381,7 @@ export function TranslatorFormModal({
 
 						{step === 2 && (
 							<View className="gap-3">
-								<Text className="font-inter text-foreground-secondary text-[13px]">
+								<Text className="font-inter text-foreground-secondary text-[14px]">
 									Selecione as especialidades técnicas deste tradutor
 									(opcional):
 								</Text>
@@ -407,7 +407,7 @@ export function TranslatorFormModal({
 												}`}
 											>
 												{isChecked && (
-													<Text className="text-primary-foreground text-[10px] font-bold">
+													<Text className="text-primary-foreground text-[11px] font-bold">
 														✓
 													</Text>
 												)}
