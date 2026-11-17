@@ -268,6 +268,7 @@ def delete_service_order_item_file(
 def delete_service_order_item(
     service_order_id: uuid.UUID,
     item_id: uuid.UUID,
+    _user=Depends(service_orders_write_permission),
     db: Session = Depends(get_db),
 ):
     ServiceOrderService(db).delete_item(service_order_id, item_id)

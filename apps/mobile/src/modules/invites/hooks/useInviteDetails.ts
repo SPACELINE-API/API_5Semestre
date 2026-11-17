@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ApiError } from '../../../shared/services/publicApiClient';
+import {
+	ApiError,
+	FORBIDDEN_ERROR_MESSAGE,
+} from '../../../shared/services/publicApiClient';
 import { getMyInvite } from '../services/inviteService';
 import type {
 	ServiceOrderItemDetails,
@@ -24,10 +27,11 @@ export function useInviteDetails(inviteId: string) {
 			setInvite(null);
 			setItem(null);
 			setError(
-				cause instanceof ApiError &&
-					(cause.status === 404 || cause.status === 403)
-					? 'Convite não encontrado.'
-					: 'Não foi possível carregar os dados do convite.',
+				cause instanceof ApiError && cause.status === 403
+					? FORBIDDEN_ERROR_MESSAGE
+					: cause instanceof ApiError && cause.status === 404
+						? 'Convite não encontrado.'
+						: 'Não foi possível carregar os dados do convite.',
 			);
 		} finally {
 			setIsLoading(false);

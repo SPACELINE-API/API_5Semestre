@@ -6,9 +6,10 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/meus-itens': 'assignments.read',
 	'/meu-perfil': 'assignments.read',
 	'/visualizar-requisicoes': 'requests.read',
+	'/orcamento/novo-orcamento': 'quotes.write',
+	'/orcamento/gerar': 'requests.read',
 	'/orcamento': 'quotes.read',
 	'/propostas': 'proposals.read',
-	'/orcamento/gerar': 'requests.read',
 	'/ordens-de-servico': 'service_orders.read',
 	'/clientes': 'clients.read',
 	'/tradutores': 'translators.read',
@@ -16,7 +17,9 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/support-agent': 'support.read',
 	'/administracao': 'roles.read',
 	'/usuarios': 'users.read',
-	'/configuracoes': 'roles.read',
+	'/configuracoes/permissoes': 'roles.read',
+	'/configuracoes/pessoas': 'users.read',
+	'/configuracoes/sessao': 'settings.read',
 	'/projetos': 'projects.read',
 };
 
@@ -94,11 +97,17 @@ export function canAccess(
 ) {
 	if (isPublicPath(pathname)) return true;
 	if (isAdministratorOnlyPath(pathname)) return hasFullRouteAccess(context);
+	if (
+		pathname === '/configuracoes/sessao' ||
+		pathname.startsWith('/configuracoes/sessao/')
+	) {
+		return (
+			hasPermission(context, 'settings.read') ||
+			hasPermission(context, 'settings.write')
+		);
+	}
 	const permission = requiredPermission(pathname);
-	return Boolean(
-		permission &&
-		(hasFullRouteAccess(context) || context?.permissions.includes(permission)),
-	);
+	return permission ? hasPermission(context, permission) : false;
 }
 
 export const LANDING_ROUTES = new Set([
@@ -114,14 +123,15 @@ export const LANDING_ROUTES = new Set([
 	'/tradutores',
 	'/produtividade',
 	'/support-agent',
+	'/configuracoes/permissoes',
+	'/configuracoes/sessao',
 ]);
 
 export function firstAllowedRoute(context: AuthorizationContext | null) {
 	if (hasFullRouteAccess(context)) return '/dashboard';
 	return (
 		Object.entries(ROUTE_PERMISSIONS).find(
-			([route, permission]) =>
-				LANDING_ROUTES.has(route) && context?.permissions.includes(permission),
+			([route]) => LANDING_ROUTES.has(route) && canAccess(context, route),
 		)?.[0] ?? '/login'
 	);
 }

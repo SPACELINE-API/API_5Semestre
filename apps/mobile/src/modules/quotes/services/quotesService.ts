@@ -4,6 +4,7 @@ import {
 	apiPatchAuth,
 	authHeaders,
 } from '../../../shared/services/apiClient';
+import { FORBIDDEN_ERROR_MESSAGE } from '../../../shared/services/publicApiClient';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
 import type { UploadableFile } from '../../../shared/types/file';
 
@@ -108,7 +109,8 @@ export type PaginatedQuotes = {
 };
 
 function quoteLoadErrorMessage(status?: number): string {
-	if (status === 401 || status === 403) {
+	if (status === 403) return FORBIDDEN_ERROR_MESSAGE;
+	if (status === 401) {
 		return 'Sua sessão expirou. Entre novamente para continuar.';
 	}
 	if (status && status >= 500) {
@@ -118,7 +120,8 @@ function quoteLoadErrorMessage(status?: number): string {
 }
 
 function quoteDecisionErrorMessage(status: number): string {
-	if (status === 401 || status === 403) {
+	if (status === 403) return FORBIDDEN_ERROR_MESSAGE;
+	if (status === 401) {
 		return 'Sua sessão expirou. Entre novamente para registrar esta decisão.';
 	}
 	if (status === 404)

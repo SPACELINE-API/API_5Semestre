@@ -1,7 +1,10 @@
 import { AppState, type AppStateStatus } from 'react-native';
 import { create } from 'zustand';
 import { onSessionChange } from '../../auth/services/auth';
-import { ApiError } from '../../../shared/services/publicApiClient';
+import {
+	ApiError,
+	FORBIDDEN_ERROR_MESSAGE,
+} from '../../../shared/services/publicApiClient';
 import {
 	getUnreadNotificationCount,
 	listNotifications,
@@ -48,7 +51,7 @@ let refreshPromise: Promise<void> | null = null;
 
 function getErrorMessage(error: unknown) {
 	if (error instanceof ApiError && error.status === 403) {
-		return 'Você não tem permissão para consultar suas notificações.';
+		return FORBIDDEN_ERROR_MESSAGE;
 	}
 	return error instanceof Error
 		? error.message

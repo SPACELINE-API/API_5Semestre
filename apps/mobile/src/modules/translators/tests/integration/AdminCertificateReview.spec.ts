@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { TranslatorCertificate } from '../../types/certificate';
-import { loginAsAdmin } from './authHelper';
+import { loginAsAdmin, loginAsTranslatorReader } from './authHelper';
 
 const TRANSLATOR_ID = 'a1a2a3a4-0000-4000-8000-000000000001';
 const SIGNED_URL =
@@ -133,6 +133,34 @@ async function openRequestsTab(page: Page) {
 	await page.goto(`/tradutores/${TRANSLATOR_ID}`);
 	await page.getByText('Solicitações', { exact: true }).click();
 }
+
+async function openRequestsTabAsReader(page: Page) {
+	await loginAsTranslatorReader(page);
+	await page.goto(`/tradutores/${TRANSLATOR_ID}`);
+	await page.getByText('Solicitações', { exact: true }).click();
+}
+
+test('revisor sem escrita pode visualizar mas não pode avaliar certificado', async ({
+	page,
+}) => {
+	const reviews = await mockAdminApi(page, [PENDING]);
+	await openRequestsTabAsReader(page);
+
+	await page.getByLabel(/Solicitação de Árabe \(Egito\)/).click();
+	await expect(page.getByText('Visualizar documento')).toBeVisible();
+	await page.getByText('Visualizar documento').click();
+	await expect(page.getByText('Abrir em nova aba')).toBeVisible();
+
+	const approve = page.getByRole('button', { name: 'Aprovar certificado' });
+	const reject = page.getByRole('button', { name: 'Recusar certificado' });
+	await expect(approve).toBeVisible();
+	await expect(approve).toBeDisabled();
+	await expect(reject).toBeVisible();
+	await expect(reject).toBeDisabled();
+	await approve.click({ force: true });
+	await reject.click({ force: true });
+	expect(reviews).toEqual([]);
+});
 
 test('aba Solicitações mostra a quantidade de certificados pendentes', async ({
 	page,
