@@ -311,9 +311,10 @@ export function LoginPage() {
 								onToggleConfirmation={() =>
 									setShowConfirmation(!showConfirmation)
 								}
-								onSubmitEditing={
+								onEmailSubmitEditing={
 									recovery ? submit : () => passwordInputRef.current?.focus()
 								}
+								onPasswordSubmitEditing={submit}
 							/>
 							{!recovery && !token ? (
 								<View className="mb-6 mt-5 flex-row flex-wrap items-center justify-between gap-y-3">

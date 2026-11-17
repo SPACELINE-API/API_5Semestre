@@ -37,6 +37,7 @@ ADMIN_PERMISSIONS = (
     "assignments.write",
     "assignments.manage",
     "assignments.respond",
+    "tasks.review",
     "documents.read",
     "documents.write",
     "support.read",

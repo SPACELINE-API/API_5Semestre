@@ -11,6 +11,8 @@ from sqlalchemy.orm import Session
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
 from app.modules.contacts.models.contact import Contact
+from app.modules.notifications.services.notification_messages import quote_approved_message
+from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.quotes.models.quote import (
     QUOTE_STATUS_APPROVED,
     QUOTE_STATUS_CANCELLED,
@@ -197,12 +199,14 @@ class QuoteService:
         if data.status == "approved":
             self._ensure_ready_for_approval(quote)
             if quote.service_orders:
-                sync_service_order_with_quote(self.db, quote, quote.service_orders[0], actor_email)
+                version = sync_service_order_with_quote(
+                    self.db, quote, quote.service_orders[0], actor_email
+                )
             else:
                 service_order = self._build_service_order(quote)
                 quote.service_orders.append(service_order)
                 self.db.flush()
-                record_initial_version(self.db, service_order, actor_email)
+                version = record_initial_version(self.db, service_order, actor_email)
 
         approved = data.status == "approved"
         decided_at = datetime.now(UTC)
@@ -214,6 +218,16 @@ class QuoteService:
         quote.reproved_by = None if approved else actor_id
         quote.reproved_by_email = None if approved else actor_email
         quote.reproval_reason = None if approved else (data.reproval_reason or "").strip()
+        if approved:
+            message = quote_approved_message(quote.company_name)
+            NotificationService(self.db).notify_administrators(
+                event_type=message.event_type,
+                title=message.title,
+                message=message.message,
+                related_type="quote",
+                related_id=quote.id,
+                idempotency_key=f"quote:{quote.id}:approved:v{version.version}",
+            )
         try:
             self.db.commit()
         except Exception:

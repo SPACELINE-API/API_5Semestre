@@ -4,6 +4,10 @@ from datetime import UTC, datetime
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
+from app.modules.notifications.services.notification_messages import (
+    translator_invite_received_message,
+)
+from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.service_orders.models.invite import (
     INVITE_STATUS_ACEITO,
     INVITE_STATUS_EXPIRADO,
@@ -91,6 +95,20 @@ class InviteService:
             for translator in translators
         ]
         self.db.add_all(invites)
+        self.db.flush()
+
+        notification_service = NotificationService(self.db)
+        message = translator_invite_received_message(item.document_type)
+        for invite, translator in zip(invites, translators, strict=True):
+            notification_service.notify_translator(
+                translator,
+                event_type=message.event_type,
+                title=message.title,
+                message=message.message,
+                related_type="service_order_item_invite",
+                related_id=invite.id,
+                idempotency_key=f"service_order_invite:{invite.id}:sent",
+            )
         self.db.commit()
 
         template = self.db.get(ServiceOrderEmailTemplate, TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY)

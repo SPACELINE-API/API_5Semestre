@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.main import app
 from app.modules.auth.dependencies.dependencies import get_current_user
+from app.modules.auth.models.roles import Role
 from app.modules.auth.models.user import User
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.notifications.models.notification import Notification
@@ -150,3 +151,50 @@ def test_replaying_notification_event_is_idempotent(
         )
         == 1
     )
+
+
+def test_notify_administrators_targets_only_active_users_with_active_admin_role(
+    isolated_db_session: Session,
+) -> None:
+    active_admin_role = Role(name="Administrador", is_active=True)
+    inactive_admin_role = Role(name="admin", is_active=False)
+    active_admin = User(
+        email=f"active-admin-{uuid.uuid4()}@example.com",
+        password_hash="hashed",
+        is_active=True,
+        role="legacy",
+        roles=[active_admin_role],
+    )
+    inactive_user = User(
+        email=f"inactive-admin-{uuid.uuid4()}@example.com",
+        password_hash="hashed",
+        is_active=False,
+        role="legacy",
+        roles=[active_admin_role],
+    )
+    inactive_role_user = User(
+        email=f"inactive-role-{uuid.uuid4()}@example.com",
+        password_hash="hashed",
+        is_active=True,
+        role="legacy",
+        roles=[inactive_admin_role],
+    )
+    non_admin = User(
+        email=f"non-admin-{uuid.uuid4()}@example.com",
+        password_hash="hashed",
+        is_active=True,
+        role="Administrador",
+    )
+    isolated_db_session.add_all([active_admin, inactive_user, inactive_role_user, non_admin])
+    isolated_db_session.flush()
+
+    notifications = NotificationService(isolated_db_session).notify_administrators(
+        event_type="quote_approved",
+        title="Orçamento aprovado",
+        message="O orçamento foi aprovado.",
+        related_type="quote",
+        related_id=uuid.uuid4(),
+        idempotency_key="quote:test:approved",
+    )
+
+    assert [notification.recipient_user_id for notification in notifications] == [active_admin.id]

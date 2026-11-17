@@ -76,6 +76,18 @@ TRANSLATOR_NOTIFICATIONS = (
     ),
 )
 
+SCROLL_PREVIEW_NOTIFICATIONS = tuple(
+    SeedNotification(
+        event_type=f"seed_preview_{index}",
+        title=f"Notificação de teste {index}",
+        message="Esta notificação foi criada pelo seed para validar a rolagem no mobile.",
+        related_type="seed_preview",
+        related_id=uuid.uuid5(_NAMESPACE, f"seed-preview:{index}"),
+        is_read=index % 2 == 0,
+    )
+    for index in range(1, 9)
+)
+
 
 def seed_notifications(*, db: Session | None = None, user_emails: list[str] | None = None) -> int:
     database_session = db or get_session_factory()()
@@ -135,4 +147,6 @@ def _notifications_for_user(user: User) -> tuple[SeedNotification, ...]:
         notifications.extend(ADMIN_NOTIFICATIONS)
     if is_translator:
         notifications.extend(TRANSLATOR_NOTIFICATIONS)
+    if is_admin or is_translator:
+        notifications.extend(SCROLL_PREVIEW_NOTIFICATIONS)
     return tuple(notifications)

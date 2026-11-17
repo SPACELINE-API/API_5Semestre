@@ -15,6 +15,7 @@ from app.modules.auth.models.roles import Permission, Role
 from app.modules.auth.models.user import User
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
+from app.modules.notifications.models.notification import Notification
 from app.modules.quotes.models import AdditionalService, Quote, QuoteAuditLog, QuoteTranslationItem
 from app.modules.quotes.schemas.quote import QuoteStatusUpdate
 from app.modules.quotes.services import quote_service as quote_service_module
@@ -1007,3 +1008,29 @@ def test_cancelled_after_reopen_keeps_service_order_as_it_was(
     assert quote.status == "cancelled"
     assert snapshot_service_order(isolated_db_session, order) == before
     assert db_client.get(f"/api/service-orders/{order.id}").status_code == 200
+
+
+def test_reapproval_notifies_administrators_again(
+    db_client: TestClient, isolated_db_session: Session
+):
+    admin = User(
+        email=f"admin-{uuid.uuid4().hex[:10]}@example.com",
+        password_hash="unused",
+        is_active=True,
+        role="legacy",
+        roles=[Role(name="Administrador", is_active=True)],
+    )
+    isolated_db_session.add(admin)
+    isolated_db_session.flush()
+    quote = make_quote(isolated_db_session, "draft")
+    approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+
+    reapprove(db_client, quote)
+
+    keys = sorted(
+        key
+        for (key,) in isolated_db_session.query(Notification.idempotency_key).filter_by(
+            recipient_user_id=admin.id, related_id=quote.id
+        )
+    )
+    assert keys == [f"quote:{quote.id}:approved:v1", f"quote:{quote.id}:approved:v2"]
