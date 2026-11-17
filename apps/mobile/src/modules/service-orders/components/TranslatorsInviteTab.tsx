@@ -309,7 +309,11 @@ export function TranslatorsInviteTab({
 				>
 					<SlidersHorizontal
 						size={16}
-						color={hasTranslatorFilters ? '#1C6FB0' : '#64748B'}
+						color={
+							hasTranslatorFilters
+								? themeColors.primaryText
+								: themeColors.foregroundMuted
+						}
 					/>
 					<Text
 						className={`font-inter text-sm ${

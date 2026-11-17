@@ -148,12 +148,16 @@ function Notice({
 	tone: 'info' | 'error';
 	children: ReactNode;
 }) {
+	const themeColors = useThemeColors();
 	const isError = tone === 'error';
 	return (
 		<View
 			className={`flex-row items-start gap-2 rounded-lg border p-3 ${isError ? 'border-danger/30 bg-danger-soft' : 'border-border bg-surface-subtle'}`}
 		>
-			<CircleAlert size={16} color={isError ? '#b91c1c' : '#6b7280'} />
+			<CircleAlert
+				size={16}
+				color={isError ? themeColors.danger : themeColors.foregroundMuted}
+			/>
 			<Text
 				className={`flex-1 font-inter text-sm ${isError ? 'text-danger-text' : 'text-foreground-secondary'}`}
 			>

@@ -13,6 +13,7 @@ import { Check, ChevronDown, Search, X } from 'lucide-react-native';
 import type { LanguageResponse } from '../../translators/types/translator';
 import { getLanguageFlag } from '../../translators/utils/languageFlag';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function normalizeSearch(value: string) {
 	return value
 		.normalize('NFD')
@@ -35,6 +36,7 @@ export function RequestLanguageSelect({
 	loading = false,
 	onChange,
 }: Props) {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const [isOpen, setIsOpen] = useState(false);
 	const [search, setSearch] = useState('');
@@ -55,7 +57,7 @@ export function RequestLanguageSelect({
 
 	return (
 		<View className="w-full gap-1">
-			<Text className="mb-1 text-sm font-bold text-[#101b35]">
+			<Text className="mb-1 text-sm font-bold text-foreground">
 				{label}
 				<Text className="text-danger">*</Text>
 			</Text>
@@ -66,23 +68,23 @@ export function RequestLanguageSelect({
 				}`}
 				disabled={loading || languages.length === 0}
 				onPress={() => setIsOpen(true)}
-				className="h-11 w-full flex-row items-center justify-between rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4"
+				className="h-11 w-full flex-row items-center justify-between rounded-xl border border-border bg-surface-subtle px-4"
 			>
 				{selectedLanguage ? (
 					<View className="flex-row items-center gap-2">
 						<Text className="text-base">
 							{getLanguageFlag(selectedLanguage)}
 						</Text>
-						<Text className="text-sm text-[#12233c]">
+						<Text className="text-sm text-foreground">
 							{selectedLanguage.name}
 						</Text>
 					</View>
 				) : (
-					<Text className="text-sm text-[#94a3b8]">
+					<Text className="text-sm text-foreground-subtle">
 						{loading ? 'Carregando idiomas...' : 'Selecione um idioma'}
 					</Text>
 				)}
-				<ChevronDown size={16} color="#64748b" />
+				<ChevronDown size={16} color={themeColors.foregroundMuted} />
 			</TouchableOpacity>
 
 			<Modal
@@ -106,11 +108,11 @@ export function RequestLanguageSelect({
 								accessibilityLabel="Fechar seleção de idioma"
 								onPress={closePicker}
 							>
-								<X size={20} color="#5A5A5A" />
+								<X size={20} color={themeColors.foregroundSecondary} />
 							</TouchableOpacity>
 						</View>
 						<View className="mx-4 mt-4 flex-row items-center gap-2 rounded-lg border border-border-strong bg-surface px-3">
-							<Search size={17} color="#9CA3AF" />
+							<Search size={17} color={themeColors.foregroundSubtle} />
 							<TextInput
 								value={search}
 								onChangeText={setSearch}
@@ -119,7 +121,7 @@ export function RequestLanguageSelect({
 										? 'Buscar idioma ou código'
 										: 'Buscar por idioma ou código'
 								}
-								placeholderTextColor="#9CA3AF"
+								placeholderTextColor={themeColors.foregroundSubtle}
 								autoCapitalize="none"
 								autoCorrect={false}
 								accessibilityLabel="Buscar idioma"
@@ -143,7 +145,9 @@ export function RequestLanguageSelect({
 										<Text className="flex-1 font-inter font-medium text-sm text-foreground">
 											{language.name}
 										</Text>
-										{selected && <Check size={16} color="#1C6FB0" />}
+										{selected && (
+											<Check size={16} color={themeColors.primary} />
+										)}
 									</TouchableOpacity>
 								);
 							})}

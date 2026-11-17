@@ -55,6 +55,7 @@ function NavItem({
 	badge,
 	disabled = false,
 }: NavItemProps) {
+	const themeColors = useThemeColors();
 	return (
 		<TouchableOpacity
 			onPress={onPress}
@@ -68,7 +69,13 @@ function NavItem({
 		>
 			<Icon
 				size={20}
-				color={active ? '#2563eb' : disabled ? '#d1d5db' : '#4b5563'}
+				color={
+					active
+						? themeColors.primaryText
+						: disabled
+							? themeColors.foregroundSubtle
+							: themeColors.foregroundSecondary
+				}
 				strokeWidth={1.8}
 			/>
 			{isOpen && (

@@ -19,7 +19,9 @@ import { RequestLanguageSelect } from './RequestLanguageSelect';
 import { listPublicLanguages } from '../../translators/services/translatorService';
 import type { LanguageResponse } from '../../translators/types/translator';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export default function FormsRequest() {
+	const themeColors = useThemeColors();
 	const [customerName, setCustomerName] = useState('');
 	const [email, setEmail] = useState('');
 	const [emailError, setEmailError] = useState('');
@@ -169,12 +171,12 @@ export default function FormsRequest() {
 	}
 
 	return (
-		<View className="w-full rounded-[28px] border border-white/80 bg-surface/90 px-6 py-7 shadow-2xl shadow-[#173a68]/15 sm:px-9 sm:py-8">
+		<View className="w-full rounded-[28px] border border-white/80 bg-surface/90 px-6 py-7 shadow-2xl shadow-overlay/15 sm:px-9 sm:py-8">
 			<View className="mb-6">
-				<Text className="text-[22px] font-extrabold tracking-[-0.6px] text-[#101b35]">
+				<Text className="text-[22px] font-extrabold tracking-[-0.6px] text-foreground">
 					Solicitação de serviço
 				</Text>
-				<Text className="mt-1 text-sm text-[#506481]">
+				<Text className="mt-1 text-sm text-foreground-muted">
 					Conte para a gente o que você precisa traduzir
 				</Text>
 			</View>
@@ -186,7 +188,7 @@ export default function FormsRequest() {
 
 				<View className="flex flex-col gap-4 md:flex-row md:flex-wrap">
 					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
-						<Text className="mb-1 text-sm font-bold text-[#101b35]">
+						<Text className="mb-1 text-sm font-bold text-foreground">
 							Nome
 							<Text className="text-danger">*</Text>
 						</Text>
@@ -194,13 +196,13 @@ export default function FormsRequest() {
 							value={customerName}
 							onChangeText={setCustomerName}
 							placeholder="Digite seu nome"
-							placeholderTextColor="#94a3b8"
-							className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
+							placeholderTextColor={themeColors.foregroundSubtle}
+							className="h-11 rounded-xl border border-border bg-surface-subtle px-4 text-sm text-foreground"
 						/>
 					</View>
 
 					<View className="w-full md:min-w-[200px] md:flex-1">
-						<Text className="mb-1 text-sm font-bold text-[#101b35]">
+						<Text className="mb-1 text-sm font-bold text-foreground">
 							Email
 							<Text className="text-danger">*</Text>
 						</Text>
@@ -219,10 +221,10 @@ export default function FormsRequest() {
 								}
 							}}
 							placeholder="seuemail@exemplo.com"
-							placeholderTextColor="#94a3b8"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							keyboardType="email-address"
 							autoCapitalize="none"
-							className="h-11 w-full rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
+							className="h-11 w-full rounded-xl border border-border bg-surface-subtle px-4 text-sm text-foreground"
 						/>
 
 						{emailError ? (
@@ -231,7 +233,7 @@ export default function FormsRequest() {
 					</View>
 
 					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
-						<Text className="mb-1 text-sm font-bold text-[#101b35]">
+						<Text className="mb-1 text-sm font-bold text-foreground">
 							Empresa
 							<Text className="text-danger">*</Text>
 						</Text>
@@ -239,8 +241,8 @@ export default function FormsRequest() {
 							value={enterprise}
 							onChangeText={setEnterprise}
 							placeholder="Nome da empresa"
-							placeholderTextColor="#94a3b8"
-							className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
+							placeholderTextColor={themeColors.foregroundSubtle}
+							className="h-11 rounded-xl border border-border bg-surface-subtle px-4 text-sm text-foreground"
 						/>
 					</View>
 				</View>
@@ -253,7 +255,7 @@ export default function FormsRequest() {
 
 				<View className="flex flex-col gap-4 md:flex-row md:flex-wrap">
 					<View className="w-full gap-1 md:min-w-[200px] md:flex-1">
-						<Text className="mb-1 text-sm font-bold text-[#101b35]">
+						<Text className="mb-1 text-sm font-bold text-foreground">
 							Tipo de documento
 							<Text className="text-danger">*</Text>
 						</Text>
@@ -261,8 +263,8 @@ export default function FormsRequest() {
 							value={customerNeed}
 							onChangeText={setCustomerNeed}
 							placeholder="Ex: Diploma, contrato social"
-							placeholderTextColor="#94a3b8"
-							className="h-11 rounded-xl border border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
+							placeholderTextColor={themeColors.foregroundSubtle}
+							className="h-11 rounded-xl border border-border bg-surface-subtle px-4 text-sm text-foreground"
 						/>
 					</View>
 
@@ -295,19 +297,19 @@ export default function FormsRequest() {
 
 				<View className="w-full gap-1">
 					<TouchableOpacity
-						className="flex flex-column items-center justify-center gap-5 h-40 rounded-xl border border-dashed border-[#c7dced] bg-[#f7fbff] px-4 text-sm text-[#12233c]"
+						className="flex flex-column items-center justify-center gap-5 h-40 rounded-xl border border-dashed border-border bg-surface-subtle px-4 text-sm text-foreground"
 						onPress={uploadFile}
 					>
-						<FileUp color={'#c5d0df'} size={'60px'} />
-						<Text className="mb-1 text-sm text-[#94a3b8]">
+						<FileUp color={themeColors.borderStrong} size={'60px'} />
+						<Text className="mb-1 text-sm text-foreground-subtle">
 							Faça o upload do documento a ser traduzido
 						</Text>
 					</TouchableOpacity>
 
 					{document ? (
-						<View className="mt-6 w-full flex-row items-center gap-3 rounded-xl border border-[#c7dced] bg-surface p-4">
+						<View className="mt-6 w-full flex-row items-center gap-3 rounded-xl border border-border bg-surface p-4">
 							<Text
-								className="min-w-0 flex-1 text-sm text-[#12233c]"
+								className="min-w-0 flex-1 text-sm text-foreground"
 								numberOfLines={2}
 								ellipsizeMode="middle"
 							>
@@ -334,7 +336,7 @@ export default function FormsRequest() {
 				<TouchableOpacity
 					onPress={handleSubmit}
 					disabled={submitting}
-					className="h-12 w-full items-center justify-center rounded-full bg-[#2d83cd] px-5 shadow-md shadow-primary/30 sm:w-auto"
+					className="h-12 w-full items-center justify-center rounded-full bg-primary px-5 shadow-md shadow-primary/30 sm:w-auto"
 				>
 					<Text className="text-sm font-bold text-primary-foreground">
 						{submitting ? 'ENVIANDO...' : 'ENVIAR SOLICITAÇÃO'}
@@ -343,9 +345,9 @@ export default function FormsRequest() {
 
 				<TouchableOpacity
 					onPress={() => router.replace('/login')}
-					className="h-12 w-full items-center justify-center rounded-full border border-[#2d83cd] bg-surface px-5 sm:w-auto"
+					className="h-12 w-full items-center justify-center rounded-full border border-primary bg-surface px-5 sm:w-auto"
 				>
-					<Text className="text-sm font-bold text-[#2d83cd]">VOLTAR</Text>
+					<Text className="text-sm font-bold text-primary-text">VOLTAR</Text>
 				</TouchableOpacity>
 			</View>
 

@@ -5,6 +5,7 @@ import Constants from 'expo-constants';
 import Markdown from 'react-native-markdown-display';
 import { resolveNativeResourceUrl } from '../../../shared/utils/nativeResourceUrl';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ChatMessageBubbleProps = {
 	role: 'user' | 'agent';
 	message: string;
@@ -132,7 +133,7 @@ function TypingIndicator() {
 	}, []);
 
 	return (
-		<Text className="text-sm leading-6 text-[#1a2942]">
+		<Text className="text-sm leading-6 text-foreground">
 			Elaborando resposta{'.'.repeat(dotCount)}
 		</Text>
 	);
@@ -144,6 +145,7 @@ export function ChatMessageBubble({
 	timestamp,
 	loading = false,
 }: ChatMessageBubbleProps) {
+	const themeColors = useThemeColors();
 	const isUser = role === 'user';
 
 	return (
@@ -152,19 +154,21 @@ export function ChatMessageBubble({
 		>
 			<View
 				className={`h-10 w-10 shrink-0 items-center justify-center rounded-full md:h-11 md:w-11 ${
-					isUser ? 'bg-[#65758f]' : 'bg-[#2d83cd]'
+					isUser ? 'bg-foreground-muted' : 'bg-primary'
 				}`}
 			>
 				{isUser ? (
-					<User color="#ffffff" size={18} />
+					<User color={themeColors.primaryForeground} size={18} />
 				) : (
-					<Bot color="#ffffff" size={20} />
+					<Bot color={themeColors.primaryForeground} size={20} />
 				)}
 			</View>
 			<View className={`flex-1 ${isUser ? 'items-end' : 'items-start'}`}>
 				<View
 					className={`rounded-2xl px-4 py-3 md:max-w-xl md:px-5 md:py-4 ${
-						isUser ? 'rounded-tr-sm bg-[#2d83cd]' : 'rounded-tl-sm bg-[#e5f1fc]'
+						isUser
+							? 'rounded-tr-sm bg-primary'
+							: 'rounded-tl-sm bg-primary-soft'
 					} ${loading ? 'opacity-60' : ''}`}
 				>
 					{loading ? (
@@ -186,7 +190,9 @@ export function ChatMessageBubble({
 					)}
 				</View>
 				{timestamp ? (
-					<Text className="mt-1.5 text-xs text-[#8a99b3]">{timestamp}</Text>
+					<Text className="mt-1.5 text-xs text-foreground-subtle">
+						{timestamp}
+					</Text>
 				) : null}
 			</View>
 		</View>

@@ -107,7 +107,7 @@ export function LoginBackground() {
 	return (
 		<View
 			pointerEvents="none"
-			className="absolute inset-0 overflow-hidden bg-[#f6faff]"
+			className="absolute inset-0 overflow-hidden bg-surface-subtle"
 			style={containerStyle}
 		>
 			<Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>

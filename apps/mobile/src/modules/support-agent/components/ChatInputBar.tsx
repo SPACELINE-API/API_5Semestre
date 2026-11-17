@@ -2,6 +2,7 @@ import { forwardRef, useState } from 'react';
 import { Paperclip, Send } from 'lucide-react-native';
 import { Pressable, TextInput, View } from 'react-native';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ChatInputBarProps = {
 	value: string;
 	onChangeText: (value: string) => void;
@@ -24,22 +25,23 @@ export const ChatInputBar = forwardRef<TextInput, ChatInputBarProps>(
 		ref,
 	) {
 		const [isFocused, setIsFocused] = useState(false);
+		const themeColors = useThemeColors();
 
 		return (
 			<View
 				className={`flex-row items-center gap-3 rounded-full border-[1.5px] bg-surface py-2.5 pl-4 pr-2 transition-colors duration-200 ${
-					isFocused ? 'border-[#2d83cd]' : 'border-[#dce7f2]'
+					isFocused ? 'border-primary' : 'border-border'
 				}`}
 			>
 				<Pressable hitSlop={8} disabled={disabled}>
-					<Paperclip color="#8a99b3" size={20} />
+					<Paperclip color={themeColors.foregroundSubtle} size={20} />
 				</Pressable>
 				<TextInput
 					ref={ref}
-					className="min-h-[44px] flex-1 py-2 text-sm text-[#12233c] outline-none max-md:min-w-0 max-md:shrink"
+					className="min-h-[44px] flex-1 py-2 text-sm text-foreground outline-none max-md:min-w-0 max-md:shrink"
 					style={{ lineHeight: 20, textAlignVertical: 'center' }}
 					placeholder="Digite sua mensagem..."
-					placeholderTextColor="#94a3b8"
+					placeholderTextColor={themeColors.foregroundSubtle}
 					value={value}
 					onChangeText={onChangeText}
 					onSubmitEditing={onSend}
@@ -52,12 +54,12 @@ export const ChatInputBar = forwardRef<TextInput, ChatInputBarProps>(
 				/>
 				<Pressable
 					className={`mr-0.5 h-10 w-10 items-center justify-center rounded-full ${
-						canSend ? 'bg-[#2d83cd]' : 'bg-[#a9c7e4]'
+						canSend ? 'bg-primary' : 'bg-border-strong'
 					}`}
 					onPress={onSend}
 					disabled={!canSend}
 				>
-					<Send color="#ffffff" size={18} />
+					<Send color={themeColors.primaryForeground} size={18} />
 				</Pressable>
 			</View>
 		);

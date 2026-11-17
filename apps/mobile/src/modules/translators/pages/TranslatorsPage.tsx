@@ -159,8 +159,8 @@ export function TranslatorsPage() {
 									size={16}
 									color={
 										showFilters || statusFilter !== 'all'
-											? '#1C6FB0'
-											: '#6B7280'
+											? themeColors.primaryText
+											: themeColors.foregroundMuted
 									}
 								/>
 								<Text

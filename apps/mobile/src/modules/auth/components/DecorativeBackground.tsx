@@ -88,7 +88,7 @@ export function DecorativeBackground() {
 	return (
 		<View
 			pointerEvents="none"
-			className="absolute inset-0 overflow-hidden bg-[#dceeff]"
+			className="absolute inset-0 overflow-hidden bg-primary-soft"
 			style={containerStyle}
 		>
 			<Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>

@@ -19,6 +19,7 @@ import {
 	getWorkflowCurrentIndex,
 } from '../utils/workflowSteps';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type StageNodeData = {
 	stepIndex: number;
 	isCurrent: boolean;
@@ -61,6 +62,7 @@ export function WorkflowPipeline({
 	status,
 	assignedTranslatorName,
 }: WorkflowPipelineProps) {
+	const themeColors = useThemeColors();
 	const currentIndex = getWorkflowCurrentIndex(status);
 
 	const nodes: Node[] = useMemo(
@@ -86,7 +88,7 @@ export function WorkflowPipeline({
 		() =>
 			WORKFLOW_STEPS.slice(0, -1).map((step, index) => {
 				const isPassed = index < currentIndex;
-				const color = isPassed ? '#15803D' : '#D1D5DB';
+				const color = isPassed ? themeColors.success : themeColors.borderStrong;
 
 				return {
 					id: `${step.status}-${WORKFLOW_STEPS[index + 1].status}`,
@@ -123,7 +125,7 @@ export function WorkflowPipeline({
 					variant={BackgroundVariant.Dots}
 					gap={16}
 					size={1}
-					color="#F3F4F6"
+					color={themeColors.surfaceMuted}
 				/>
 			</ReactFlow>
 		</View>

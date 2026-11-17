@@ -27,6 +27,7 @@ import { LoginBackground } from '../components/LoginBackground';
 import { LoginFields } from '../components/LoginFields';
 import { LoginScroll } from '../components/LoginScroll';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type LoginError = {
 	code: string;
 	title: string;
@@ -90,6 +91,7 @@ function getLoginError(cause: unknown): LoginError {
 }
 
 export function LoginPage() {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const passwordInputRef = useRef<TextInput>(null);
 	const [email, setEmail] = useState('');
@@ -256,8 +258,8 @@ export function LoginPage() {
 		<View
 			className={
 				Platform.OS === 'web'
-					? 'min-h-screen flex-1 bg-[#f6faff]'
-					: 'flex-1 bg-[#f6faff]'
+					? 'min-h-screen flex-1 bg-surface-subtle'
+					: 'flex-1 bg-surface-subtle'
 			}
 		>
 			<LoginBackground />
@@ -271,11 +273,11 @@ export function LoginPage() {
 							accessibilityLabel="Aliança Traduções"
 						/>
 						<View className="hidden max-w-[520px] md:flex">
-							<Text className="text-[52px] font-extrabold leading-[1.05] tracking-[-1.5px] text-[#0f1b33]">
-								Traduções com <Text className="text-[#2783d4]">clareza</Text>,
-								prazo e controle.
+							<Text className="text-[52px] font-extrabold leading-[1.05] tracking-[-1.5px] text-foreground">
+								Traduções com <Text className="text-primary-text">clareza</Text>
+								, prazo e controle.
 							</Text>
-							<Text className="mt-6 max-w-[430px] text-lg leading-7 text-[#52647e]">
+							<Text className="mt-6 max-w-[430px] text-lg leading-7 text-foreground-muted">
 								Acompanhe orçamentos, solicitações e documentos de tradução em
 								um só lugar.
 							</Text>
@@ -284,11 +286,11 @@ export function LoginPage() {
 					</View>
 
 					<View className="w-full self-center md:w-[46%] md:max-w-[480px] md:justify-center">
-						<View className="w-full rounded-[22px] border border-[#e1ebf5] bg-surface px-6 py-7 shadow-xl shadow-[#173a68]/10 sm:px-8">
-							<Text className="text-[28px] font-extrabold tracking-[-0.8px] text-[#0f1b33]">
+						<View className="w-full rounded-[22px] border border-border bg-surface px-6 py-7 shadow-xl shadow-overlay/10 sm:px-8">
+							<Text className="text-[28px] font-extrabold tracking-[-0.8px] text-foreground">
 								{heading}
 							</Text>
-							<Text className="mb-6 mt-1 text-sm text-[#52647e]">
+							<Text className="mb-6 mt-1 text-sm text-foreground-muted">
 								{subheading}
 							</Text>
 							<LoginFields
@@ -325,18 +327,22 @@ export function LoginPage() {
 										onPress={() => setRemember(!remember)}
 									>
 										<View
-											className={`h-[22px] w-[22px] items-center justify-center rounded-md border-[1.5px] ${remember ? 'border-[#2d83cd] bg-[#2d83cd]' : 'border-[#7db9e8] bg-surface'}`}
+											className={`h-[22px] w-[22px] items-center justify-center rounded-md border-[1.5px] ${remember ? 'border-primary bg-primary' : 'border-primary/40 bg-surface'}`}
 										>
 											{remember ? (
-												<Check color="#ffffff" size={14} strokeWidth={3} />
+												<Check
+													color={themeColors.primaryForeground}
+													size={14}
+													strokeWidth={3}
+												/>
 											) : null}
 										</View>
-										<Text className="text-[13px] text-[#52647e]">
+										<Text className="text-[13px] text-foreground-muted">
 											Lembrar-me
 										</Text>
 									</Pressable>
 									<Pressable onPress={startRecovery}>
-										<Text className="text-[13px] font-bold text-[#176ed0]">
+										<Text className="text-[13px] font-bold text-primary-text">
 											Esqueci minha senha
 										</Text>
 									</Pressable>
@@ -370,10 +376,10 @@ export function LoginPage() {
 							/>
 							{recovery ? (
 								<Pressable
-									className="mt-3 h-11 items-center justify-center rounded-full border border-[#2d83cd] bg-transparent"
+									className="mt-3 h-11 items-center justify-center rounded-full border border-primary bg-transparent"
 									onPress={returnToLogin}
 								>
-									<Text className="text-sm font-bold text-[#176ed0]">
+									<Text className="text-sm font-bold text-primary-text">
 										Voltar para o login
 									</Text>
 								</Pressable>
@@ -387,12 +393,12 @@ export function LoginPage() {
 
 						{!recovery && !token ? (
 							<View className="mt-6 items-center gap-3">
-								<Text className="text-center text-[13px] text-[#4d6483]">
+								<Text className="text-center text-[13px] text-foreground-muted">
 									Ainda não tem acesso? Solicite seu cadastro.
 								</Text>
 								<Link href="/solicitar-servico" asChild>
-									<Pressable className="h-12 w-full items-center justify-center rounded-full border border-[#2d83cd]/50 bg-surface/85 sm:w-60">
-										<Text className="font-bold text-[#176ed0]">
+									<Pressable className="h-12 w-full items-center justify-center rounded-full border border-primary/50 bg-surface/85 sm:w-60">
+										<Text className="font-bold text-primary-text">
 											Solicitar serviço
 										</Text>
 									</Pressable>

@@ -56,7 +56,11 @@ export function InviteSearchBar({
 			>
 				<SlidersHorizontal
 					size={16}
-					color={filtersActive ? '#1C6FB0' : '#6B7280'}
+					color={
+						filtersActive
+							? themeColors.primaryText
+							: themeColors.foregroundMuted
+					}
 				/>
 				<Text
 					className={`font-inter font-medium text-sm ${

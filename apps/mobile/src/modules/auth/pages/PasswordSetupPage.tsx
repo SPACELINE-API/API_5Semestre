@@ -21,6 +21,7 @@ import {
 	type PasswordSetupLinkInfo,
 } from '../services/passwordSetup';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const MIN_PASSWORD_LENGTH = 6;
 
 type LoadState =
@@ -69,15 +70,16 @@ const STRENGTH_LABELS = ['', 'Fraca', 'Razoável', 'Boa', 'Forte'];
 const STRENGTH_COLORS = ['#d5e3f1', '#ef4444', '#f59e0b', '#2d83cd', '#10b981'];
 
 function Requirement({ met, label }: { met: boolean; label: string }) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="flex-row items-center gap-2">
 			{met ? (
-				<CheckCircle2 size={16} color="#10b981" />
+				<CheckCircle2 size={16} color={themeColors.success} />
 			) : (
-				<Circle size={16} color="#94a3b8" />
+				<Circle size={16} color={themeColors.foregroundSubtle} />
 			)}
 			<Text
-				className={`text-[13px] ${met ? 'font-semibold text-success-text' : 'text-[#52647e]'}`}
+				className={`text-[13px] ${met ? 'font-semibold text-success-text' : 'text-foreground-muted'}`}
 			>
 				{label}
 			</Text>
@@ -102,14 +104,14 @@ function StatusCard({
 	return (
 		<View className="items-center">
 			<View
-				className={`mb-5 h-16 w-16 items-center justify-center rounded-full ${isGreen ? 'bg-success-soft' : 'bg-[#eaf3fc]'}`}
+				className={`mb-5 h-16 w-16 items-center justify-center rounded-full ${isGreen ? 'bg-success-soft' : 'bg-surface-subtle'}`}
 			>
 				<Icon size={30} color={isGreen ? '#059669' : '#2d83cd'} />
 			</View>
-			<Text className="text-center text-[24px] font-extrabold tracking-[-0.6px] text-[#0f1b33]">
+			<Text className="text-center text-[24px] font-extrabold tracking-[-0.6px] text-foreground">
 				{title}
 			</Text>
-			<Text className="mb-6 mt-2 text-center text-sm leading-6 text-[#52647e]">
+			<Text className="mb-6 mt-2 text-center text-sm leading-6 text-foreground-muted">
 				{text}
 			</Text>
 			{children}
@@ -118,6 +120,7 @@ function StatusCard({
 }
 
 export function PasswordSetupPage() {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const params = useLocalSearchParams<{ token?: string }>();
 	const token = typeof params.token === 'string' ? params.token : '';
@@ -201,8 +204,8 @@ export function PasswordSetupPage() {
 		if (state.kind === 'loading') {
 			return (
 				<View className="items-center py-10">
-					<ActivityIndicator color="#2d83cd" />
-					<Text className="mt-3 text-sm text-[#52647e]">
+					<ActivityIndicator color={themeColors.primaryText} />
+					<Text className="mt-3 text-sm text-foreground-muted">
 						Validando o seu link...
 					</Text>
 				</View>
@@ -267,18 +270,18 @@ export function PasswordSetupPage() {
 
 		return (
 			<>
-				<Text className="text-[28px] font-extrabold tracking-[-0.8px] text-[#0f1b33]">
+				<Text className="text-[28px] font-extrabold tracking-[-0.8px] text-foreground">
 					Crie sua senha
 				</Text>
-				<Text className="mb-5 mt-1 text-sm text-[#52647e]">
+				<Text className="mb-5 mt-1 text-sm text-foreground-muted">
 					{greeting} Defina a senha para ativar sua conta.
 				</Text>
 				{state.info.email ? (
-					<View className="mb-5 rounded-xl border border-[#d5e3f1] bg-[#f5f9fd] px-4 py-3">
-						<Text className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+					<View className="mb-5 rounded-xl border border-border bg-surface-subtle px-4 py-3">
+						<Text className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
 							Conta
 						</Text>
-						<Text className="mt-0.5 text-sm font-semibold text-[#12233c]">
+						<Text className="mt-0.5 text-sm font-semibold text-foreground">
 							{state.info.email}
 						</Text>
 					</View>
@@ -315,7 +318,7 @@ export function PasswordSetupPage() {
 							/>
 						))}
 					</View>
-					<Text className="text-xs text-[#52647e]">
+					<Text className="text-xs text-foreground-muted">
 						{strength ? `Força da senha: ${STRENGTH_LABELS[strength]}` : ' '}
 					</Text>
 				</View>
@@ -350,8 +353,8 @@ export function PasswordSetupPage() {
 		<View
 			className={
 				Platform.OS === 'web'
-					? 'min-h-screen flex-1 bg-[#f6faff]'
-					: 'flex-1 bg-[#f6faff]'
+					? 'min-h-screen flex-1 bg-surface-subtle'
+					: 'flex-1 bg-surface-subtle'
 			}
 		>
 			<LoginBackground />
@@ -365,10 +368,11 @@ export function PasswordSetupPage() {
 							accessibilityLabel="Aliança Traduções"
 						/>
 						<View className="hidden max-w-[520px] md:flex">
-							<Text className="text-[52px] font-extrabold leading-[1.05] tracking-[-1.5px] text-[#0f1b33]">
-								Bem-vindo(a) à <Text className="text-[#2783d4]">equipe</Text>.
+							<Text className="text-[52px] font-extrabold leading-[1.05] tracking-[-1.5px] text-foreground">
+								Bem-vindo(a) à <Text className="text-primary-text">equipe</Text>
+								.
 							</Text>
-							<Text className="mt-6 max-w-[430px] text-lg leading-7 text-[#52647e]">
+							<Text className="mt-6 max-w-[430px] text-lg leading-7 text-foreground-muted">
 								Falta só um passo: crie a sua senha para acessar orçamentos,
 								solicitações e documentos de tradução.
 							</Text>
@@ -377,7 +381,7 @@ export function PasswordSetupPage() {
 					</View>
 
 					<View className="w-full self-center md:w-[46%] md:max-w-[480px] md:justify-center">
-						<View className="w-full rounded-[22px] border border-[#e1ebf5] bg-surface px-6 py-7 shadow-xl shadow-[#173a68]/10 sm:px-8">
+						<View className="w-full rounded-[22px] border border-border bg-surface px-6 py-7 shadow-xl shadow-overlay/10 sm:px-8">
 							{renderCard()}
 						</View>
 					</View>

@@ -388,7 +388,11 @@ export function CompleteServiceOrderModal({
 												) : (
 													<Square
 														size={18}
-														color={isSent ? '#D1D5DB' : '#6B7280'}
+														color={
+															isSent
+																? themeColors.foregroundSubtle
+																: themeColors.foregroundMuted
+														}
 													/>
 												)}
 											</TouchableOpacity>
