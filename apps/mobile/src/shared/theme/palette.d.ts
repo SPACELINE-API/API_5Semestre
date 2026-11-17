@@ -26,6 +26,12 @@ export type ThemeToken =
 	| 'danger'
 	| 'danger-soft'
 	| 'danger-text'
+	| 'info'
+	| 'info-soft'
+	| 'info-text'
+	| 'accent'
+	| 'accent-soft'
+	| 'accent-text'
 	| 'overlay';
 
 export type ThemeScheme = 'light' | 'dark';

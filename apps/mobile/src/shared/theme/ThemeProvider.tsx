@@ -7,6 +7,7 @@ import {
 	useState,
 	type ReactNode,
 } from 'react';
+import { Platform } from 'react-native';
 import { colorScheme } from 'nativewind';
 import { hex, type ThemeScheme, type ThemeToken } from './palette';
 import type { ThemeColors } from './types';
@@ -60,6 +61,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
 	useEffect(() => {
 		colorScheme.set(scheme);
+		if (Platform.OS === 'web' && typeof document !== 'undefined') {
+			document.documentElement.style.colorScheme = scheme;
+			document.documentElement.style.backgroundColor =
+				camelColors[scheme].background;
+			document.body.style.backgroundColor = camelColors[scheme].background;
+		}
 	}, [scheme]);
 
 	useEffect(() => {

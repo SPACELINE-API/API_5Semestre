@@ -34,16 +34,16 @@ function getMetricConfig(icon: DashboardMetric['icon']) {
 		case 'quotes':
 			return {
 				Icon: FileText,
-				bgColor: 'bg-indigo-50',
+				bgColor: 'bg-info-soft',
 				iconColor: '#4f46e5',
-				borderColor: 'border-indigo-200',
+				borderColor: 'border-info/30',
 			};
 		case 'service-orders':
 			return {
 				Icon: ClipboardList,
-				bgColor: 'bg-purple-50',
+				bgColor: 'bg-accent-soft',
 				iconColor: '#9333ea',
-				borderColor: 'border-purple-200',
+				borderColor: 'border-accent/30',
 			};
 		case 'clients':
 			return {
@@ -55,9 +55,9 @@ function getMetricConfig(icon: DashboardMetric['icon']) {
 		case 'translators':
 			return {
 				Icon: Users,
-				bgColor: 'bg-cyan-50',
+				bgColor: 'bg-info-soft',
 				iconColor: '#0891b2',
-				borderColor: 'border-cyan-200',
+				borderColor: 'border-info/30',
 			};
 		case 'check':
 			return {

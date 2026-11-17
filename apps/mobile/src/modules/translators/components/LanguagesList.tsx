@@ -40,9 +40,9 @@ const LEVEL_STYLES: Record<
 		bar: 'bg-success',
 	},
 	fluent: {
-		badgeBg: 'bg-indigo-50',
-		badgeText: 'text-indigo-800',
-		bar: 'bg-indigo-500',
+		badgeBg: 'bg-info-soft',
+		badgeText: 'text-info-text',
+		bar: 'bg-info',
 	},
 	advanced: {
 		badgeBg: 'bg-primary-soft',
@@ -50,9 +50,9 @@ const LEVEL_STYLES: Record<
 		bar: 'bg-primary',
 	},
 	intermediate: {
-		badgeBg: 'bg-sky-50',
-		badgeText: 'text-sky-800',
-		bar: 'bg-sky-400',
+		badgeBg: 'bg-info-soft',
+		badgeText: 'text-info-text',
+		bar: 'bg-info',
 	},
 	basic: {
 		badgeBg: 'bg-surface-muted',

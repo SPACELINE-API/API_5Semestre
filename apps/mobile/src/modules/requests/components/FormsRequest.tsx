@@ -171,7 +171,7 @@ export default function FormsRequest() {
 	}
 
 	return (
-		<View className="w-full rounded-[28px] border border-white/80 bg-surface/90 px-6 py-7 shadow-2xl shadow-overlay/15 sm:px-9 sm:py-8">
+		<View className="w-full rounded-[28px] border border-surface/80 bg-surface/90 px-6 py-7 shadow-2xl shadow-overlay/15 sm:px-9 sm:py-8">
 			<View className="mb-6">
 				<Text className="text-[22px] font-extrabold tracking-[-0.6px] text-foreground">
 					Solicitação de serviço

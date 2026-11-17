@@ -26,6 +26,12 @@ const light = {
 	danger: [220, 38, 38],
 	'danger-soft': [252, 235, 235],
 	'danger-text': [121, 31, 31],
+	info: [14, 165, 233],
+	'info-soft': [240, 249, 255],
+	'info-text': [7, 89, 133],
+	accent: [168, 85, 247],
+	'accent-soft': [250, 245, 255],
+	'accent-text': [107, 33, 168],
 	overlay: [0, 0, 0],
 };
 
@@ -57,6 +63,12 @@ const dark = {
 	danger: [239, 68, 68],
 	'danger-soft': [60, 22, 24],
 	'danger-text': [252, 165, 165],
+	info: [56, 189, 248],
+	'info-soft': [12, 40, 58],
+	'info-text': [125, 211, 252],
+	accent: [192, 132, 252],
+	'accent-soft': [38, 22, 58],
+	'accent-text': [216, 180, 254],
 	overlay: [0, 0, 0],
 };
 
