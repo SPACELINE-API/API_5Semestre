@@ -6,6 +6,7 @@ import { StatusBadge } from './StatusBadge';
 import { COMPANY_PROJECT_COUNT } from './CompanyDetailsProjectsTab';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyDetailsHeaderProps = {
 	company: Company;
 	contactCount: number;
@@ -19,6 +20,7 @@ export function CompanyDetailsHeader({
 	onEdit,
 	onDelete,
 }: CompanyDetailsHeaderProps) {
+	const themeColors = useThemeColors();
 	const canWriteClients = usePermission('clients.write');
 
 	return (
@@ -56,7 +58,7 @@ export function CompanyDetailsHeader({
 							activeOpacity={0.7}
 							className={`flex-row items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 ${!canWriteClients ? 'opacity-40' : ''}`}
 						>
-							<Pencil size={14} color="#353535" />
+							<Pencil size={14} color={themeColors.foreground} />
 							<Text className="font-inter font-semibold text-foreground text-xs">
 								Editar
 							</Text>
@@ -67,7 +69,7 @@ export function CompanyDetailsHeader({
 							activeOpacity={0.7}
 							className={`flex-row items-center gap-1.5 rounded-lg border border-danger-soft bg-danger-soft px-3 py-2 ${!canWriteClients ? 'opacity-40' : ''}`}
 						>
-							<Trash2 size={14} color="#791F1F" />
+							<Trash2 size={14} color={themeColors.dangerText} />
 							<Text className="font-inter font-semibold text-danger-text text-xs">
 								Excluir
 							</Text>

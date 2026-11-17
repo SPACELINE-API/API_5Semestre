@@ -2,6 +2,7 @@ import { Check, ChevronRight } from 'lucide-react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import type { Notification } from '../types/notification';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type NotificationCardProps = {
 	notification: Notification;
 	onOpen: (notification: Notification) => void;
@@ -22,6 +23,7 @@ export function NotificationCard({
 	onMarkAsRead,
 	compact = false,
 }: NotificationCardProps) {
+	const themeColors = useThemeColors();
 	const isRead = Boolean(notification.read_at);
 
 	return (
@@ -43,7 +45,7 @@ export function NotificationCard({
 					>
 						{notification.title}
 					</Text>
-					<ChevronRight size={15} color="#9CA3AF" />
+					<ChevronRight size={15} color={themeColors.foregroundSubtle} />
 				</View>
 				<Text
 					className="font-inter text-foreground-secondary text-xs"
@@ -62,7 +64,7 @@ export function NotificationCard({
 						accessibilityLabel={`Marcar como lida: ${notification.title}`}
 						className="flex-row items-center gap-1 rounded-lg px-1 py-0.5 hover:bg-primary-soft"
 					>
-						<Check size={12} color="#2563EB" />
+						<Check size={12} color={themeColors.primaryText} />
 						<Text className="font-inter font-medium text-primary-text text-[10px]">
 							Marcar como lida
 						</Text>

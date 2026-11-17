@@ -4,12 +4,14 @@ import type { Company } from '../types/company';
 import { StatusBadge } from './StatusBadge';
 import { companyInitials, formatCnpj } from '../utils/format';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyRowProps = {
 	company: Company;
 	onPress?: (company: Company) => void;
 };
 
 export function CompanyRow({ company, onPress }: CompanyRowProps) {
+	const themeColors = useThemeColors();
 	return (
 		<TouchableOpacity
 			onPress={() => onPress?.(company)}
@@ -63,7 +65,7 @@ export function CompanyRow({ company, onPress }: CompanyRowProps) {
 
 			<View className="flex-row items-center justify-between md:w-[16%]">
 				<StatusBadge isActive={company.is_active} />
-				<ChevronRight size={18} color="#8A8A8A" />
+				<ChevronRight size={18} color={themeColors.foregroundMuted} />
 			</View>
 		</TouchableOpacity>
 	);

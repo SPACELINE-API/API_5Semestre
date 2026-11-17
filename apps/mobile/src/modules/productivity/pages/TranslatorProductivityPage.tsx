@@ -16,6 +16,7 @@ import type { ProductivityFilters } from '../types/productivity';
 import { groupDocumentsByDay, timelineOption } from '../utils/chartOptions';
 import { formatIsoDate } from '../utils/format';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type TranslatorProductivityPageProps = {
 	translatorId: string;
 	filters: ProductivityFilters;
@@ -25,6 +26,7 @@ export function TranslatorProductivityPage({
 	translatorId,
 	filters,
 }: TranslatorProductivityPageProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const { details, isLoading, error, refresh } = useTranslatorProductivity(
 		translatorId,
@@ -48,7 +50,7 @@ export function TranslatorProductivityPage({
 					activeOpacity={0.7}
 					className="mb-6 flex-row items-center gap-2 self-start"
 				>
-					<ArrowLeft size={16} color="#6B7280" />
+					<ArrowLeft size={16} color={themeColors.foregroundMuted} />
 					<Text className="font-inter text-foreground-muted text-sm">
 						Produtividade
 					</Text>

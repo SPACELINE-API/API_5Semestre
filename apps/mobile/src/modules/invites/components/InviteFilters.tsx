@@ -2,6 +2,7 @@ import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Check, Search, SlidersHorizontal } from 'lucide-react-native';
 import type { InviteStatus } from '../types/invite';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export type InviteStatusFilter = InviteStatus | 'all';
 
 const statusOptions: { value: InviteStatusFilter; label: string }[] = [
@@ -27,17 +28,18 @@ export function InviteSearchBar({
 	showFilters,
 	onToggleFilters,
 }: InviteSearchBarProps) {
+	const themeColors = useThemeColors();
 	const filtersActive = showFilters || statusFilter !== 'all';
 
 	return (
 		<View className="mb-4 flex-row items-center gap-3">
 			<View className="h-10 flex-1 flex-row items-center rounded-lg border border-border bg-surface px-3">
-				<Search size={17} color="#9CA3AF" />
+				<Search size={17} color={themeColors.foregroundSubtle} />
 				<TextInput
 					value={search}
 					onChangeText={onSearchChange}
 					placeholder="Buscar por documento ou idioma"
-					placeholderTextColor="#9CA3AF"
+					placeholderTextColor={themeColors.foregroundSubtle}
 					className="ml-2 flex-1 border-0 font-inter text-foreground text-sm outline-none h-10"
 				/>
 			</View>
@@ -80,6 +82,7 @@ export function InviteStatusFilterPanel({
 	statusFilter,
 	onStatusFilterChange,
 }: InviteStatusFilterPanelProps) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="gap-1">
 			<Text className="mb-2 font-inter font-semibold text-foreground-subtle text-xs uppercase tracking-wide">
@@ -106,7 +109,7 @@ export function InviteStatusFilterPanel({
 						>
 							{option.label}
 						</Text>
-						{isSelected && <Check size={16} color="#1C6FB0" />}
+						{isSelected && <Check size={16} color={themeColors.primary} />}
 					</TouchableOpacity>
 				);
 			})}

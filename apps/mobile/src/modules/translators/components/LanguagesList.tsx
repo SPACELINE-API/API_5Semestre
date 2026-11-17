@@ -4,6 +4,7 @@ import { Languages } from 'lucide-react-native';
 import { PROFICIENCY_LABELS } from '../types/translator';
 import type { ProficiencyLevel } from '../types/translator';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type LanguagesListProps = {
 	languages: {
 		id: string;
@@ -68,6 +69,7 @@ function languageCode(language: LanguagesListProps['languages'][number]) {
 }
 
 export function LanguagesList({ languages }: LanguagesListProps) {
+	const themeColors = useThemeColors();
 	const ordered = useMemo(
 		() =>
 			[...languages].sort(
@@ -92,7 +94,7 @@ export function LanguagesList({ languages }: LanguagesListProps) {
 		return (
 			<View className="items-center gap-2 rounded-xl border border-dashed border-border-strong px-4 py-10">
 				<View className="h-12 w-12 items-center justify-center rounded-full bg-surface-muted">
-					<Languages size={22} color="#9CA3AF" />
+					<Languages size={22} color={themeColors.foregroundSubtle} />
 				</View>
 				<Text className="text-center font-inter font-semibold text-foreground-secondary text-sm">
 					Nenhum idioma cadastrado.

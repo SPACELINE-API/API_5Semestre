@@ -6,12 +6,14 @@ import { formatCnpj } from '../../clients/utils/format';
 import { maskPhone } from '../../clients/utils/mask';
 import { InfoField } from './InfoField';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ClientInfoTabProps = {
 	company: Company | null;
 	contacts: Contact[];
 };
 
 export function ClientInfoTab({ company, contacts }: ClientInfoTabProps) {
+	const themeColors = useThemeColors();
 	if (!company) {
 		return (
 			<Text className="font-inter text-foreground-subtle text-sm">
@@ -86,7 +88,7 @@ export function ClientInfoTab({ company, contacts }: ClientInfoTabProps) {
 						}`}
 					>
 						<View className="h-9 w-9 items-center justify-center rounded-full bg-surface-muted">
-							<User size={16} color="#6B7280" />
+							<User size={16} color={themeColors.foregroundMuted} />
 						</View>
 
 						<View className="flex-1">

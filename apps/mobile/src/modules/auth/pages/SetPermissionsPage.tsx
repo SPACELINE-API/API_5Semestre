@@ -22,6 +22,7 @@ import type {
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const MODULE_LABELS: Record<string, string> = {
 	dashboard: 'Dashboard',
 	requests: 'Requisições',
@@ -98,6 +99,7 @@ function buildModules(permissions: Permission[]): PermissionModule[] {
 }
 
 export default function SetPermissionsPage() {
+	const themeColors = useThemeColors();
 	const { toast, showToast } = useToast();
 	const canEditRoles = usePermission('roles.write');
 	const {
@@ -139,7 +141,7 @@ export default function SetPermissionsPage() {
 				<View className="gap-6">
 					{isLoading ? (
 						<View className="py-20 items-center">
-							<ActivityIndicator size="large" color="#2563eb" />
+							<ActivityIndicator size="large" color={themeColors.primaryText} />
 						</View>
 					) : error ? (
 						<View className="py-20 items-center">
@@ -161,7 +163,7 @@ export default function SetPermissionsPage() {
 									disabled={!canEditRoles}
 									className={`flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${!canEditRoles ? 'opacity-40' : ''}`}
 								>
-									<Plus size={15} color="#fff" />
+									<Plus size={15} color={themeColors.primaryForeground} />
 									<Text className="font-inter-medium text-sm text-primary-foreground">
 										Novo perfil
 									</Text>

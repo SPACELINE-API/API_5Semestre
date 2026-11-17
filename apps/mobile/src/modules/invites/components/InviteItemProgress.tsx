@@ -5,6 +5,7 @@ import {
 	WORKFLOW_STEPS,
 } from '../../service-orders/utils/workflowSteps';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type InviteItemProgressProps = {
 	status: string;
 };
@@ -15,6 +16,7 @@ function remainingLabel(remaining: number) {
 }
 
 export function InviteItemProgress({ status }: InviteItemProgressProps) {
+	const themeColors = useThemeColors();
 	const currentIndex = WORKFLOW_STEPS.findIndex(
 		(step) => step.status === status,
 	);
@@ -55,7 +57,11 @@ export function InviteItemProgress({ status }: InviteItemProgressProps) {
 									}`}
 								>
 									{isDone ? (
-										<Check size={13} color="#FFFFFF" strokeWidth={3} />
+										<Check
+											size={13}
+											color={themeColors.primaryForeground}
+											strokeWidth={3}
+										/>
 									) : (
 										<View
 											className={`h-2 w-2 rounded-full ${isCurrent ? 'bg-surface' : 'bg-foreground-subtle'}`}

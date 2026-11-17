@@ -7,6 +7,7 @@ import {
 	getWorkflowCurrentIndex,
 } from '../utils/workflowSteps';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type WorkflowPipelineProps = {
 	status: ServiceOrderItemStatus;
 	assignedTranslatorName?: string | null;
@@ -16,6 +17,7 @@ export function WorkflowPipeline({
 	status,
 	assignedTranslatorName,
 }: WorkflowPipelineProps) {
+	const themeColors = useThemeColors();
 	const currentIndex = getWorkflowCurrentIndex(status);
 
 	return (
@@ -41,7 +43,11 @@ export function WorkflowPipeline({
 								className={`h-6 w-6 items-center justify-center rounded-full ${dotClassName}`}
 							>
 								{isCompleted && (
-									<Check size={12} color="#FFFFFF" strokeWidth={3} />
+									<Check
+										size={12}
+										color={themeColors.primaryForeground}
+										strokeWidth={3}
+									/>
 								)}
 							</View>
 

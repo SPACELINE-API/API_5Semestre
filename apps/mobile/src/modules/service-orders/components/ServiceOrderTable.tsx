@@ -5,6 +5,7 @@ import type { ServiceOrder } from '../types/serviceOrder';
 import { StatusBadge } from './StatusBadge';
 import { formatDate } from '../utils/format';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ServiceOrderTableProps = {
 	serviceOrders: ServiceOrder[];
 	companiesById: Map<string, Company>;
@@ -23,6 +24,7 @@ function Checkbox({
 	onPress: () => void;
 	accessibilityLabel: string;
 }) {
+	const themeColors = useThemeColors();
 	return (
 		<TouchableOpacity
 			onPress={onPress}
@@ -37,7 +39,7 @@ function Checkbox({
 					: 'border-border-strong bg-surface'
 			}`}
 		>
-			{checked && <Check size={12} color="#FFFFFF" />}
+			{checked && <Check size={12} color={themeColors.primaryForeground} />}
 		</TouchableOpacity>
 	);
 }
@@ -50,6 +52,7 @@ export function ServiceOrderTable({
 	onToggleSelect,
 	onToggleSelectAll,
 }: ServiceOrderTableProps) {
+	const themeColors = useThemeColors();
 	const allSelected =
 		serviceOrders.length > 0 &&
 		serviceOrders.every((serviceOrder) => selectedIds.has(serviceOrder.id));
@@ -154,7 +157,10 @@ export function ServiceOrderTable({
 								</View>
 
 								<View className="w-8 items-end justify-center">
-									<ChevronRight size={17} color="#9CA3AF" />
+									<ChevronRight
+										size={17}
+										color={themeColors.foregroundSubtle}
+									/>
 								</View>
 							</TouchableOpacity>
 						</View>
@@ -163,7 +169,7 @@ export function ServiceOrderTable({
 				ListEmptyComponent={
 					<View className="items-center justify-center py-16">
 						<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
-							<ClipboardList size={18} color="#9CA3AF" />
+							<ClipboardList size={18} color={themeColors.foregroundSubtle} />
 						</View>
 
 						<Text className="font-inter font-medium text-foreground text-sm">

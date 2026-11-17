@@ -14,6 +14,7 @@ import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
 import { formatDate, formatPrice } from '../utils/format';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ItemsTableProps = {
 	items: ServiceOrderItem[];
 	translatorsById: Map<string, Translator>;
@@ -42,6 +43,7 @@ function AddItemButton({
 	onPress: () => void;
 	layout?: 'table' | 'cards';
 }) {
+	const themeColors = useThemeColors();
 	const isDesktop = useIsDesktop();
 	const canWriteServiceOrders = usePermission('service_orders.write');
 
@@ -55,7 +57,7 @@ function AddItemButton({
 				accessibilityLabel="Adicionar item"
 				className={`h-11 w-11 items-center justify-center self-end rounded-full bg-primary ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 			>
-				<Plus size={20} color="#042C53" />
+				<Plus size={20} color={themeColors.primaryStrong} />
 			</TouchableOpacity>
 		);
 	}
@@ -69,7 +71,7 @@ function AddItemButton({
 			accessibilityLabel="Adicionar item"
 			className={`flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-border-strong px-4 py-2.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 		>
-			<Plus size={14} color="#353535" />
+			<Plus size={14} color={themeColors.foreground} />
 			<Text className="font-inter-medium text-sm text-foreground-secondary">
 				Adicionar item
 			</Text>
@@ -90,6 +92,7 @@ function ItemCard({
 	onDelete: () => void;
 	isInServiceOrder?: boolean;
 }) {
+	const themeColors = useThemeColors();
 	const canWriteServiceOrders = usePermission('service_orders.write');
 	return (
 		<View className="gap-4 rounded-xl border border-border bg-surface p-4">
@@ -155,7 +158,7 @@ function ItemCard({
 							>
 								{getTruncatedFileName(item.file_url)}
 							</Text>
-							<ExternalLink size={12} color="#1d4ed8" />
+							<ExternalLink size={12} color={themeColors.primaryText} />
 						</TouchableOpacity>
 					) : (
 						<Text className="min-w-0 flex-1 font-inter text-foreground-subtle text-xs">
@@ -172,7 +175,7 @@ function ItemCard({
 								accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
 								className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 							>
-								<Pencil size={14} color="#353535" />
+								<Pencil size={14} color={themeColors.foreground} />
 								<Text className="font-inter font-medium text-foreground-secondary text-xs">
 									Editar
 								</Text>
@@ -185,7 +188,7 @@ function ItemCard({
 								accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
 								className={`flex-row items-center gap-1 self-start py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 							>
-								<Trash2 size={14} color="#B91C1C" />
+								<Trash2 size={14} color={themeColors.danger} />
 								<Text className="font-inter font-medium text-danger text-xs">
 									Excluir
 								</Text>
@@ -207,6 +210,7 @@ export function ItemsTable({
 	isInServiceOrder = false,
 	layout = 'table',
 }: ItemsTableProps) {
+	const themeColors = useThemeColors();
 	const isDesktop = useIsDesktop();
 	const canWriteServiceOrders = usePermission('service_orders.write');
 
@@ -228,7 +232,7 @@ export function ItemsTable({
 			<View className="items-center justify-center gap-4 py-12">
 				<View className="items-center">
 					<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
-						<ClipboardList size={18} color="#9CA3AF" />
+						<ClipboardList size={18} color={themeColors.foregroundSubtle} />
 					</View>
 
 					<Text className="font-inter font-medium text-foreground text-sm">
@@ -342,7 +346,7 @@ export function ItemsTable({
 										>
 											{getTruncatedFileName(item.file_url)}
 										</Text>
-										<ExternalLink size={12} color="#1d4ed8" />
+										<ExternalLink size={12} color={themeColors.primaryText} />
 									</TouchableOpacity>
 								) : (
 									<Text className="font-inter text-foreground-subtle text-xs">
@@ -361,7 +365,7 @@ export function ItemsTable({
 										accessibilityLabel={`Editar item de ${item.source_language} para ${item.target_language}`}
 										className={`mb-1 flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 									>
-										<Pencil size={14} color="#353535" />
+										<Pencil size={14} color={themeColors.foreground} />
 										<Text className="font-inter font-medium text-foreground-secondary text-sm">
 											Editar
 										</Text>
@@ -374,7 +378,7 @@ export function ItemsTable({
 										accessibilityLabel={`Excluir item de ${item.source_language} para ${item.target_language}`}
 										className={`flex-row items-center gap-2 self-start rounded-md px-1.5 py-1 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 									>
-										<Trash2 size={14} color="#B91C1C" />
+										<Trash2 size={14} color={themeColors.danger} />
 										<Text className="font-inter font-medium text-danger text-sm">
 											Excluir
 										</Text>

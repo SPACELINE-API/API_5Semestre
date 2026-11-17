@@ -3,10 +3,12 @@ import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import type { DashboardMetric } from '../types/shortcut';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type SecondaryStatsProps = {
 	metrics: DashboardMetric[];
 };
 export function SecondaryStats({ metrics }: SecondaryStatsProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	if (metrics.length === 0) return null;
 
@@ -31,7 +33,9 @@ export function SecondaryStats({ metrics }: SecondaryStatsProps) {
 						<Text className="font-inter-semibold text-sm text-foreground">
 							{metric.value}
 						</Text>
-						{metric.route && <ChevronRight size={14} color="#9ca3af" />}
+						{metric.route && (
+							<ChevronRight size={14} color={themeColors.foregroundSubtle} />
+						)}
 					</View>
 				</Pressable>
 			))}

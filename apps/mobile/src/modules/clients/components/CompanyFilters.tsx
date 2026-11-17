@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Check } from 'lucide-react-native';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export type StatusFilter = 'all' | 'active' | 'inactive';
 
 type CompanyFiltersProps = {
@@ -18,6 +19,7 @@ export function CompanyFilters({
 	statusFilter,
 	onStatusFilterChange,
 }: CompanyFiltersProps) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="gap-1">
 			<Text className="mb-2 font-inter font-semibold text-foreground-subtle text-xs uppercase tracking-wide">
@@ -44,7 +46,7 @@ export function CompanyFilters({
 						>
 							{option.label}
 						</Text>
-						{isSelected && <Check size={16} color="#1C6FB0" />}
+						{isSelected && <Check size={16} color={themeColors.primary} />}
 					</TouchableOpacity>
 				);
 			})}

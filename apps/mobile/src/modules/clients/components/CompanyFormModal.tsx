@@ -24,6 +24,7 @@ import { isValidCnpj, isValidEmail, isValidPhone } from '../utils/validation';
 import { maskCnpj, maskPhone } from '../utils/mask';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyFormModalProps = {
 	visible: boolean;
 	onClose: () => void;
@@ -133,6 +134,7 @@ export function CompanyFormModal({
 	toast,
 	initialValues,
 }: CompanyFormModalProps) {
+	const themeColors = useThemeColors();
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
 	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
@@ -312,7 +314,7 @@ export function CompanyFormModal({
 							Novo cliente
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 

@@ -40,6 +40,7 @@ import {
 } from '../modules/auth/services/authorization';
 import { useInactivityLogout } from '../modules/auth/hooks/useInactivityLogout';
 
+import { useThemeColors } from '../shared/theme/ThemeProvider';
 SplashScreen.preventAutoHideAsync();
 
 export default function AppLayout() {
@@ -175,6 +176,7 @@ function AppLayoutContent() {
 }
 
 function AuthorizationUnavailable() {
+	const themeColors = useThemeColors();
 	return (
 		<View
 			style={{
@@ -184,7 +186,13 @@ function AuthorizationUnavailable() {
 				padding: 24,
 			}}
 		>
-			<Text style={{ fontSize: 16, textAlign: 'center', color: '#374151' }}>
+			<Text
+				style={{
+					fontSize: 16,
+					textAlign: 'center',
+					color: themeColors.foregroundSecondary,
+				}}
+			>
 				Não foi possível carregar suas permissões. Faça login novamente ou tente
 				mais tarde.
 			</Text>
@@ -209,13 +217,18 @@ function AppShell({
 	onCloseMobileNav,
 	onOpenMobileNav,
 }: AppShellProps) {
+	const themeColors = useThemeColors();
 	const insets = useSafeAreaInsets();
 	const registerActivity = useInactivityLogout(showNavigation);
 
 	return (
 		<View
 			onTouchStart={registerActivity}
-			style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}
+			style={{
+				flex: 1,
+				flexDirection: 'row',
+				backgroundColor: themeColors.background,
+			}}
 		>
 			{showNavigation ? (
 				<SideBar
@@ -238,7 +251,7 @@ function AppShell({
 							accessibilityLabel="Abrir menu"
 							className="h-9 w-9 items-center justify-center rounded-lg hover:bg-surface-subtle md:invisible"
 						>
-							<Menu size={22} color="#1f2937" strokeWidth={2} />
+							<Menu size={22} color={themeColors.foreground} strokeWidth={2} />
 						</TouchableOpacity>
 					</View>
 				) : null}

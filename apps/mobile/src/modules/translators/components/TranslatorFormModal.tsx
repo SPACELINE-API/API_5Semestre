@@ -16,6 +16,7 @@ import { FormField } from '../../clients/components/FormField';
 import { TranslatorLanguagesStep } from './TranslatorLanguagesStep';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type Props = {
 	visible: boolean;
 	onClose: () => void;
@@ -64,6 +65,7 @@ export function TranslatorFormModal({
 	onSubmit,
 	toast,
 }: Props) {
+	const themeColors = useThemeColors();
 	const [step, setStep] = useState(0);
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
@@ -272,7 +274,7 @@ export function TranslatorFormModal({
 							Novo tradutor
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 

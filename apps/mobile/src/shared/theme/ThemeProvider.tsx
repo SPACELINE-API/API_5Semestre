@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { colorScheme } from 'nativewind';
 import { hex, type ThemeScheme, type ThemeToken } from './palette';
+import type { ThemeColors } from './types';
 import {
 	readStoredScheme,
 	readStoredSchemeSync,
@@ -18,12 +19,32 @@ import {
 type ThemeContextValue = {
 	scheme: ThemeScheme;
 	isDark: boolean;
-	colors: Record<ThemeToken, string>;
+	colors: ThemeColors;
 	setScheme: (scheme: ThemeScheme) => void;
 	toggleScheme: () => void;
 };
 
 const DEFAULT_SCHEME: ThemeScheme = 'light';
+
+function toCamel(token: string) {
+	return token.replace(/-([a-z])/g, (_, letter: string) =>
+		letter.toUpperCase(),
+	);
+}
+
+function buildColors(scheme: ThemeScheme): ThemeColors {
+	return Object.fromEntries(
+		(Object.keys(hex[scheme]) as ThemeToken[]).map((token) => [
+			toCamel(token),
+			hex[scheme][token],
+		]),
+	) as ThemeColors;
+}
+
+const camelColors: Record<ThemeScheme, ThemeColors> = {
+	light: buildColors('light'),
+	dark: buildColors('dark'),
+};
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
@@ -67,7 +88,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 		() => ({
 			scheme,
 			isDark: scheme === 'dark',
-			colors: hex[scheme],
+			colors: camelColors[scheme],
 			setScheme,
 			toggleScheme,
 		}),
@@ -89,6 +110,6 @@ export function useTheme(): ThemeContextValue {
 	return context;
 }
 
-export function useThemeColors(): Record<ThemeToken, string> {
+export function useThemeColors(): ThemeColors {
 	return useTheme().colors;
 }

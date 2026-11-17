@@ -27,6 +27,7 @@ import { useItemInvites } from '../hooks/useItemInvites';
 import { usePermission } from '../../auth/hooks/usePermission';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type TranslatorsInviteTabProps = {
 	items: ServiceOrderItem[];
 	translators: Translator[];
@@ -42,6 +43,7 @@ export function TranslatorsInviteTab({
 	refreshToken,
 	onSendInvites,
 }: TranslatorsInviteTabProps) {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const [selectedItemId, setSelectedItemId] = useState(
 		items.find((item) => !item.translator_id)?.id ?? items[0]?.id ?? '',
@@ -278,7 +280,7 @@ export function TranslatorsInviteTab({
 						isItemAssigned ? 'opacity-50' : ''
 					}`}
 				>
-					<Search size={16} color="#9CA3AF" />
+					<Search size={16} color={themeColors.foregroundSubtle} />
 					<TextInput
 						value={search}
 						onChangeText={setSearch}
@@ -288,7 +290,7 @@ export function TranslatorsInviteTab({
 								? 'Buscar tradutor'
 								: 'Buscar tradutor por nome ou email'
 						}
-						placeholderTextColor="#9CA3AF"
+						placeholderTextColor={themeColors.foregroundSubtle}
 						className="flex-1 font-inter text-sm text-foreground outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 						accessibilityLabel="Buscar tradutor"
 					/>
@@ -342,7 +344,7 @@ export function TranslatorsInviteTab({
 								onPress={() => setIsFilterPanelOpen(false)}
 								accessibilityLabel="Fechar filtros"
 							>
-								<X size={20} color="#6B7280" />
+								<X size={20} color={themeColors.foregroundMuted} />
 							</TouchableOpacity>
 						</View>
 
@@ -365,7 +367,9 @@ export function TranslatorsInviteTab({
 									<Text className="font-inter text-foreground-secondary text-sm">
 										Todos os níveis
 									</Text>
-									{!proficiencyFilter && <Check size={16} color="#1C6FB0" />}
+									{!proficiencyFilter && (
+										<Check size={16} color={themeColors.primary} />
+									)}
 								</TouchableOpacity>
 								{PROFICIENCY_OPTIONS.map((option) => (
 									<TouchableOpacity
@@ -382,7 +386,7 @@ export function TranslatorsInviteTab({
 											{option.label}
 										</Text>
 										{proficiencyFilter === option.value && (
-											<Check size={16} color="#1C6FB0" />
+											<Check size={16} color={themeColors.primary} />
 										)}
 									</TouchableOpacity>
 								))}
@@ -402,7 +406,9 @@ export function TranslatorsInviteTab({
 									<Text className="font-inter text-foreground-secondary text-sm">
 										Todos os idiomas
 									</Text>
-									{!languageFilter && <Check size={16} color="#1C6FB0" />}
+									{!languageFilter && (
+										<Check size={16} color={themeColors.primary} />
+									)}
 								</TouchableOpacity>
 								{languageOptions.map((option) => (
 									<TouchableOpacity
@@ -424,7 +430,7 @@ export function TranslatorsInviteTab({
 											</Text>
 										</View>
 										{languageFilter === option.value && (
-											<Check size={16} color="#1C6FB0" />
+											<Check size={16} color={themeColors.primary} />
 										)}
 									</TouchableOpacity>
 								))}
@@ -488,7 +494,9 @@ export function TranslatorsInviteTab({
 										: 'border-border-strong bg-surface'
 								}`}
 							>
-								{isSelected && <Check size={12} color="#FFFFFF" />}
+								{isSelected && (
+									<Check size={12} color={themeColors.primaryForeground} />
+								)}
 							</View>
 							<Text className="flex-1 font-inter font-medium text-foreground text-sm">
 								{translator.name}
@@ -546,7 +554,7 @@ export function TranslatorsInviteTab({
 							: ''
 					}`}
 				>
-					<Send size={14} color="#FFFFFF" />
+					<Send size={14} color={themeColors.primaryForeground} />
 					<Text className="font-inter font-semibold text-primary-foreground text-sm">
 						{isSending
 							? 'Enviando…'
@@ -573,7 +581,7 @@ export function TranslatorsInviteTab({
 							: ''
 					}`}
 				>
-					<Users size={14} color="#2563EB" />
+					<Users size={14} color={themeColors.primaryText} />
 					<Text className="font-inter font-semibold text-primary-text text-sm">
 						Enviar para todos ({eligibleTranslators.length})
 					</Text>

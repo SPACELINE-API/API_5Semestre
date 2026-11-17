@@ -39,11 +39,13 @@ import {
 	validateDeliveryFile,
 } from '../utils/deliveryFiles';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type MyItemDetailsPageProps = {
 	id: string;
 };
 
 export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const { item, setItem, isLoading, error } = useMyItem(id);
 	const { toast, showToast } = useToast();
@@ -107,7 +109,7 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 					activeOpacity={0.7}
 					className="mb-6 flex-row items-center gap-2 self-start"
 				>
-					<ArrowLeft size={16} color="#6B7280" />
+					<ArrowLeft size={16} color={themeColors.foregroundMuted} />
 					<Text className="font-inter text-foreground-muted text-sm">
 						Meus itens
 					</Text>
@@ -115,13 +117,16 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 
 				{isLoading && (
 					<View className="min-h-[300px] items-center justify-center">
-						<ActivityIndicator size="large" color="#6B7280" />
+						<ActivityIndicator
+							size="large"
+							color={themeColors.foregroundMuted}
+						/>
 					</View>
 				)}
 
 				{!isLoading && error && (
 					<View className="flex-row items-center gap-2 py-8">
-						<AlertCircle size={16} color="#DC2626" />
+						<AlertCircle size={16} color={themeColors.danger} />
 						<Text className="font-inter font-semibold text-danger text-sm">
 							{error}
 						</Text>
@@ -184,7 +189,7 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 						{changesRequest && (
 							<View className="gap-1.5 rounded-xl border border-danger/25 bg-danger-soft p-4">
 								<View className="flex-row items-center gap-2">
-									<AlertCircle size={16} color="#B91C1C" />
+									<AlertCircle size={16} color={themeColors.danger} />
 									<Text className="font-inter font-semibold text-danger-text text-sm">
 										Ajustes solicitados na sua tradução
 									</Text>
@@ -220,7 +225,7 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 										accessibilityRole="button"
 										className="min-h-11 flex-row items-center gap-2 rounded-lg border border-dashed border-border-strong bg-surface px-3 py-2.5"
 									>
-										<Paperclip size={14} color="#6B7280" />
+										<Paperclip size={14} color={themeColors.foregroundMuted} />
 										<Text
 											className="flex-1 font-inter text-foreground-secondary text-sm"
 											numberOfLines={1}
@@ -247,9 +252,12 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 										className={`flex-row items-center justify-center gap-2 self-end rounded-lg bg-primary px-5 py-2.5 ${isSending ? 'opacity-60' : ''}`}
 									>
 										{isSending ? (
-											<ActivityIndicator size="small" color="#ffffff" />
+											<ActivityIndicator
+												size="small"
+												color={themeColors.primaryForeground}
+											/>
 										) : (
-											<Upload size={15} color="#ffffff" />
+											<Upload size={15} color={themeColors.primaryForeground} />
 										)}
 										<Text className="font-inter-medium text-sm text-primary-foreground">
 											{isSending ? 'Enviando…' : 'Enviar tradução'}
@@ -274,14 +282,14 @@ export function MyItemDetailsPage({ id }: MyItemDetailsPageProps) {
 											onPress={() => openDocument(delivered.file_url)}
 											className="min-w-0 flex-1 flex-row items-center gap-2"
 										>
-											<FileText size={16} color="#1C6FB0" />
+											<FileText size={16} color={themeColors.primary} />
 											<Text
 												className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-sm"
 												numberOfLines={1}
 											>
 												{delivered.filename}
 											</Text>
-											<ExternalLink size={13} color="#1d4ed8" />
+											<ExternalLink size={13} color={themeColors.primaryText} />
 										</TouchableOpacity>
 										<View className="items-end gap-1">
 											<View

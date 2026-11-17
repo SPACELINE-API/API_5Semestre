@@ -12,7 +12,9 @@ import CardRequest from '../components/CardRequest';
 import { fetchRequests } from '../services/requests';
 import type { RequestItem } from '../services/requests';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export default function ViewRequestPage() {
+	const themeColors = useThemeColors();
 	const [requests, setRequests] = useState<RequestItem[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
@@ -52,7 +54,7 @@ export default function ViewRequestPage() {
 
 				{loading ? (
 					<View className="mt-8 items-center gap-3 rounded-xl border border-border bg-surface p-8">
-						<ActivityIndicator color="#2563eb" />
+						<ActivityIndicator color={themeColors.primaryText} />
 						<Text className="font-inter text-sm text-foreground-muted">
 							Carregando solicitações...
 						</Text>
@@ -60,7 +62,7 @@ export default function ViewRequestPage() {
 				) : error ? (
 					<View className="mt-8 rounded-xl border border-danger/30 bg-danger-soft p-5">
 						<View className="flex-row items-start gap-3">
-							<CircleAlert size={20} color="#dc2626" />
+							<CircleAlert size={20} color={themeColors.danger} />
 							<Text className="flex-1 font-inter text-sm text-danger-text">
 								{error}
 							</Text>
@@ -70,7 +72,7 @@ export default function ViewRequestPage() {
 							onPress={() => void loadRequests()}
 							className="mt-4 flex-row items-center gap-2 self-start rounded-lg border border-danger/30 px-4 py-2.5"
 						>
-							<RefreshCw size={15} color="#b91c1c" />
+							<RefreshCw size={15} color={themeColors.danger} />
 							<Text className="font-inter-medium text-sm text-danger-text">
 								Tentar novamente
 							</Text>

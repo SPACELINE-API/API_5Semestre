@@ -1,6 +1,7 @@
 import { Text, TouchableOpacity, View } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export function QuoteRequestPageHeader({
 	status,
 	onBack,
@@ -8,6 +9,7 @@ export function QuoteRequestPageHeader({
 	status?: string;
 	onBack: () => void;
 }) {
+	const themeColors = useThemeColors();
 	const statusLabel =
 		status === 'approved'
 			? 'Aprovada'
@@ -28,7 +30,7 @@ export function QuoteRequestPageHeader({
 				onPress={onBack}
 				className="flex-row items-center self-start gap-2 mb-6 rounded-lg px-2 py-2 hover:bg-surface-muted"
 			>
-				<ArrowLeft size={17} color="#4b5563" />
+				<ArrowLeft size={17} color={themeColors.foregroundSecondary} />
 				<Text className="font-inter-medium text-sm text-foreground-secondary">
 					Voltar para requisições
 				</Text>

@@ -35,6 +35,7 @@ import {
 	getPreviewDocumentUrl,
 } from '../../../shared/components/FilePreview';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const receiptStatusStyles: Record<
 	QuoteReceiptStatus,
 	{ label: string; badge: string; text: string }
@@ -232,6 +233,7 @@ function QuoteReceiptModal({
 	company: Company | undefined;
 	additionalServices: AdditionalService[];
 }) {
+	const themeColors = useThemeColors();
 	const [languages, setLanguages] = useState<Language[]>([]);
 	const [opening, setOpening] = useState(false);
 	const [openError, setOpenError] = useState('');
@@ -302,7 +304,7 @@ function QuoteReceiptModal({
 							accessibilityLabel="Fechar comprovante"
 							onPress={onClose}
 						>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
@@ -354,7 +356,9 @@ function QuoteReceiptModal({
 											: 'PDF indisponível'}
 								</Text>
 							</View>
-							{canOpenPdf ? <ExternalLink size={16} color="#1d4ed8" /> : null}
+							{canOpenPdf ? (
+								<ExternalLink size={16} color={themeColors.primaryText} />
+							) : null}
 						</TouchableOpacity>
 
 						{openError ? <Notice tone="error">{openError}</Notice> : null}
@@ -502,6 +506,7 @@ export function QuoteReceiptSection({
 	company: Company | undefined;
 	additionalServices: AdditionalService[];
 }) {
+	const themeColors = useThemeColors();
 	const [receipt, setReceipt] = useState<QuoteReceipt | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
@@ -532,7 +537,7 @@ export function QuoteReceiptSection({
 			<View className="flex-row flex-wrap items-center justify-between gap-3">
 				<View className="flex-row items-center gap-3">
 					<View className="h-9 w-9 items-center justify-center rounded-lg bg-success-soft">
-						<FileCheck size={18} color="#047857" />
+						<FileCheck size={18} color={themeColors.successText} />
 					</View>
 					<View className="gap-1">
 						<Text className="font-inter-semibold text-sm text-foreground">
@@ -583,7 +588,7 @@ export function QuoteReceiptSection({
 						onPress={() => setModalOpen(true)}
 						className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-primary/30 px-3 py-2"
 					>
-						<FileText size={16} color="#1d4ed8" />
+						<FileText size={16} color={themeColors.primaryText} />
 						<Text className="font-inter-medium text-sm text-primary-text">
 							Ver comprovante
 						</Text>

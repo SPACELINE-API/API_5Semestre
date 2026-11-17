@@ -6,6 +6,7 @@ import type { Company } from '../types/company';
 
 import { companyInitials, formatCnpj } from '../utils/format';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyTableProps = {
 	companies: Company[];
 	onSelectCompany?: (company: Company) => void;
@@ -23,6 +24,7 @@ function Checkbox({
 	onPress: () => void;
 	accessibilityLabel: string;
 }) {
+	const themeColors = useThemeColors();
 	return (
 		<TouchableOpacity
 			onPress={onPress}
@@ -37,7 +39,7 @@ function Checkbox({
 					: 'border-border-strong bg-surface'
 			}`}
 		>
-			{checked && <Check size={12} color="#FFFFFF" />}
+			{checked && <Check size={12} color={themeColors.primaryForeground} />}
 		</TouchableOpacity>
 	);
 }
@@ -49,6 +51,7 @@ export function CompanyTable({
 	onToggleSelect,
 	onToggleSelectAll,
 }: CompanyTableProps) {
+	const themeColors = useThemeColors();
 	const allSelected =
 		companies.length > 0 &&
 		companies.every((company) => selectedIds.has(company.id));
@@ -113,7 +116,7 @@ export function CompanyTable({
 											{companyInitials(company.trade_name)}
 										</Text>
 									) : (
-										<Building2 size={17} color="#9CA3AF" />
+										<Building2 size={17} color={themeColors.foregroundSubtle} />
 									)}
 								</View>
 
@@ -195,7 +198,7 @@ export function CompanyTable({
 							</View>
 
 							<View className="w-8 items-end justify-center">
-								<ChevronRight size={17} color="#9CA3AF" />
+								<ChevronRight size={17} color={themeColors.foregroundSubtle} />
 							</View>
 						</TouchableOpacity>
 					</View>
@@ -203,7 +206,7 @@ export function CompanyTable({
 				ListEmptyComponent={
 					<View className="items-center justify-center py-16">
 						<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
-							<Building2 size={18} color="#9CA3AF" />
+							<Building2 size={18} color={themeColors.foregroundSubtle} />
 						</View>
 
 						<Text className="font-inter font-medium text-foreground text-sm">

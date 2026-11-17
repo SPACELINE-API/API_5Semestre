@@ -21,6 +21,7 @@ import {
 	PROPOSAL_PAGE_SIZE,
 } from '../services/proposalService';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const INITIAL_FILTERS: Filters = {
 	startDate: '',
 	endDate: '',
@@ -42,6 +43,7 @@ function ProposalPagination({
 	loading: boolean;
 	onPageChange: (page: number) => void;
 }) {
+	const themeColors = useThemeColors();
 	const totalPages = Math.ceil(total / PROPOSAL_PAGE_SIZE);
 	const firstItem = total ? (page - 1) * PROPOSAL_PAGE_SIZE + 1 : 0;
 	const lastItem = Math.min(page * PROPOSAL_PAGE_SIZE, total);
@@ -59,7 +61,7 @@ function ProposalPagination({
 					onPress={() => onPageChange(Math.max(1, page - 1))}
 					className={`flex-1 flex-row items-center justify-center gap-1 rounded-lg px-3 py-2 md:flex-none ${page <= 1 || loading ? 'opacity-40' : 'hover:bg-surface-muted'}`}
 				>
-					<ChevronLeft size={17} color="#374151" />
+					<ChevronLeft size={17} color={themeColors.foregroundSecondary} />
 					<Text className="font-inter font-medium text-foreground-secondary text-sm">
 						Anterior
 					</Text>
@@ -73,7 +75,7 @@ function ProposalPagination({
 					<Text className="font-inter font-medium text-foreground-secondary text-sm">
 						Próxima
 					</Text>
-					<ChevronRight size={17} color="#374151" />
+					<ChevronRight size={17} color={themeColors.foregroundSecondary} />
 				</TouchableOpacity>
 			</View>
 		</View>

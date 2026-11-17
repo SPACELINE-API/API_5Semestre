@@ -34,6 +34,7 @@ import {
 import { PROFICIENCY_LABELS } from '../types/translator';
 import { formatFileSize } from '../utils/profileFiles';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CertificateReviewModalProps = {
 	translatorId: string;
 	certificate: TranslatorCertificate | null;
@@ -110,6 +111,7 @@ export function CertificateReviewModal({
 	onClose,
 	onReviewed,
 }: CertificateReviewModalProps) {
+	const themeColors = useThemeColors();
 	const [step, setStep] = useState<Step>('details');
 	const [reviewNote, setReviewNote] = useState('');
 	const [isSaving, setIsSaving] = useState(false);
@@ -219,7 +221,7 @@ export function CertificateReviewModal({
 						multiline
 						maxLength={REVIEW_NOTE_MAX}
 						placeholder="Ex.: documento ilegível ou fora da validade"
-						placeholderTextColor="#9CA3AF"
+						placeholderTextColor={themeColors.foregroundSubtle}
 						accessibilityLabel="Motivo da recusa"
 						textAlignVertical="top"
 						className="min-h-[96px] rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none"
@@ -244,7 +246,7 @@ export function CertificateReviewModal({
 				accessibilityLabel="Recusar certificado"
 				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-danger/40 px-4 py-2.5"
 			>
-				<X size={16} color="#B91C1C" />
+				<X size={16} color={themeColors.danger} />
 				<Text className="font-inter font-semibold text-danger text-sm">
 					Recusar
 				</Text>
@@ -255,7 +257,7 @@ export function CertificateReviewModal({
 				accessibilityLabel="Aprovar certificado"
 				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5"
 			>
-				<Check size={16} color="#FFFFFF" />
+				<Check size={16} color={themeColors.primaryForeground} />
 				<Text className="font-inter font-semibold text-sm text-primary-foreground">
 					Aprovar
 				</Text>
@@ -341,7 +343,7 @@ export function CertificateReviewModal({
 							accessibilityRole="link"
 							className="flex-row items-center gap-1.5 self-start"
 						>
-							<ExternalLink size={13} color="#1C6FB0" />
+							<ExternalLink size={13} color={themeColors.primary} />
 							<Text className="font-inter font-medium text-primary-text text-xs">
 								Abrir em nova aba
 							</Text>
@@ -357,9 +359,12 @@ export function CertificateReviewModal({
 						}`}
 					>
 						{isOpening ? (
-							<ActivityIndicator size="small" color="#374151" />
+							<ActivityIndicator
+								size="small"
+								color={themeColors.foregroundSecondary}
+							/>
 						) : (
-							<Eye size={16} color="#374151" />
+							<Eye size={16} color={themeColors.foregroundSecondary} />
 						)}
 						<Text className="font-inter font-semibold text-foreground text-sm">
 							Visualizar documento

@@ -3,6 +3,7 @@ import { CheckCircle2 } from 'lucide-react-native';
 
 import type { QuoteFromRequestResponse } from '../services/quotesService';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function formatDate(value?: string) {
 	if (!value) return '—';
 	const date = new Date(value);
@@ -22,10 +23,11 @@ export function GeneratedQuoteNotice({
 	quote: QuoteFromRequestResponse;
 	onViewQuotes: () => void;
 }) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="bg-success-soft border border-success/30 rounded-lg p-5 mb-6">
 			<View className="flex-row items-start gap-3">
-				<CheckCircle2 size={22} color="#16a34a" />
+				<CheckCircle2 size={22} color={themeColors.success} />
 				<View className="flex-1">
 					<Text className="font-inter-bold text-base text-success-text">
 						Orçamento criado a partir da requisição.

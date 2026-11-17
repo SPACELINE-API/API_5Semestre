@@ -12,6 +12,7 @@ import './registerCharts';
 import { stripPointerEvents } from './svg';
 import type { ChartOption, EChartProps } from './types';
 
+import { useThemeColors } from '../../theme/ThemeProvider';
 use([SVGRenderer]);
 
 function renderSvg(option: ChartOption, width: number, height: number) {
@@ -33,6 +34,7 @@ export function EChart({
 	accessibilityLabel,
 	showLoadingIndicator = false,
 }: EChartProps) {
+	const themeColors = useThemeColors();
 	const [width, setWidth] = useState(0);
 	const [renderedSvg, setRenderedSvg] = useState<string | null>(null);
 
@@ -68,7 +70,7 @@ export function EChart({
 			) : null}
 			{isLoading ? (
 				<View className="absolute inset-0 items-center justify-center bg-surface">
-					<ActivityIndicator color="#1C6FB0" />
+					<ActivityIndicator color={themeColors.primary} />
 					<Text className="mt-3 font-inter text-foreground-subtle text-xs">
 						Carregando gráfico...
 					</Text>

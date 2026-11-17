@@ -11,6 +11,7 @@ import { formatDate } from '../utils/format';
 import type { ServiceOrder } from '../types/serviceOrder';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export type ServiceOrderView = 'detalhes' | 'workflow';
 
 const viewOptions: { key: ServiceOrderView; label: string }[] = [
@@ -35,6 +36,7 @@ export function ServiceOrderDetailsHeader({
 	onComplete: () => void;
 	onViewChange: (view: ServiceOrderView) => void;
 }) {
+	const themeColors = useThemeColors();
 	const canWriteServiceOrders = usePermission('service_orders.write');
 
 	return (
@@ -79,7 +81,7 @@ export function ServiceOrderDetailsHeader({
 						accessibilityLabel="Concluir Ordem de Serviço"
 						className={`flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 					>
-						<CheckCheck size={16} color="#FFFFFF" />
+						<CheckCheck size={16} color={themeColors.primaryForeground} />
 						<Text className="font-inter font-semibold text-primary-foreground text-xs">
 							Concluir Ordem de Serviço
 						</Text>
@@ -93,7 +95,7 @@ export function ServiceOrderDetailsHeader({
 					accessibilityLabel="Excluir ordem de serviço"
 					className={`h-9 w-9 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft hover:bg-danger-soft ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 				>
-					<Trash2 size={16} color="#791F1F" />
+					<Trash2 size={16} color={themeColors.dangerText} />
 				</TouchableOpacity>
 				<View
 					className={`flex-row gap-2 rounded-lg bg-surface-muted p-1 ${Platform.OS === 'web' ? '' : 'hidden'}`}

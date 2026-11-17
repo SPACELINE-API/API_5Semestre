@@ -47,6 +47,7 @@ import type { ServiceOrderItem } from '../types/serviceOrder';
 import { CompleteServiceOrderModal } from '../components/CompleteServiceOrderModal';
 import { AdditionalServicesTab } from '../components/AdditionalServicesTab';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ServiceOrderDetailsPageProps = {
 	id: string;
 	initialTab?: string;
@@ -56,6 +57,7 @@ export function ServiceOrderDetailsPage({
 	id,
 	initialTab,
 }: ServiceOrderDetailsPageProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 
 	const { serviceOrder, isLoading, error, refresh, setServiceOrder } =
@@ -144,7 +146,7 @@ export function ServiceOrderDetailsPage({
 					activeOpacity={0.7}
 					className="mb-7 flex-row items-center gap-2"
 				>
-					<ArrowLeft size={16} color="#6B7280" />
+					<ArrowLeft size={16} color={themeColors.foregroundMuted} />
 
 					<Text className="font-inter text-foreground-muted text-sm">
 						Voltar para ordens de serviço
@@ -153,7 +155,10 @@ export function ServiceOrderDetailsPage({
 
 				{isLoading && (
 					<View className="min-h-[500px] items-center justify-center">
-						<ActivityIndicator size="large" color="#6B7280" />
+						<ActivityIndicator
+							size="large"
+							color={themeColors.foregroundMuted}
+						/>
 
 						<Text className="mt-4 font-inter text-foreground-subtle text-sm">
 							Carregando dados da ordem de serviço...
@@ -164,7 +169,7 @@ export function ServiceOrderDetailsPage({
 				{!isLoading && error && (
 					<View className="gap-1 border-t border-border py-8">
 						<View className="flex-row items-center gap-2">
-							<AlertCircle size={16} color="#DC2626" />
+							<AlertCircle size={16} color={themeColors.danger} />
 
 							<Text className="font-inter font-semibold text-danger text-sm">
 								Não foi possível carregar a ordem de serviço

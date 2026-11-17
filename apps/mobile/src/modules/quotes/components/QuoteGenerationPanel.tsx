@@ -2,6 +2,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { CircleAlert } from 'lucide-react-native';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type MissingField = { key: string; label: string };
 
 type QuoteGenerationPanelProps = {
@@ -19,6 +20,7 @@ export function QuoteGenerationPanel({
 	generating,
 	onGenerate,
 }: QuoteGenerationPanelProps) {
+	const themeColors = useThemeColors();
 	const canWriteQuotes = usePermission('quotes.write');
 	const isDisabled = !canGenerate || generating || !canWriteQuotes;
 
@@ -26,7 +28,7 @@ export function QuoteGenerationPanel({
 		<>
 			{missingFields.length > 0 && (
 				<View className="mb-6 flex-row items-start gap-3 rounded-lg border border-danger/30 bg-danger-soft p-4">
-					<CircleAlert size={19} color="#dc2626" />
+					<CircleAlert size={19} color={themeColors.danger} />
 					<View className="flex-1">
 						<Text className="font-inter-bold text-sm text-danger-text">
 							Dados obrigatórios ausentes
@@ -40,7 +42,7 @@ export function QuoteGenerationPanel({
 			)}
 			{error ? (
 				<View className="mb-6 flex-row items-start gap-3 rounded-lg border border-danger/30 bg-danger-soft p-4">
-					<CircleAlert size={19} color="#dc2626" />
+					<CircleAlert size={19} color={themeColors.danger} />
 					<Text className="flex-1 font-inter text-sm text-danger-text">
 						{error}
 					</Text>

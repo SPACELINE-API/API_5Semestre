@@ -18,6 +18,7 @@ import {
 	type LucideIcon,
 } from 'lucide-react-native';
 
+import { useThemeColors } from '../theme/ThemeProvider';
 export type AppModalType = 'success' | 'warning' | 'error' | 'confirmation';
 
 type AppModalProps = {
@@ -81,6 +82,7 @@ export function AppModal({
 	onConfirm,
 	onClose,
 }: AppModalProps) {
+	const themeColors = useThemeColors();
 	if (!visible) return null;
 
 	const style = type ? TYPE_STYLES[type] : null;
@@ -146,7 +148,7 @@ export function AppModal({
 								hitSlop={8}
 								className="rounded-md p-1"
 							>
-								<X size={20} color="#6B7280" />
+								<X size={20} color={themeColors.foregroundMuted} />
 							</TouchableOpacity>
 						</View>
 					)}
@@ -204,7 +206,10 @@ export function AppModal({
 										} ${isLoading || confirmDisabled ? 'opacity-50' : ''}`}
 									>
 										{isLoading && (
-											<ActivityIndicator size="small" color="#FFFFFF" />
+											<ActivityIndicator
+												size="small"
+												color={themeColors.primaryForeground}
+											/>
 										)}
 										<Text className="font-inter font-semibold text-sm text-primary-foreground">
 											{isLoading ? 'Aguarde…' : confirmLabel}

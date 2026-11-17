@@ -6,9 +6,11 @@ import type { ProductivityDocument } from '../types/productivity';
 import { formatCurrencyValue, formatInteger } from '../utils/format';
 import { PunctualityBadge } from './PunctualityBadge';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type FileLinkProps = { label: string; filename: string; url: string };
 
 function FileLink({ label, filename, url }: FileLinkProps) {
+	const themeColors = useThemeColors();
 	return (
 		<TouchableOpacity
 			onPress={() => openDocument(url)}
@@ -17,14 +19,14 @@ function FileLink({ label, filename, url }: FileLinkProps) {
 			accessibilityLabel={`Abrir ${label}: ${filename}`}
 			className="min-w-0 flex-row items-center gap-2"
 		>
-			<FileText size={14} color="#1C6FB0" />
+			<FileText size={14} color={themeColors.primary} />
 			<Text
 				className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-sm"
 				numberOfLines={1}
 			>
 				{filename}
 			</Text>
-			<ExternalLink size={12} color="#1d4ed8" />
+			<ExternalLink size={12} color={themeColors.primaryText} />
 		</TouchableOpacity>
 	);
 }

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import type { QuoteStatusFilter } from '../services/quotesService';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const statusOptions: { value: QuoteStatusFilter; label: string }[] = [
 	{ value: 'all', label: 'Todos' },
 	{ value: 'pending', label: 'Pendentes' },
@@ -36,13 +37,14 @@ export function QuoteSearchBar({
 	showFilters: boolean;
 	onToggleFilters: () => void;
 }) {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const filtersActive = showFilters || statusFilter !== 'all';
 
 	return (
 		<View className="mb-4 flex-row items-center gap-3">
 			<View className="h-10 flex-1 flex-row items-center rounded-lg border border-border bg-surface px-3">
-				<Search size={17} color="#9CA3AF" />
+				<Search size={17} color={themeColors.foregroundSubtle} />
 				<TextInput
 					value={searchInput}
 					onChangeText={onSearchInputChange}
@@ -52,7 +54,7 @@ export function QuoteSearchBar({
 							? 'Buscar orçamento, cliente ou documento'
 							: 'Buscar por orçamento, e-mail, cliente, empresa ou documento'
 					}
-					placeholderTextColor="#9CA3AF"
+					placeholderTextColor={themeColors.foregroundSubtle}
 					returnKeyType="search"
 					className="ml-2 flex-1 border-0 font-inter text-foreground text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
 				/>
@@ -94,6 +96,7 @@ export function QuoteStatusFilterPanel({
 	statusFilter: QuoteStatusFilter;
 	onStatusFilterChange: (value: QuoteStatusFilter) => void;
 }) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="gap-1">
 			<Text className="mb-2 font-inter font-semibold text-foreground-subtle text-xs uppercase tracking-wide">
@@ -120,7 +123,7 @@ export function QuoteStatusFilterPanel({
 						>
 							{option.label}
 						</Text>
-						{isSelected && <Check size={16} color="#1C6FB0" />}
+						{isSelected && <Check size={16} color={themeColors.primary} />}
 					</TouchableOpacity>
 				);
 			})}
@@ -139,6 +142,7 @@ export function QuotePagination({
 	loading: boolean;
 	onPageChange: (page: number) => void;
 }) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="mb-5 flex-col items-center gap-3 rounded-xl border border-border bg-surface p-4 md:flex-row md:justify-between">
 			<Text className="order-first font-inter text-sm text-foreground-secondary md:order-none">
@@ -151,7 +155,7 @@ export function QuotePagination({
 					onPress={() => onPageChange(Math.max(1, page - 1))}
 					className={`flex-1 flex-row items-center justify-center gap-1 rounded-lg px-3 py-2 md:flex-none ${page <= 1 ? 'opacity-40' : 'hover:bg-surface-muted'}`}
 				>
-					<ChevronLeft size={17} color="#374151" />
+					<ChevronLeft size={17} color={themeColors.foregroundSecondary} />
 					<Text className="font-inter-medium text-sm text-foreground-secondary">
 						Anterior
 					</Text>
@@ -165,7 +169,7 @@ export function QuotePagination({
 					<Text className="font-inter-medium text-sm text-foreground-secondary">
 						Próxima
 					</Text>
-					<ChevronRight size={17} color="#374151" />
+					<ChevronRight size={17} color={themeColors.foregroundSecondary} />
 				</TouchableOpacity>
 			</View>
 		</View>

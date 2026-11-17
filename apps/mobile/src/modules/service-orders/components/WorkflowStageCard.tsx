@@ -3,6 +3,7 @@ import { Check } from 'lucide-react-native';
 import type { WorkflowStep } from '../utils/workflowSteps';
 import { WORKFLOW_CURRENT_BAND_CLASS } from '../utils/workflowSteps';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type WorkflowStageCardProps = {
 	step: WorkflowStep;
 	stepIndex: number;
@@ -20,6 +21,7 @@ export function WorkflowStageCard({
 	isUpcoming,
 	assignedTranslatorName,
 }: WorkflowStageCardProps) {
+	const themeColors = useThemeColors();
 	return (
 		<View
 			accessibilityRole="text"
@@ -36,7 +38,11 @@ export function WorkflowStageCard({
 
 					{isCompleted && (
 						<View className="h-4 w-4 items-center justify-center rounded-full bg-success">
-							<Check size={10} color="#FFFFFF" strokeWidth={3} />
+							<Check
+								size={10}
+								color={themeColors.primaryForeground}
+								strokeWidth={3}
+							/>
 						</View>
 					)}
 				</View>

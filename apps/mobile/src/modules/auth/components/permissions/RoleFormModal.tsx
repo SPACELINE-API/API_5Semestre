@@ -4,6 +4,7 @@ import { X } from 'lucide-react-native';
 import type { RoleFormData } from '../../types/roles';
 import { FormField } from '../../../clients/components/FormField';
 
+import { useThemeColors } from '../../../../shared/theme/ThemeProvider';
 type RoleFormModalProps = {
 	visible: boolean;
 	onClose: () => void;
@@ -15,6 +16,7 @@ export function RoleFormModal({
 	onClose,
 	onSubmit,
 }: RoleFormModalProps) {
+	const themeColors = useThemeColors();
 	const [name, setName] = useState('');
 	const [description, setDescription] = useState('');
 	const [error, setError] = useState<string | null>(null);
@@ -70,7 +72,7 @@ export function RoleFormModal({
 							</Text>
 						</View>
 						<TouchableOpacity onPress={onClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 

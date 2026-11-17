@@ -30,6 +30,7 @@ import {
 } from '../../../../shared/utils/currency';
 import { usePermission } from '../../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../../shared/theme/ThemeProvider';
 const { width } = Dimensions.get('window');
 const isDesktop = Platform.OS === 'web' && width > 768;
 
@@ -64,6 +65,7 @@ export function NewQuoteModal({
 	onClose: () => void;
 	onCreated: () => void;
 }) {
+	const themeColors = useThemeColors();
 	const [items, setItems] = useState<QuoteItem[]>([createEmptyItem()]);
 	const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -163,7 +165,7 @@ export function NewQuoteModal({
 							Novo orçamento
 						</Text>
 						<TouchableOpacity onPress={resetAndClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
@@ -174,7 +176,7 @@ export function NewQuoteModal({
 					>
 						{submitError ? (
 							<View className="flex-row items-start gap-3 rounded-lg border border-danger/30 bg-danger-soft p-4">
-								<CircleAlert size={19} color="#dc2626" />
+								<CircleAlert size={19} color={themeColors.danger} />
 								<Text className="flex-1 font-inter text-sm text-danger-text">
 									{submitError}
 								</Text>
@@ -216,7 +218,7 @@ export function NewQuoteModal({
 												onPress={() => handleRemoveItem(item.id)}
 												className="absolute right-3 top-3 h-7 w-7 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft"
 											>
-												<Trash2 size={13} color="#b91c1c" />
+												<Trash2 size={13} color={themeColors.danger} />
 											</TouchableOpacity>
 										)}
 										<View
@@ -262,7 +264,7 @@ export function NewQuoteModal({
 												<TextInput
 													className="rounded-md border border-border bg-surface p-3 font-inter text-sm text-foreground"
 													placeholder="Ex: Contrato Social"
-													placeholderTextColor="#9CA3AF"
+													placeholderTextColor={themeColors.foregroundSubtle}
 													value={item.docType}
 													onChangeText={(val) =>
 														updateItem(item.id, { docType: val })
@@ -304,7 +306,10 @@ export function NewQuoteModal({
 															className={`flex-1 flex-row items-center justify-center gap-2 rounded-md border border-dashed border-border-strong bg-surface p-3 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 															onPress={() => void handlePickFile(item.id)}
 														>
-															<Paperclip size={14} color="#6b7280" />
+															<Paperclip
+																size={14}
+																color={themeColors.foregroundMuted}
+															/>
 															<Text className="font-inter text-xs text-foreground-muted">
 																{uploadingItemId === item.id
 																	? 'Enviando...'
@@ -324,7 +329,7 @@ export function NewQuoteModal({
 												<TextInput
 													className="h-[46px] rounded-md border border-border bg-surface p-3 font-inter-bold text-sm text-foreground"
 													placeholder="R$ 0,00"
-													placeholderTextColor="#9CA3AF"
+													placeholderTextColor={themeColors.foregroundSubtle}
 													keyboardType="numeric"
 													value={
 														item.price ? decimalStringToBRL(item.price) : ''
@@ -397,7 +402,7 @@ export function NewQuoteModal({
 							className="absolute bottom-4 right-4 z-50 flex-row items-center gap-2 rounded-lg border border-success bg-success-soft px-4 py-3 shadow-lg"
 							style={{ zIndex: 9999 }}
 						>
-							<CircleCheck size={18} color="#16a34a" />
+							<CircleCheck size={18} color={themeColors.success} />
 							<Text className="font-inter-medium text-sm text-success-text">
 								{bannerMessage}
 							</Text>

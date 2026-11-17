@@ -1,6 +1,7 @@
 import { Modal, View, Text, TouchableOpacity } from 'react-native';
 import { TriangleAlert } from 'lucide-react-native';
 
+import { useThemeColors } from '../theme/ThemeProvider';
 type ConfirmDialogProps = {
 	visible: boolean;
 	title: string;
@@ -24,6 +25,7 @@ export function ConfirmDialog({
 	onConfirm,
 	onCancel,
 }: ConfirmDialogProps) {
+	const themeColors = useThemeColors();
 	if (!visible) return null;
 
 	return (
@@ -31,7 +33,11 @@ export function ConfirmDialog({
 			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
 				<View className="w-full max-w-[400px] items-center gap-4 rounded-xl bg-surface p-7">
 					<View className="h-14 w-14 items-center justify-center rounded-full bg-danger-soft">
-						<TriangleAlert size={26} color="#B91C1C" strokeWidth={2} />
+						<TriangleAlert
+							size={26}
+							color={themeColors.danger}
+							strokeWidth={2}
+						/>
 					</View>
 
 					<View className="gap-1.5">

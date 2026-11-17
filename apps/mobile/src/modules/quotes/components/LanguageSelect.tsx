@@ -19,6 +19,7 @@ import { usePermission } from '../../auth/hooks/usePermission';
 import { getLanguageDropdownLayout } from '../utils/languageDropdownLayout';
 import { getLanguageFlag } from '../../translators/utils/languageFlag';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 interface LanguageSelectProps {
 	value?: string;
 	onChange: (languageId: string) => void;
@@ -30,6 +31,7 @@ export function LanguageSelect({
 	onChange,
 	placeholder = 'Selecione um idioma',
 }: LanguageSelectProps) {
+	const themeColors = useThemeColors();
 	const viewport = useWindowDimensions();
 	const [languages, setLanguages] = useState<Language[]>([]);
 	const [isOpen, setIsOpen] = useState(false);
@@ -110,7 +112,7 @@ export function LanguageSelect({
 						{placeholder}
 					</Text>
 				)}
-				<ChevronDown size={16} color="#9ca3af" />
+				<ChevronDown size={16} color={themeColors.foregroundSubtle} />
 			</TouchableOpacity>
 
 			<Modal

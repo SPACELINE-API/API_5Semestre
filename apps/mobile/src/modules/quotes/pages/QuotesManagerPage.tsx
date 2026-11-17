@@ -22,7 +22,9 @@ import {
 import { NewQuoteModal } from './translation-itens/index';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export default function QuotesManagerPage() {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const { quoteId } = useLocalSearchParams<{ quoteId?: string }>();
 	const [quotes, setQuotes] = useState<ManagedQuote[]>([]);
@@ -133,7 +135,7 @@ export default function QuotesManagerPage() {
 						disabled={!canWriteQuotes}
 						className={`flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 					>
-						<Plus size={18} color="#ffffff" />
+						<Plus size={18} color={themeColors.primaryForeground} />
 						<Text className="font-inter-medium text-sm text-primary-foreground">
 							Novo orçamento
 						</Text>
@@ -154,7 +156,7 @@ export default function QuotesManagerPage() {
 
 				{loading ? (
 					<View className="items-center gap-3 rounded-xl border border-border bg-surface p-10">
-						<ActivityIndicator color="#2563eb" />
+						<ActivityIndicator color={themeColors.primaryText} />
 						<Text className="font-inter text-sm text-foreground-muted">
 							Carregando orçamentos...
 						</Text>
@@ -163,7 +165,7 @@ export default function QuotesManagerPage() {
 					<View className="rounded-2xl border border-danger/25 bg-surface p-5 md:p-6">
 						<View className="flex-row items-start gap-3">
 							<View className="h-10 w-10 items-center justify-center rounded-full bg-danger-soft">
-								<CircleAlert size={20} color="#dc2626" />
+								<CircleAlert size={20} color={themeColors.danger} />
 							</View>
 							<View className="flex-1 gap-1">
 								<Text className="font-inter-semibold text-base text-foreground">
@@ -179,7 +181,7 @@ export default function QuotesManagerPage() {
 							onPress={() => void loadQuotes()}
 							className="mt-5 flex-row items-center gap-2 self-start rounded-lg bg-primary px-4 py-2.5"
 						>
-							<RefreshCw size={15} color="#ffffff" />
+							<RefreshCw size={15} color={themeColors.primaryForeground} />
 							<Text className="font-inter-medium text-sm text-primary-foreground">
 								Tentar novamente
 							</Text>
@@ -223,7 +225,7 @@ export default function QuotesManagerPage() {
 				) : (
 					<View className="items-center rounded-xl border border-border bg-surface px-6 py-12">
 						<View className="mb-4 h-12 w-12 items-center justify-center rounded-full bg-primary-soft">
-							<FileText size={22} color="#2563eb" />
+							<FileText size={22} color={themeColors.primaryText} />
 						</View>
 						<Text className="font-inter-bold text-base text-foreground">
 							{totalQuotes === 0 && (appliedSearch || statusFilter !== 'all')
@@ -257,7 +259,7 @@ export default function QuotesManagerPage() {
 								onPress={() => setShowFilters(false)}
 								activeOpacity={0.7}
 							>
-								<X size={18} color="#8A8A8A" />
+								<X size={18} color={themeColors.foregroundMuted} />
 							</TouchableOpacity>
 						</View>
 

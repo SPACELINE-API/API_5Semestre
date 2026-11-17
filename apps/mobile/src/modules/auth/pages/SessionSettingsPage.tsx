@@ -16,10 +16,12 @@ import {
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const MIN_MINUTES = 1;
 const MAX_MINUTES = 1440;
 
 export default function SessionSettingsPage() {
+	const themeColors = useThemeColors();
 	const { toast, showToast } = useToast();
 	const canEdit = usePermission('settings.write');
 	const [minutes, setMinutes] = useState('');
@@ -100,7 +102,7 @@ export default function SessionSettingsPage() {
 				<View className="gap-6">
 					{isLoading ? (
 						<View className="py-20 items-center">
-							<ActivityIndicator size="large" color="#2563eb" />
+							<ActivityIndicator size="large" color={themeColors.primaryText} />
 						</View>
 					) : error ? (
 						<View className="py-20 items-center">
@@ -137,7 +139,7 @@ export default function SessionSettingsPage() {
 									value={minutes}
 									onChangeText={handleChange}
 									placeholder="Ex: 30"
-									placeholderTextColor="#8A8A8A"
+									placeholderTextColor={themeColors.foregroundMuted}
 									keyboardType="number-pad"
 									maxLength={4}
 									editable={canEdit && !isSaving}

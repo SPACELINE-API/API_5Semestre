@@ -29,6 +29,7 @@ import { useMyCertificates } from '../hooks/useMyCertificates';
 import { useMyProfile } from '../hooks/useMyProfile';
 import type { TranslatorCertificate } from '../types/certificate';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ProfileTab = 'data' | 'languages' | 'certificates';
 
 const TABS: { key: ProfileTab; label: string }[] = [
@@ -38,6 +39,7 @@ const TABS: { key: ProfileTab; label: string }[] = [
 ];
 
 export function MyProfilePage() {
+	const themeColors = useThemeColors();
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
 	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
@@ -80,7 +82,7 @@ export function MyProfilePage() {
 	if (isLoading && !profile) {
 		return (
 			<View className="flex-1 items-center justify-center bg-surface">
-				<ActivityIndicator color="#6B7280" />
+				<ActivityIndicator color={themeColors.foregroundMuted} />
 				<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 					Carregando perfil...
 				</Text>
@@ -91,7 +93,7 @@ export function MyProfilePage() {
 	if (error || !profile) {
 		return (
 			<View className="flex-1 items-center justify-center bg-surface px-6">
-				<AlertCircle size={32} color="#DC2626" />
+				<AlertCircle size={32} color={themeColors.danger} />
 				<Text className="mt-3 text-center font-inter font-semibold text-foreground text-base">
 					{error ?? 'Perfil não encontrado'}
 				</Text>

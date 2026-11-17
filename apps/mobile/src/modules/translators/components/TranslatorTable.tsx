@@ -4,6 +4,7 @@ import type { Translator } from '../types/translator';
 import { PROFICIENCY_LABELS } from '../types/translator';
 import { maskPhone } from '../../clients/utils/mask';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type Props = {
 	translators: Translator[];
 	onSelectTranslator?: (t: Translator) => void;
@@ -19,6 +20,7 @@ function translatorInitials(name: string) {
 }
 
 export function TranslatorTable({ translators, onSelectTranslator }: Props) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="bg-surface">
 			{/* CABECALHO - SO APARECE NO DESKTOP */}
@@ -58,7 +60,7 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 										{translatorInitials(t.name)}
 									</Text>
 								) : (
-									<UserRound size={17} color="#1C6FB0" />
+									<UserRound size={17} color={themeColors.primary} />
 								)}
 							</View>
 							<View className="min-w-0 flex-1">
@@ -214,14 +216,14 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 						</View>
 
 						<View className="w-8 items-end justify-center">
-							<ChevronRight size={17} color="#9CA3AF" />
+							<ChevronRight size={17} color={themeColors.foregroundSubtle} />
 						</View>
 					</TouchableOpacity>
 				)}
 				ListEmptyComponent={
 					<View className="items-center justify-center py-16">
 						<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
-							<UserRound size={18} color="#9CA3AF" />
+							<UserRound size={18} color={themeColors.foregroundSubtle} />
 						</View>
 						<Text className="font-inter font-medium text-foreground text-sm">
 							Nenhum tradutor encontrado

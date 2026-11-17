@@ -10,6 +10,7 @@ import {
 } from '../utils/departments';
 import { AccountBadge, LinkBadge } from './StatusBadges';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type PersonRowProps = {
 	person: InternalUser;
 	isSelf: boolean;
@@ -27,6 +28,7 @@ export function PersonRow({
 	onSendLink,
 	onDeactivate,
 }: PersonRowProps) {
+	const themeColors = useThemeColors();
 	const showSend = canSendInitialLink(person);
 	const showResend = canResendLink(person);
 	const linkLabel = showSend ? 'Enviar link' : 'Reenviar link';
@@ -94,9 +96,9 @@ export function PersonRow({
 						}`}
 					>
 						{isBusy ? (
-							<ActivityIndicator size="small" color="#1D4ED8" />
+							<ActivityIndicator size="small" color={themeColors.primaryText} />
 						) : (
-							<Mail size={14} color="#1D4ED8" />
+							<Mail size={14} color={themeColors.primaryText} />
 						)}
 						<Text className="font-inter font-medium text-primary-text text-xs">
 							{linkLabel}
@@ -110,7 +112,7 @@ export function PersonRow({
 					accessibilityLabel={`Editar ${displayName(person)}`}
 					className="flex-row items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2"
 				>
-					<Pencil size={14} color="#374151" />
+					<Pencil size={14} color={themeColors.foregroundSecondary} />
 					<Text className="font-inter font-medium text-foreground text-xs">
 						Editar
 					</Text>
@@ -123,7 +125,7 @@ export function PersonRow({
 						accessibilityLabel={`Desativar ${displayName(person)}`}
 						className="flex-row items-center gap-1.5 rounded-lg border border-danger/30 px-3 py-2"
 					>
-						<UserX size={14} color="#B91C1C" />
+						<UserX size={14} color={themeColors.danger} />
 						<Text className="font-inter font-medium text-danger text-xs">
 							Desativar
 						</Text>

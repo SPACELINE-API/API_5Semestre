@@ -19,6 +19,7 @@ import {
 	validateProfileFile,
 } from '../utils/profileFiles';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ProfilePhotoCardProps = {
 	profile: TranslatorProfile;
 	onChange: (profile: TranslatorProfile) => void;
@@ -39,6 +40,7 @@ export function ProfilePhotoCard({
 	onChange,
 	onSuccess,
 }: ProfilePhotoCardProps) {
+	const themeColors = useThemeColors();
 	const [isUploading, setIsUploading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const photoUrl = profile.photo_url
@@ -109,9 +111,9 @@ export function ProfilePhotoCard({
 						className={`flex-row items-center gap-1.5 self-start rounded-lg border border-border-strong px-3 py-2 ${isUploading ? 'opacity-60' : ''}`}
 					>
 						{isUploading ? (
-							<ActivityIndicator size="small" color="#353535" />
+							<ActivityIndicator size="small" color={themeColors.foreground} />
 						) : (
-							<Camera size={14} color="#353535" />
+							<Camera size={14} color={themeColors.foreground} />
 						)}
 						<Text className="font-inter font-semibold text-foreground text-xs">
 							{isUploading

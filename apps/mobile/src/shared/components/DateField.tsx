@@ -6,6 +6,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react-native';
 
+import { useThemeColors } from '../theme/ThemeProvider';
 type DateFieldProps = {
 	label: string;
 	value: string;
@@ -71,6 +72,7 @@ function CalendarPopover({
 	onClose: () => void;
 	position: { top: number; left: number };
 }) {
+	const themeColors = useThemeColors();
 	const todayValue = toDateInputValue(new Date());
 	const minimum = minDate ? parseDateValue(minDate) : undefined;
 	const today = new Date();
@@ -103,7 +105,7 @@ function CalendarPopover({
 				top: position.top,
 				left: position.left,
 				zIndex: 10000,
-				backgroundColor: '#fff',
+				backgroundColor: themeColors.surface,
 				border: '1px solid #e5e7eb',
 				borderRadius: 12,
 				boxShadow: '0 16px 32px rgba(15, 23, 42, 0.18)',
@@ -222,6 +224,7 @@ export function DateField({
 	isOpen,
 	onOpenChange,
 }: DateFieldProps) {
+	const themeColors = useThemeColors();
 	const [internalPickerVisible, setInternalPickerVisible] = useState(false);
 	const triggerRef = useRef<HTMLButtonElement | null>(null);
 	const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0 });
@@ -299,7 +302,7 @@ export function DateField({
 					>
 						{value ? formatDisplayValue(value) : (placeholder ?? 'dd/mm/aaaa')}
 					</span>
-					<Calendar size={16} color="#6b7280" />
+					<Calendar size={16} color={themeColors.foregroundMuted} />
 				</button>
 				{isPickerVisible
 					? createPortal(
@@ -357,7 +360,7 @@ export function DateField({
 						? formatDisplayValue(value)
 						: (placeholder ?? 'Selecionar data')}
 				</Text>
-				<Calendar size={16} color="#8A8A8A" />
+				<Calendar size={16} color={themeColors.foregroundMuted} />
 			</TouchableOpacity>
 
 			{isPickerVisible && (

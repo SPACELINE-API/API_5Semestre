@@ -39,6 +39,7 @@ import { useToast } from '../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog';
 import { usePermission } from '../../modules/auth/hooks/usePermission';
 
+import { useThemeColors } from '../../shared/theme/ThemeProvider';
 type TranslatorTab = 'info' | 'languages' | 'requests';
 
 function hasTranslatorProfileChanges(
@@ -73,6 +74,7 @@ function hasTranslatorProfileChanges(
 }
 
 export default function TranslatorDetailsScreen() {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const { id, tab } = useLocalSearchParams<{ id?: string; tab?: string }>();
 	const [translator, setTranslator] = useState(null as Translator | null);
@@ -162,7 +164,7 @@ export default function TranslatorDetailsScreen() {
 	if (isLoading) {
 		return (
 			<View className="flex-1 items-center justify-center bg-surface">
-				<ActivityIndicator color="#6B7280" />
+				<ActivityIndicator color={themeColors.foregroundMuted} />
 				<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 					Carregando...
 				</Text>
@@ -173,7 +175,7 @@ export default function TranslatorDetailsScreen() {
 	if (error || !translator) {
 		return (
 			<View className="flex-1 items-center justify-center bg-surface px-6">
-				<AlertCircle size={32} color="#DC2626" />
+				<AlertCircle size={32} color={themeColors.danger} />
 				<Text className="mt-3 font-inter font-semibold text-foreground text-base">
 					{error ?? 'Tradutor nao encontrado'}
 				</Text>
@@ -200,7 +202,7 @@ export default function TranslatorDetailsScreen() {
 					activeOpacity={0.7}
 					className="mb-6 flex-row items-center gap-2 self-start"
 				>
-					<ArrowLeft size={18} color="#6B7280" />
+					<ArrowLeft size={18} color={themeColors.foregroundMuted} />
 					<Text className="font-inter text-foreground-muted text-sm">
 						Tradutores
 					</Text>
@@ -208,7 +210,7 @@ export default function TranslatorDetailsScreen() {
 
 				<View className="mb-6 flex-row items-center gap-4">
 					<View className="h-16 w-16 items-center justify-center rounded-full bg-primary-soft">
-						<UserRound size={28} color="#1C6FB0" />
+						<UserRound size={28} color={themeColors.primary} />
 					</View>
 					<View className="flex-1">
 						<Text className="font-inter font-bold text-foreground text-xl">
@@ -244,7 +246,7 @@ export default function TranslatorDetailsScreen() {
 						activeOpacity={0.7}
 						className={`h-9 w-9 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft ${!canWriteTranslators ? 'opacity-40' : ''}`}
 					>
-						<Trash2 size={16} color="#DC2626" />
+						<Trash2 size={16} color={themeColors.danger} />
 					</TouchableOpacity>
 				</View>
 
@@ -254,7 +256,7 @@ export default function TranslatorDetailsScreen() {
 					activeOpacity={0.7}
 					className={`mb-6 flex-row items-center gap-1.5 self-start rounded-lg border border-border-strong px-3 py-2 ${!canWriteTranslators ? 'opacity-40' : ''}`}
 				>
-					<Pencil size={14} color="#353535" />
+					<Pencil size={14} color={themeColors.foreground} />
 					<Text className="font-inter font-semibold text-foreground text-xs">
 						Editar
 					</Text>
@@ -270,13 +272,13 @@ export default function TranslatorDetailsScreen() {
 									Contato
 								</Text>
 								<View className="flex-row items-center gap-3">
-									<Mail size={16} color="#6B7280" />
+									<Mail size={16} color={themeColors.foregroundMuted} />
 									<Text className="font-inter text-foreground-secondary text-sm">
 										{translator.email}
 									</Text>
 								</View>
 								<View className="flex-row items-center gap-3">
-									<Phone size={16} color="#6B7280" />
+									<Phone size={16} color={themeColors.foregroundMuted} />
 									<Text className="font-inter text-foreground-secondary text-sm">
 										{maskPhone(translator.phone)}
 									</Text>

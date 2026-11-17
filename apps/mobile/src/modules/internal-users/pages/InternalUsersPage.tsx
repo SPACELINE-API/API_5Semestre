@@ -38,6 +38,7 @@ import {
 	syncRoles,
 } from '../utils/departments';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const FILTERS: { key: StatusFilter; label: string }[] = [
 	{ key: 'all', label: 'Todas' },
 	{ key: 'ativa', label: 'Ativas' },
@@ -49,6 +50,7 @@ function errorText(cause: unknown, fallback: string) {
 }
 
 export function InternalUsersPage() {
+	const themeColors = useThemeColors();
 	const { people, roles, isLoading, error, reload } = useInternalUsers();
 	const { toast, showToast } = useToast();
 	const [search, setSearch] = useState('');
@@ -184,7 +186,7 @@ export function InternalUsersPage() {
 							accessibilityLabel="Convidar pessoa"
 							className="shrink-0 flex-row items-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 md:gap-2 md:px-4 md:py-3"
 						>
-							<Plus size={16} color="#FFFFFF" />
+							<Plus size={16} color={themeColors.primaryForeground} />
 							<Text className="font-inter font-semibold text-sm text-primary-foreground">
 								Convidar pessoa
 							</Text>
@@ -204,12 +206,12 @@ export function InternalUsersPage() {
 
 				<View className="mb-5 flex-col gap-3 md:flex-row md:items-center md:justify-between">
 					<View className="h-11 w-full flex-row items-center gap-2 rounded-lg border border-border-strong px-3 md:w-auto md:max-w-[420px] md:flex-1">
-						<Search size={16} color="#9CA3AF" />
+						<Search size={16} color={themeColors.foregroundSubtle} />
 						<TextInput
 							value={search}
 							onChangeText={setSearch}
 							placeholder="Buscar por nome ou e-mail"
-							placeholderTextColor="#9CA3AF"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							accessibilityLabel="Buscar pessoa"
 							className="h-full flex-1 font-inter text-foreground text-sm outline-none"
 						/>
@@ -261,7 +263,7 @@ export function InternalUsersPage() {
 
 				{isLoading && people.length === 0 ? (
 					<View className="items-center py-16">
-						<ActivityIndicator color="#6B7280" />
+						<ActivityIndicator color={themeColors.foregroundMuted} />
 						<Text className="mt-2 font-inter text-foreground-subtle text-sm">
 							Carregando pessoas...
 						</Text>
@@ -269,7 +271,7 @@ export function InternalUsersPage() {
 				) : error ? (
 					<View className="flex-row items-center justify-between gap-3 rounded-lg bg-danger-soft px-4 py-3">
 						<View className="flex-1 flex-row items-center gap-2">
-							<CircleAlert size={16} color="#B91C1C" />
+							<CircleAlert size={16} color={themeColors.danger} />
 							<Text className="flex-1 font-inter text-danger-text text-sm">
 								{error}
 							</Text>
@@ -286,7 +288,7 @@ export function InternalUsersPage() {
 				) : people.length === 0 ? (
 					<View className="items-center gap-3 rounded-xl border border-dashed border-border-strong px-6 py-14">
 						<View className="h-12 w-12 items-center justify-center rounded-full bg-primary-soft">
-							<UserPlus size={22} color="#2563EB" />
+							<UserPlus size={22} color={themeColors.primaryText} />
 						</View>
 						<Text className="text-center font-inter font-semibold text-foreground text-base">
 							Convide a primeira pessoa
@@ -307,7 +309,7 @@ export function InternalUsersPage() {
 					</View>
 				) : departments.length === 0 ? (
 					<View className="items-center gap-2 rounded-xl border border-dashed border-border-strong px-6 py-12">
-						<Search size={24} color="#9CA3AF" />
+						<Search size={24} color={themeColors.foregroundSubtle} />
 						<Text className="text-center font-inter text-foreground-muted text-sm">
 							Nenhuma pessoa encontrada para esse filtro.
 						</Text>

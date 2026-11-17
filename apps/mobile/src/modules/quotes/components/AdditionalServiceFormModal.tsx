@@ -11,6 +11,7 @@ import {
 	maskCurrencyDigits,
 } from '../../../shared/utils/currency';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type AdditionalServiceFormModalProps = {
 	visible: boolean;
 	service?: AdditionalService | null;
@@ -24,6 +25,7 @@ export function AdditionalServiceFormModal({
 	onClose,
 	onSubmit,
 }: AdditionalServiceFormModalProps) {
+	const themeColors = useThemeColors();
 	const [description, setDescription] = useState('');
 	const [price, setPrice] = useState('');
 	const [error, setError] = useState<string | null>(null);
@@ -100,7 +102,7 @@ export function AdditionalServiceFormModal({
 							</Text>
 						</View>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 

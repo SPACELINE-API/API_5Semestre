@@ -16,6 +16,7 @@ import {
 import { PROFICIENCY_LABELS } from '../types/translator';
 import { formatFileSize } from '../utils/profileFiles';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type StatusFilter = 'all' | CertificateStatus;
 
 const STATUS_STYLES: Record<
@@ -85,6 +86,7 @@ export function CertificateRequestsList({
 	onRetry,
 	onSelect,
 }: CertificateRequestsListProps) {
+	const themeColors = useThemeColors();
 	const [filter, setFilter] = useState<StatusFilter>('all');
 
 	const counts = useMemo(
@@ -114,7 +116,7 @@ export function CertificateRequestsList({
 	if (isLoading && certificates.length === 0) {
 		return (
 			<View className="items-center py-10">
-				<ActivityIndicator color="#6B7280" />
+				<ActivityIndicator color={themeColors.foregroundMuted} />
 				<Text className="mt-2 font-inter text-foreground-subtle text-sm">
 					Carregando solicitações...
 				</Text>
@@ -140,7 +142,7 @@ export function CertificateRequestsList({
 	if (certificates.length === 0) {
 		return (
 			<View className="items-center gap-2 rounded-xl border border-dashed border-border-strong px-4 py-10">
-				<Inbox size={28} color="#9CA3AF" />
+				<Inbox size={28} color={themeColors.foregroundSubtle} />
 				<Text className="text-center font-inter font-semibold text-foreground-secondary text-sm">
 					Nenhuma solicitação de certificado.
 				</Text>
@@ -155,7 +157,7 @@ export function CertificateRequestsList({
 		<View className="gap-4">
 			{counts.pending > 0 && (
 				<View className="flex-row items-center gap-3 rounded-xl border border-warning/40 bg-warning-soft px-4 py-3">
-					<Clock size={18} color="#B45309" />
+					<Clock size={18} color={themeColors.warningText} />
 					<View className="flex-1">
 						<Text className="font-inter font-semibold text-warning-text text-sm">
 							{counts.pending === 1
@@ -217,7 +219,7 @@ export function CertificateRequestsList({
 
 			{visible.length === 0 && (
 				<View className="items-center gap-2 rounded-xl border border-dashed border-border-strong px-4 py-8">
-					<Inbox size={24} color="#9CA3AF" />
+					<Inbox size={24} color={themeColors.foregroundSubtle} />
 					<Text className="text-center font-inter text-foreground-muted text-sm">
 						{EMPTY_MESSAGES[filter]}
 					</Text>
@@ -272,7 +274,7 @@ export function CertificateRequestsList({
 							</View>
 
 							<View className="flex-row items-center gap-1.5">
-								<FileText size={13} color="#6B7280" />
+								<FileText size={13} color={themeColors.foregroundMuted} />
 								<Text
 									className="min-w-0 flex-1 font-inter text-foreground-muted text-xs"
 									numberOfLines={1}
@@ -308,7 +310,7 @@ export function CertificateRequestsList({
 							</View>
 						) : (
 							<View className="self-center">
-								<ChevronRight size={16} color="#9CA3AF" />
+								<ChevronRight size={16} color={themeColors.foregroundSubtle} />
 							</View>
 						)}
 					</TouchableOpacity>

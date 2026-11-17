@@ -2,6 +2,7 @@ import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { CircleAlert } from 'lucide-react-native';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type RequestDecisionPanelProps = {
 	error: string;
 	rejectionFormOpen: boolean;
@@ -25,6 +26,7 @@ export function RequestDecisionPanel({
 	onApprove,
 	onReprove,
 }: RequestDecisionPanelProps) {
+	const themeColors = useThemeColors();
 	const canWriteRequests = usePermission('requests.write');
 
 	return (
@@ -38,7 +40,7 @@ export function RequestDecisionPanel({
 			</Text>
 			{error ? (
 				<View className="mt-4 flex-row items-start gap-2 rounded-lg bg-danger-soft p-3">
-					<CircleAlert size={18} color="#dc2626" />
+					<CircleAlert size={18} color={themeColors.danger} />
 					<Text className="flex-1 font-inter text-sm text-danger-text">
 						{error}
 					</Text>

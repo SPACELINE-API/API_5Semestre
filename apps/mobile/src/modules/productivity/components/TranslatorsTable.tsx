@@ -13,6 +13,7 @@ import {
 	formatPercent,
 } from '../utils/format';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const WIDE_BREAKPOINT = 900;
 
 type TranslatorsTableProps = {
@@ -43,6 +44,7 @@ function cells(row: TranslatorProductivity) {
 }
 
 export function TranslatorsTable({ rows, onSelect }: TranslatorsTableProps) {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const isWide = width >= WIDE_BREAKPOINT;
 
@@ -65,7 +67,7 @@ export function TranslatorsTable({ rows, onSelect }: TranslatorsTableProps) {
 							>
 								{row.translator_name}
 							</Text>
-							<ChevronRight size={17} color="#9CA3AF" />
+							<ChevronRight size={17} color={themeColors.foregroundSubtle} />
 						</View>
 						<View className="flex-row flex-wrap gap-x-6 gap-y-3">
 							{HEADERS.map((header, index) => (
@@ -125,7 +127,7 @@ export function TranslatorsTable({ rows, onSelect }: TranslatorsTableProps) {
 						</Text>
 					))}
 					<View className="w-6 items-end">
-						<ChevronRight size={17} color="#9CA3AF" />
+						<ChevronRight size={17} color={themeColors.foregroundSubtle} />
 					</View>
 				</TouchableOpacity>
 			))}

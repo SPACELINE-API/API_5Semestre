@@ -5,6 +5,7 @@ import type { InternalUser } from '../types/internalUser';
 import { displayName } from '../utils/departments';
 import { describeExpiry, pendingInvites } from '../utils/inviteExpiry';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type PendingInvitesCardProps = {
 	people: InternalUser[];
 	busyId: string | null;
@@ -16,6 +17,7 @@ export function PendingInvitesCard({
 	busyId,
 	onResend,
 }: PendingInvitesCardProps) {
+	const themeColors = useThemeColors();
 	const [now, setNow] = useState(() => Date.now());
 	const [expanded, setExpanded] = useState(true);
 
@@ -47,7 +49,7 @@ export function PendingInvitesCard({
 				className="flex-row items-center gap-3 px-4 py-3.5"
 			>
 				<View className="h-9 w-9 items-center justify-center rounded-full bg-warning-soft">
-					<Clock size={18} color="#B45309" />
+					<Clock size={18} color={themeColors.warningText} />
 				</View>
 				<View className="min-w-0 flex-1">
 					<Text className="font-inter font-semibold text-warning-text text-sm">
@@ -61,7 +63,7 @@ export function PendingInvitesCard({
 							: 'O link vale por 3 dias. Depois disso é preciso reenviar.'}
 					</Text>
 				</View>
-				<Chevron size={18} color="#B45309" />
+				<Chevron size={18} color={themeColors.warningText} />
 			</TouchableOpacity>
 
 			{expanded &&
@@ -125,9 +127,12 @@ export function PendingInvitesCard({
 								}`}
 							>
 								{busy ? (
-									<ActivityIndicator size="small" color="#1D4ED8" />
+									<ActivityIndicator
+										size="small"
+										color={themeColors.primaryText}
+									/>
 								) : (
-									<Mail size={14} color="#1D4ED8" />
+									<Mail size={14} color={themeColors.primaryText} />
 								)}
 								<Text className="font-inter font-medium text-primary-text text-xs">
 									Reenviar link

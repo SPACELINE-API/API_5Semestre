@@ -9,6 +9,7 @@ import type {
 	ProposalStatus,
 } from '../types/proposal';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const SORT_OPTIONS: { value: ProposalSortField; label: string }[] = [
 	{ value: 'created_at', label: 'Data de criação' },
 	{ value: 'customer_name', label: 'Cliente' },
@@ -35,6 +36,7 @@ export function ProposalFilters({
 	onChange: (filters: Filters) => void;
 	onRetryCompanies: () => void;
 }) {
+	const themeColors = useThemeColors();
 	const [openDate, setOpenDate] = useState<'start' | 'end' | null>(null);
 	const hasFilters = Boolean(
 		filters.startDate ||
@@ -186,7 +188,7 @@ export function ProposalFilters({
 					className="flex-row items-center gap-1.5 self-start"
 					style={openDate ? { position: 'relative', zIndex: 1 } : undefined}
 				>
-					<FilterX size={14} color="#1C6FB0" />
+					<FilterX size={14} color={themeColors.primary} />
 					<Text className="font-inter font-semibold text-primary-text text-sm">
 						Limpar filtros
 					</Text>

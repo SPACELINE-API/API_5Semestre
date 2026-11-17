@@ -6,6 +6,7 @@ import { maskPhone } from '../../clients/utils/mask';
 import { updateMyProfile } from '../services/profileService';
 import type { TranslatorProfile } from '../types/profile';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ProfileDataCardProps = {
 	profile: TranslatorProfile;
 	onChange: (profile: TranslatorProfile) => void;
@@ -28,6 +29,7 @@ export function ProfileDataCard({
 	onChange,
 	onSuccess,
 }: ProfileDataCardProps) {
+	const themeColors = useThemeColors();
 	const [isEditing, setIsEditing] = useState(false);
 	const [name, setName] = useState(profile.name);
 	const [phone, setPhone] = useState(maskPhone(profile.phone));
@@ -80,7 +82,7 @@ export function ProfileDataCard({
 						accessibilityRole="button"
 						className="flex-row items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2"
 					>
-						<Pencil size={14} color="#353535" />
+						<Pencil size={14} color={themeColors.foreground} />
 						<Text className="font-inter font-semibold text-foreground text-xs">
 							Editar
 						</Text>
@@ -157,19 +159,19 @@ export function ProfileDataCard({
 			) : (
 				<View className="gap-3">
 					<View className="flex-row items-center gap-3">
-						<UserRound size={16} color="#6B7280" />
+						<UserRound size={16} color={themeColors.foregroundMuted} />
 						<Text className="font-inter text-foreground-secondary text-sm">
 							{profile.name}
 						</Text>
 					</View>
 					<View className="flex-row items-center gap-3">
-						<Mail size={16} color="#6B7280" />
+						<Mail size={16} color={themeColors.foregroundMuted} />
 						<Text className="font-inter text-foreground-secondary text-sm">
 							{profile.email}
 						</Text>
 					</View>
 					<View className="flex-row items-center gap-3">
-						<Phone size={16} color="#6B7280" />
+						<Phone size={16} color={themeColors.foregroundMuted} />
 						<Text className="font-inter text-foreground-secondary text-sm">
 							{maskPhone(profile.phone)}
 						</Text>

@@ -10,6 +10,7 @@ import { formatDate, formatPrice } from '../utils/format';
 import { useItemInvites } from '../hooks/useItemInvites';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type WorkflowItemCardProps = {
 	item: ServiceOrderItem;
 	translatorsById: Map<string, Translator>;
@@ -23,6 +24,7 @@ export function WorkflowItemCard({
 	onInviteTranslators,
 	refreshToken,
 }: WorkflowItemCardProps) {
+	const themeColors = useThemeColors();
 	const canWriteAssignments = usePermission('assignments.write');
 	const { invites, isLoading: isLoadingInvites } = useItemInvites(
 		item.id,
@@ -99,7 +101,7 @@ export function WorkflowItemCard({
 							>
 								{getTruncatedFileName(item.file_url)}
 							</Text>
-							<ExternalLink size={13} color="#1d4ed8" />
+							<ExternalLink size={13} color={themeColors.primaryText} />
 						</TouchableOpacity>
 					) : (
 						<Text className="font-inter font-medium text-foreground-subtle text-sm">
@@ -118,7 +120,7 @@ export function WorkflowItemCard({
 					accessibilityLabel={`Convidar tradutores para ${item.source_language} para ${item.target_language} no workflow`}
 					className={`flex-row items-center gap-1.5 self-start rounded-lg border border-border-strong px-3 py-2 ${!canWriteAssignments ? 'opacity-40' : ''}`}
 				>
-					<UserPlus size={14} color="#353535" />
+					<UserPlus size={14} color={themeColors.foreground} />
 					<Text className="font-inter font-semibold text-foreground text-xs">
 						Convidar tradutores
 					</Text>

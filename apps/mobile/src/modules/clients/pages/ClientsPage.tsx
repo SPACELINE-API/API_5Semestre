@@ -39,7 +39,9 @@ import { deleteCompany } from '../services/companyService';
 import { exportCompaniesAsJson } from '../utils/export';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export function ClientsPage() {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const router = useRouter();
 	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
@@ -220,7 +222,7 @@ export function ClientsPage() {
 								accessibilityLabel="Novo cliente"
 								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 ${!canWriteClients ? 'opacity-40' : ''}`}
 							>
-								<Plus size={18} color="#ffffff" />
+								<Plus size={18} color={themeColors.primaryForeground} />
 								<Text className="font-inter-medium text-sm text-primary-foreground">
 									Novo cliente
 								</Text>
@@ -231,7 +233,7 @@ export function ClientsPage() {
 					<View className="gap-3">
 						<View className="flex-row items-center gap-3">
 							<View className="h-10 flex-1 flex-row items-center rounded-lg border border-border bg-surface px-3">
-								<Search size={17} color="#9CA3AF" />
+								<Search size={17} color={themeColors.foregroundSubtle} />
 
 								<TextInput
 									value={search}
@@ -241,7 +243,7 @@ export function ClientsPage() {
 											? 'Buscar nome ou CNPJ'
 											: 'Buscar por nome, CNPJ...'
 									}
-									placeholderTextColor="#9CA3AF"
+									placeholderTextColor={themeColors.foregroundSubtle}
 									className="ml-2 flex-1 border-0 font-inter text-foreground text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
 								/>
 
@@ -250,7 +252,7 @@ export function ClientsPage() {
 										onPress={() => setSearch('')}
 										activeOpacity={0.7}
 									>
-										<X size={15} color="#9CA3AF" />
+										<X size={15} color={themeColors.foregroundSubtle} />
 									</TouchableOpacity>
 								)}
 							</View>
@@ -317,7 +319,7 @@ export function ClientsPage() {
 										activeOpacity={0.7}
 										className="flex-row items-center gap-1.5"
 									>
-										<Download size={14} color="#1C6FB0" />
+										<Download size={14} color={themeColors.primary} />
 										<Text className="font-inter font-semibold text-primary-text text-xs">
 											Exportar JSON
 										</Text>
@@ -329,7 +331,7 @@ export function ClientsPage() {
 										activeOpacity={0.7}
 										className={`flex-row items-center gap-1.5 ${!canWriteClients ? 'opacity-40' : ''}`}
 									>
-										<Trash2 size={14} color="#791F1F" />
+										<Trash2 size={14} color={themeColors.dangerText} />
 										<Text className="font-inter font-semibold text-danger-text text-xs">
 											Excluir
 										</Text>
@@ -339,7 +341,7 @@ export function ClientsPage() {
 										onPress={() => setSelectedIds(new Set())}
 										activeOpacity={0.7}
 									>
-										<X size={14} color="#6B7280" />
+										<X size={14} color={themeColors.foregroundMuted} />
 									</TouchableOpacity>
 								</View>
 							)}
@@ -348,7 +350,7 @@ export function ClientsPage() {
 
 					{isLoading && (
 						<View className="items-center justify-center border-t border-border-subtle py-16">
-							<ActivityIndicator color="#6B7280" />
+							<ActivityIndicator color={themeColors.foregroundMuted} />
 
 							<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 								Carregando clientes...
@@ -359,7 +361,7 @@ export function ClientsPage() {
 					{!isLoading && error && (
 						<View className="border-t border-border-subtle py-8">
 							<View className="flex-row items-center gap-2">
-								<AlertCircle size={16} color="#DC2626" />
+								<AlertCircle size={16} color={themeColors.danger} />
 
 								<Text className="font-inter font-semibold text-danger text-sm">
 									Não foi possível carregar os clientes
@@ -449,7 +451,7 @@ export function ClientsPage() {
 								onPress={() => setShowFilters(false)}
 								activeOpacity={0.7}
 							>
-								<X size={18} color="#8A8A8A" />
+								<X size={18} color={themeColors.foregroundMuted} />
 							</TouchableOpacity>
 						</View>
 

@@ -13,6 +13,7 @@ import { X, Check, Search, Users } from 'lucide-react-native';
 import type { Translator } from '../types/serviceOrder';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type InviteTranslatorsModalProps = {
 	visible: boolean;
 	translators: Translator[];
@@ -33,6 +34,7 @@ function Checkbox({
 	onPress: () => void;
 	accessibilityLabel: string;
 }) {
+	const themeColors = useThemeColors();
 	return (
 		<TouchableOpacity
 			disabled={disabled}
@@ -48,7 +50,7 @@ function Checkbox({
 					: 'border-border-strong bg-surface'
 			}`}
 		>
-			{checked && <Check size={12} color="#FFFFFF" />}
+			{checked && <Check size={12} color={themeColors.primaryForeground} />}
 		</TouchableOpacity>
 	);
 }
@@ -61,6 +63,7 @@ export function InviteTranslatorsModal({
 	onSubmit,
 	toast,
 }: InviteTranslatorsModalProps) {
+	const themeColors = useThemeColors();
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -159,17 +162,17 @@ export function InviteTranslatorsModal({
 							Convidar tradutores
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
 					<View className="flex-row items-center gap-2 border-b border-border-subtle px-6 py-3">
-						<Search size={16} color="#9CA3AF" />
+						<Search size={16} color={themeColors.foregroundSubtle} />
 						<TextInput
 							value={search}
 							onChangeText={setSearch}
 							placeholder="Buscar tradutor por nome ou email"
-							placeholderTextColor="#9CA3AF"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							accessibilityLabel="Buscar tradutor"
 							className="h-9 flex-1 font-inter text-foreground text-sm outline-none"
 						/>
@@ -328,7 +331,7 @@ export function InviteTranslatorsModal({
 							}
 						>
 							<View className={isWideWeb ? '' : 'absolute left-4'}>
-								<Users size={14} color="#2563EB" />
+								<Users size={14} color={themeColors.primaryText} />
 							</View>
 							<Text
 								style={isWideWeb ? undefined : { flex: 1, textAlign: 'center' }}

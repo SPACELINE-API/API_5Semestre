@@ -19,11 +19,13 @@ import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type InviteDetailsPageProps = {
 	id: string;
 };
 
 export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const { invite, item, isLoading, error, setInvite } = useInviteDetails(id);
 	const { toast, showToast } = useToast();
@@ -94,7 +96,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 					activeOpacity={0.7}
 					className="mb-7 flex-row items-center gap-2"
 				>
-					<ArrowLeft size={16} color="#6B7280" />
+					<ArrowLeft size={16} color={themeColors.foregroundMuted} />
 
 					<Text className="font-inter text-foreground-muted text-sm">
 						Voltar para meus convites
@@ -103,7 +105,10 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 
 				{isLoading && (
 					<View className="min-h-[400px] items-center justify-center">
-						<ActivityIndicator size="large" color="#6B7280" />
+						<ActivityIndicator
+							size="large"
+							color={themeColors.foregroundMuted}
+						/>
 
 						<Text className="mt-4 font-inter text-foreground-subtle text-sm">
 							Carregando dados do convite...
@@ -114,7 +119,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 				{!isLoading && error && (
 					<View className="gap-1 border-t border-border py-8">
 						<View className="flex-row items-center gap-2">
-							<AlertCircle size={16} color="#DC2626" />
+							<AlertCircle size={16} color={themeColors.danger} />
 
 							<Text className="font-inter font-semibold text-danger text-sm">
 								Não foi possível carregar o convite
@@ -223,7 +228,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 													: ''
 										}`}
 									>
-										<Check size={15} color="#FFFFFF" />
+										<Check size={15} color={themeColors.primaryForeground} />
 										<Text className="font-inter font-semibold text-primary-foreground text-sm">
 											Aceitar
 										</Text>
@@ -242,7 +247,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 													: ''
 										}`}
 									>
-										<X size={15} color="#791F1F" />
+										<X size={15} color={themeColors.dangerText} />
 										<Text className="font-inter font-semibold text-danger-text text-sm">
 											Recusar
 										</Text>

@@ -30,6 +30,7 @@ import {
 	validateProfileFile,
 } from '../utils/profileFiles';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CertificateUploadModalProps = {
 	visible: boolean;
 	/** Certificado em análise ou recusado cujo arquivo será substituído. */
@@ -70,6 +71,7 @@ export function CertificateUploadModal({
 	onClose,
 	onSubmitted,
 }: CertificateUploadModalProps) {
+	const themeColors = useThemeColors();
 	const [step, setStep] = useState<Step>('form');
 	const [message, setMessage] = useState('');
 	const [languages, setLanguages] = useState<CertifiableLanguage[]>([]);
@@ -291,9 +293,12 @@ export function CertificateUploadModal({
 								'Selecione um idioma')}
 					</Text>
 					{isLoadingLanguages ? (
-						<ActivityIndicator size="small" color="#6B7280" />
+						<ActivityIndicator
+							size="small"
+							color={themeColors.foregroundMuted}
+						/>
 					) : isReplacing ? null : (
-						<ChevronDown size={16} color="#6B7280" />
+						<ChevronDown size={16} color={themeColors.foregroundMuted} />
 					)}
 				</TouchableOpacity>
 
@@ -319,12 +324,12 @@ export function CertificateUploadModal({
 				{isPickerOpen && languages.length > 0 && (
 					<View className="overflow-hidden rounded-lg border border-border">
 						<View className="flex-row items-center gap-2 border-b border-border px-3">
-							<Search size={14} color="#9CA3AF" />
+							<Search size={14} color={themeColors.foregroundSubtle} />
 							<TextInput
 								value={search}
 								onChangeText={setSearch}
 								placeholder="Buscar idioma"
-								placeholderTextColor="#9CA3AF"
+								placeholderTextColor={themeColors.foregroundSubtle}
 								accessibilityLabel="Buscar idioma"
 								className="h-10 flex-1 font-inter text-sm text-foreground outline-none"
 							/>
@@ -351,7 +356,7 @@ export function CertificateUploadModal({
 										{item.name}
 									</Text>
 									{item.id === languageId && (
-										<Check size={14} color="#1D4ED8" />
+										<Check size={14} color={themeColors.primaryText} />
 									)}
 								</TouchableOpacity>
 							))}
@@ -422,7 +427,7 @@ export function CertificateUploadModal({
 					accessibilityLiveRegion="polite"
 					className="flex-row items-center gap-2 rounded-lg bg-primary-soft px-3 py-2.5"
 				>
-					<CircleAlert size={16} color="#1D4ED8" />
+					<CircleAlert size={16} color={themeColors.primaryText} />
 					<Text className="flex-1 font-inter text-primary-strong text-xs">
 						{missingMessage}
 					</Text>

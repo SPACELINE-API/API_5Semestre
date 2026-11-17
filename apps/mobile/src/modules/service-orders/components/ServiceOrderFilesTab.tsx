@@ -22,6 +22,7 @@ import { approvedDeliveries } from '../utils/fileReview';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const COLLAPSE_THRESHOLD = 3;
 
 export type ServiceOrderFileDeletionTarget =
@@ -89,6 +90,7 @@ function FileGroupList({
 	onDelete: (target: ServiceOrderFileDeletionTarget) => void;
 	deletingId: string | null;
 }) {
+	const themeColors = useThemeColors();
 	const canWriteDocuments = usePermission('documents.write');
 	const [expanded, setExpanded] = useState(files.length <= COLLAPSE_THRESHOLD);
 	const Chevron = expanded ? ChevronUp : ChevronDown;
@@ -113,7 +115,7 @@ function FileGroupList({
 						</Text>
 					</View>
 				</View>
-				<Chevron size={16} color="#6B7280" />
+				<Chevron size={16} color={themeColors.foregroundMuted} />
 			</TouchableOpacity>
 
 			{expanded && files.length === 0 && (
@@ -133,14 +135,14 @@ function FileGroupList({
 							onPress={() => openDocument(file.fileUrl)}
 							className="min-w-0 max-w-full flex-row items-center gap-1"
 						>
-							<FileText size={16} color="#1C6FB0" />
+							<FileText size={16} color={themeColors.primary} />
 							<Text
 								className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-xs"
 								numberOfLines={1}
 							>
 								{getTruncatedFileName(file.fileUrl)}
 							</Text>
-							<ExternalLink size={13} color="#1d4ed8" />
+							<ExternalLink size={13} color={themeColors.primaryText} />
 						</TouchableOpacity>
 
 						<View className="flex-row items-center gap-2">
@@ -158,7 +160,7 @@ function FileGroupList({
 								accessibilityLabel={`Excluir ${file.label}`}
 								className={`rounded-md p-2 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 							>
-								<Trash2 size={16} color="#B91C1C" />
+								<Trash2 size={16} color={themeColors.danger} />
 							</TouchableOpacity>
 						</View>
 					</View>
@@ -173,6 +175,7 @@ export function ServiceOrderFilesTab({
 	onUpload,
 	onDelete,
 }: ServiceOrderFilesTabProps) {
+	const themeColors = useThemeColors();
 	const [isUploading, setIsUploading] = useState(false);
 	const canWriteDocuments = usePermission('documents.write');
 	const [uploadedDeliveryFiles, setUploadedDeliveryFiles] = useState<
@@ -243,7 +246,7 @@ export function ServiceOrderFilesTab({
 					accessibilityState={{ disabled }}
 					className={`flex-row items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 ${disabled ? 'opacity-60' : ''}`}
 				>
-					<Upload size={14} color="#353535" />
+					<Upload size={14} color={themeColors.foreground} />
 					<Text className="font-inter font-semibold text-foreground text-xs">
 						{isUploading ? 'Enviando…' : 'Enviar arquivo'}
 					</Text>

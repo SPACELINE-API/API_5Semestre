@@ -25,6 +25,7 @@ import {
 import { getLanguageFlag } from '../utils/languageFlag';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function normalizeSearch(value: string) {
 	return value
 		.normalize('NFD')
@@ -62,6 +63,7 @@ export function TranslatorLanguagesStep({
 	createLanguageError,
 	onClearCreateLanguageError,
 }: Props) {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const [langPicker, setLangPicker] = useState<number | null>(null);
 	const [createLanguageVisible, setCreateLanguageVisible] = useState(false);
@@ -135,7 +137,7 @@ export function TranslatorLanguagesStep({
 									onPress={() => onRemoveLanguage(index)}
 									accessibilityLabel={`Remover idioma ${index + 1}`}
 								>
-									<Trash2 size={16} color="#5A5A5A" />
+									<Trash2 size={16} color={themeColors.foregroundSecondary} />
 								</TouchableOpacity>
 							)}
 						</View>
@@ -167,7 +169,7 @@ export function TranslatorLanguagesStep({
 										Selecione um idioma
 									</Text>
 								)}
-								<ChevronDown size={16} color="#6B7280" />
+								<ChevronDown size={16} color={themeColors.foregroundMuted} />
 							</TouchableOpacity>
 						</View>
 
@@ -210,7 +212,7 @@ export function TranslatorLanguagesStep({
 				activeOpacity={0.7}
 				className="flex-row items-center justify-center gap-2 rounded-xl border border-dashed border-border-strong bg-surface-subtle py-3"
 			>
-				<Plus size={16} color="#5A5A5A" />
+				<Plus size={16} color={themeColors.foregroundSecondary} />
 				<Text className="font-inter font-medium text-foreground-secondary text-sm">
 					Adicionar idioma
 				</Text>
@@ -238,11 +240,11 @@ export function TranslatorLanguagesStep({
 									onPress={closeLanguagePicker}
 									accessibilityLabel="Fechar seleção de idioma"
 								>
-									<X size={20} color="#5A5A5A" />
+									<X size={20} color={themeColors.foregroundSecondary} />
 								</TouchableOpacity>
 							</View>
 							<View className="mx-4 mt-4 flex-row items-center gap-2 rounded-lg border border-border-strong bg-surface px-3">
-								<Search size={17} color="#9CA3AF" />
+								<Search size={17} color={themeColors.foregroundSubtle} />
 								<TextInput
 									value={languageSearch}
 									onChangeText={setLanguageSearch}
@@ -251,7 +253,7 @@ export function TranslatorLanguagesStep({
 											? 'Buscar idioma ou código'
 											: 'Buscar por idioma ou código'
 									}
-									placeholderTextColor="#9CA3AF"
+									placeholderTextColor={themeColors.foregroundSubtle}
 									autoCapitalize="none"
 									autoCorrect={false}
 									accessibilityLabel="Buscar idioma"
@@ -275,7 +277,9 @@ export function TranslatorLanguagesStep({
 											<Text className="flex-1 font-inter font-medium text-foreground text-sm">
 												{option.name}
 											</Text>
-											{selected && <Check size={16} color="#1C6FB0" />}
+											{selected && (
+												<Check size={16} color={themeColors.primary} />
+											)}
 										</TouchableOpacity>
 									);
 								})}
@@ -289,7 +293,7 @@ export function TranslatorLanguagesStep({
 									onPress={openCreateLanguage}
 									disabled={!canWriteSettings}
 								>
-									<Plus size={16} color="#1C6FB0" />
+									<Plus size={16} color={themeColors.primary} />
 									<Text className="ml-2 font-inter font-medium text-primary-strong text-sm">
 										Adicionar outro idioma
 									</Text>

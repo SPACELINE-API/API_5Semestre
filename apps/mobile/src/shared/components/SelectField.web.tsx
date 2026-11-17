@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Check, ChevronDown, Search } from 'lucide-react-native';
 
+import { useThemeColors } from '../theme/ThemeProvider';
 export type SelectOption = { value: string; label: string };
 
 type SelectFieldProps = {
@@ -33,6 +34,7 @@ export function SelectField({
 	allLabel,
 	searchable = true,
 }: SelectFieldProps) {
+	const themeColors = useThemeColors();
 	const [isOpen, setIsOpen] = useState(false);
 	const [query, setQuery] = useState('');
 	const triggerRef = useRef<View>(null);
@@ -132,13 +134,13 @@ export function SelectField({
 				>
 					{searchable && (
 						<View className="flex-row items-center gap-2 border-b border-border-subtle px-3">
-							<Search size={14} color="#9CA3AF" />
+							<Search size={14} color={themeColors.foregroundSubtle} />
 							<TextInput
 								autoFocus
 								value={query}
 								onChangeText={setQuery}
 								placeholder="Pesquisar"
-								placeholderTextColor="#9CA3AF"
+								placeholderTextColor={themeColors.foregroundSubtle}
 								accessibilityLabel={`Pesquisar ${label}`}
 								className="h-10 flex-1 font-inter text-foreground text-sm outline-none"
 							/>
@@ -169,7 +171,9 @@ export function SelectField({
 									>
 										{option.label}
 									</Text>
-									{isSelected && <Check size={14} color="#1C6FB0" />}
+									{isSelected && (
+										<Check size={14} color={themeColors.primary} />
+									)}
 								</TouchableOpacity>
 							);
 						})}
@@ -198,7 +202,7 @@ export function SelectField({
 				>
 					{selected?.label ?? allLabel}
 				</Text>
-				<ChevronDown size={16} color="#6B7280" />
+				<ChevronDown size={16} color={themeColors.foregroundMuted} />
 			</TouchableOpacity>
 			{dropdown && createPortal(dropdown, document.body)}
 		</View>

@@ -15,6 +15,7 @@ import {
 import type { ServiceOrderItemStatus } from '../../service-orders/types/serviceOrder';
 import { useMyItems } from '../hooks/useMyItems';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function stageOf(status: string) {
 	const index = WORKFLOW_STEPS.findIndex((step) => step.status === status);
 	if (index === -1) return null;
@@ -22,6 +23,7 @@ function stageOf(status: string) {
 }
 
 export function MyItemsPage() {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const { items, isLoading, error, refresh } = useMyItems();
 
@@ -42,7 +44,7 @@ export function MyItemsPage() {
 
 				{isLoading && (
 					<View className="items-center justify-center py-16">
-						<ActivityIndicator color="#6B7280" />
+						<ActivityIndicator color={themeColors.foregroundMuted} />
 						<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 							Carregando itens...
 						</Text>
@@ -52,7 +54,7 @@ export function MyItemsPage() {
 				{!isLoading && error && (
 					<View className="gap-3 py-8">
 						<View className="flex-row items-center gap-2">
-							<AlertCircle size={16} color="#DC2626" />
+							<AlertCircle size={16} color={themeColors.danger} />
 							<Text className="font-inter font-semibold text-danger text-sm">
 								{error}
 							</Text>
@@ -71,7 +73,7 @@ export function MyItemsPage() {
 				{!isLoading && !error && items.length === 0 && (
 					<View className="items-center justify-center py-16">
 						<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
-							<ClipboardList size={18} color="#9CA3AF" />
+							<ClipboardList size={18} color={themeColors.foregroundSubtle} />
 						</View>
 						<Text className="font-inter font-medium text-foreground text-sm">
 							Nenhum item atribuído a você
@@ -126,7 +128,10 @@ export function MyItemsPage() {
 											</View>
 										)}
 									</View>
-									<ChevronRight size={17} color="#9CA3AF" />
+									<ChevronRight
+										size={17}
+										color={themeColors.foregroundSubtle}
+									/>
 								</TouchableOpacity>
 							);
 						})}

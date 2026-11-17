@@ -5,6 +5,7 @@ import type { AdditionalService } from '../services/additionalService';
 import { decimalStringToBRL } from '../../../shared/utils/currency';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const statusStyles: Record<string, { label: string; classes: string }> = {
 	approved: {
 		label: 'Concluído',
@@ -39,6 +40,7 @@ export function AdditionalServiceCard({
 	onMarkAsCompleted?: () => Promise<void>;
 	isInServiceOrder?: boolean;
 }) {
+	const themeColors = useThemeColors();
 	const [isCompleting, setIsCompleting] = useState(false);
 	const canWriteQuotes = usePermission('quotes.write');
 	const canMarkAsCompleted =
@@ -67,7 +69,7 @@ export function AdditionalServiceCard({
 			<View className="flex-row flex-wrap items-start justify-between gap-3">
 				<View className="flex-row flex-1 items-center gap-3">
 					<View className="h-9 w-9 items-center justify-center rounded-lg bg-surface-muted">
-						<PackagePlus size={17} color="#4b5563" />
+						<PackagePlus size={17} color={themeColors.foregroundSecondary} />
 					</View>
 					<View className="min-w-0 flex-1">
 						<Text className="font-inter-semibold text-sm text-foreground">
@@ -104,7 +106,7 @@ export function AdditionalServiceCard({
 							accessibilityLabel={`Marcar serviço adicional ${service.description} como concluído`}
 							className={`flex-row items-center gap-1 py-1 ${isCompleting ? 'opacity-60' : !canWriteQuotes ? 'opacity-40' : ''}`}
 						>
-							<CheckCheck size={14} color="#047857" />
+							<CheckCheck size={14} color={themeColors.successText} />
 							<Text className="font-inter font-medium text-success-text text-xs">
 								{isCompleting ? 'Concluindo…' : 'Concluir'}
 							</Text>
@@ -119,7 +121,7 @@ export function AdditionalServiceCard({
 							accessibilityLabel={`Editar serviço adicional ${service.description}`}
 							className={`flex-row items-center gap-1 py-1 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 						>
-							<Pencil size={14} color="#353535" />
+							<Pencil size={14} color={themeColors.foreground} />
 							<Text className="font-inter font-medium text-foreground-secondary text-xs">
 								Editar
 							</Text>

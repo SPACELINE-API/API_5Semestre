@@ -10,6 +10,7 @@ import { Check, ChevronDown, ChevronUp, Search, X } from 'lucide-react-native';
 import type { Role } from '../../auth/types/roles';
 import { normalizeText } from '../utils/departments';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type RoleMultiSelectProps = {
 	roles: Role[];
 	selectedIds: string[];
@@ -17,6 +18,7 @@ type RoleMultiSelectProps = {
 };
 
 function Box({ checked }: { checked: boolean }) {
+	const themeColors = useThemeColors();
 	return (
 		<View
 			className={`h-5 w-5 items-center justify-center rounded border ${
@@ -25,7 +27,7 @@ function Box({ checked }: { checked: boolean }) {
 					: 'border-border-strong bg-surface'
 			}`}
 		>
-			{checked && <Check size={14} color="#FFFFFF" />}
+			{checked && <Check size={14} color={themeColors.primaryForeground} />}
 		</View>
 	);
 }
@@ -35,6 +37,7 @@ export function RoleMultiSelect({
 	selectedIds,
 	onChange,
 }: RoleMultiSelectProps) {
+	const themeColors = useThemeColors();
 	const [open, setOpen] = useState(false);
 	const [query, setQuery] = useState('');
 
@@ -87,18 +90,18 @@ export function RoleMultiSelect({
 				>
 					{summary}
 				</Text>
-				<Chevron size={16} color="#6B7280" />
+				<Chevron size={16} color={themeColors.foregroundMuted} />
 			</TouchableOpacity>
 
 			{open && (
 				<View className="overflow-hidden rounded-lg border border-border bg-surface">
 					<View className="flex-row items-center gap-2 border-b border-border px-3">
-						<Search size={14} color="#9CA3AF" />
+						<Search size={14} color={themeColors.foregroundSubtle} />
 						<TextInput
 							value={query}
 							onChangeText={setQuery}
 							placeholder="Pesquisar"
-							placeholderTextColor="#9CA3AF"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							accessibilityLabel="Pesquisar perfil"
 							className="h-10 flex-1 font-inter text-foreground text-sm outline-none"
 						/>
@@ -190,7 +193,7 @@ export function RoleMultiSelect({
 								accessibilityRole="button"
 								accessibilityLabel={`Remover ${role.name}`}
 							>
-								<X size={13} color="#1E40AF" />
+								<X size={13} color={themeColors.primaryStrong} />
 							</TouchableOpacity>
 						</View>
 					))}

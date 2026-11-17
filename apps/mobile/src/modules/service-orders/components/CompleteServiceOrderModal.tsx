@@ -32,6 +32,7 @@ import {
 } from '../utils/fileReview';
 import { openDocument } from '../../../shared/components/FilePreview';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompleteServiceOrderModalProps = {
 	visible: boolean;
 	serviceOrder: ServiceOrder;
@@ -88,6 +89,7 @@ export function CompleteServiceOrderModal({
 	onSent,
 	onCompleted,
 }: CompleteServiceOrderModalProps) {
+	const themeColors = useThemeColors();
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
 	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
@@ -249,7 +251,7 @@ export function CompleteServiceOrderModal({
 							accessibilityLabel="Fechar conclusão da ordem de serviço"
 							className="h-9 w-9 shrink-0 items-center justify-center rounded-full hover:bg-surface-muted"
 						>
-							<X size={18} color="#6B7280" />
+							<X size={18} color={themeColors.foregroundMuted} />
 						</TouchableOpacity>
 					</View>
 
@@ -274,7 +276,10 @@ export function CompleteServiceOrderModal({
 
 						{isLoadingTemplate && (
 							<View className="flex-row items-center gap-2 rounded-lg bg-surface-subtle px-3 py-3">
-								<ActivityIndicator size="small" color="#2563EB" />
+								<ActivityIndicator
+									size="small"
+									color={themeColors.primaryText}
+								/>
 								<Text className="font-inter text-foreground-muted text-sm">
 									Carregando template...
 								</Text>
@@ -300,7 +305,7 @@ export function CompleteServiceOrderModal({
 										value={subject}
 										onChangeText={setSubject}
 										placeholder="Assunto do e-mail"
-										placeholderTextColor="#9CA3AF"
+										placeholderTextColor={themeColors.foregroundSubtle}
 										accessibilityLabel="Assunto do e-mail"
 										className="rounded-lg border border-border-strong px-3 py-2.5 font-inter text-foreground text-sm outline-none"
 									/>
@@ -314,7 +319,7 @@ export function CompleteServiceOrderModal({
 										value={message}
 										onChangeText={setMessage}
 										placeholder="Mensagem do e-mail"
-										placeholderTextColor="#9CA3AF"
+										placeholderTextColor={themeColors.foregroundSubtle}
 										accessibilityLabel="Mensagem do e-mail"
 										multiline
 										textAlignVertical="top"
@@ -344,9 +349,9 @@ export function CompleteServiceOrderModal({
 										className="flex-row items-center gap-1.5"
 									>
 										{allFilesSelected ? (
-											<Check size={16} color="#2563EB" />
+											<Check size={16} color={themeColors.primaryText} />
 										) : (
-											<Square size={16} color="#6B7280" />
+											<Square size={16} color={themeColors.foregroundMuted} />
 										)}
 										<Text className="font-inter text-primary-text text-xs">
 											Selecionar todos
@@ -379,7 +384,7 @@ export function CompleteServiceOrderModal({
 												className="p-1"
 											>
 												{isSelected ? (
-													<Check size={18} color="#2563EB" />
+													<Check size={18} color={themeColors.primaryText} />
 												) : (
 													<Square
 														size={18}
@@ -395,7 +400,7 @@ export function CompleteServiceOrderModal({
 												className="min-w-0 flex-1 flex-row items-center gap-3"
 											>
 												<View className="h-9 w-9 items-center justify-center rounded-lg bg-primary-soft">
-													<FileText size={17} color="#2563EB" />
+													<FileText size={17} color={themeColors.primaryText} />
 												</View>
 												<View className="min-w-0 flex-1">
 													<Text
@@ -425,7 +430,7 @@ export function CompleteServiceOrderModal({
 								value={observation}
 								onChangeText={setObservation}
 								placeholder="Adicione uma observação para incluir no e-mail"
-								placeholderTextColor="#9CA3AF"
+								placeholderTextColor={themeColors.foregroundSubtle}
 								accessibilityLabel="Observação opcional para o e-mail"
 								multiline
 								textAlignVertical="top"
@@ -464,7 +469,10 @@ export function CompleteServiceOrderModal({
 								className="flex-row items-center gap-2 rounded-lg bg-primary px-5 py-2.5"
 							>
 								{isSending && (
-									<ActivityIndicator size="small" color="#FFFFFF" />
+									<ActivityIndicator
+										size="small"
+										color={themeColors.primaryForeground}
+									/>
 								)}
 								<Text className="font-inter font-semibold text-primary-foreground text-sm">
 									{isSending ? 'Finalizando...' : 'Finalizar OS'}
@@ -479,7 +487,10 @@ export function CompleteServiceOrderModal({
 								className={`flex-row items-center gap-2 rounded-lg bg-primary px-5 py-2.5 ${canSend ? '' : 'opacity-50'}`}
 							>
 								{isSending && (
-									<ActivityIndicator size="small" color="#FFFFFF" />
+									<ActivityIndicator
+										size="small"
+										color={themeColors.primaryForeground}
+									/>
 								)}
 								<Text className="font-inter font-semibold text-primary-foreground text-sm">
 									{isSending ? 'Enviando...' : 'Enviar'}

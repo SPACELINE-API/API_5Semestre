@@ -13,6 +13,7 @@ import {
 } from '../utils/certificateStatus';
 import { formatFileSize } from '../utils/profileFiles';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CertificateDetailsModalProps = {
 	certificate: TranslatorCertificate | null;
 	isUnavailable: boolean;
@@ -28,6 +29,7 @@ export function CertificateDetailsModal({
 	onUnavailable,
 	onReplace,
 }: CertificateDetailsModalProps) {
+	const themeColors = useThemeColors();
 	const [isOpening, setIsOpening] = useState(false);
 	const [openError, setOpenError] = useState<string | null>(null);
 
@@ -88,7 +90,7 @@ export function CertificateDetailsModal({
 				)}
 
 				<View className="flex-row items-center gap-2 rounded-lg border border-border px-3 py-2.5">
-					<FileText size={16} color="#6B7280" />
+					<FileText size={16} color={themeColors.foregroundMuted} />
 					<Text
 						className="flex-1 font-inter text-foreground-secondary text-sm"
 						numberOfLines={1}
@@ -125,9 +127,12 @@ export function CertificateDetailsModal({
 							}`}
 						>
 							{isOpening ? (
-								<ActivityIndicator size="small" color="#374151" />
+								<ActivityIndicator
+									size="small"
+									color={themeColors.foregroundSecondary}
+								/>
 							) : (
-								<Eye size={16} color="#374151" />
+								<Eye size={16} color={themeColors.foregroundSecondary} />
 							)}
 							<Text className="font-inter font-semibold text-foreground text-sm">
 								Visualizar arquivo
@@ -140,7 +145,7 @@ export function CertificateDetailsModal({
 							accessibilityRole="button"
 							className="min-w-[140px] flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-primary px-3 py-2.5"
 						>
-							<RefreshCw size={16} color="#1D4ED8" />
+							<RefreshCw size={16} color={themeColors.primaryText} />
 							<Text className="font-inter font-semibold text-primary-text text-sm">
 								Substituir
 							</Text>

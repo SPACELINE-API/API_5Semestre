@@ -6,6 +6,7 @@ import { maskPhone } from '../../clients/utils/mask';
 import type { InternalUser } from '../types/internalUser';
 import { RoleMultiSelect } from './RoleMultiSelect';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export type PersonFormValues = {
 	name: string;
 	email: string;
@@ -60,6 +61,7 @@ export function PersonFormModal({
 	onClose,
 	onSubmit,
 }: PersonFormModalProps) {
+	const themeColors = useThemeColors();
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
 	const [phone, setPhone] = useState('');
@@ -128,7 +130,7 @@ export function PersonFormModal({
 						value={name}
 						onChangeText={setName}
 						placeholder="Ex: Ana Souza"
-						placeholderTextColor="#8A8A8A"
+						placeholderTextColor={themeColors.foregroundMuted}
 						maxLength={150}
 						accessibilityLabel="Nome completo"
 						className={INPUT_CLASS}
@@ -147,7 +149,7 @@ export function PersonFormModal({
 							value={email}
 							onChangeText={setEmail}
 							placeholder="nome@empresa.com"
-							placeholderTextColor="#8A8A8A"
+							placeholderTextColor={themeColors.foregroundMuted}
 							autoCapitalize="none"
 							keyboardType="email-address"
 							maxLength={255}
@@ -167,7 +169,7 @@ export function PersonFormModal({
 						value={phone}
 						onChangeText={(value) => setPhone(maskPhone(value))}
 						placeholder="(11) 99999-0000"
-						placeholderTextColor="#8A8A8A"
+						placeholderTextColor={themeColors.foregroundMuted}
 						keyboardType="phone-pad"
 						accessibilityLabel="Telefone"
 						className={INPUT_CLASS}

@@ -13,6 +13,7 @@ import {
 } from '../utils/proposalFormat';
 import { ProposalStatusBadge } from './ProposalStatusBadge';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const WIDE_BREAKPOINT = 900;
 
 type ProposalTableProps = {
@@ -21,6 +22,7 @@ type ProposalTableProps = {
 };
 
 export function ProposalTable({ rows, onSelect }: ProposalTableProps) {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const isWide = width >= WIDE_BREAKPOINT;
 
@@ -54,7 +56,7 @@ export function ProposalTable({ rows, onSelect }: ProposalTableProps) {
 											'Serviço não informado'}
 									</Text>
 								</View>
-								<ChevronRight size={17} color="#9CA3AF" />
+								<ChevronRight size={17} color={themeColors.foregroundSubtle} />
 							</View>
 							<View className="flex-row flex-wrap items-center justify-between gap-3">
 								<View className="gap-0.5">
@@ -138,7 +140,7 @@ export function ProposalTable({ rows, onSelect }: ProposalTableProps) {
 							{formatProposalDate(proposal.created_at)}
 						</Text>
 						<View className="w-6 items-end">
-							<ChevronRight size={17} color="#9CA3AF" />
+							<ChevronRight size={17} color={themeColors.foregroundSubtle} />
 						</View>
 					</TouchableOpacity>
 				);

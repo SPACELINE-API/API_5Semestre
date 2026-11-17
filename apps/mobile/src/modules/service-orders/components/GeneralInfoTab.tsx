@@ -12,6 +12,7 @@ import { DateField } from '../../../shared/components/DateField';
 import { formatDate, formatDateInputValue } from '../utils/format';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function getTodayInputValue() {
 	const today = new Date();
 	const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -25,6 +26,7 @@ type GeneralInfoTabProps = {
 };
 
 export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
+	const themeColors = useThemeColors();
 	const [isEditing, setIsEditing] = useState(false);
 	const canWriteServiceOrders = usePermission('service_orders.write');
 	const [projectName, setProjectName] = useState(serviceOrder.project_name);
@@ -99,7 +101,7 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 						accessibilityLabel="Editar dados gerais"
 						className={`h-8 w-8 items-center justify-center rounded-lg border border-border hover:bg-surface-subtle ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 					>
-						<Settings size={16} color="#6B7280" />
+						<Settings size={16} color={themeColors.foregroundMuted} />
 					</TouchableOpacity>
 				)}
 			</View>
@@ -259,7 +261,7 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 								value={externalNotes}
 								onChangeText={setExternalNotes}
 								placeholder="Visível para o cliente"
-								placeholderTextColor="#8A8A8A"
+								placeholderTextColor={themeColors.foregroundMuted}
 								multiline
 								numberOfLines={3}
 								className="rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none min-h-[80px]"
@@ -274,7 +276,7 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 								value={internalNotes}
 								onChangeText={setInternalNotes}
 								placeholder="Visível apenas para a equipe"
-								placeholderTextColor="#8A8A8A"
+								placeholderTextColor={themeColors.foregroundMuted}
 								multiline
 								numberOfLines={3}
 								className="rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none min-h-[80px]"
@@ -291,7 +293,7 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 							accessibilityLabel="Cancelar edição dos dados gerais"
 							className="flex-row items-center gap-1.5 self-start rounded-lg border border-border px-5 py-2.5"
 						>
-							<X size={14} color="#374151" />
+							<X size={14} color={themeColors.foregroundSecondary} />
 							<Text className="font-inter font-medium text-foreground-secondary text-sm">
 								Cancelar
 							</Text>

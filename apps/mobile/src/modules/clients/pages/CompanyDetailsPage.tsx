@@ -28,9 +28,11 @@ import {
 import { useContactsByCompany } from '../../contacts/hooks/useContactsByCompany';
 import type { Contact } from '../../contacts/types/contact';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyDetailsPageProps = { id: string };
 
 export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const [activeTab, setActiveTab] = useState<CompanyDetailsTab>('info');
 	const [isEditVisible, setIsEditVisible] = useState(false);
@@ -139,14 +141,17 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 					activeOpacity={0.7}
 					className="mb-7 flex-row items-center gap-2"
 				>
-					<ArrowLeft size={16} color="#6B7280" />
+					<ArrowLeft size={16} color={themeColors.foregroundMuted} />
 					<Text className="font-inter text-foreground-muted text-sm">
 						Voltar para clientes
 					</Text>
 				</TouchableOpacity>
 				{isLoading && (
 					<View className="min-h-[500px] items-center justify-center">
-						<ActivityIndicator size="large" color="#6B7280" />
+						<ActivityIndicator
+							size="large"
+							color={themeColors.foregroundMuted}
+						/>
 						<Text className="mt-4 font-inter text-foreground-subtle text-sm">
 							Carregando dados da empresa...
 						</Text>
@@ -155,7 +160,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 				{!isLoading && error && (
 					<View className="gap-1 border-t border-border py-8">
 						<View className="flex-row items-center gap-2">
-							<AlertCircle size={16} color="#DC2626" />
+							<AlertCircle size={16} color={themeColors.danger} />
 							<Text className="font-inter font-semibold text-danger text-sm">
 								Não foi possível carregar a empresa
 							</Text>

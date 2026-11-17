@@ -79,6 +79,7 @@ import { AddItemModal } from '../../service-orders/components/AddItemModal';
 import { EditItemModal } from '../../service-orders/components/EditItemModal';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const statusStyles: Record<string, { label: string; classes: string }> = {
 	approved: { label: 'Aprovado', classes: 'bg-success-soft text-success-text' },
 	pending: {
@@ -165,6 +166,7 @@ function CurrencyField({
 	value: string;
 	onChangeValue: (value: string) => void;
 }) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="w-full gap-1 md:w-[47%]">
 			<Text className="font-inter-medium text-xs text-foreground-muted">
@@ -175,7 +177,7 @@ function CurrencyField({
 				onChangeText={(text) => onChangeValue(maskCurrencyDigits(text))}
 				keyboardType="numeric"
 				placeholder="R$ 0,00"
-				placeholderTextColor="#9CA3AF"
+				placeholderTextColor={themeColors.foregroundSubtle}
 				className="rounded-lg border border-border-strong bg-surface px-3 py-2 font-inter text-sm text-foreground"
 			/>
 		</View>
@@ -193,6 +195,7 @@ function CompanyLinkField({
 	onSelectCompany: (id: string) => void;
 	onRequestCreate: (searchText: string) => void;
 }) {
+	const themeColors = useThemeColors();
 	const canWriteClients = usePermission('clients.write');
 	const [isOpen, setIsOpen] = useState(false);
 	const [search, setSearch] = useState('');
@@ -249,7 +252,7 @@ function CompanyLinkField({
 						onPress={openPicker}
 						className="flex-row items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong bg-surface px-3 py-2.5"
 					>
-						<Building2 size={14} color="#6b7280" />
+						<Building2 size={14} color={themeColors.foregroundMuted} />
 						<Text className="font-inter-medium text-sm text-foreground-secondary">
 							Vincular empresa
 						</Text>
@@ -277,13 +280,13 @@ function CompanyLinkField({
 						}}
 					>
 						<View className="flex-row items-center gap-2 border-b border-border-subtle px-3 py-2">
-							<Search size={14} color="#9CA3AF" />
+							<Search size={14} color={themeColors.foregroundSubtle} />
 							<TextInput
 								autoFocus
 								value={search}
 								onChangeText={setSearch}
 								placeholder="Buscar empresa"
-								placeholderTextColor="#9CA3AF"
+								placeholderTextColor={themeColors.foregroundSubtle}
 								className="flex-1 font-inter text-sm text-foreground max-md:min-w-0 max-md:shrink max-md:leading-5"
 							/>
 							<TouchableOpacity
@@ -291,7 +294,7 @@ function CompanyLinkField({
 								accessibilityLabel="Fechar busca de empresa"
 								onPress={closePicker}
 							>
-								<X size={14} color="#6b7280" />
+								<X size={14} color={themeColors.foregroundMuted} />
 							</TouchableOpacity>
 						</View>
 						<ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
@@ -327,7 +330,7 @@ function CompanyLinkField({
 							disabled={!canWriteClients}
 							className={`flex-row items-center gap-2 border-t border-border-subtle bg-surface-subtle px-3 py-2.5 ${!canWriteClients ? 'opacity-40' : ''}`}
 						>
-							<Plus size={14} color="#1d4ed8" />
+							<Plus size={14} color={themeColors.primaryText} />
 							<Text className="font-inter-medium text-xs text-primary-text">
 								Criar nova empresa
 							</Text>
@@ -402,6 +405,7 @@ export function QuoteCard({
 	onQuoteChange: (quote: ManagedQuote) => void;
 	updating: boolean;
 }) {
+	const themeColors = useThemeColors();
 	const [expanded, setExpanded] = useState(false);
 	const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 	const [rejectionFormOpen, setRejectionFormOpen] = useState(false);
@@ -849,7 +853,7 @@ export function QuoteCard({
 			>
 				<View className="flex-row items-center gap-3">
 					<View className="h-11 w-11 items-center justify-center rounded-xl bg-primary-soft">
-						<FileText size={21} color="#2563eb" />
+						<FileText size={21} color={themeColors.primaryText} />
 					</View>
 					<View className="gap-1">
 						<Text className="font-inter-bold text-base text-foreground">
@@ -883,15 +887,15 @@ export function QuoteCard({
 				</View>
 				<View className="flex-row flex-wrap items-center gap-3">
 					<View className="flex-row items-center gap-2">
-						<CalendarDays size={15} color="#6b7280" />
+						<CalendarDays size={15} color={themeColors.foregroundMuted} />
 						<Text className="font-inter text-xs text-foreground-muted">
 							Atualizado {formatDate(quote.updated_at)}
 						</Text>
 					</View>
 					{expanded ? (
-						<ChevronUp size={18} color="#6b7280" />
+						<ChevronUp size={18} color={themeColors.foregroundMuted} />
 					) : (
-						<ChevronDown size={18} color="#6b7280" />
+						<ChevronDown size={18} color={themeColors.foregroundMuted} />
 					)}
 				</View>
 			</TouchableOpacity>
@@ -905,7 +909,7 @@ export function QuoteCard({
 							onPress={onOpenServiceOrder}
 							className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-primary/30 px-3 py-2"
 						>
-							<FileText size={16} color="#1d4ed8" />
+							<FileText size={16} color={themeColors.primaryText} />
 							<Text className="font-inter-medium text-sm text-primary-text">
 								Abrir ordem de serviço
 							</Text>
@@ -977,7 +981,7 @@ export function QuoteCard({
 								<View className="mt-4 gap-3">
 									{!quote.company_id && (
 										<View className="flex-row items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft p-3">
-											<CircleAlert size={16} color="#b45309" />
+											<CircleAlert size={16} color={themeColors.warningText} />
 											<Text className="flex-1 font-inter text-sm text-warning-text">
 												Vincule uma empresa a este orçamento antes de aprová-lo.
 											</Text>
@@ -985,7 +989,7 @@ export function QuoteCard({
 									)}
 									{quote.company_id && quote.items.length === 0 && (
 										<View className="flex-row items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft p-3">
-											<CircleAlert size={16} color="#b45309" />
+											<CircleAlert size={16} color={themeColors.warningText} />
 											<Text className="flex-1 font-inter text-sm text-warning-text">
 												Adicione ao menos um documento ao orçamento antes de
 												aprová-lo.
@@ -1094,7 +1098,7 @@ export function QuoteCard({
 									disabled={!canWriteQuotes}
 									className={`h-8 w-8 items-center justify-center rounded-lg border border-border hover:bg-surface-subtle ${!canWriteQuotes ? 'opacity-40' : ''}`}
 								>
-									<Pencil size={14} color="#6B7280" />
+									<Pencil size={14} color={themeColors.foregroundMuted} />
 								</TouchableOpacity>
 							)}
 						</View>
@@ -1196,7 +1200,10 @@ export function QuoteCard({
 													onPress={() => void handlePickItemFile(item.id)}
 													className={`shrink-0 flex-row items-center gap-2 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 												>
-													<Paperclip size={14} color="#1d4ed8" />
+													<Paperclip
+														size={14}
+														color={themeColors.primaryText}
+													/>
 													<Text className="font-inter-medium text-sm text-primary-text">
 														{uploadingItemId === item.id
 															? 'Enviando...'
@@ -1218,7 +1225,10 @@ export function QuoteCard({
 													>
 														{getFileName(item.file_url)}
 													</Text>
-													<ExternalLink size={14} color="#1d4ed8" />
+													<ExternalLink
+														size={14}
+														color={themeColors.primaryText}
+													/>
 												</TouchableOpacity>
 											)}
 											<TouchableOpacity
@@ -1227,7 +1237,7 @@ export function QuoteCard({
 												onPress={() => removeDraftItem(item.id)}
 												className="h-8 w-8 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft"
 											>
-												<Trash2 size={14} color="#b91c1c" />
+												<Trash2 size={14} color={themeColors.danger} />
 											</TouchableOpacity>
 										</View>
 									</View>
@@ -1237,7 +1247,7 @@ export function QuoteCard({
 									onPress={addDraftItem}
 									className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-border-strong px-4 py-2.5"
 								>
-									<Plus size={15} color="#374151" />
+									<Plus size={15} color={themeColors.foregroundSecondary} />
 									<Text className="font-inter-medium text-sm text-foreground-secondary">
 										Adicionar item
 									</Text>
@@ -1253,7 +1263,10 @@ export function QuoteCard({
 										<View className="flex-row flex-wrap items-start justify-between gap-3">
 											<View className="flex-row flex-1 items-center gap-3">
 												<View className="h-9 w-9 items-center justify-center rounded-lg bg-surface-muted">
-													<FileText size={17} color="#4b5563" />
+													<FileText
+														size={17}
+														color={themeColors.foregroundSecondary}
+													/>
 												</View>
 												<View className="min-w-0 flex-1">
 													<Text className="font-inter-semibold text-sm text-foreground">
@@ -1288,7 +1301,10 @@ export function QuoteCard({
 														{getFileName(item.file_url)}
 													</Text>
 													<View className="flex-shrink-0">
-														<ExternalLink size={14} color="#1d4ed8" />
+														<ExternalLink
+															size={14}
+															color={themeColors.primaryText}
+														/>
 													</View>
 												</TouchableOpacity>
 											) : (
@@ -1379,7 +1395,7 @@ export function QuoteCard({
 									disabled={!canWriteQuotes}
 									className={`flex-row items-center justify-center gap-2 self-start rounded-lg border border-dashed border-border-strong px-4 py-2.5 ${!canWriteQuotes ? 'opacity-40' : ''}`}
 								>
-									<Plus size={15} color="#374151" />
+									<Plus size={15} color={themeColors.foregroundSecondary} />
 									<Text className="font-inter-medium text-sm text-foreground-secondary">
 										Novo serviço adicional
 									</Text>
@@ -1432,7 +1448,7 @@ export function QuoteCard({
 								onPress={cancelEditing}
 								className="flex-row items-center gap-1.5 rounded-lg border border-border-strong px-5 py-2.5"
 							>
-								<X size={14} color="#374151" />
+								<X size={14} color={themeColors.foregroundSecondary} />
 								<Text className="font-inter-medium text-sm text-foreground-secondary">
 									Cancelar
 								</Text>
@@ -1446,9 +1462,9 @@ export function QuoteCard({
 							className="flex-row items-center gap-2 self-start border-t border-border-subtle pt-4"
 						>
 							{showTechnicalDetails ? (
-								<ChevronUp size={16} color="#6b7280" />
+								<ChevronUp size={16} color={themeColors.foregroundMuted} />
 							) : (
-								<ChevronDown size={16} color="#6b7280" />
+								<ChevronDown size={16} color={themeColors.foregroundMuted} />
 							)}
 							<Text className="font-inter-medium text-xs text-foreground-muted">
 								{showTechnicalDetails

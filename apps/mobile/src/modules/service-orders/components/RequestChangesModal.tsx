@@ -18,6 +18,7 @@ import {
 import { X } from 'lucide-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export const MIN_CHANGES_NOTE_LENGTH = 3;
 export const MAX_CHANGES_NOTE_LENGTH = 1000;
 
@@ -36,6 +37,7 @@ export function RequestChangesModal({
 	onClose,
 	onSubmit,
 }: RequestChangesModalProps) {
+	const themeColors = useThemeColors();
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
 	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
@@ -89,7 +91,7 @@ export function RequestChangesModal({
 									</Text>
 								</View>
 								<TouchableOpacity onPress={onClose} disabled={isSubmitting}>
-									<X size={20} color="#5A5A5A" />
+									<X size={20} color={themeColors.foregroundSecondary} />
 								</TouchableOpacity>
 							</View>
 
@@ -104,7 +106,7 @@ export function RequestChangesModal({
 										setError(null);
 									}}
 									placeholder="Ex.: revisar a terminologia jurídica e as datas"
-									placeholderTextColor="#9CA3AF"
+									placeholderTextColor={themeColors.foregroundSubtle}
 									multiline
 									maxLength={MAX_CHANGES_NOTE_LENGTH}
 									textAlignVertical="top"
@@ -140,7 +142,10 @@ export function RequestChangesModal({
 									className={`flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 								>
 									{isSubmitting && (
-										<ActivityIndicator size="small" color="#fff" />
+										<ActivityIndicator
+											size="small"
+											color={themeColors.primaryForeground}
+										/>
 									)}
 									<Text className="font-inter-medium text-sm text-primary-foreground">
 										Enviar pedido

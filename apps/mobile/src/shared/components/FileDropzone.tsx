@@ -4,6 +4,7 @@ import { FileText, FileUp, RefreshCw } from 'lucide-react-native';
 import { pickDocument } from '../utils/pickDocument';
 import type { NativeFile } from '../types/file';
 
+import { useThemeColors } from '../theme/ThemeProvider';
 type FileDropzoneProps = {
 	file: NativeFile | null;
 	/** Tipos MIME oferecidos no seletor de arquivos. */
@@ -39,6 +40,7 @@ export function FileDropzone({
 	onFileSelected,
 	onError,
 }: FileDropzoneProps) {
+	const themeColors = useThemeColors();
 	const dropRef = useRef<View>(null);
 	const [isDragging, setIsDragging] = useState(false);
 	const callbacks = useRef({ onFileSelected, onError });
@@ -119,7 +121,7 @@ export function FileDropzone({
 			{file ? (
 				<>
 					<View className="h-12 w-12 items-center justify-center rounded-full bg-surface">
-						<FileText size={24} color="#1D4ED8" />
+						<FileText size={24} color={themeColors.primaryText} />
 					</View>
 					<View className="w-full items-center gap-0.5">
 						<Text
@@ -140,7 +142,7 @@ export function FileDropzone({
 						accessibilityRole="button"
 						className="flex-row items-center gap-1.5 rounded-lg border border-border-strong bg-surface px-3 py-2"
 					>
-						<RefreshCw size={14} color="#374151" />
+						<RefreshCw size={14} color={themeColors.foregroundSecondary} />
 						<Text className="font-inter font-semibold text-foreground text-xs">
 							Trocar arquivo
 						</Text>
@@ -149,7 +151,7 @@ export function FileDropzone({
 			) : (
 				<>
 					<View className="h-12 w-12 items-center justify-center rounded-full bg-surface">
-						<FileUp size={24} color="#6B7280" />
+						<FileUp size={24} color={themeColors.foregroundMuted} />
 					</View>
 					<View className="items-center gap-1">
 						<Text className="text-center font-inter font-medium text-foreground-secondary text-sm">
@@ -171,7 +173,7 @@ export function FileDropzone({
 						accessibilityRole="button"
 						className="flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5"
 					>
-						<FileUp size={16} color="#FFFFFF" />
+						<FileUp size={16} color={themeColors.primaryForeground} />
 						<Text className="font-inter font-semibold text-sm text-primary-foreground">
 							Importar documento
 						</Text>

@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react-native';
 import type { Department, InternalUser } from '../types/internalUser';
 import { PersonRow } from './PersonRow';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type DepartmentSectionProps = {
 	department: Department;
 	currentUserEmail: string | null;
@@ -21,6 +22,7 @@ export function DepartmentSection({
 	onSendLink,
 	onDeactivate,
 }: DepartmentSectionProps) {
+	const themeColors = useThemeColors();
 	const [expanded, setExpanded] = useState(true);
 	const Chevron = expanded ? ChevronDown : ChevronRight;
 	const activeCount = department.people.filter(
@@ -37,7 +39,7 @@ export function DepartmentSection({
 				className="flex-row items-center justify-between gap-3 bg-surface-subtle px-4 py-3"
 			>
 				<View className="min-w-0 flex-1 flex-row items-center gap-3">
-					<Chevron size={18} color="#4B5563" />
+					<Chevron size={18} color={themeColors.foregroundSecondary} />
 					<Text
 						className="font-inter font-bold text-foreground text-sm"
 						numberOfLines={1}

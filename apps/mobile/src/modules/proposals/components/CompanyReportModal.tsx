@@ -18,6 +18,7 @@ import {
 } from '../services/proposalService';
 import type { ReportCompanyOption, ReportFormat } from '../types/report';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const GRANULARITY_OPTIONS = [
 	{ value: 'days', label: 'Dias' },
 	{ value: 'months', label: 'Meses' },
@@ -58,6 +59,7 @@ export function CompanyReportModal({
 	onClose: () => void;
 	onSuccess?: (message: string) => void;
 }) {
+	const themeColors = useThemeColors();
 	const [companies, setCompanies] = useState<ReportCompanyOption[]>([]);
 	const [selectedIds, setSelectedIds] = useState<string[]>([]);
 	const [selectAll, setSelectAll] = useState(false);
@@ -218,7 +220,7 @@ export function CompanyReportModal({
 						setIsCompanyPickerOpen(true);
 					}}
 					placeholder={selectAll ? 'Todas selecionadas' : 'Buscar empresa'}
-					placeholderTextColor="#9CA3AF"
+					placeholderTextColor={themeColors.foregroundSubtle}
 					accessibilityLabel="Buscar empresa"
 					onFocus={() => setIsCompanyPickerOpen(true)}
 					onPressIn={() => setIsCompanyPickerOpen(true)}
@@ -231,7 +233,7 @@ export function CompanyReportModal({
 				{isCompanyPickerOpen &&
 					(isLoadingCompanies ? (
 						<View className="items-center py-4">
-							<ActivityIndicator color="#1C6FB0" />
+							<ActivityIndicator color={themeColors.primary} />
 						</View>
 					) : (
 						<ScrollView
@@ -251,7 +253,9 @@ export function CompanyReportModal({
 									<View
 										className={`h-5 w-5 items-center justify-center rounded border ${selectAll ? 'border-primary bg-primary' : 'border-border-strong bg-surface'}`}
 									>
-										{selectAll && <Check size={14} color="#FFFFFF" />}
+										{selectAll && (
+											<Check size={14} color={themeColors.primaryForeground} />
+										)}
 									</View>
 									<Text className="font-inter font-semibold text-foreground text-sm">
 										Selecionar todas ({companies.length})
@@ -285,7 +289,12 @@ export function CompanyReportModal({
 											<View
 												className={`h-5 w-5 items-center justify-center rounded border ${isSelected ? 'border-primary bg-primary' : 'border-border-strong bg-surface'}`}
 											>
-												{isSelected && <Check size={14} color="#FFFFFF" />}
+												{isSelected && (
+													<Check
+														size={14}
+														color={themeColors.primaryForeground}
+													/>
+												)}
 											</View>
 											<Text className="flex-1 font-inter text-foreground text-sm">
 												{company.trade_name}
@@ -325,7 +334,7 @@ export function CompanyReportModal({
 									accessibilityLabel={`Remover ${company.trade_name}`}
 									onPress={() => toggleCompany(company.id)}
 								>
-									<X size={13} color="#1E40AF" />
+									<X size={13} color={themeColors.primaryStrong} />
 								</TouchableOpacity>
 							</View>
 						))}

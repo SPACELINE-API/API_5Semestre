@@ -17,6 +17,7 @@ import { FormField } from '../../clients/components/FormField';
 import { TranslatorLanguagesStep } from './TranslatorLanguagesStep';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type TranslatorEditModalProps = {
 	visible: boolean;
 	translator: Translator | null;
@@ -106,6 +107,7 @@ export function TranslatorEditModal({
 	onSubmit,
 	toast,
 }: TranslatorEditModalProps) {
+	const themeColors = useThemeColors();
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
 	const [phone, setPhone] = useState('');
@@ -306,7 +308,7 @@ export function TranslatorEditModal({
 							Editar tradutor
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 

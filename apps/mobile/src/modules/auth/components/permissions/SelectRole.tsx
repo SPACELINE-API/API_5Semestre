@@ -10,6 +10,7 @@ import {
 import { ChevronDown } from 'lucide-react-native';
 import type { Role } from '../../types/roles';
 
+import { useThemeColors } from '../../../../shared/theme/ThemeProvider';
 interface SelectRoleProps {
 	roles: Role[];
 	selectedRoleId: string | null;
@@ -21,6 +22,7 @@ export default function SelectRole({
 	selectedRoleId,
 	onSelect,
 }: SelectRoleProps) {
+	const themeColors = useThemeColors();
 	const [isOpen, setIsOpen] = useState(false);
 	const triggerRef = useRef<View>(null);
 	const [anchor, setAnchor] = useState<{
@@ -56,7 +58,7 @@ export default function SelectRole({
 				>
 					{selectedRole?.name ?? 'Selecione um perfil'}
 				</Text>
-				<ChevronDown size={16} color="#9ca3af" />
+				<ChevronDown size={16} color={themeColors.foregroundSubtle} />
 			</TouchableOpacity>
 
 			<Modal

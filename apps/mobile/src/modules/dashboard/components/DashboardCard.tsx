@@ -10,6 +10,7 @@ import {
 } from '../../../shared/components/icon/icon';
 import type { DashboardShortcut } from '../types/shortcut';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function getShortcutIcon(id: string) {
 	switch (id) {
 		case 'assignments':
@@ -40,6 +41,7 @@ type DashboardCardProps = {
  * Hover: só troca de fundo/borda, sem sombra.
  */
 export function DashboardCard({ shortcut }: DashboardCardProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const Icon = getShortcutIcon(shortcut.id);
 	const displayTitle =
@@ -53,7 +55,7 @@ export function DashboardCard({ shortcut }: DashboardCardProps) {
 			className="group w-[31.5%] items-center gap-2 rounded-xl border border-border bg-surface px-2 py-3 transition-colors hover:border-border-strong hover:bg-surface-subtle active:bg-surface-muted md:w-auto md:max-w-[260px] md:flex-1 md:basis-[200px] md:flex-row md:gap-3 md:px-4 md:py-3.5"
 		>
 			<View className="h-9 w-9 items-center justify-center rounded-lg bg-primary-soft md:h-10 md:w-10">
-				<Icon size={18} color="#2563eb" strokeWidth={2} />
+				<Icon size={18} color={themeColors.primaryText} strokeWidth={2} />
 			</View>
 			<Text
 				className="font-inter-medium text-center text-xs leading-tight text-foreground md:flex-1 md:text-left md:text-sm"

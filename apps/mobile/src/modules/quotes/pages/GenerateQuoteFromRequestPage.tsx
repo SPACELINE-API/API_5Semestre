@@ -33,6 +33,7 @@ import { RejectedRequestNotice } from '../components/RejectedRequestNotice';
 import { RequestDecisionPanel } from '../components/RequestDecisionPanel';
 import { RequestSummarySections } from '../components/RequestSummarySections';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type RequiredRequestField = {
 	key: keyof Pick<
 		RequestItem,
@@ -85,9 +86,10 @@ function getStatusUpdateError(status: number, detail?: string) {
 }
 
 function LoadingState() {
+	const themeColors = useThemeColors();
 	return (
 		<View className="bg-surface rounded-lg border border-border p-8 items-center gap-3">
-			<ActivityIndicator color="#2563eb" />
+			<ActivityIndicator color={themeColors.primaryText} />
 			<Text className="font-inter text-sm text-foreground-muted">
 				Carregando dados da requisição...
 			</Text>
@@ -102,10 +104,11 @@ function LoadErrorState({
 	error: string;
 	onRetry: () => void;
 }) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="bg-surface rounded-lg border border-border p-6">
 			<View className="flex-row items-start gap-3">
-				<CircleAlert size={20} color="#dc2626" />
+				<CircleAlert size={20} color={themeColors.danger} />
 				<Text className="flex-1 font-inter text-sm text-danger-text">
 					{error}
 				</Text>

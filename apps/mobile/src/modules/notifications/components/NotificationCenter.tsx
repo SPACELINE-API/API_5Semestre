@@ -20,6 +20,7 @@ import type { Notification } from '../types/notification';
 import { NotificationCard } from './NotificationCard';
 import { getNotificationListMode } from './notificationPresentation';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type NotificationCenterProps = { topOffset: number };
 
 type NotificationPanelProps = {
@@ -47,6 +48,7 @@ function NotificationPanel({
 	onOpen,
 	onMarkAsRead,
 }: NotificationPanelProps) {
+	const themeColors = useThemeColors();
 	const mode = getNotificationListMode(isNative ? 'native' : 'web');
 	const width = Math.min(
 		isMobile ? 330 : 360,
@@ -55,7 +57,7 @@ function NotificationPanel({
 	const status = (
 		<>
 			{(isLoading || isLoadingAll) && !hasLoadedPreview && (
-				<ActivityIndicator color="#2563EB" />
+				<ActivityIndicator color={themeColors.primaryText} />
 			)}
 			{!isLoading && !isLoadingAll && error && (
 				<Text className="font-inter text-danger text-sm">{error}</Text>
@@ -129,6 +131,7 @@ const styles = StyleSheet.create({
 });
 
 export function NotificationCenter({ topOffset }: NotificationCenterProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const pathname = usePathname();
 	const { width: windowWidth } = useWindowDimensions();
@@ -226,7 +229,10 @@ export function NotificationCenter({ topOffset }: NotificationCenterProps) {
 					accessibilityLabel={`Notificações${unreadCount ? `, ${unreadCount} não lidas` : ''}`}
 					className="relative h-12 w-12 items-center justify-center"
 				>
-					<Bell size={isMobile ? 21 : 27} color="#374151" />
+					<Bell
+						size={isMobile ? 21 : 27}
+						color={themeColors.foregroundSecondary}
+					/>
 					{unreadCount > 0 && (
 						<View
 							className={`absolute items-center justify-center rounded-full bg-danger ${isMobile ? 'left-[1px] top-[5px] h-4 w-4' : 'left-[-1px] top-[3px] h-[18px] w-[18px]'}`}

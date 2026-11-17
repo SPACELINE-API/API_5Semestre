@@ -5,6 +5,7 @@ import { FileText } from 'lucide-react-native';
 import type { RequestItem } from '../../requests/services/requests';
 import { openRequestDocument } from '../../requests/services/requests';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function formatDate(value?: string) {
 	if (!value) return '—';
 	const date = new Date(value);
@@ -31,6 +32,7 @@ function InfoField({ label, value }: { label: string; value?: string | null }) {
 }
 
 function RequestDocumentButton({ request }: { request: RequestItem }) {
+	const themeColors = useThemeColors();
 	const [opening, setOpening] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
 
@@ -56,9 +58,9 @@ function RequestDocumentButton({ request }: { request: RequestItem }) {
 				className="min-h-[44px] bg-primary-soft border border-primary/30 rounded-lg flex-row items-center justify-center gap-2 px-4"
 			>
 				{opening ? (
-					<ActivityIndicator size="small" color="#2563eb" />
+					<ActivityIndicator size="small" color={themeColors.primaryText} />
 				) : (
-					<FileText size={20} color="#2563eb" />
+					<FileText size={20} color={themeColors.primaryText} />
 				)}
 				<Text
 					className="font-inter-medium text-sm text-primary-text"
@@ -73,12 +75,13 @@ function RequestDocumentButton({ request }: { request: RequestItem }) {
 }
 
 export function RequestSummarySections({ request }: { request: RequestItem }) {
+	const themeColors = useThemeColors();
 	return (
 		<>
 			<View className="bg-surface rounded-lg border border-border p-4 md:p-6 mb-6">
 				<View className="flex-row items-center gap-3 mb-5">
 					<View className="h-10 w-10 rounded-lg bg-primary-soft items-center justify-center">
-						<FileText size={20} color="#2563eb" />
+						<FileText size={20} color={themeColors.primaryText} />
 					</View>
 					<View className="flex-1">
 						<Text className="font-inter-bold text-sm text-foreground">

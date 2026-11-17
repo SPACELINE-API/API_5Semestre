@@ -8,6 +8,7 @@ import {
 } from '../utils/certificateStatus';
 import { formatFileSize } from '../utils/profileFiles';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type LanguageCertificateCardProps = {
 	certificates: TranslatorCertificate[];
 	isLoading: boolean;
@@ -28,6 +29,7 @@ export function LanguageCertificateCard({
 	onSelect,
 	onNewCertificate,
 }: LanguageCertificateCardProps) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="gap-4">
 			<View className="flex-row items-center justify-between gap-3">
@@ -40,7 +42,7 @@ export function LanguageCertificateCard({
 					accessibilityRole="button"
 					className="flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5"
 				>
-					<Plus size={16} color="#ffffff" />
+					<Plus size={16} color={themeColors.primaryForeground} />
 					<Text className="font-inter-medium text-sm text-primary-foreground">
 						Novo certificado
 					</Text>
@@ -49,7 +51,7 @@ export function LanguageCertificateCard({
 
 			{isLoading && certificates.length === 0 && (
 				<View className="items-center py-6">
-					<ActivityIndicator color="#6B7280" />
+					<ActivityIndicator color={themeColors.foregroundMuted} />
 					<Text className="mt-2 font-inter text-foreground-subtle text-sm">
 						Carregando certificados...
 					</Text>
@@ -71,7 +73,7 @@ export function LanguageCertificateCard({
 
 			{!isLoading && !error && certificates.length === 0 && (
 				<View className="items-center gap-2 rounded-lg border border-dashed border-border-strong px-4 py-8">
-					<FileX size={28} color="#9CA3AF" />
+					<FileX size={28} color={themeColors.foregroundSubtle} />
 					<Text className="text-center font-inter font-semibold text-foreground-secondary text-sm">
 						Nenhum certificado foi anexado.
 					</Text>
@@ -118,7 +120,7 @@ export function LanguageCertificateCard({
 								</View>
 							</View>
 							<View className="flex-row items-center gap-2">
-								<FileText size={14} color="#6B7280" />
+								<FileText size={14} color={themeColors.foregroundMuted} />
 								<Text
 									className="flex-1 font-inter text-foreground-muted text-xs"
 									numberOfLines={1}
@@ -128,7 +130,9 @@ export function LanguageCertificateCard({
 								</Text>
 							</View>
 						</View>
-						{onSelect && <ChevronRight size={16} color="#9CA3AF" />}
+						{onSelect && (
+							<ChevronRight size={16} color={themeColors.foregroundSubtle} />
+						)}
 					</TouchableOpacity>
 				);
 			})}

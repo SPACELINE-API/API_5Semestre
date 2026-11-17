@@ -3,6 +3,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import type { Contact } from '../../contacts/types/contact';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ContactAction = (contact: Contact) => void;
 
 function TableHeaderCell({
@@ -32,6 +33,7 @@ function ContactRow({
 	onEdit: ContactAction;
 	onDelete: ContactAction;
 }) {
+	const themeColors = useThemeColors();
 	const canWriteContacts = usePermission('contacts.write');
 
 	return (
@@ -88,7 +90,7 @@ function ContactRow({
 					activeOpacity={0.7}
 					hitSlop={8}
 				>
-					<Pencil size={14} color="#6B7280" />
+					<Pencil size={14} color={themeColors.foregroundMuted} />
 				</TouchableOpacity>
 				<TouchableOpacity
 					onPress={() => onDelete(contact)}
@@ -97,7 +99,7 @@ function ContactRow({
 					activeOpacity={0.7}
 					hitSlop={8}
 				>
-					<Trash2 size={14} color="#DC2626" />
+					<Trash2 size={14} color={themeColors.danger} />
 				</TouchableOpacity>
 			</View>
 		</View>
@@ -115,6 +117,7 @@ export function CompanyDetailsContactsTab({
 	onEdit: ContactAction;
 	onDelete: ContactAction;
 }) {
+	const themeColors = useThemeColors();
 	const canWriteContacts = usePermission('contacts.write');
 
 	return (
@@ -126,7 +129,7 @@ export function CompanyDetailsContactsTab({
 					activeOpacity={0.7}
 					className={`flex-row items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 ${!canWriteContacts ? 'opacity-40' : ''}`}
 				>
-					<UserPlus size={14} color="#353535" />
+					<UserPlus size={14} color={themeColors.foreground} />
 					<Text className="font-inter font-semibold text-foreground text-xs">
 						Adicionar funcionário
 					</Text>

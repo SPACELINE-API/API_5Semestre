@@ -19,6 +19,7 @@ import {
 } from '../../translators/services/translatorService';
 import type { LanguageResponse } from '../../translators/types/translator';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function sortLanguages(languages: LanguageResponse[]) {
 	return [...languages].sort((first, second) =>
 		first.name.localeCompare(second.name, 'pt-BR'),
@@ -34,6 +35,7 @@ function languageError(error: unknown) {
 }
 
 export default function LanguageSettingsPage() {
+	const themeColors = useThemeColors();
 	const { toast, showToast } = useToast();
 	const [languages, setLanguages] = useState<LanguageResponse[]>([]);
 	const [name, setName] = useState('');
@@ -124,7 +126,7 @@ export default function LanguageSettingsPage() {
 					<View className="rounded-xl border border-border p-5 md:p-6">
 						<View className="mb-5 flex-row items-center gap-3">
 							<View className="rounded-lg bg-primary-soft p-2.5">
-								<Languages size={20} color="#2563eb" />
+								<Languages size={20} color={themeColors.primaryText} />
 							</View>
 							<View className="flex-1">
 								<Text className="font-inter font-semibold text-foreground text-base">
@@ -185,9 +187,12 @@ export default function LanguageSettingsPage() {
 							className={`mt-5 flex-row items-center justify-center gap-2 self-start rounded-lg px-4 py-2.5 ${isSaving ? 'bg-primary' : 'bg-primary'}`}
 						>
 							{isSaving ? (
-								<ActivityIndicator size="small" color="#ffffff" />
+								<ActivityIndicator
+									size="small"
+									color={themeColors.primaryForeground}
+								/>
 							) : (
-								<Plus size={17} color="#ffffff" />
+								<Plus size={17} color={themeColors.primaryForeground} />
 							)}
 							<Text className="font-inter font-semibold text-sm text-primary-foreground">
 								{isSaving ? 'Salvando...' : 'Cadastrar idioma'}
@@ -209,7 +214,7 @@ export default function LanguageSettingsPage() {
 						</View>
 						{isLoading ? (
 							<View className="items-center gap-3 py-10">
-								<ActivityIndicator color="#2563eb" />
+								<ActivityIndicator color={themeColors.primaryText} />
 								<Text className="font-inter text-foreground-muted text-sm">
 									Carregando idiomas...
 								</Text>
@@ -252,7 +257,7 @@ export default function LanguageSettingsPage() {
 												accessibilityLabel={`Remover idioma ${language.name}`}
 												className="rounded-md p-2"
 											>
-												<Trash2 size={17} color="#b91c1c" />
+												<Trash2 size={17} color={themeColors.danger} />
 											</TouchableOpacity>
 										</View>
 									</View>

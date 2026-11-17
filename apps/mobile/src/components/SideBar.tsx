@@ -35,6 +35,7 @@ import {
 } from '../shared/components/icon/icon';
 import { useTheme } from '../shared/theme/ThemeProvider';
 
+import { useThemeColors } from '../shared/theme/ThemeProvider';
 type NavItemProps = {
 	icon: LucideIcon;
 	label: string;
@@ -119,6 +120,7 @@ export function SideBar({
 	mobileOpen = false,
 	onCloseMobile,
 }: SideBarProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const pathname = usePathname();
 	const insets = useSafeAreaInsets();
@@ -203,16 +205,28 @@ export function SideBar({
 						onPress={onCloseMobile ?? (() => setIsOpen(!isOpen))}
 						className="items-center justify-center w-8 h-8 rounded-lg outline-none hover:bg-surface-subtle shrink-0 md:hidden"
 					>
-						<CloseIcon size={20} color="#1f2937" strokeWidth={2.0} />
+						<CloseIcon
+							size={20}
+							color={themeColors.foreground}
+							strokeWidth={2.0}
+						/>
 					</TouchableOpacity>
 					<TouchableOpacity
 						onPress={() => setIsOpen(!isOpen)}
 						className="hidden items-center justify-center w-8 h-8 rounded-lg outline-none hover:bg-surface-subtle shrink-0 md:flex"
 					>
 						{isOpen ? (
-							<FecharIcon size={20} color="#1f2937" strokeWidth={2.0} />
+							<FecharIcon
+								size={20}
+								color={themeColors.foreground}
+								strokeWidth={2.0}
+							/>
 						) : (
-							<AbrirIcon size={20} color="#1f2937" strokeWidth={2.0} />
+							<AbrirIcon
+								size={20}
+								color={themeColors.foreground}
+								strokeWidth={2.0}
+							/>
 						)}
 					</TouchableOpacity>
 				</View>
@@ -378,7 +392,7 @@ export function SideBar({
 							!showExpanded ? 'justify-center px-0' : ''
 						}`}
 					>
-						<SairIcon size={20} color="#dc2626" strokeWidth={1.8} />
+						<SairIcon size={20} color={themeColors.danger} strokeWidth={1.8} />
 						{showExpanded && (
 							<Text className="font-inter font-medium text-danger text-sm">
 								Sair do sistema

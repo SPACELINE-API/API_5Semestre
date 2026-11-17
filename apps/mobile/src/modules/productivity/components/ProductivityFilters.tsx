@@ -15,6 +15,7 @@ import {
 	type PeriodPreset,
 } from '../utils/filters';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ProductivityFiltersProps = {
 	filters: Filters;
 	options: ProductivityFilterOptions;
@@ -26,6 +27,7 @@ export function ProductivityFilters({
 	options,
 	onChange,
 }: ProductivityFiltersProps) {
+	const themeColors = useThemeColors();
 	const [openField, setOpenField] = useState<'from' | 'to' | null>(null);
 	const preset = activePreset(filters);
 	const isDefault =
@@ -139,7 +141,7 @@ export function ProductivityFilters({
 					accessibilityRole="button"
 					className="flex-row items-center gap-1.5 self-start"
 				>
-					<FilterX size={14} color="#1C6FB0" />
+					<FilterX size={14} color={themeColors.primary} />
 					<Text className="font-inter font-semibold text-primary-text text-sm">
 						Limpar filtros
 					</Text>

@@ -21,6 +21,7 @@ import {
 } from '../utils/fileReview';
 import { RequestChangesModal } from './RequestChangesModal';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ItemReviewTabProps = {
 	items: ServiceOrderItem[];
 	files: ServiceOrderFile[];
@@ -43,6 +44,7 @@ export function ItemReviewTab({
 	onApprove,
 	onRequestChanges,
 }: ItemReviewTabProps) {
+	const themeColors = useThemeColors();
 	const [busyFileId, setBusyFileId] = useState<string | null>(null);
 	const [changesTarget, setChangesTarget] = useState<ServiceOrderFile | null>(
 		null,
@@ -85,7 +87,7 @@ export function ItemReviewTab({
 		<View className="gap-8">
 			<View className="gap-3">
 				<View className="flex-row items-center gap-2">
-					<ClipboardCheck size={16} color="#1C6FB0" />
+					<ClipboardCheck size={16} color={themeColors.primary} />
 					<Text className="font-inter font-bold text-foreground text-base">
 						Aguardando revisão
 					</Text>
@@ -99,7 +101,7 @@ export function ItemReviewTab({
 				{pending.length === 0 ? (
 					<View className="items-center justify-center rounded-xl border border-border-subtle py-10">
 						<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
-							<CheckCircle2 size={18} color="#9CA3AF" />
+							<CheckCircle2 size={18} color={themeColors.foregroundSubtle} />
 						</View>
 						<Text className="font-inter font-medium text-foreground text-sm">
 							Nenhuma entrega aguardando revisão
@@ -137,14 +139,14 @@ export function ItemReviewTab({
 									accessibilityLabel={`Abrir tradução ${file.filename}`}
 									className="min-w-0 flex-row items-center gap-2 self-start"
 								>
-									<FileText size={15} color="#1C6FB0" />
+									<FileText size={15} color={themeColors.primary} />
 									<Text
 										className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-sm"
 										numberOfLines={1}
 									>
 										{file.filename}
 									</Text>
-									<ExternalLink size={12} color="#1d4ed8" />
+									<ExternalLink size={12} color={themeColors.primaryText} />
 								</TouchableOpacity>
 
 								<View className="flex-row flex-wrap justify-end gap-3">
@@ -168,7 +170,12 @@ export function ItemReviewTab({
 										accessibilityLabel="Aprovar entrega"
 										className={`flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${isBusy ? 'opacity-60' : ''}`}
 									>
-										{isBusy && <ActivityIndicator size="small" color="#fff" />}
+										{isBusy && (
+											<ActivityIndicator
+												size="small"
+												color={themeColors.primaryForeground}
+											/>
+										)}
 										<Text className="font-inter-medium text-sm text-primary-foreground">
 											Aprovar
 										</Text>
@@ -227,7 +234,7 @@ export function ItemReviewTab({
 									accessibilityRole="link"
 									className="min-w-0 flex-row items-center gap-2 self-start"
 								>
-									<FileText size={14} color="#1C6FB0" />
+									<FileText size={14} color={themeColors.primary} />
 									<Text
 										className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-xs"
 										numberOfLines={1}

@@ -20,6 +20,7 @@ import { isValidEmail, isValidPhone } from '../../clients/utils/validation';
 import { maskPhone } from '../../clients/utils/mask';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ContactFormModalProps = {
 	visible: boolean;
 	companyId: string;
@@ -90,6 +91,7 @@ export function ContactFormModal({
 	onSubmit,
 	toast,
 }: ContactFormModalProps) {
+	const themeColors = useThemeColors();
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
 	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
@@ -188,7 +190,7 @@ export function ContactFormModal({
 							{contact ? 'Editar funcionário' : 'Novo funcionário'}
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 

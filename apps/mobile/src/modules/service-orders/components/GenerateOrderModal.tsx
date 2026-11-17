@@ -26,6 +26,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { pickDocument } from '../../../shared/utils/pickDocument';
 import type { UploadableFile } from '../../../shared/types/file';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function getTodayInputValue() {
 	const today = new Date();
 	const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -131,6 +132,7 @@ function DropdownRow({
 	accessibilityLabel: string;
 	children: ReactNode;
 }) {
+	const themeColors = useThemeColors();
 	return (
 		<TouchableOpacity
 			onPress={onPress}
@@ -143,7 +145,11 @@ function DropdownRow({
 			{children}
 			{selected && (
 				<View className="h-5 w-5 items-center justify-center rounded-full bg-primary">
-					<Check size={12} color="#FFFFFF" strokeWidth={3} />
+					<Check
+						size={12}
+						color={themeColors.primaryForeground}
+						strokeWidth={3}
+					/>
 				</View>
 			)}
 		</TouchableOpacity>
@@ -158,6 +164,7 @@ export function GenerateOrderModal({
 	onSubmit,
 	toast,
 }: GenerateOrderModalProps) {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
@@ -333,7 +340,7 @@ export function GenerateOrderModal({
 							activeOpacity={0.7}
 							className="h-8 w-8 shrink-0 items-center justify-center rounded-full hover:bg-surface-muted"
 						>
-							<X size={18} color="#6B7280" />
+							<X size={18} color={themeColors.foregroundMuted} />
 						</TouchableOpacity>
 					</View>
 
@@ -377,7 +384,7 @@ export function GenerateOrderModal({
 												: 'border-border'
 										}`}
 									>
-										<Search size={16} color="#9CA3AF" />
+										<Search size={16} color={themeColors.foregroundSubtle} />
 										<TextInput
 											value={companySearch}
 											onChangeText={setCompanySearch}
@@ -387,7 +394,7 @@ export function GenerateOrderModal({
 													? 'Buscar empresa'
 													: 'Buscar empresa por nome'
 											}
-											placeholderTextColor="#9CA3AF"
+											placeholderTextColor={themeColors.foregroundSubtle}
 											className="flex-1 font-inter text-sm text-foreground outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 											accessibilityLabel="Buscar empresa"
 										/>
@@ -439,7 +446,7 @@ export function GenerateOrderModal({
 						{Boolean(form.company_id) && primaryContact && (
 							<View className="flex-row items-center gap-3 rounded-lg bg-surface-subtle px-3.5 py-3">
 								<View className="h-9 w-9 items-center justify-center rounded-full bg-surface">
-									<User size={16} color="#6B7280" />
+									<User size={16} color={themeColors.foregroundMuted} />
 								</View>
 								<View className="flex-1">
 									<Text className="font-inter font-semibold text-foreground text-xs">
@@ -455,7 +462,7 @@ export function GenerateOrderModal({
 						{Boolean(form.company_id) && !primaryContact && (
 							<View className="flex-row items-center gap-3 rounded-lg bg-surface-subtle px-3.5 py-3">
 								<View className="h-9 w-9 items-center justify-center rounded-full bg-surface">
-									<User size={16} color="#9CA3AF" />
+									<User size={16} color={themeColors.foregroundSubtle} />
 								</View>
 								<Text className="flex-1 font-inter text-foreground-subtle text-xs">
 									Nenhum contato cadastrado para esta empresa.
@@ -536,9 +543,9 @@ export function GenerateOrderModal({
 											className="flex-row items-center gap-2 rounded-lg border border-border-strong px-3 py-2.5"
 										>
 											{item.file ? (
-												<FileText size={16} color="#1C6FB0" />
+												<FileText size={16} color={themeColors.primary} />
 											) : (
-												<Upload size={16} color="#353535" />
+												<Upload size={16} color={themeColors.foreground} />
 											)}
 											<Text
 												className="flex-1 font-inter text-foreground-secondary text-sm"
@@ -664,7 +671,7 @@ export function GenerateOrderModal({
 									value={form.external_notes}
 									onChangeText={(value) => setField('external_notes', value)}
 									placeholder="Visível para o cliente"
-									placeholderTextColor="#8A8A8A"
+									placeholderTextColor={themeColors.foregroundMuted}
 									multiline
 									numberOfLines={2}
 									className="min-h-[64px] rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none"
@@ -679,7 +686,7 @@ export function GenerateOrderModal({
 									value={form.internal_notes}
 									onChangeText={(value) => setField('internal_notes', value)}
 									placeholder="Visível apenas para a equipe"
-									placeholderTextColor="#8A8A8A"
+									placeholderTextColor={themeColors.foregroundMuted}
 									multiline
 									numberOfLines={2}
 									className="min-h-[64px] rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none"

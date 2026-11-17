@@ -4,6 +4,7 @@ import { Inbox } from 'lucide-react-native';
 import { formatCurrency } from '../services/dashboardMetrics';
 import type { OverviewGroup } from '../types/overview';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 /** Usado só para status que não estão no mapa acima. */
 const FALLBACK_COLORS = ['#2563eb', '#8b5cf6', '#0891b2', '#6b7280'];
 
@@ -51,6 +52,7 @@ export function StatusOverview({
 	loading,
 	rangeLabel,
 }: StatusOverviewProps) {
+	const themeColors = useThemeColors();
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [chartMetric, setChartMetric] = useState<ChartMetric>('count');
 
@@ -58,7 +60,7 @@ export function StatusOverview({
 		return (
 			<Card>
 				<View className="min-h-[220px] items-center justify-center gap-3">
-					<ActivityIndicator size="large" color="#2563eb" />
+					<ActivityIndicator size="large" color={themeColors.primaryText} />
 					<Text className="font-inter text-sm text-foreground-muted">
 						Carregando dados do período...
 					</Text>
@@ -74,7 +76,7 @@ export function StatusOverview({
 			<Card>
 				<View className="min-h-[220px] items-center justify-center px-4">
 					<View className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-surface-muted">
-						<Inbox size={22} color="#6b7280" />
+						<Inbox size={22} color={themeColors.foregroundMuted} />
 					</View>
 					<Text className="font-inter-semibold text-base text-foreground">
 						Nenhum registro no período

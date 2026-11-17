@@ -22,6 +22,7 @@ import { DateField } from '../../../shared/components/DateField';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function getTodayInputValue() {
 	const today = new Date();
 	const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -45,6 +46,7 @@ export function AddItemModal({
 	onSubmit,
 	toast,
 }: AddItemModalProps) {
+	const themeColors = useThemeColors();
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
 	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
@@ -129,7 +131,7 @@ export function AddItemModal({
 							Adicionar item
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
@@ -205,9 +207,9 @@ export function AddItemModal({
 								className="flex-row items-center gap-2 rounded-lg border border-border-strong px-3 py-2.5"
 							>
 								{file ? (
-									<FileText size={16} color="#1C6FB0" />
+									<FileText size={16} color={themeColors.primary} />
 								) : (
-									<Upload size={16} color="#353535" />
+									<Upload size={16} color={themeColors.foreground} />
 								)}
 								<Text
 									className="flex-1 font-inter text-sm text-foreground-secondary"

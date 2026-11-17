@@ -24,9 +24,11 @@ import {
 	needsAttention,
 } from '../services/dashboardMetrics';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const OVERVIEW_SHORTCUT_IDS = ['requests', 'quotes', 'service-orders'];
 
 export function DashboardPage() {
+	const themeColors = useThemeColors();
 	const {
 		shortcuts,
 		metrics,
@@ -80,7 +82,7 @@ export function DashboardPage() {
 
 				{loading ? (
 					<View className="mt-16 items-center justify-center gap-3">
-						<ActivityIndicator size="large" color="#2563eb" />
+						<ActivityIndicator size="large" color={themeColors.primaryText} />
 						<Text className="font-inter text-sm text-foreground-muted">
 							Carregando informações do painel...
 						</Text>
@@ -89,7 +91,7 @@ export function DashboardPage() {
 					<View className="rounded-2xl border border-danger/30 bg-danger-soft p-6">
 						<View className="flex-row items-start gap-3">
 							<View className="mt-0.5 rounded-full bg-danger-soft p-1">
-								<CircleAlert size={18} color="#b91c1c" />
+								<CircleAlert size={18} color={themeColors.danger} />
 							</View>
 							<View className="flex-1">
 								<Text className="font-inter-semibold text-sm text-danger-text">
@@ -106,7 +108,7 @@ export function DashboardPage() {
 							onPress={() => void reload()}
 							className="mt-4 flex-row items-center gap-2 self-start rounded-lg border border-danger/40 bg-surface px-4 py-2.5 transition-colors hover:bg-danger-soft"
 						>
-							<RefreshCw size={16} color="#b91c1c" />
+							<RefreshCw size={16} color={themeColors.danger} />
 							<Text className="font-inter-medium text-sm text-danger-text">
 								Tentar novamente
 							</Text>
@@ -121,7 +123,10 @@ export function DashboardPage() {
 							<View className="gap-3">
 								<View className="gap-3 md:flex-row md:items-center md:justify-between">
 									<View className="flex-row items-center gap-2">
-										<BarChart3 size={16} color="#374151" />
+										<BarChart3
+											size={16}
+											color={themeColors.foregroundSecondary}
+										/>
 										<Text className="font-inter-bold text-xs uppercase tracking-wider text-foreground-secondary md:text-sm">
 											Visão Geral
 										</Text>
@@ -134,7 +139,7 @@ export function DashboardPage() {
 								{!canSeeOverview ? null : overviewError ? (
 									<View className="rounded-2xl border border-danger/30 bg-danger-soft p-5">
 										<View className="flex-row items-start gap-3">
-											<CircleAlert size={18} color="#b91c1c" />
+											<CircleAlert size={18} color={themeColors.danger} />
 											<View className="flex-1">
 												<Text className="font-inter-semibold text-sm text-danger-text">
 													Não foi possível carregar os dados do período
@@ -150,7 +155,7 @@ export function DashboardPage() {
 											onPress={() => void reloadOverview()}
 											className="mt-4 flex-row items-center gap-2 self-start rounded-lg border border-danger/40 bg-surface px-4 py-2.5 transition-colors hover:bg-danger-soft"
 										>
-											<RefreshCw size={16} color="#b91c1c" />
+											<RefreshCw size={16} color={themeColors.danger} />
 											<Text className="font-inter-medium text-sm text-danger-text">
 												Tentar novamente
 											</Text>
@@ -172,7 +177,10 @@ export function DashboardPage() {
 						{shortcuts.length > 0 ? (
 							<View className="gap-3">
 								<View className="flex-row items-center gap-2">
-									<LayoutGrid size={16} color="#374151" />
+									<LayoutGrid
+										size={16}
+										color={themeColors.foregroundSecondary}
+									/>
 									<Text className="font-inter-bold text-xs uppercase tracking-wider text-foreground-secondary md:text-sm">
 										Acesso Rápido
 									</Text>
@@ -186,7 +194,7 @@ export function DashboardPage() {
 						) : (
 							<View className="items-center justify-center rounded-2xl border border-border bg-surface p-12">
 								<View className="mb-4 h-12 w-12 items-center justify-center rounded-full bg-surface-muted">
-									<LayoutGrid size={24} color="#6b7280" />
+									<LayoutGrid size={24} color={themeColors.foregroundMuted} />
 								</View>
 								<Text className="font-inter-semibold text-base text-foreground">
 									Nenhuma ação disponível

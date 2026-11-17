@@ -24,6 +24,7 @@ import { isValidCnpj, isValidEmail, isValidPhone } from '../utils/validation';
 import { maskCnpj, maskPhone } from '../utils/mask';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyEditModalProps = {
 	visible: boolean;
 	company: Company | null;
@@ -108,6 +109,7 @@ export function CompanyEditModal({
 	onSubmit,
 	toast,
 }: CompanyEditModalProps) {
+	const themeColors = useThemeColors();
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
 	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
@@ -263,7 +265,7 @@ export function CompanyEditModal({
 							Editar empresa
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 

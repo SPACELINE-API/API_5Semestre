@@ -3,6 +3,7 @@ import { AlertCircle, PackagePlus } from 'lucide-react-native';
 import type { AdditionalService } from '../../quotes/services/additionalService';
 import { AdditionalServiceCard } from '../../quotes/components/AdditionalServiceCard';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type AdditionalServicesTabProps = {
 	services: AdditionalService[];
 	isLoading: boolean;
@@ -18,10 +19,11 @@ export function AdditionalServicesTab({
 	onEditService,
 	onCompleteService,
 }: AdditionalServicesTabProps) {
+	const themeColors = useThemeColors();
 	if (isLoading) {
 		return (
 			<View className="items-center justify-center py-12">
-				<ActivityIndicator size="small" color="#6B7280" />
+				<ActivityIndicator size="small" color={themeColors.foregroundMuted} />
 				<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 					Carregando serviços adicionais...
 				</Text>
@@ -32,7 +34,7 @@ export function AdditionalServicesTab({
 	if (error) {
 		return (
 			<View className="flex-row items-center gap-2 py-8">
-				<AlertCircle size={16} color="#DC2626" />
+				<AlertCircle size={16} color={themeColors.danger} />
 				<Text className="font-inter text-danger text-sm">{error}</Text>
 			</View>
 		);
@@ -43,7 +45,7 @@ export function AdditionalServicesTab({
 			<View className="items-center justify-center gap-4 py-12">
 				<View className="items-center">
 					<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
-						<PackagePlus size={18} color="#9CA3AF" />
+						<PackagePlus size={18} color={themeColors.foregroundSubtle} />
 					</View>
 
 					<Text className="text-center font-inter font-medium text-foreground text-sm">
