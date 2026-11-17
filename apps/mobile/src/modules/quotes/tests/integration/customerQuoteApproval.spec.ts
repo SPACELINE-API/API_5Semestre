@@ -92,6 +92,7 @@ test('cliente aprova o orçamento', async ({ page }) => {
 		page.getByText(/Confirma a aprovação do orçamento #ABC12345/),
 	).toBeVisible();
 	expect(decisions).toHaveLength(0);
+	await page.getByRole('checkbox', { name: /Li e aceito os termos/ }).click();
 	await page.getByText('Confirmar aprovação', { exact: true }).click();
 
 	await expect(page.getByText(/Orçamento aprovado em/)).toBeVisible();
@@ -101,7 +102,7 @@ test('cliente aprova o orçamento', async ({ page }) => {
 	await expect(
 		page.getByText('Aprovar orçamento', { exact: true }),
 	).toHaveCount(0);
-	expect(decisions).toEqual([{ status: 'approved' }]);
+	expect(decisions).toEqual([{ status: 'approved', terms_accepted: true }]);
 });
 
 test('cliente reprova o orçamento informando o motivo', async ({ page }) => {
@@ -180,4 +181,72 @@ test('permite tentar de novo quando o carregamento falha', async ({ page }) => {
 	await page.getByText('Tentar novamente', { exact: true }).click();
 
 	await expect(page.getByText('Orçamento #ABC12345')).toBeVisible();
+});
+
+test('cliente só aprova depois de aceitar os termos', async ({ page }) => {
+	const decisions: unknown[] = [];
+	await mockCustomerQuote(page, makeCustomerQuote(), decisions);
+
+	await page.goto(`/aprovar-orcamento?token=${token}`);
+	await page.getByText('Aprovar orçamento', { exact: true }).click();
+
+	const terms = page.getByRole('checkbox', { name: /Li e aceito os termos/ });
+	const confirm = page.getByRole('button', { name: 'Confirmar aprovação' });
+	await expect(terms).not.toBeChecked();
+	await expect(confirm).toBeDisabled();
+	await confirm.click({ force: true });
+	expect(decisions).toHaveLength(0);
+
+	await page.getByText('Li e aceito os', { exact: true }).click();
+	await expect(terms).toBeChecked();
+	await expect(confirm).toBeEnabled();
+
+	await terms.click();
+	await expect(terms).not.toBeChecked();
+	await expect(confirm).toBeDisabled();
+	expect(decisions).toHaveLength(0);
+});
+
+test('aceite dos termos é desmarcado ao voltar e aprovar de novo', async ({
+	page,
+}) => {
+	await mockCustomerQuote(page, makeCustomerQuote());
+
+	await page.goto(`/aprovar-orcamento?token=${token}`);
+	await page.getByText('Aprovar orçamento', { exact: true }).click();
+	await page.getByRole('checkbox', { name: /Li e aceito os termos/ }).click();
+	await page.getByText('Voltar', { exact: true }).click();
+	await page.getByText('Aprovar orçamento', { exact: true }).click();
+
+	await expect(
+		page.getByRole('checkbox', { name: /Li e aceito os termos/ }),
+	).not.toBeChecked();
+});
+
+test('link dos termos abre o PDF do orçamento', async ({ page, context }) => {
+	await mockCustomerQuote(page, makeCustomerQuote());
+	await context.route(`**/api/public/quotes/${token}/terms`, (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/pdf',
+			body: '%PDF-1.4',
+		}),
+	);
+
+	await page.goto(`/aprovar-orcamento?token=${token}`);
+	await page.getByText('Aprovar orçamento', { exact: true }).click();
+
+	const link = page.getByRole('link', { name: 'termos e condições' });
+	await expect(link).toHaveCSS('color', 'rgb(28, 111, 176)');
+	const termsRequest = context.waitForEvent('request', (request) =>
+		request.url().endsWith(`/api/public/quotes/${token}/terms`),
+	);
+	const popupPromise = page.waitForEvent('popup');
+	await link.click();
+
+	await popupPromise;
+	await termsRequest;
+	await expect(
+		page.getByRole('checkbox', { name: /Li e aceito os termos/ }),
+	).not.toBeChecked();
 });
