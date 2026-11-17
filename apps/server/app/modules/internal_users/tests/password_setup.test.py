@@ -256,7 +256,11 @@ def test_permissions_of_associated_roles_apply_after_activation(env) -> None:
     forbidden = env.client.get("/api/internal-users")
 
     assert me.status_code == 200
-    assert me.json()["permissions"] == ["finance.read", "quotes.read"]
+    assert me.json()["permissions"] == [
+        "dashboard.read",
+        "finance.read",
+        "quotes.read",
+    ]
     assert forbidden.status_code == 403
 
 

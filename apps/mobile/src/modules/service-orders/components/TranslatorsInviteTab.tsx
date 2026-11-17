@@ -53,6 +53,7 @@ export function TranslatorsInviteTab({
 	>('');
 	const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 	const canWriteAssignments = usePermission('assignments.write');
+	const canManageAssignments = usePermission('assignments.manage');
 	const [selectedTranslatorIds, setSelectedTranslatorIds] = useState<
 		Set<string>
 	>(new Set());
@@ -268,6 +269,16 @@ export function TranslatorsInviteTab({
 							selectedItem.translator_id}
 						. Não é possível enviar novos convites para ele. Selecione outro
 						item.
+					</Text>
+				</View>
+			)}
+
+			{!canManageAssignments && (
+				<View className="rounded-lg bg-amber-50 px-3.5 py-3">
+					<Text className="font-inter text-amber-900 text-xs">
+						Você pode enviar convites, mas não tem permissão para consultar os
+						convites existentes. A lista e a verificação de convites pendentes
+						ficam indisponíveis.
 					</Text>
 				</View>
 			)}
@@ -588,7 +599,7 @@ export function TranslatorsInviteTab({
 				onCancel={() => setIsConfirmingAll(false)}
 			/>
 
-			{!isLoadingInvites && invites.length > 0 && (
+			{canManageAssignments && !isLoadingInvites && invites.length > 0 && (
 				<View className="gap-2 border-t border-gray-100 pt-5">
 					<Text className="font-inter font-semibold text-gray-700 text-xs uppercase tracking-wide">
 						Convites deste item

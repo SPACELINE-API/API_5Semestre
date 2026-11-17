@@ -1,12 +1,22 @@
+import { useSyncExternalStore } from 'react';
 import { Redirect } from 'expo-router';
-import { getSession, isTranslatorSession } from '../modules/auth/services/auth';
+import {
+	getAuthorizationContext,
+	getSession,
+	subscribeAuthorizationContext,
+} from '../modules/auth/services/auth';
+import { firstAllowedRoute } from '../modules/auth/services/authorization';
 
 export default function Index() {
-	const target = getSession()
-		? isTranslatorSession()
-			? '/convites'
-			: '/dashboard'
-		: '/login';
+	const context = useSyncExternalStore(
+		subscribeAuthorizationContext,
+		getAuthorizationContext,
+		getAuthorizationContext,
+	);
+	const session = getSession();
 
-	return <Redirect href={target as never} />;
+	if (!session) return <Redirect href={'/login' as never} />;
+	if (!context) return null;
+
+	return <Redirect href={firstAllowedRoute(context) as never} />;
 }

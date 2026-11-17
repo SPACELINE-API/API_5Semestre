@@ -8,7 +8,7 @@ import {
 	isTranslatorSession,
 } from '../modules/auth/services/auth';
 import {
-	hasFullRouteAccess,
+	hasPermission,
 	isTranslatorProfile,
 } from '../modules/auth/services/authorization';
 import type { LucideIcon } from 'lucide-react-native';
@@ -141,8 +141,10 @@ export function SideBar({
 		authorizationContext?.roles.map((role) => role.name).join(', ') ?? '';
 	const displayInitials = displayName.slice(0, 2).toUpperCase();
 	const can = (permission: string) =>
-		hasFullRouteAccess(authorizationContext) ||
-		permissions.includes(permission);
+		hasPermission(
+			authorizationContext ? { ...authorizationContext, permissions } : null,
+			permission,
+		);
 
 	function navigate(path: string) {
 		router.push(path as never);
@@ -224,6 +226,7 @@ export function SideBar({
 										label="Convites"
 										isOpen={showExpanded}
 										active={pathname.startsWith('/convites')}
+										disabled={!can('assignments.read')}
 										onPress={() => navigate('/convites')}
 									/>
 									<NavItem
@@ -231,6 +234,7 @@ export function SideBar({
 										label="Meus itens"
 										isOpen={showExpanded}
 										active={isMyItemsActive}
+										disabled={!can('assignments.read')}
 										onPress={() => navigate('/meus-itens')}
 									/>
 									<NavItem
@@ -238,6 +242,7 @@ export function SideBar({
 										label="Meu perfil"
 										isOpen={showExpanded}
 										active={isProfileActive}
+										disabled={!can('assignments.read')}
 										onPress={() => navigate('/meu-perfil')}
 									/>
 								</View>
@@ -351,8 +356,18 @@ export function SideBar({
 							label="Configurações"
 							isOpen={showExpanded}
 							active={pathname.startsWith('/configuracoes')}
-							disabled={!can('roles.read')}
-							onPress={() => navigate('/configuracoes/permissoes')}
+							disabled={
+								!can('roles.read') &&
+								!can('settings.read') &&
+								!can('settings.write')
+							}
+							onPress={() =>
+								navigate(
+									can('roles.read')
+										? '/configuracoes/permissoes'
+										: '/configuracoes/sessao',
+								)
+							}
 						/>
 					)}
 					<TouchableOpacity

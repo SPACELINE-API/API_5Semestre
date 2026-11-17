@@ -65,7 +65,7 @@ export function RequestDecisionPanel({
 					<View className="flex-row flex-wrap gap-3">
 						<TouchableOpacity
 							accessibilityRole="button"
-							disabled={statusUpdating}
+							disabled={statusUpdating || !canWriteRequests}
 							onPress={onReprove}
 							className={`rounded-lg px-4 py-2.5 ${statusUpdating ? 'bg-gray-300' : 'bg-red-600'}`}
 						>
