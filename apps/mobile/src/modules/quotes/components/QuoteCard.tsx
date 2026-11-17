@@ -938,11 +938,14 @@ export function QuoteCard({
 				className="flex-row flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-5 py-4 md:px-6"
 				style={{ zIndex: reopenIndicatorOpen ? 10 : 0 }}
 			>
-				<View className="flex-row items-center gap-3">
+				<View
+					className="max-w-full flex-row items-center gap-3"
+					style={{ zIndex: reopenIndicatorOpen ? 1 : 0 }}
+				>
 					<View className="h-11 w-11 items-center justify-center rounded-xl bg-blue-50">
 						<FileText size={21} color="#2563eb" />
 					</View>
-					<View className="gap-1">
+					<View className="min-w-0 shrink gap-1">
 						<Text className="font-inter-bold text-base text-gray-900">
 							Orçamento #{shortId(quote.id)}
 						</Text>
@@ -954,7 +957,7 @@ export function QuoteCard({
 								quote.enterprise ||
 								'Empresa não vinculada'}
 						</Text>
-						<View className="flex-row items-center gap-2">
+						<View className="flex-row flex-wrap items-center gap-x-2 gap-y-1">
 							<View
 								className={`rounded-full px-2.5 py-1 ${status.classes.split(' ')[0]}`}
 							>

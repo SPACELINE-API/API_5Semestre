@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { TriangleAlert } from 'lucide-react-native';
+
+const TOOLTIP_MAX_WIDTH = 256;
+const SCREEN_GUTTER = 16;
 
 type ReopenedQuoteIndicatorProps = {
 	reopenedAt: string;
@@ -47,17 +50,29 @@ export function ReopenedQuoteIndicator({
 	onOpenChange,
 }: ReopenedQuoteIndicatorProps) {
 	const [open, setOpen] = useState(false);
+	const [offset, setOffset] = useState(0);
 	const hovered = useRef(false);
+	const anchor = useRef<View>(null);
+	const { width: screenWidth } = useWindowDimensions();
+	const tooltipWidth = Math.min(
+		TOOLTIP_MAX_WIDTH,
+		screenWidth - SCREEN_GUTTER * 2,
+	);
 
 	function changeOpen(next: boolean) {
 		setOpen(next);
 		onOpenChange?.(next);
+		if (!next) return;
+		anchor.current?.measureInWindow((x) => {
+			const overflow = x + tooltipWidth - (screenWidth - SCREEN_GUTTER);
+			setOffset(overflow > 0 ? -Math.min(overflow, x - SCREEN_GUTTER) : 0);
+		});
 	}
 
 	return (
-		<View className="relative" style={{ zIndex: open ? 50 : 0 }}>
+		<View ref={anchor} className="relative" style={{ zIndex: open ? 50 : 0 }}>
 			<Pressable
-				accessibilityRole="img"
+				accessibilityRole="image"
 				accessibilityLabel="Orçamento reaberto"
 				accessibilityHint="Mostra quando e por que o orçamento foi reaberto"
 				accessibilityState={{ expanded: open }}
@@ -80,7 +95,8 @@ export function ReopenedQuoteIndicator({
 				<View
 					accessibilityRole="alert"
 					testID="reopened-quote-tooltip"
-					className="absolute left-0 top-8 w-64 rounded-lg border border-amber-200 bg-amber-50 p-3 shadow-md"
+					className="absolute top-8 rounded-lg border border-amber-200 bg-amber-50 p-3 shadow-md"
+					style={{ left: offset, width: tooltipWidth }}
 				>
 					<Text className="font-inter-semibold text-xs text-amber-900">
 						Orçamento reaberto
