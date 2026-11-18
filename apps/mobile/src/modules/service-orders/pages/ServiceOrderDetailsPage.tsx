@@ -47,6 +47,7 @@ import type { ServiceOrderItem } from '../types/serviceOrder';
 import { CompleteServiceOrderModal } from '../components/CompleteServiceOrderModal';
 import { AdditionalServicesTab } from '../components/AdditionalServicesTab';
 import { ServiceOrderVersionsTab } from '../components/ServiceOrderVersionsTab';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 type ServiceOrderDetailsPageProps = {
 	id: string;
@@ -65,6 +66,11 @@ export function ServiceOrderDetailsPage({
 	const { translators } = useTranslators();
 	const { contacts } = useContacts();
 	const { toast, showToast } = useToast();
+	const canWriteServiceOrders = usePermission('service_orders.write');
+	const canWriteAssignments = usePermission('assignments.write');
+	const canManageAssignments = usePermission('assignments.manage');
+	const canReadContacts = usePermission('contacts.read');
+	const canWriteDocuments = usePermission('documents.write');
 
 	const [view, setView] = useState<ServiceOrderView>('detalhes');
 	const [detailTab, setDetailTab] = useState<ServiceOrderDetailTab>(
@@ -95,10 +101,12 @@ export function ServiceOrderDetailsPage({
 
 	const companyContacts = useMemo(
 		() =>
-			contacts.filter(
-				(contact) => contact.company_id === serviceOrder?.company_id,
-			),
-		[contacts, serviceOrder],
+			canReadContacts
+				? contacts.filter(
+						(contact) => contact.company_id === serviceOrder?.company_id,
+					)
+				: [],
+		[canReadContacts, contacts, serviceOrder],
 	);
 
 	const translatorsById = useMemo(
@@ -107,7 +115,7 @@ export function ServiceOrderDetailsPage({
 	);
 
 	async function handleDelete() {
-		if (!serviceOrder) return;
+		if (!canWriteServiceOrders || !serviceOrder) return;
 
 		setIsDeleting(true);
 
@@ -188,7 +196,9 @@ export function ServiceOrderDetailsPage({
 								serviceOrder.files,
 								serviceOrder.items,
 							)}
-							onComplete={() => setIsCompleteModalVisible(true)}
+							onComplete={() => {
+								if (canWriteServiceOrders) setIsCompleteModalVisible(true);
+							}}
 							onViewChange={setView}
 						/>
 
@@ -232,6 +242,7 @@ export function ServiceOrderDetailsPage({
 											refreshToken={refreshToken}
 											onSendInvites={async (itemId, translatorIds) => {
 												try {
+													if (!canWriteAssignments) return;
 													await sendItemInvites(itemId, translatorIds);
 													setRefreshToken((current) => current + 1);
 													showToast(
@@ -250,18 +261,24 @@ export function ServiceOrderDetailsPage({
 										/>
 									)}
 
-									{detailTab === 'cliente' && (
-										<ClientInfoTab
-											company={company ?? null}
-											contacts={companyContacts}
-										/>
-									)}
+									{detailTab === 'cliente' &&
+										(canReadContacts ? (
+											<ClientInfoTab
+												company={company ?? null}
+												contacts={companyContacts}
+											/>
+										) : (
+											<Text className="font-inter text-gray-500 text-sm">
+												Sem permissão para consultar contatos.
+											</Text>
+										))}
 
 									{detailTab === 'geral' && (
 										<GeneralInfoTab
 											serviceOrder={serviceOrder}
 											onSave={async (data) => {
 												try {
+													if (!canWriteServiceOrders) return;
 													await updateServiceOrder(serviceOrder.id, data);
 													await refresh();
 													showToast('Dados salvos com sucesso!', 'success');
@@ -299,6 +316,7 @@ export function ServiceOrderDetailsPage({
 											translatorsById={translatorsById}
 											onApprove={async (file) => {
 												try {
+													if (!canWriteDocuments) return;
 													await approveServiceOrderFile(
 														serviceOrder.id,
 														file.id,
@@ -316,6 +334,7 @@ export function ServiceOrderDetailsPage({
 											}}
 											onRequestChanges={async (file, note) => {
 												try {
+													if (!canWriteDocuments) return false;
 													await requestServiceOrderFileChanges(
 														serviceOrder.id,
 														file.id,
@@ -353,6 +372,10 @@ export function ServiceOrderDetailsPage({
 											files={serviceOrder.files}
 											onUpload={async (file, direction) => {
 												try {
+													if (!canWriteDocuments)
+														throw new Error(
+															'Sem permissão para enviar arquivos.',
+														);
 													const uploadedFile = await uploadServiceOrderFile(
 														serviceOrder.id,
 														file,
@@ -374,6 +397,7 @@ export function ServiceOrderDetailsPage({
 											}}
 											onDelete={async (target) => {
 												try {
+													if (!canWriteDocuments) return;
 													if (target.kind === 'file') {
 														await deleteServiceOrderFile(
 															serviceOrder.id,
@@ -433,17 +457,20 @@ export function ServiceOrderDetailsPage({
 				visible={inviteTargetItem !== null}
 				translators={translators}
 				pendingTranslatorIds={
-					new Set(
-						inviteTargetItemInvites
-							.filter((invite) => invite.status === 'pendente')
-							.map((invite) => invite.translator_id),
-					)
+					canManageAssignments
+						? new Set(
+								inviteTargetItemInvites
+									.filter((invite) => invite.status === 'pendente')
+									.map((invite) => invite.translator_id),
+							)
+						: new Set()
 				}
 				onClose={() => setInviteTargetItem(null)}
 				onSubmit={async (translatorIds) => {
 					if (!inviteTargetItem) return;
 
 					try {
+						if (!canWriteAssignments) return;
 						await sendItemInvites(inviteTargetItem.id, translatorIds);
 						setRefreshToken((current) => current + 1);
 						showToast('Convites enviados com sucesso!', 'success');

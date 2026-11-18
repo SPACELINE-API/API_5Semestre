@@ -144,6 +144,7 @@ export function ClientsPage() {
 	}
 
 	async function handleBulkDelete() {
+		if (!canWriteClients || selectedCompanies.length === 0) return;
 		setIsBulkDeleting(true);
 
 		try {

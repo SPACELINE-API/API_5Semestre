@@ -1,6 +1,8 @@
 import { env } from '../env';
 
 export const apiUrl = env.apiUrl;
+export const FORBIDDEN_ERROR_MESSAGE =
+	'Você não tem permissão para realizar esta ação.';
 
 type FastApiValidationError = { msg?: string };
 
@@ -18,6 +20,8 @@ export class ApiError extends Error {
 }
 
 export function extractErrorMessage(payload: unknown, status: number): string {
+	if (status === 403) return FORBIDDEN_ERROR_MESSAGE;
+
 	const detail = (payload as { detail?: unknown } | null)?.detail;
 
 	if (typeof detail === 'string') return detail;

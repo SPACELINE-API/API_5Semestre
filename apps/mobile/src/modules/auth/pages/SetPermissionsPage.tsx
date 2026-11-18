@@ -23,7 +23,6 @@ import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 
 const MODULE_LABELS: Record<string, string> = {
-	dashboard: 'Dashboard',
 	requests: 'Requisições',
 	quotes: 'Orçamentos',
 	service_orders: 'Ordens de serviço',
@@ -36,10 +35,10 @@ const MODULE_LABELS: Record<string, string> = {
 	support: 'Suporte',
 	roles: 'Perfis de acesso',
 	settings: 'Configurações',
+	proposals: 'Propostas',
 };
 
 const VISIBLE_PERMISSIONS = new Set([
-	'dashboard.read',
 	'requests.read',
 	'requests.write',
 	'quotes.read',
@@ -58,6 +57,9 @@ const VISIBLE_PERMISSIONS = new Set([
 	'projects.read',
 	'support.read',
 	'support.write',
+	'proposals.read',
+	'reports.productivity.read',
+	'settings.read',
 	'settings.write',
 	'roles.read',
 	'roles.write',
@@ -79,18 +81,27 @@ function buildModules(permissions: Permission[]): PermissionModule[] {
 		const separator = permission.code.lastIndexOf('.');
 		const key = permission.code.slice(0, separator);
 		const action = permission.code.slice(separator + 1);
+		const moduleKey =
+			permission.code === 'reports.productivity.read'
+				? 'reports.productivity'
+				: key;
 
-		const module = modules.get(key) ?? {
-			key,
-			label: MODULE_LABELS[key] ?? key,
+		const module = modules.get(moduleKey) ?? {
+			key: moduleKey,
+			label:
+				permission.code === 'reports.productivity.read'
+					? 'Produtividade'
+					: (MODULE_LABELS[key] ?? key),
 			extras: [],
 		};
 		if (extraLabel) {
 			module.extras.push({ permission, label: extraLabel });
+		} else if (permission.code === 'reports.productivity.read') {
+			module.read = permission;
 		} else if (action === 'read' || action === 'write') {
 			module[action] = permission;
 		}
-		modules.set(key, module);
+		modules.set(moduleKey, module);
 	}
 
 	return [...modules.values()].sort((a, b) =>
