@@ -24,6 +24,7 @@ from app.modules.tasks.services.task_rules import (
     ACTION_SUBMITTED,
     apply_transition,
     ensure_editable,
+    is_internal_user,
 )
 from app.modules.translators.services.storage import SIGNED_URL_EXPIRES_IN
 
@@ -48,6 +49,20 @@ class TaskWorkflowService:
             statement = statement.where(Task.status == task_status)
         return list(self.db.scalars(statement.order_by(Task.created_at.desc())).unique().all())
 
+    # TAREFAS QUE O USUARIO ATRIBUIU, PARA ACOMPANHAR A EXECUCAO
+    def list_requested_by(self, user: User, task_status: TaskStatus | None = None) -> list[Task]:
+        statement = _internal_tasks().where(Task.requester_id == user.id)
+        if task_status is not None:
+            statement = statement.where(Task.status == task_status)
+        return list(self.db.scalars(statement.order_by(Task.created_at.desc())).unique().all())
+
+    # FUNCIONARIOS INTERNOS ATIVOS QUE PODEM RECEBER TAREFAS (MESMA REGRA DA CRIACAO)
+    def list_assignees(self) -> list[User]:
+        users = self.db.scalars(
+            select(User).where(User.is_active.is_(True)).order_by(User.name, User.email)
+        ).all()
+        return [user for user in users if is_internal_user(user)]
+
     def list_all(
         self,
         *,
@@ -63,7 +78,8 @@ class TaskWorkflowService:
 
     def get_visible(self, task_id: uuid.UUID, viewer: User, *, can_review: bool) -> Task:
         task = self._get_or_404(task_id)
-        if not can_review and task.assignee_id != viewer.id:
+        # VEEM A TAREFA: QUEM AVALIA, O RESPONSAVEL E QUEM A ATRIBUIU
+        if not can_review and viewer.id not in (task.assignee_id, task.requester_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=TASK_NOT_FOUND)
         return task
 

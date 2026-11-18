@@ -14,6 +14,7 @@ import {
 import type { LucideIcon } from 'lucide-react-native';
 import {
 	BarChart3 as ProdutividadeIcon,
+	ClipboardList as TasksIcon,
 	FileBarChart as ProposalsIcon,
 	X as CloseIcon,
 } from 'lucide-react-native';
@@ -132,6 +133,7 @@ export function SideBar({
 	const isProposalsActive = pathname.startsWith('/propostas');
 	const isMyItemsActive = pathname.startsWith('/meus-itens');
 	const isProfileActive = pathname.startsWith('/meu-perfil');
+	const isTasksActive = pathname.startsWith('/tarefas');
 	const showExpanded = isOpen || mobileOpen;
 	const authorizationContext = getAuthorizationContext();
 	const isTranslator =
@@ -267,6 +269,13 @@ export function SideBar({
 											active={isProductivityActive}
 											disabled={!can('reports.productivity.read')}
 											onPress={() => navigate('/produtividade')}
+										/>
+										<NavItem
+											icon={TasksIcon}
+											label="Tarefas"
+											isOpen={showExpanded}
+											active={isTasksActive}
+											onPress={() => navigate('/tarefas')}
 										/>
 									</View>
 								</View>
