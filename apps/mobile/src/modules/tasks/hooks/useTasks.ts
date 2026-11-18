@@ -30,5 +30,10 @@ export function useTasks(loader: () => Promise<Task[]>) {
 		);
 	}, []);
 
-	return { tasks, isLoading, error, refresh, replaceTask };
+	// TAREFA RECEM-CRIADA ENTRA NO TOPO DA LISTA
+	const addTask = useCallback((created: Task) => {
+		setTasks((current) => [created, ...current]);
+	}, []);
+
+	return { tasks, isLoading, error, refresh, replaceTask, addTask };
 }

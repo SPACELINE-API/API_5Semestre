@@ -15,12 +15,15 @@ type Step = 'details' | 'confirm-approve' | 'reject';
 
 type TaskReviewModalProps = {
 	task: Task | null;
+	// SO QUEM TEM tasks.review APROVA OU REPROVA; OS DEMAIS APENAS ACOMPANHAM
+	canReview: boolean;
 	onClose: () => void;
 	onReviewed: (task: Task, message: string) => void;
 };
 
 export function TaskReviewModal({
 	task,
+	canReview: hasReviewPermission,
 	onClose,
 	onReviewed,
 }: TaskReviewModalProps) {
@@ -30,6 +33,8 @@ export function TaskReviewModal({
 	const [error, setError] = useState<string | null>(null);
 
 	if (!task) return null;
+
+	const isReviewable = hasReviewPermission && canReview(task);
 
 	const assignee = personName(task.assignee);
 
@@ -128,7 +133,7 @@ export function TaskReviewModal({
 	}
 
 	// SOMENTE TAREFAS EM ANALISE PODEM SER AVALIADAS
-	const footer = canReview(task) ? (
+	const footer = isReviewable ? (
 		<>
 			<TouchableOpacity
 				onPress={() => setStep('reject')}
@@ -187,9 +192,11 @@ export function TaskReviewModal({
 
 			<TaskAttachments task={task} editable={false} />
 
-			{!canReview(task) && (
+			{!isReviewable && (
 				<Text className="font-inter text-gray-500 text-xs">
-					Somente tarefas em análise podem ser aprovadas ou reprovadas.
+					{canReview(task) && !hasReviewPermission
+						? 'A tarefa está em análise. A aprovação ou reprovação é feita por quem tem permissão para avaliar tarefas.'
+						: 'Somente tarefas em análise podem ser aprovadas ou reprovadas.'}
 				</Text>
 			)}
 

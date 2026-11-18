@@ -8,7 +8,12 @@ import {
 import type { NativeFile } from '../../../shared/types/file';
 import { toUploadable } from '../../../shared/utils/toUploadable';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
-import type { Task, TaskFile } from '../types/task';
+import type {
+	Task,
+	TaskCreateInput,
+	TaskFile,
+	TaskPerson,
+} from '../types/task';
 
 const TASKS_PATH = '/api/tasks';
 
@@ -24,6 +29,20 @@ export function listMyTasks(): Promise<Task[]> {
 // TAREFAS DE TODOS OS FUNCIONARIOS (EXIGE tasks.review)
 export function listTeamTasks(): Promise<Task[]> {
 	return apiGetAuth<Task[]>(TASKS_PATH);
+}
+
+// TAREFAS QUE O USUARIO AUTENTICADO ATRIBUIU (EXIGE assignments.write)
+export function listTasksAssignedByMe(): Promise<Task[]> {
+	return apiGetAuth<Task[]>(`${TASKS_PATH}/assigned-by-me`);
+}
+
+// FUNCIONARIOS INTERNOS ATIVOS QUE PODEM RECEBER TAREFAS
+export function listTaskAssignees(): Promise<TaskPerson[]> {
+	return apiGetAuth<TaskPerson[]>(`${TASKS_PATH}/assignees`);
+}
+
+export function createTask(data: TaskCreateInput): Promise<Task> {
+	return apiPostAuth<Task, TaskCreateInput>(TASKS_PATH, data);
 }
 
 export function startTask(taskId: string): Promise<Task> {

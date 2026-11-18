@@ -37,3 +37,9 @@ export type TaskFile = {
 	url: string;
 	expires_in: number;
 };
+
+export type TaskCreateInput = {
+	description: string;
+	due_date: string | null;
+	assignee_id: string;
+};

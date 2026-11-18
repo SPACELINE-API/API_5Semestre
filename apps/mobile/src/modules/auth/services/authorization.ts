@@ -21,7 +21,7 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/configuracoes/pessoas': 'users.read',
 	'/configuracoes/sessao': 'settings.read',
 	'/projetos': 'projects.read',
-	'/tarefas/equipe': 'tasks.review',
+	'/tarefas/atribuidas': 'assignments.write',
 };
 
 const FULL_ROUTE_ACCESS_ROLES = new Set(['administrador', 'admin']);
@@ -71,7 +71,7 @@ export function isTranslatorProfile(context: AuthorizationContext | null) {
 }
 
 // TELAS DE QUALQUER FUNCIONARIO INTERNO, SEM PERMISSAO ESPECIFICA (TRADUTORES NAO ACESSAM)
-const INTERNAL_USER_PATHS = ['/tarefas'];
+const INTERNAL_USER_PATHS = ['/tarefas', '/tarefas/minhas'];
 
 export function isInternalUserPath(pathname: string) {
 	return INTERNAL_USER_PATHS.includes(pathname);

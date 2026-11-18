@@ -6,6 +6,7 @@ import {
 	TaskStatusFilter,
 	type TaskStatusFilterValue,
 } from '../components/TaskStatusFilter';
+import { TasksHeader } from '../components/TasksHeader';
 import { useTasks } from '../hooks/useTasks';
 import { listMyTasks } from '../services/taskService';
 import { countByStatus } from '../utils/taskStatus';
@@ -27,16 +28,13 @@ export function MyTasksPage() {
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
 			>
-				<View className="mb-6 gap-4 border-b border-gray-200 pb-6">
-					<View>
-						<Text className="font-inter font-bold text-gray-950 text-2xl">
-							Minhas tarefas
-						</Text>
-						<Text className="mt-2 font-inter text-gray-500 text-sm">
-							{tasks.length} {tasks.length === 1 ? 'tarefa' : 'tarefas'}{' '}
-							destinadas a você
-						</Text>
-					</View>
+				<TasksHeader active="minhas" />
+
+				<View className="mb-6 gap-4">
+					<Text className="font-inter text-gray-500 text-sm">
+						{tasks.length} {tasks.length === 1 ? 'tarefa' : 'tarefas'}{' '}
+						atribuídas a você
+					</Text>
 					{!isLoading && !error && tasks.length > 0 && (
 						<TaskStatusFilter
 							value={filter}
@@ -53,7 +51,7 @@ export function MyTasksPage() {
 					error={error}
 					emptyTitle={
 						tasks.length === 0
-							? 'Nenhuma tarefa destinada a você'
+							? 'Nenhuma tarefa atribuída a você'
 							: 'Nenhuma tarefa com este status'
 					}
 					emptyMessage={
