@@ -55,8 +55,10 @@ const FROM_COLLEAGUE = colleagueTask({
 
 async function openMyTasks(page: Page) {
 	await loginAsEmployee(page);
-	await page.goto('/tarefas');
-	await expect(page.getByText('Minhas tarefas')).toBeVisible();
+	await page.goto('/tarefas/minhas');
+	await expect(
+		page.getByRole('tab', { name: 'Atribuídas a mim' }),
+	).toBeVisible();
 }
 
 function openTask(page: Page, description: string) {
@@ -72,8 +74,14 @@ test('o menu do funcionário interno exibe a opção Tarefas', async ({
 
 	await page.getByLabel('Tarefas', { exact: true }).click();
 
-	await expect(page).toHaveURL(/\/tarefas$/);
-	await expect(page.getByText('Minhas tarefas')).toBeVisible();
+	// SEM PERMISSAO PARA ATRIBUIR, A OPCAO TAREFAS ABRE DIRETO NAS TAREFAS ATRIBUIDAS A ELE
+	await expect(page).toHaveURL(/\/tarefas\/minhas$/);
+	await expect(
+		page.getByRole('tab', { name: 'Atribuídas a mim' }),
+	).toBeVisible();
+	await expect(
+		page.getByRole('tab', { name: 'Atribuídas por mim' }),
+	).toHaveCount(0);
 });
 
 test('lista somente as tarefas do funcionário com descrição, prazo e status', async ({
@@ -95,7 +103,7 @@ test('lista somente as tarefas do funcionário com descrição, prazo e status',
 		page.getByText('Concluído', { exact: true }).first(),
 	).toBeVisible();
 	await expect(page.getByText('Tarefa de outro funcionário')).toHaveCount(0);
-	await expect(page.getByText('3 tarefas destinadas a você')).toBeVisible();
+	await expect(page.getByText('3 tarefas atribuídas a você')).toBeVisible();
 });
 
 test('filtra as tarefas pelos cinco status', async ({ page }) => {
@@ -128,7 +136,7 @@ test('informa quando não há tarefas', async ({ page }) => {
 	await mockTasksApi(page, [FROM_COLLEAGUE]);
 	await openMyTasks(page);
 
-	await expect(page.getByText('Nenhuma tarefa destinada a você')).toBeVisible();
+	await expect(page.getByText('Nenhuma tarefa atribuída a você')).toBeVisible();
 });
 
 test('exibe erro no carregamento e permite tentar novamente', async ({
@@ -283,11 +291,13 @@ test('exibe o erro da API quando a ação é recusada', async ({ page }) => {
 	await expect(page.getByText('Transição inválida')).toBeVisible();
 });
 
-test('tradutor não acessa as tarefas internas', async ({ page }) => {
+test('recurso externo não acessa as tarefas internas', async ({ page }) => {
 	await mockTasksApi(page, []);
 	await loginAsTranslator(page);
 	await page.goto('/tarefas');
 
-	await expect(page).not.toHaveURL(/\/tarefas$/);
-	await expect(page.getByText('Minhas tarefas')).toHaveCount(0);
+	await expect(page).not.toHaveURL(/\/tarefas/);
+	await expect(page.getByRole('tab', { name: 'Atribuídas a mim' })).toHaveCount(
+		0,
+	);
 });

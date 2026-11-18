@@ -13,7 +13,12 @@ export const ADMIN = {
 	name: 'Admin',
 	email: 'admin@spaceline.com.br',
 };
-const COLLEAGUE = {
+export const MANAGER = {
+	id: 'manager-id',
+	name: 'Paula Projetos',
+	email: 'projetos@spaceline.com.br',
+};
+export const COLLEAGUE = {
 	id: 'colleague-id',
 	name: 'Diego Projetos',
 	email: 'diego@spaceline.com.br',
@@ -74,11 +79,20 @@ export function loginAsAdmin(page: Page) {
 	});
 }
 
+// CRIA E ACOMPANHA TAREFAS, MAS NAO AVALIA (SEM tasks.review)
+export function loginAsManager(page: Page) {
+	return loginAs(page, {
+		user: { id: MANAGER.id, email: MANAGER.email, role: 'interno' },
+		roles: [{ id: 'projetos', name: 'Projetos' }],
+		permissions: ['assignments.write', 'dashboard.read'],
+	});
+}
+
 export function loginAsTranslator(page: Page) {
 	return loginAs(page, {
 		user: {
 			id: 'translator-id',
-			email: 'operador@spaceline.com.br',
+			email: 'recurso.externo@spaceline.com.br',
 			role: 'tradutor',
 		},
 		roles: [{ id: 'external', name: 'Recursos externos' }],
@@ -137,7 +151,7 @@ export type MockedTasksApi = {
 export async function mockTasksApi(
 	page: Page,
 	initial: Task[],
-	options: { failList?: boolean } = {},
+	options: { failList?: boolean; requester?: typeof ADMIN } = {},
 ): Promise<MockedTasksApi> {
 	let tasks = initial.map((item) => ({ ...item }));
 	const calls: string[] = [];
@@ -159,7 +173,41 @@ export async function mockTasksApi(
 			tasks.filter((item) => item.assignee_id === EMPLOYEE.id),
 		),
 	);
-	await page.route(/\/api\/tasks(\?.*)?$/, (route) => list(route, tasks));
+	const requester = options.requester ?? ADMIN;
+	await page.route('**/api/tasks/assignees', (route) =>
+		route.fulfill(json([ADMIN, EMPLOYEE, COLLEAGUE])),
+	);
+	await page.route('**/api/tasks/assigned-by-me', (route) =>
+		list(
+			route,
+			tasks.filter((item) => item.requester_id === requester.id),
+		),
+	);
+	await page.route(/\/api\/tasks(\?.*)?$/, (route) => {
+		if (route.request().method() !== 'POST') return list(route, tasks);
+		// CRIACAO: A TAREFA NASCE PENDENTE PARA O FUNCIONARIO ESCOLHIDO
+		const body = route.request().postDataJSON() as {
+			description: string;
+			due_date: string | null;
+			assignee_id: string;
+		};
+		const assignee = [ADMIN, EMPLOYEE, COLLEAGUE].find(
+			(person) => person.id === body.assignee_id,
+		)!;
+		calls.push('POST create');
+		const created = task({
+			id: `task-${tasks.length + 1}`,
+			description: body.description,
+			status: 'pending',
+			due_date: body.due_date,
+			assignee_id: assignee.id,
+			assignee,
+			requester_id: requester.id,
+			requester,
+		});
+		tasks = [created, ...tasks];
+		return route.fulfill(json(created, 201));
+	});
 
 	await page.route(/\/api\/tasks\/[^/]+\/[a-z/-]+/, async (route) => {
 		const request = route.request();

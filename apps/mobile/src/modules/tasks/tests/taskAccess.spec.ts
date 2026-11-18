@@ -14,30 +14,36 @@ function context(
 }
 
 test.describe('acesso às telas de tarefas', () => {
-	test('qualquer funcionário interno acessa as próprias tarefas', () => {
-		expect(canAccess(context(['Atendimento']), '/tarefas')).toBe(true);
-		expect(
-			canAccess(context(['Financeiro'], ['finance.read']), '/tarefas'),
-		).toBe(true);
-		expect(canAccess(context(['Administrador']), '/tarefas')).toBe(true);
+	test('qualquer funcionário interno acessa as tarefas atribuídas a ele', () => {
+		for (const path of ['/tarefas', '/tarefas/minhas']) {
+			expect(canAccess(context(['Atendimento']), path)).toBe(true);
+			expect(canAccess(context(['Financeiro'], ['finance.read']), path)).toBe(
+				true,
+			);
+			expect(canAccess(context(['Administrador']), path)).toBe(true);
+		}
 	});
 
-	test('tradutor e usuário sem sessão não acessam tarefas internas', () => {
-		expect(canAccess(context(['Recursos externos']), '/tarefas')).toBe(false);
-		expect(canAccess(context(['Tradutor']), '/tarefas')).toBe(false);
-		expect(canAccess(null, '/tarefas')).toBe(false);
+	test('recurso externo e usuário sem sessão não acessam tarefas internas', () => {
+		for (const path of ['/tarefas', '/tarefas/minhas', '/tarefas/atribuidas']) {
+			expect(canAccess(context(['Recursos externos']), path)).toBe(false);
+			expect(canAccess(context(['Tradutor']), path)).toBe(false);
+			expect(canAccess(null, path)).toBe(false);
+		}
 	});
 
-	test('a área administrativa exige tasks.review', () => {
+	test('a aba de tarefas atribuídas exige permissão para atribuir', () => {
+		expect(canAccess(context(['Atendimento']), '/tarefas/atribuidas')).toBe(
+			false,
+		);
 		expect(
 			canAccess(
-				context(['Atendimento'], ['assignments.write']),
-				'/tarefas/equipe',
+				context(['Projetos'], ['assignments.write']),
+				'/tarefas/atribuidas',
 			),
-		).toBe(false);
-		expect(
-			canAccess(context(['Revisão'], ['tasks.review']), '/tarefas/equipe'),
 		).toBe(true);
-		expect(canAccess(context(['Administrador']), '/tarefas/equipe')).toBe(true);
+		expect(canAccess(context(['Administrador']), '/tarefas/atribuidas')).toBe(
+			true,
+		);
 	});
 });
