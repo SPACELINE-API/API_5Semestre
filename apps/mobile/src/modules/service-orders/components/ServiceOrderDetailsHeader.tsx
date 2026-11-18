@@ -45,6 +45,14 @@ export function ServiceOrderDetailsHeader({
 						{serviceOrder.project_name}
 					</Text>
 					<StatusBadge status={serviceOrder.status} />
+					{serviceOrder.revised_after_reopen ? (
+						<View className="rounded-full bg-amber-50 px-2.5 py-1">
+							<Text className="font-inter font-medium text-amber-800 text-xs">
+								Versão {serviceOrder.current_version} · revisada após reabertura
+								do orçamento
+							</Text>
+						</View>
+					) : null}
 				</View>
 				<Text className="mt-1 font-inter text-gray-400 text-sm">
 					{companyName}
@@ -54,6 +62,14 @@ export function ServiceOrderDetailsHeader({
 						<Text className="font-inter text-gray-400 text-xs">Prazo</Text>
 						<Text className="font-inter font-medium text-gray-800 text-sm">
 							{formatDate(serviceOrder.deadline)}
+						</Text>
+					</View>
+					<View className="gap-0.5">
+						<Text className="font-inter text-gray-400 text-xs">Origem</Text>
+						<Text className="font-inter font-medium text-gray-800 text-sm">
+							{serviceOrder.quote_id
+								? 'Orçamento aprovado'
+								: 'Criada manualmente'}
 						</Text>
 					</View>
 					<View className="gap-0.5">
@@ -128,7 +144,8 @@ export type ServiceOrderDetailTab =
 	| 'adicionais'
 	| 'revisao'
 	| 'arquivos'
-	| 'tradutores';
+	| 'tradutores'
+	| 'versoes';
 
 const detailTabOptions: { key: ServiceOrderDetailTab; label: string }[] = [
 	{ key: 'geral', label: 'Geral' },
@@ -139,16 +156,19 @@ const detailTabOptions: { key: ServiceOrderDetailTab; label: string }[] = [
 	{ key: 'adicionais', label: 'Serviços adicionais' },
 	{ key: 'revisao', label: 'Revisão' },
 	{ key: 'arquivos', label: 'Arquivos' },
+	{ key: 'versoes', label: 'Versões' },
 ];
 
 export function ServiceOrderDetailTabs({
 	selected,
 	onSelect,
 	reviewCount = 0,
+	showVersions = false,
 }: {
 	selected: ServiceOrderDetailTab;
 	onSelect: (tab: ServiceOrderDetailTab) => void;
 	reviewCount?: number;
+	showVersions?: boolean;
 }) {
 	return (
 		<ScrollView
@@ -157,36 +177,38 @@ export function ServiceOrderDetailTabs({
 			className="mt-5 border-b border-gray-200"
 			contentContainerClassName="flex-row gap-7"
 		>
-			{detailTabOptions.map((tab) => {
-				const active = tab.key === selected;
-				return (
-					<TouchableOpacity
-						key={tab.key}
-						onPress={() => onSelect(tab.key)}
-						activeOpacity={0.7}
-						accessibilityRole="tab"
-						accessibilityState={{ selected: active }}
-						accessibilityLabel={`Ver aba ${tab.label}`}
-						className={`border-b-2 py-3 ${active ? 'border-blue-600' : 'border-transparent'}`}
-					>
-						<View className="flex-row items-center gap-1.5">
-							<Text
-								className={`font-inter text-sm ${active ? 'font-semibold text-blue-600' : 'font-medium text-gray-400'}`}
-								numberOfLines={1}
-							>
-								{tab.label}
-							</Text>
-							{tab.key === 'revisao' && reviewCount > 0 && (
-								<View className="min-w-[18px] items-center rounded-full bg-amber-100 px-1.5 py-0.5">
-									<Text className="font-inter font-semibold text-amber-900 text-xs">
-										{reviewCount}
-									</Text>
-								</View>
-							)}
-						</View>
-					</TouchableOpacity>
-				);
-			})}
+			{detailTabOptions
+				.filter((tab) => showVersions || tab.key !== 'versoes')
+				.map((tab) => {
+					const active = tab.key === selected;
+					return (
+						<TouchableOpacity
+							key={tab.key}
+							onPress={() => onSelect(tab.key)}
+							activeOpacity={0.7}
+							accessibilityRole="tab"
+							accessibilityState={{ selected: active }}
+							accessibilityLabel={`Ver aba ${tab.label}`}
+							className={`border-b-2 py-3 ${active ? 'border-blue-600' : 'border-transparent'}`}
+						>
+							<View className="flex-row items-center gap-1.5">
+								<Text
+									className={`font-inter text-sm ${active ? 'font-semibold text-blue-600' : 'font-medium text-gray-400'}`}
+									numberOfLines={1}
+								>
+									{tab.label}
+								</Text>
+								{tab.key === 'revisao' && reviewCount > 0 && (
+									<View className="min-w-[18px] items-center rounded-full bg-amber-100 px-1.5 py-0.5">
+										<Text className="font-inter font-semibold text-amber-900 text-xs">
+											{reviewCount}
+										</Text>
+									</View>
+								)}
+							</View>
+						</TouchableOpacity>
+					);
+				})}
 		</ScrollView>
 	);
 }

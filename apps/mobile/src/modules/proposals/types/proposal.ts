@@ -1,4 +1,5 @@
-export type ProposalStatus = 'pending' | 'approved' | 'reproved';
+export type ProposalStatus =
+	'draft' | 'pending' | 'approved' | 'reproved' | 'cancelled';
 
 export type ProposalSortField =
 	'created_at' | 'status' | 'customer_name' | 'enterprise';

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class QuoteTranslationItemCreate(BaseModel):
@@ -10,6 +10,7 @@ class QuoteTranslationItemCreate(BaseModel):
     target_language: str
     document_type: str | None = None
     file_url: str | None = None
+    word_count: int | None = Field(default=None, ge=0)
     estimated_value: Decimal | None = None
 
 
@@ -18,6 +19,7 @@ class QuoteTranslationItemUpdate(BaseModel):
     target_language: str | None = None
     document_type: str | None = None
     file_url: str | None = None
+    word_count: int | None = Field(default=None, ge=0)
     estimated_value: Decimal | None = None
 
 
@@ -28,6 +30,7 @@ class QuoteTranslationItemResponse(BaseModel):
     target_language: str
     document_type: str | None = None
     file_url: str | None = None
+    word_count: int | None = None
     estimated_value: Decimal | None = None
     created_at: datetime
     updated_at: datetime

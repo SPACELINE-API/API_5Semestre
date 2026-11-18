@@ -75,10 +75,28 @@ export type ServiceOrder = {
 	internal_notes: string | null;
 	external_notes: string | null;
 	status: ServiceOrderItemStatus;
+	current_version?: number;
+	revised_after_reopen?: boolean;
 	items: ServiceOrderItem[];
 	files: ServiceOrderFile[];
 	created_at: string;
 	updated_at: string;
+};
+
+export type ServiceOrderVersionChange = {
+	action: 'added' | 'updated' | 'removed';
+	item: string;
+	fields: Record<string, { before: unknown; after: unknown }>;
+};
+
+export type ServiceOrderVersion = {
+	id: string;
+	version: number;
+	origin: 'quote_approval' | 'quote_reapproval';
+	reason: string | null;
+	changes: ServiceOrderVersionChange[];
+	actor_email: string | null;
+	created_at: string;
 };
 
 export type GenerateServiceOrderInput = {

@@ -8,7 +8,13 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CircleAlert, FileText, Plus, RefreshCw, X } from 'lucide-react-native';
-import { listQuotes, updateQuoteStatus } from '../services/quotesService';
+import {
+	listQuotes,
+	reopenQuote,
+	sendQuoteToCustomer,
+	updateQuoteStatus,
+} from '../services/quotesService';
+import type { QuoteDecisionResult } from '../services/quotesService';
 import type {
 	ManagedQuote,
 	QuoteStatusFilter,
@@ -39,37 +45,39 @@ export default function QuotesManagerPage() {
 	const [showNewQuoteModal, setShowNewQuoteModal] = useState(false);
 	const canWriteQuotes = usePermission('quotes.write');
 
-	const loadQuotes = useCallback(async () => {
-		setLoading(true);
-		setError('');
-		try {
-			const result = await listQuotes({
-				page,
-				search: appliedSearch,
-				status: statusFilter,
-			});
-			setQuotes(result.items);
-			setTotalQuotes(result.total);
-			setTotalPages(result.total_pages);
-		} catch (cause) {
-			setError(
-				cause instanceof Error
-					? cause.message
-					: 'Não foi possível carregar os orçamentos.',
-			);
-		} finally {
-			setLoading(false);
-		}
-	}, [appliedSearch, page, statusFilter]);
+	const loadQuotes = useCallback(
+		async ({ silent = false }: { silent?: boolean } = {}) => {
+			if (!silent) setLoading(true);
+			setError('');
+			try {
+				const result = await listQuotes({
+					page,
+					search: appliedSearch,
+					status: statusFilter,
+				});
+				setQuotes(result.items);
+				setTotalQuotes(result.total);
+				setTotalPages(result.total_pages);
+			} catch (cause) {
+				setError(
+					cause instanceof Error
+						? cause.message
+						: 'Não foi possível carregar os orçamentos.',
+				);
+			} finally {
+				if (!silent) setLoading(false);
+			}
+		},
+		[appliedSearch, page, statusFilter],
+	);
 
-	const handleDecision = useCallback(
+	const applyQuoteTransition = useCallback(
 		async (
 			quoteId: string,
-			status: 'approved' | 'reproved',
-			reason?: string,
+			transition: () => Promise<QuoteDecisionResult>,
 		): Promise<string | null> => {
 			setUpdatingQuoteId(quoteId);
-			const result = await updateQuoteStatus(quoteId, status, reason);
+			const result = await transition();
 			if (result.success) {
 				setQuotes((current) =>
 					current.map((quote) =>
@@ -84,12 +92,32 @@ export default function QuotesManagerPage() {
 					(result.status === 0
 						? 'Não foi possível conectar ao servidor.'
 						: `Não foi possível atualizar o orçamento (${result.status}).`);
-				if (result.status === 409) void loadQuotes();
+				if (result.status === 409) void loadQuotes({ silent: true });
 				setUpdatingQuoteId(null);
 				return message;
 			}
 		},
 		[loadQuotes],
+	);
+
+	const handleDecision = useCallback(
+		(quoteId: string, status: 'approved' | 'reproved', reason?: string) =>
+			applyQuoteTransition(quoteId, () =>
+				updateQuoteStatus(quoteId, status, reason),
+			),
+		[applyQuoteTransition],
+	);
+
+	const handleSend = useCallback(
+		(quoteId: string) =>
+			applyQuoteTransition(quoteId, () => sendQuoteToCustomer(quoteId)),
+		[applyQuoteTransition],
+	);
+
+	const handleReopen = useCallback(
+		(quoteId: string, reason: string) =>
+			applyQuoteTransition(quoteId, () => reopenQuote(quoteId, reason)),
+		[applyQuoteTransition],
 	);
 
 	useEffect(() => {
@@ -199,6 +227,8 @@ export default function QuotesManagerPage() {
 								onDecide={(status, reason) =>
 									handleDecision(quote.id, status, reason)
 								}
+								onSend={() => handleSend(quote.id)}
+								onReopen={(reason) => handleReopen(quote.id, reason)}
 								onOpenServiceOrder={() =>
 									router.push(
 										`/ordens-de-servico/${quote.service_order_id}` as never,

@@ -30,11 +30,25 @@ class QuoteUpdate(BaseModel):
 class QuoteStatusUpdate(BaseModel):
     status: str = Field(pattern="^(approved|reproved)$")
     reproval_reason: str | None = Field(default=None, max_length=500)
+    terms_accepted: bool = False
 
     @model_validator(mode="after")
     def require_reproval_reason(self):
         if self.status == "reproved" and not (self.reproval_reason or "").strip():
             raise ValueError("Informe o motivo da reprovação.")
+        return self
+
+
+class QuoteReopenRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str = Field(max_length=500)
+
+    @model_validator(mode="after")
+    def require_reason(self):
+        self.reason = (self.reason or "").strip()
+        if not self.reason:
+            raise ValueError("Informe o motivo da reabertura.")
         return self
 
 
@@ -51,6 +65,15 @@ class QuoteResponse(BaseModel):
     reproved_at: datetime | None = None
     reproved_by_email: str | None = None
     reproval_reason: str | None = None
+    terms_accepted_at: datetime | None = None
+    validity_starts_at: datetime | None = None
+    valid_until: datetime | None = None
+    sent_to_customer_at: datetime | None = None
+    sent_to_customer_email: str | None = None
+    reopened_at: datetime | None = None
+    reopen_reason: str | None = None
+    reopened_by_email: str | None = None
+    reopen_count: int = 0
     created_at: datetime
     updated_at: datetime
 
@@ -66,7 +89,16 @@ class QuoteManagerResponse(BaseModel):
     reproved_at: datetime | None
     reproved_by_email: str | None
     reproval_reason: str | None
+    terms_accepted_at: datetime | None = None
     service_order_id: uuid.UUID | None = None
+    validity_starts_at: datetime | None = None
+    valid_until: datetime | None = None
+    sent_to_customer_at: datetime | None = None
+    sent_to_customer_email: str | None = None
+    reopened_at: datetime | None = None
+    reopen_reason: str | None = None
+    reopened_by_email: str | None = None
+    reopen_count: int = 0
     total_value: Decimal
     customer_name: str | None
     enterprise: str | None
@@ -105,8 +137,42 @@ class QuoteFromRequestResponse(BaseModel):
     original_language: str
     translation_language: str
     customer_need: str
+    validity_starts_at: datetime | None = None
+    valid_until: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class QuoteCustomerItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    document_type: str | None = None
+    source_language: str
+    target_language: str
+    estimated_value: Decimal | None = None
+
+
+class QuoteCustomerService(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    description: str
+    price: Decimal
+
+
+class QuoteCustomerResponse(BaseModel):
+    code: str
+    status: str
+    company_name: str | None = None
+    customer_name: str | None = None
+    items: list[QuoteCustomerItem]
+    additional_services: list[QuoteCustomerService]
+    total_value: Decimal
+    valid_until: datetime | None = None
+    sent_to_customer_at: datetime | None = None
+    approved_at: datetime | None = None
+    reproved_at: datetime | None = None
+    reproval_reason: str | None = None
+    terms_accepted_at: datetime | None = None

@@ -46,6 +46,7 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import type { ServiceOrderItem } from '../types/serviceOrder';
 import { CompleteServiceOrderModal } from '../components/CompleteServiceOrderModal';
 import { AdditionalServicesTab } from '../components/AdditionalServicesTab';
+import { ServiceOrderVersionsTab } from '../components/ServiceOrderVersionsTab';
 import { usePermission } from '../../auth/hooks/usePermission';
 
 type ServiceOrderDetailsPageProps = {
@@ -209,6 +210,7 @@ export function ServiceOrderDetailsPage({
 									reviewCount={
 										pendingReviewDeliveries(serviceOrder.files).length
 									}
+									showVersions={Boolean(serviceOrder.quote_id)}
 								/>
 
 								<View className="py-7">
@@ -354,6 +356,13 @@ export function ServiceOrderDetailsPage({
 													return false;
 												}
 											}}
+										/>
+									)}
+
+									{detailTab === 'versoes' && (
+										<ServiceOrderVersionsTab
+											serviceOrderId={serviceOrder.id}
+											refreshToken={refreshToken}
 										/>
 									)}
 

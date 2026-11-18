@@ -14,6 +14,7 @@ import type {
 	ManualServiceOrderInput,
 	ServiceOrder,
 	ServiceOrderEmailTemplate,
+	ServiceOrderVersion,
 	ServiceOrderFile,
 	ServiceOrderFileDirection,
 	ServiceOrderItem,
@@ -35,6 +36,14 @@ export function listServiceOrders(): Promise<ServiceOrder[]> {
 
 export function getServiceOrder(id: string): Promise<ServiceOrder> {
 	return apiGetAuth<ServiceOrder>(`${SERVICE_ORDERS_PATH}/${id}`);
+}
+
+export function listServiceOrderVersions(
+	id: string,
+): Promise<ServiceOrderVersion[]> {
+	return apiGetAuth<ServiceOrderVersion[]>(
+		`${SERVICE_ORDERS_PATH}/${id}/versions`,
+	);
 }
 
 export function getServiceOrderEmailTemplate(): Promise<ServiceOrderEmailTemplate> {

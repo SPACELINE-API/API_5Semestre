@@ -124,7 +124,7 @@ def test_approved_quote_persists_notification_for_active_administrators_only(
     assert notification.message == "O orçamento da empresa Empresa de Teste foi aprovado."
     assert notification.related_type == "quote"
     assert notification.related_id == quote.id
-    assert notification.idempotency_key == f"quote:{quote.id}:approved"
+    assert notification.idempotency_key == f"quote:{quote.id}:approved:v1"
 
 
 def test_reproved_quote_does_not_persist_notification(
