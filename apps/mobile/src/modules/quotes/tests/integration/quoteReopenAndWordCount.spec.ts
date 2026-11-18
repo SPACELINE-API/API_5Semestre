@@ -301,7 +301,7 @@ test.describe('contagem de palavras dos documentos', () => {
 			buffer: Buffer.from('%PDF-1.4'),
 		});
 
-		await expect(page.getByText('845 palavras').first()).toBeVisible();
+		await expect(page.getByLabel('Quantidade de palavras')).toHaveValue('845');
 		await expect(page.getByTestId('quote-word-count-total')).toContainText(
 			'Total de palavras: 845',
 		);
@@ -310,5 +310,131 @@ test.describe('contagem de palavras dos documentos', () => {
 
 		await expect.poll(() => savedItem?.word_count).toBe(845);
 		await expect(page.getByText('845 palavras')).toBeVisible();
+	});
+
+	async function editWordCount(
+		page: Page,
+		item: ReturnType<typeof makeItem>,
+	): Promise<() => Record<string, unknown> | null> {
+		await loginAs(page);
+		await mockQuotes(page, makeQuote({ items: [item] }));
+		await page.route(`**/api/quotes/${quoteId}`, (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(makeQuote({ items: [] })),
+			}),
+		);
+		let savedItem: Record<string, unknown> | null = null;
+		await page.route(
+			`**/api/quotes/${quoteId}/translation-items/quote-item-1`,
+			(route) => {
+				savedItem = route.request().postDataJSON();
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify(makeItem({ word_count: savedItem?.word_count })),
+				});
+			},
+		);
+		await openQuote(page);
+		await page.getByLabel('Editar orçamento').click();
+		return () => savedItem;
+	}
+
+	test('permite informar a contagem quando o arquivo não pôde ser lido', async ({
+		page,
+	}) => {
+		const savedItem = await editWordCount(page, makeItem({ word_count: null }));
+		const field = page.getByLabel('Quantidade de palavras');
+
+		await expect(field).toHaveValue('');
+		await expect(
+			page.getByText(/Informe a quantidade manualmente/),
+		).toBeVisible();
+
+		await field.fill('1.250 palavras');
+
+		await expect(field).toHaveValue('1250');
+		await expect(
+			page.getByText(/Informe a quantidade manualmente/),
+		).toHaveCount(0);
+		await expect(page.getByTestId('quote-word-count-total')).toContainText(
+			'Total de palavras: 1.250',
+		);
+		await page.getByText('Salvar alterações', { exact: true }).click();
+
+		await expect.poll(() => savedItem()?.word_count).toBe(1250);
+		await expect(page.getByText('1.250 palavras')).toBeVisible();
+	});
+
+	test('permite corrigir a contagem feita pelo sistema', async ({ page }) => {
+		const savedItem = await editWordCount(page, makeItem({ word_count: 1200 }));
+		const field = page.getByLabel('Quantidade de palavras');
+
+		await expect(field).toHaveValue('1200');
+		await field.fill('980');
+		await page.getByText('Salvar alterações', { exact: true }).click();
+
+		await expect.poll(() => savedItem()?.word_count).toBe(980);
+	});
+
+	test('apagar a contagem deixa o documento sem contagem', async ({ page }) => {
+		const savedItem = await editWordCount(page, makeItem({ word_count: 1200 }));
+
+		await page.getByLabel('Quantidade de palavras').fill('');
+		await page.getByText('Salvar alterações', { exact: true }).click();
+
+		await expect.poll(() => savedItem() !== null).toBe(true);
+		expect(savedItem()?.word_count).toBeNull();
+	});
+});
+
+test.describe('contagem de palavras no novo orçamento', () => {
+	async function attachFile(page: Page, wordCount: number | null) {
+		await loginAs(page, { extraPermissions: ['documents.write'] });
+		await page.route('**/api/quotes/upload-document', (route) =>
+			route.fulfill({
+				status: 201,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					file_url: 'https://files.example/contrato.pdf',
+					word_count: wordCount,
+				}),
+			}),
+		);
+		await page.goto('/orcamento/novo-orcamento');
+		const fileChooser = page.waitForEvent('filechooser');
+		await page.getByLabel('Anexar arquivo').click();
+		await (
+			await fileChooser
+		).setFiles({
+			name: 'contrato.pdf',
+			mimeType: 'application/pdf',
+			buffer: Buffer.from('%PDF-1.4'),
+		});
+	}
+
+	test('preenche a contagem ao anexar e permite alterar', async ({ page }) => {
+		await attachFile(page, 845);
+		const field = page.getByLabel('Quantidade de palavras');
+
+		await expect(field).toHaveValue('845');
+		await field.fill('900');
+		await expect(field).toHaveValue('900');
+	});
+
+	test('pede a contagem manual quando o arquivo não pôde ser lido', async ({
+		page,
+	}) => {
+		await attachFile(page, null);
+		const field = page.getByLabel('Quantidade de palavras');
+
+		await expect(field).toHaveValue('');
+		await expect(
+			page.getByText(/Informe a quantidade manualmente/),
+		).toBeVisible();
+		await field.fill('abc300');
+		await expect(field).toHaveValue('300');
 	});
 });
