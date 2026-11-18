@@ -9,7 +9,6 @@ from app.modules.auth.models.roles import Permission, Role
 from app.modules.auth.models.user import User
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
-from app.modules.quotes.models.quote import Quote
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 from app.shared.database import get_db
@@ -32,12 +31,7 @@ def _create_item(db: Session) -> tuple[ServiceOrder, ServiceOrderItem]:
     )
     db.add(company)
     db.flush()
-    quote = Quote(
-        company_id=company.id, status="approved", customer_name="Maria Teste", email=company.email
-    )
-    db.add(quote)
-    db.flush()
-    order = ServiceOrder(quote_id=quote.id, company_id=company.id, project_name="Projeto de teste")
+    order = ServiceOrder(company_id=company.id, project_name="Projeto de teste")
     db.add(order)
     db.flush()
     item = ServiceOrderItem(
