@@ -1,0 +1,65 @@
+@serverUrl = http://localhost:3333
+
+### Login do administrador do seed
+# @name loginAdmin
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@spaceline.com.br",
+  "password": "123456"
+}
+
+### Cadastrar tradutor: cria também a conta de acesso Inativa com o perfil Tradutor
+### e envia o link de definição de senha (válido por 3 dias) para o e-mail informado.
+### O link chega no Mailpit (http://localhost:8025). Outros perfis não são aceitos neste cadastro.
+# @name createTranslator
+POST {{serverUrl}}/api/translators
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "name": "Joana Tradutora",
+  "email": "joana.tradutora@example.com",
+  "phone": "11988887777",
+  "qualification_ids": [],
+  "languages": [
+    { "language_id": "en-US", "proficiency_level": "advanced" }
+  ]
+}
+
+### Situação da conta do tradutor (status, senha definida e último link; a senha nunca é exibida)
+GET {{serverUrl}}/api/translators/{{createTranslator.response.body.$.id}}
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+
+### Reenviar o link de definição de senha (antes ou depois de expirar, enquanto a conta não foi ativada)
+### Todos os links anteriores passam para Rejeitado e deixam de funcionar.
+POST {{serverUrl}}/api/translators/{{createTranslator.response.body.$.id}}/password-setup-link/resend
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+
+### Consultar o link recebido por e-mail (troque <token> pelo valor do link)
+GET {{serverUrl}}/api/auth/password-setup/<token>
+
+### O próprio tradutor define a senha; a conta passa para Ativa e o link para Aceito
+POST {{serverUrl}}/api/auth/password-setup
+Content-Type: application/json
+
+{
+  "token": "<token>",
+  "password": "senha-segura-1",
+  "password_confirmation": "senha-segura-1"
+}
+
+### E-mail já usado por outro tradutor ou pessoa interna não cria nova conta (400)
+POST {{serverUrl}}/api/translators
+Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
+Content-Type: application/json
+
+{
+  "name": "Outra Pessoa",
+  "email": "admin@spaceline.com.br",
+  "phone": "11988887777",
+  "languages": [
+    { "language_id": "en-US", "proficiency_level": "advanced" }
+  ]
+}

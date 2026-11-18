@@ -68,6 +68,8 @@ class TranslatorRepository:
         phone: str,
         qualifications: list[TechnicalQualification],
         languages_input: list[TranslatorLanguageInput],
+        *,
+        commit: bool = True,
     ) -> Translator:
         translator = Translator(name=name, email=email, phone=phone)
         translator.qualifications = qualifications
@@ -80,6 +82,10 @@ class TranslatorRepository:
         ]
 
         self.db.add(translator)
+        # SEM COMMIT, O TRADUTOR ENTRA NA MESMA TRANSACAO DA CONTA DE ACESSO
+        if not commit:
+            self.db.flush()
+            return translator
         self.db.commit()
         return self.get_by_id(translator.id) or translator
 
