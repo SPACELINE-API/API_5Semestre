@@ -17,6 +17,7 @@ from app.modules.tasks.schemas.task import (
     TaskExecutionUpdate,
     TaskFileResponse,
     TaskHistoryResponse,
+    TaskPersonResponse,
     TaskRejectInput,
     TaskResponse,
 )
@@ -57,6 +58,18 @@ def list_tasks(
 @router.get("/me", response_model=list[TaskResponse])
 def list_my_tasks(db: DbSession, user: InternalUser, task_status: StatusFilter = None):
     return TaskWorkflowService(db).list_for_assignee(user, task_status)
+
+
+# FUNCIONARIOS QUE PODEM RECEBER TAREFAS, PARA O FORMULARIO DE CRIACAO
+@router.get("/assignees", response_model=list[TaskPersonResponse])
+def list_task_assignees(db: DbSession, _writer: TaskWriter):
+    return TaskWorkflowService(db).list_assignees()
+
+
+# TAREFAS ATRIBUIDAS PELO USUARIO AUTENTICADO, PARA ACOMPANHAMENTO
+@router.get("/assigned-by-me", response_model=list[TaskResponse])
+def list_tasks_assigned_by_me(db: DbSession, writer: TaskWriter, task_status: StatusFilter = None):
+    return TaskWorkflowService(db).list_requested_by(writer, task_status)
 
 
 @router.get("/{task_id}", response_model=TaskResponse)

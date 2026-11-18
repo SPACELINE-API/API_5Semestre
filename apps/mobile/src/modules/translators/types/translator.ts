@@ -49,6 +49,23 @@ export type Translator = {
 	updated_at: string;
 	qualifications: TranslatorQualification[];
 	languages: TranslatorLanguage[];
+	// CONTA DE ACESSO CRIADA NO CADASTRO; AUSENTE PARA TRADUTORES ANTIGOS
+	account?: TranslatorAccount | null;
+};
+
+export type TranslatorAccountLinkStatus =
+	'pendente' | 'aceito' | 'rejeitado' | 'expirado';
+
+export type TranslatorAccount = {
+	user_id: string;
+	status: 'ativa' | 'inativa';
+	password_defined: boolean;
+	latest_link: {
+		status: TranslatorAccountLinkStatus;
+		sent_at: string;
+		expires_at: string;
+		used_at: string | null;
+	} | null;
 };
 
 export type TranslatorLanguageFormRow = {
