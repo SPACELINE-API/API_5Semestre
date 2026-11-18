@@ -74,6 +74,11 @@ import { ItemsTable } from '../../service-orders/components/ItemsTable';
 import { ReopenQuoteDialog } from './ReopenQuoteDialog';
 import { ReopenedQuoteIndicator } from './ReopenedQuoteIndicator';
 import { SendQuoteDialog } from './SendQuoteDialog';
+import {
+	parseWordCountInput,
+	WORD_COUNT_MAX_DIGITS,
+	wordCountInputValue,
+} from '../utils/wordCount';
 
 export const quoteStatusStyles: Record<
 	string,
@@ -233,6 +238,42 @@ function EditField({
 				keyboardType={keyboardType}
 				className="rounded-lg border border-gray-300 bg-white px-3 py-2 font-inter text-sm text-gray-900"
 			/>
+		</View>
+	);
+}
+
+function WordCountField({
+	value,
+	hasFile,
+	onChangeValue,
+}: {
+	value: number | null;
+	hasFile: boolean;
+	onChangeValue: (value: number | null) => void;
+}) {
+	return (
+		<View className="w-full gap-1 md:w-[47%]">
+			<Text className="font-inter-medium text-xs text-gray-500">
+				Quantidade de palavras
+			</Text>
+			<TextInput
+				accessibilityLabel="Quantidade de palavras"
+				testID="quote-item-word-count-input"
+				value={wordCountInputValue(value)}
+				onChangeText={(text) => onChangeValue(parseWordCountInput(text))}
+				keyboardType="number-pad"
+				inputMode="numeric"
+				maxLength={WORD_COUNT_MAX_DIGITS}
+				placeholder="Sem contagem"
+				placeholderTextColor="#9CA3AF"
+				className="rounded-lg border border-gray-300 bg-white px-3 py-2 font-inter text-sm text-gray-900"
+			/>
+			{hasFile && value == null ? (
+				<Text className="font-inter text-xs text-gray-500">
+					Não foi possível contar as palavras do arquivo. Informe a quantidade
+					manualmente.
+				</Text>
+			) : null}
 		</View>
 	);
 }
@@ -1398,6 +1439,13 @@ export function QuoteCard({
 													updateDraftItem(item.id, { estimated_value: value })
 												}
 											/>
+											<WordCountField
+												value={item.word_count}
+												hasFile={Boolean(item.file_url)}
+												onChangeValue={(value) =>
+													updateDraftItem(item.id, { word_count: value })
+												}
+											/>
 										</View>
 										<View className="flex-row items-center gap-3 border-t border-gray-100 pt-3">
 											{!item.file_url && (
@@ -1435,13 +1483,6 @@ export function QuoteCard({
 													<ExternalLink size={14} color="#1d4ed8" />
 												</TouchableOpacity>
 											)}
-											{item.file_url ? (
-												<Text className="shrink-0 font-inter text-xs text-gray-500">
-													{item.word_count != null
-														? formatWordCount(item.word_count)
-														: 'Sem contagem'}
-												</Text>
-											) : null}
 											<TouchableOpacity
 												accessibilityRole="button"
 												accessibilityLabel="Remover item"

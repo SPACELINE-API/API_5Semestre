@@ -29,6 +29,11 @@ import {
 	maskCurrencyDigits,
 } from '../../../../shared/utils/currency';
 import { usePermission } from '../../../auth/hooks/usePermission';
+import {
+	parseWordCountInput,
+	WORD_COUNT_MAX_DIGITS,
+	wordCountInputValue,
+} from '../../utils/wordCount';
 
 const { width } = Dimensions.get('window');
 const isDesktop = Platform.OS === 'web' && width > 768;
@@ -323,11 +328,34 @@ export function NewQuoteModal({
 														</TouchableOpacity>
 													)}
 												</View>
-												{item.fileUrl ? (
+											</View>
+											<View
+												className={isDesktop ? 'w-[48%]' : 'w-full'}
+												style={{ zIndex: 15 }}
+											>
+												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
+													Quantidade de palavras
+												</Text>
+												<TextInput
+													accessibilityLabel="Quantidade de palavras"
+													testID="new-quote-item-word-count-input"
+													className="h-[46px] rounded-md border border-gray-200 bg-white p-3 font-inter text-sm text-gray-800"
+													placeholder="Preenchida ao anexar o arquivo"
+													placeholderTextColor="#9CA3AF"
+													keyboardType="number-pad"
+													inputMode="numeric"
+													maxLength={WORD_COUNT_MAX_DIGITS}
+													value={wordCountInputValue(item.wordCount)}
+													onChangeText={(val) =>
+														updateItem(item.id, {
+															wordCount: parseWordCountInput(val),
+														})
+													}
+												/>
+												{item.fileUrl && item.wordCount == null ? (
 													<Text className="mt-1 font-inter text-xs text-gray-500">
-														{item.wordCount != null
-															? `${item.wordCount.toLocaleString('pt-BR')} ${item.wordCount === 1 ? 'palavra' : 'palavras'}`
-															: 'Não foi possível contar as palavras deste arquivo'}
+														Não foi possível contar as palavras do arquivo.
+														Informe a quantidade manualmente.
 													</Text>
 												) : null}
 											</View>
