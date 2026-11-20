@@ -25,6 +25,7 @@ import {
 
 import '../shared/styles/global.css';
 import { ThemeProvider } from '../shared/theme/ThemeProvider';
+import { ThemeToggle } from '../shared/theme/ThemeToggle';
 import {
 	getSession,
 	loadAuthorizationContext,
@@ -263,6 +264,13 @@ function AppShell({
 				{showNavigation ? (
 					<View pointerEvents="box-none" className="absolute inset-0 z-50">
 						<NotificationCenter topOffset={insets.top - 4} />
+						<View
+							pointerEvents="box-none"
+							className="absolute z-50 md:hidden"
+							style={{ top: insets.top + 3, right: 60 }}
+						>
+							<ThemeToggle />
+						</View>
 					</View>
 				) : null}
 

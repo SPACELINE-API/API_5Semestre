@@ -26,6 +26,7 @@ import { GradientButton } from '../components/GradientButton';
 import { LoginBackground } from '../components/LoginBackground';
 import { LoginFields } from '../components/LoginFields';
 import { LoginScroll } from '../components/LoginScroll';
+import { ThemeToggle } from '../../../shared/theme/ThemeToggle';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type LoginError = {
@@ -263,6 +264,11 @@ export function LoginPage() {
 			}
 		>
 			<LoginBackground />
+			<View
+				className={`absolute right-5 z-20 sm:right-8 ${Platform.OS === 'web' ? 'top-5 sm:top-6' : 'top-14'}`}
+			>
+				<ThemeToggle />
+			</View>
 			<LoginScroll>
 				<View className="z-10 grow justify-center gap-8 px-6 py-8 sm:px-10 md:flex-row md:items-stretch md:justify-between md:gap-10 md:px-[7%] md:py-10">
 					<View className="items-center md:flex-1 md:items-start md:justify-between md:py-1">
