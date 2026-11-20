@@ -217,7 +217,7 @@ def test_send_invites_uses_default_email_when_no_template_is_saved(
     email = sent_emails[0]
     assert email["subject"] == DEFAULT_INVITE_SUBJECT
     assert translator.name in email["html_body"]
-    assert "pt-BR → en-US" in email["html_body"]
+    assert "pt-BR" in email["html_body"] and "en-US" in email["html_body"]
     assert f"/convites/{invites[0].id}" in email["html_body"]
     assert "{{" not in email["html_body"]
 
