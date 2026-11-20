@@ -5,12 +5,6 @@ from app.shared.email.template_renderer import (
     get_inline_logo,
     render_password_setup,
 )
-from app.shared.email.template_renderer import (
-    LOGO_CONTENT_ID,
-    LOGO_PATH,
-    get_inline_logo,
-    render_password_setup,
-)
 
 TEMPLATE_PATH = (
     Path(__file__).resolve().parents[3] / "shared" / "email" / "templates" / "password_setup.html"

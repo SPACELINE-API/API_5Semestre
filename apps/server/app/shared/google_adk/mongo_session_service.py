@@ -1,6 +1,6 @@
 import time
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 from google.adk.events import Event
 from google.adk.sessions import BaseSessionService, Session
@@ -28,8 +28,8 @@ class MongoSessionService(BaseSessionService):
         *,
         app_name: str,
         user_id: str,
-        state: Optional[dict[str, Any]] = None,
-        session_id: Optional[str] = None,
+        state: dict[str, Any] | None = None,
+        session_id: str | None = None,
     ) -> Session:
         session = Session(
             id=session_id or str(uuid.uuid4()),
@@ -48,8 +48,8 @@ class MongoSessionService(BaseSessionService):
         app_name: str,
         user_id: str,
         session_id: str,
-        config: Optional[GetSessionConfig] = None,
-    ) -> Optional[Session]:
+        config: GetSessionConfig | None = None,
+    ) -> Session | None:
         doc = await self.col.find_one({"_id": self._id(app_name, user_id, session_id)})
         if not doc:
             return None
@@ -62,7 +62,7 @@ class MongoSessionService(BaseSessionService):
         return session
 
     async def list_sessions(
-        self, *, app_name: str, user_id: Optional[str] = None
+        self, *, app_name: str, user_id: str | None = None
     ) -> ListSessionsResponse:
         query: dict[str, Any] = {"app_name": app_name}
         if user_id is not None:
