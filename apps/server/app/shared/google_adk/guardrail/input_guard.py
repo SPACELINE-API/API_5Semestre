@@ -22,7 +22,6 @@ INPUT_GUARD_TIMEOUT_SECONDS = 120
 
 
 def _setup_guardrail_env() -> None:
-    """Configura as variáveis de ambiente necessárias para o endpoint do modelo."""
     setup_llm_env()
 
     if ADK_PROVIDER == "gemini":
@@ -40,7 +39,6 @@ def _setup_guardrail_env() -> None:
 
 @lru_cache(maxsize=1)
 def get_rails() -> LLMRails:
-    """Carrega o config.yml e rules.co com interpolação das variáveis de ambiente."""
     _setup_guardrail_env()
 
     guardrail_dir = Path(__file__).parent
@@ -74,11 +72,6 @@ _status_logged = False
 
 
 def log_guardrail_status(force: bool = False) -> bool:
-    """Mostra no terminal se o guardrail está ligado ou desligado.
-
-    Por padrão imprime só uma vez por processo; use force=True para imprimir de novo.
-    Retorna True se o guardrail está ativo.
-    """
     global _status_logged
     enabled = is_guardrail_enabled()
     if force or not _status_logged:
