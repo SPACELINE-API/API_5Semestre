@@ -13,6 +13,7 @@ class MongoSessionService(BaseSessionService):
 
     def __init__(self, url: str, db_name: str = "support_agents"):
         self.col: AsyncIOMotorCollection = AsyncIOMotorClient(url)[db_name]["sessions"]
+
     @staticmethod
     def _id(app_name: str, user_id: str, session_id: str) -> str:
         return f"{app_name}:{user_id}:{session_id}"
