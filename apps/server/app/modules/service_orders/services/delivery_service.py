@@ -34,6 +34,7 @@ from app.modules.service_orders.services.storage import (
     service_order_file_exists,
 )
 from app.shared.email.smtp_client import send_email
+from app.shared.email.template_renderer import get_inline_logo, wrap_with_base_layout
 
 
 def _render_delivery_email(
@@ -47,7 +48,9 @@ def _render_delivery_email(
         request.body_html_override if request and request.body_html_override else template.body_html
     )
     body = body_html.replace("{{nome_cliente}}", safe_customer_name)
-    return subject.replace("{{nome_cliente}}", customer_name), body
+    final_subject = subject.replace("{{nome_cliente}}", customer_name)
+    final_body = wrap_with_base_layout(body, email_title=final_subject)
+    return final_subject, final_body
 
 
 class ServiceOrderDeliveryService:
@@ -310,6 +313,7 @@ class ServiceOrderDeliveryService:
                 subject=subject,
                 html_body=body,
                 attachments=attachments,
+                inline_images=get_inline_logo(),
             )
         except Exception as error:
             detail = error.detail if isinstance(error, HTTPException) else str(error)

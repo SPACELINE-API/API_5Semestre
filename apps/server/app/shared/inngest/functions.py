@@ -92,7 +92,8 @@ async def process_chat_message(ctx: inngest.Context) -> dict:
         raise ValueError("O campo 'texto' deve ser uma string")
 
     user_id = extrair_user_id(dict(ctx.event.data))
-    session_id = ctx.event.data.get("session_id")
+    session_id_value = ctx.event.data.get("session_id")
+    session_id = session_id_value if isinstance(session_id_value, str) else None
 
     resposta = await ctx.step.run(
         "run-support-agent", lambda: run_support_agent(texto, user_id, session_id)

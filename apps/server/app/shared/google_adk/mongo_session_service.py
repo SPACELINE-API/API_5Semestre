@@ -5,14 +5,16 @@ from typing import Any, Optional
 from google.adk.events import Event
 from google.adk.sessions import BaseSessionService, Session
 from google.adk.sessions.base_session_service import GetSessionConfig, ListSessionsResponse
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
 
 
 class MongoSessionService(BaseSessionService):
     """Session service do ADK persistindo em MongoDB (um documento por sessão)."""
 
     def __init__(self, url: str, db_name: str = "support_agents"):
-        self.col = AsyncIOMotorClient(url)[db_name]["sessions"]
+        self.col: AsyncIOMotorCollection[dict[str, Any]] = AsyncIOMotorClient(url)[db_name][
+            "sessions"
+        ]
 
     @staticmethod
     def _id(app_name: str, user_id: str, session_id: str) -> str:

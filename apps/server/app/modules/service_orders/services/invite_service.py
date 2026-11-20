@@ -31,6 +31,7 @@ from app.modules.service_orders.services.invite_email import (
 )
 from app.modules.translators.models.translator import Translator
 from app.shared.email.smtp_client import send_email
+from app.shared.email.template_renderer import get_inline_logo, wrap_with_base_layout
 from app.shared.EnvProvider import env_provider
 
 
@@ -129,7 +130,13 @@ class InviteService:
                     invite_url=f"{env_provider.get_site_url()}/convites/{invite.id}",
                 ),
             )
-            send_email(to=translator.email, subject=subject, html_body=html_body)
+            html_body = wrap_with_base_layout(html_body, email_title=subject)
+            send_email(
+                to=translator.email,
+                subject=subject,
+                html_body=html_body,
+                inline_images=get_inline_logo(),
+            )
 
         return invites
 

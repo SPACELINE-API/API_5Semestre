@@ -238,7 +238,10 @@ def test_admin_can_preview_and_override_email_for_one_delivery_only(
     assert template_response.json()["available_placeholders"] == ["{{nome_cliente}}"]
     assert delivery_response.status_code == 200
     assert sent_emails[0]["subject"] == "Mensagem editada só para este envio"
-    assert sent_emails[0]["html_body"] == "<p>Olá, Maria Teste. Mensagem temporária.</p>"
+    email_body = sent_emails[0]["html_body"]
+    assert "<html" in email_body.lower()
+    assert "<p>Olá, Maria Teste. Mensagem temporária.</p>" in email_body
+    assert "{{nome_cliente}}" not in email_body
     isolated_db_session.refresh(template)
     assert template.subject == original_subject
     assert template.body_html == original_body_html
