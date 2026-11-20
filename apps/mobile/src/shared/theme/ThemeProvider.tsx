@@ -9,6 +9,8 @@ import {
 } from 'react';
 import { Platform } from 'react-native';
 import { colorScheme } from 'nativewind';
+import { StatusBar } from 'expo-status-bar';
+import * as SystemUI from 'expo-system-ui';
 import { hex, type ThemeScheme, type ThemeToken } from './palette';
 import type { ThemeColors } from './types';
 import {
@@ -66,6 +68,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 			document.documentElement.style.backgroundColor =
 				camelColors[scheme].background;
 			document.body.style.backgroundColor = camelColors[scheme].background;
+		} else if (Platform.OS !== 'web') {
+			void SystemUI.setBackgroundColorAsync(camelColors[scheme].background);
 		}
 	}, [scheme]);
 
@@ -105,7 +109,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 	if (!ready) return null;
 
 	return (
-		<ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+		<ThemeContext.Provider value={value}>
+			<StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+			{children}
+		</ThemeContext.Provider>
 	);
 }
 
