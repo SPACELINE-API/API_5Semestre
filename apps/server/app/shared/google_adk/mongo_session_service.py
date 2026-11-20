@@ -12,10 +12,7 @@ class MongoSessionService(BaseSessionService):
     """Session service do ADK persistindo em MongoDB (um documento por sessão)."""
 
     def __init__(self, url: str, db_name: str = "support_agents"):
-        self.col: AsyncIOMotorCollection[dict[str, Any]] = AsyncIOMotorClient(url)[db_name][
-            "sessions"
-        ]
-
+        self.col: AsyncIOMotorCollection = AsyncIOMotorClient(url)[db_name]["sessions"]
     @staticmethod
     def _id(app_name: str, user_id: str, session_id: str) -> str:
         return f"{app_name}:{user_id}:{session_id}"
