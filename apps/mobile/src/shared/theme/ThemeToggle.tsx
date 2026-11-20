@@ -56,28 +56,46 @@ export function ThemeToggle() {
 			accessibilityState={{ checked: isDark }}
 			accessibilityLabel={isDark ? 'Ativar modo claro' : 'Ativar modo escuro'}
 			hitSlop={8}
-			className="overflow-hidden rounded-full border border-border bg-surface shadow-sm"
-			style={{ width: TRACK_WIDTH, height: TRACK_HEIGHT }}
+			style={{
+				width: TRACK_WIDTH,
+				height: TRACK_HEIGHT,
+				borderRadius: TRACK_HEIGHT / 2,
+				borderWidth: 1,
+				borderColor: colors.border,
+				backgroundColor: colors.surface,
+				overflow: 'hidden',
+			}}
 		>
 			<Animated.View
 				pointerEvents="none"
-				className="absolute inset-0 bg-primary-soft"
-				style={{ opacity: nightOpacity }}
+				style={{
+					position: 'absolute',
+					top: 0,
+					left: 0,
+					right: 0,
+					bottom: 0,
+					backgroundColor: colors.primarySoft,
+					opacity: nightOpacity,
+				}}
 			/>
 			<Animated.View
 				pointerEvents="none"
-				className="absolute items-center justify-center rounded-full bg-primary"
 				style={{
-					width: THUMB_SIZE,
-					height: THUMB_SIZE,
+					position: 'absolute',
 					top: PADDING - 1,
 					left: PADDING,
+					width: THUMB_SIZE,
+					height: THUMB_SIZE,
+					borderRadius: THUMB_SIZE / 2,
+					backgroundColor: colors.primary,
+					alignItems: 'center',
+					justifyContent: 'center',
 					transform: [{ translateX }],
 				}}
 			>
 				<Animated.View
-					className="absolute"
 					style={{
+						position: 'absolute',
 						opacity: sunOpacity,
 						transform: [{ rotate: sunRotate }],
 					}}
@@ -85,8 +103,8 @@ export function ThemeToggle() {
 					<Sun size={15} color={colors.primaryForeground} strokeWidth={2.2} />
 				</Animated.View>
 				<Animated.View
-					className="absolute"
 					style={{
+						position: 'absolute',
 						opacity: moonOpacity,
 						transform: [{ rotate: moonRotate }],
 					}}

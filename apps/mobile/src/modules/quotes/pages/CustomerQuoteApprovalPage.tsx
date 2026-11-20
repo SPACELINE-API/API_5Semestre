@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
 	ActivityIndicator,
-	Image,
 	Linking,
 	Pressable,
 	Text,
@@ -18,7 +17,7 @@ import {
 	Link2Off,
 	XCircle,
 } from 'lucide-react-native';
-import logoAlianca from '../../../shared/assets/logo-alianca.png';
+import { BrandLogo } from '../../../shared/components/BrandLogo';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import { LoginScroll } from '../../auth/components/LoginScroll';
 import {
@@ -177,12 +176,7 @@ export function CustomerQuoteApprovalPage() {
 			<View className="flex-1 items-center bg-background px-4 py-10">
 				<View className="w-full max-w-[640px] gap-6 rounded-2xl bg-surface p-6 md:p-8">
 					<View className="items-center border-b border-border-subtle pb-5">
-						<Image
-							source={logoAlianca}
-							style={{ width: 180, height: 60 }}
-							resizeMode="contain"
-							accessibilityLabel="Aliança Traduções"
-						/>
+						<BrandLogo width={180} height={60} />
 					</View>
 
 					{state.kind === 'loading' ? (

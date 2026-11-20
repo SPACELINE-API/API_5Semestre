@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Platform, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
 	CheckCircle2,
@@ -9,7 +9,7 @@ import {
 	MailCheck,
 	ShieldCheck,
 } from 'lucide-react-native';
-import logoAlianca from '../../../shared/assets/logo-alianca.png';
+import { BrandLogo } from '../../../shared/components/BrandLogo';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import { GradientButton } from '../components/GradientButton';
 import { LoginBackground } from '../components/LoginBackground';
@@ -373,12 +373,7 @@ export function PasswordSetupPage() {
 			<LoginScroll>
 				<View className="z-10 grow justify-center gap-8 px-6 py-8 sm:px-10 md:flex-row md:items-stretch md:justify-between md:gap-10 md:px-[7%] md:py-10">
 					<View className="items-center md:flex-1 md:items-start md:justify-between md:py-1">
-						<Image
-							source={logoAlianca}
-							style={{ width: 170, height: 44 }}
-							resizeMode="contain"
-							accessibilityLabel="Aliança Traduções"
-						/>
+						<BrandLogo width={170} height={44} />
 						<View className="hidden max-w-[520px] md:flex">
 							<Text className="text-[52px] font-extrabold leading-[1.05] tracking-[-1.5px] text-foreground">
 								Bem-vindo(a) à <Text className="text-primary-text">equipe</Text>
