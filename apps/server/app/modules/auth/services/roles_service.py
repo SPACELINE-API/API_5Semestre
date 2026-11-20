@@ -1,6 +1,10 @@
 from collections.abc import Iterable
 
 from app.modules.auth.models.roles import Role
+from app.modules.auth.models.user import User
+
+INTERNAL_DASHBOARD_PERMISSION = "dashboard.read"
+EXTERNAL_LEGACY_ROLE = "tradutor"
 
 
 def deactivate_role(role: Role) -> None:
@@ -9,6 +13,13 @@ def deactivate_role(role: Role) -> None:
 
 def get_effective_permissions(roles: Iterable[Role]) -> set[str]:
     return {permission.code for role in roles if role.is_active for permission in role.permissions}
+
+
+def get_user_effective_permissions(user: User) -> set[str]:
+    permissions = get_effective_permissions(user.roles)
+    if user.role.strip().casefold() != EXTERNAL_LEGACY_ROLE:
+        permissions.add(INTERNAL_DASHBOARD_PERMISSION)
+    return permissions
 
 
 def has_permission(roles: Iterable[Role], permission_code: str) -> bool:

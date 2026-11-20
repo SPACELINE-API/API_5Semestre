@@ -2,6 +2,7 @@ import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { ChevronRight, UserRound } from 'lucide-react-native';
 import type { Translator } from '../types/translator';
 import { PROFICIENCY_LABELS } from '../types/translator';
+import { isAwaitingPassword } from '../utils/translatorAccount';
 import { maskPhone } from '../../clients/utils/mask';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
@@ -90,6 +91,13 @@ export function TranslatorTable({ translators, onSelectTranslator }: Props) {
 										{t.is_active ? 'Ativo' : 'Inativo'}
 									</Text>
 								</View>
+								{isAwaitingPassword(t) && (
+									<View className="mt-1 self-start rounded-full bg-warning-soft px-2 py-0.5">
+										<Text className="font-inter font-medium text-[10px] text-warning-text">
+											Aguardando senha
+										</Text>
+									</View>
+								)}
 								{/* IDIOMAS RESUMIDOS NO MOBILE */}
 								{t.languages.length > 0 && (
 									<View className="mt-1 flex-row flex-wrap gap-1 md:hidden">

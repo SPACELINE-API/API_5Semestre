@@ -22,6 +22,7 @@ import {
 	openDocument,
 } from '../../../shared/components/FilePreview';
 import { ApiError } from '../../../shared/services/publicApiClient';
+import { usePermission } from '../../auth/hooks/usePermission';
 import {
 	getTranslatorCertificateFile,
 	reviewCertificate,
@@ -35,7 +36,6 @@ import { PROFICIENCY_LABELS } from '../types/translator';
 import { formatFileSize } from '../utils/profileFiles';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
-
 import { type ThemeColors } from '../../../shared/theme/types';
 type CertificateReviewModalProps = {
 	translatorId: string;
@@ -114,6 +114,7 @@ export function CertificateReviewModal({
 	onReviewed,
 }: CertificateReviewModalProps) {
 	const themeColors = useThemeColors();
+	const canReview = usePermission('translators.write');
 	const [step, setStep] = useState<Step>('details');
 	const [reviewNote, setReviewNote] = useState('');
 	const [isSaving, setIsSaving] = useState(false);
@@ -158,7 +159,7 @@ export function CertificateReviewModal({
 	async function submitReview(
 		input: { status: 'approved' } | { status: 'rejected'; review_note: string },
 	) {
-		if (!certificate) return;
+		if (!certificate || !canReview) return;
 		setIsSaving(true);
 		setActionError(null);
 		try {
@@ -190,6 +191,7 @@ export function CertificateReviewModal({
 				title="Aprovar certificado?"
 				message={`${languageLabel} será adicionado aos idiomas do perfil do tradutor.`}
 				confirmLabel="Aprovar"
+				confirmDisabled={!canReview}
 				isLoading={isSaving}
 				onConfirm={() => void submitReview({ status: 'approved' })}
 				onClose={() => setStep('details')}
@@ -206,7 +208,7 @@ export function CertificateReviewModal({
 				title="Recusar certificado"
 				message={`Informe o motivo da recusa de ${languageLabel}. O tradutor verá esta mensagem.`}
 				confirmLabel="Recusar"
-				confirmDisabled={!trimmedNote}
+				confirmDisabled={!canReview || !trimmedNote}
 				isLoading={isSaving}
 				onConfirm={() =>
 					void submitReview({ status: 'rejected', review_note: trimmedNote })
@@ -214,7 +216,7 @@ export function CertificateReviewModal({
 				onClose={() => setStep('details')}
 			>
 				<View className="gap-1.5">
-					<Text className="font-inter font-medium text-foreground-secondary text-[14px]">
+					<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
 						Motivo da recusa
 					</Text>
 					<TextInput
@@ -246,6 +248,7 @@ export function CertificateReviewModal({
 				onPress={() => setStep('reject')}
 				accessibilityRole="button"
 				accessibilityLabel="Recusar certificado"
+				disabled={!canReview}
 				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-danger/40 px-4 py-2.5"
 			>
 				<X size={16} color={themeColors.danger} />
@@ -257,6 +260,7 @@ export function CertificateReviewModal({
 				onPress={() => setStep('confirm-approve')}
 				accessibilityRole="button"
 				accessibilityLabel="Aprovar certificado"
+				disabled={!canReview}
 				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5"
 			>
 				<Check size={16} color={themeColors.primaryForeground} />

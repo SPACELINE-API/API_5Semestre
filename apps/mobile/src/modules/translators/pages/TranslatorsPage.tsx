@@ -18,6 +18,9 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslators } from '../hooks/useTranslators';
 import { TranslatorTable } from '../components/TranslatorTable';
+import { PendingAccountsCard } from '../components/PendingAccountsCard';
+import { resendTranslatorPasswordLink } from '../services/translatorService';
+import type { Translator } from '../types/translator';
 import { TranslatorFormModal } from '../components/TranslatorFormModal';
 import {
 	TranslatorFilters,
@@ -33,13 +36,14 @@ export function TranslatorsPage() {
 	const { width } = useWindowDimensions();
 	const router = useRouter();
 	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
-	const { translators, isLoading, error, create } = useTranslators();
+	const { translators, isLoading, error, create, update } = useTranslators();
 
 	const [search, setSearch] = useState('');
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 	const [isFormVisible, setIsFormVisible] = useState(false);
 	const [showFilters, setShowFilters] = useState(false);
 	const canWriteTranslators = usePermission('translators.write');
+	const [resendingId, setResendingId] = useState<string | null>(null);
 
 	const { toast, showToast } = useToast();
 
@@ -66,6 +70,24 @@ export function TranslatorsPage() {
 			})
 			.sort((a, b) => Number(b.is_active) - Number(a.is_active));
 	}, [translators, search, statusFilter]);
+
+	// REENVIA O LINK DE SENHA; OS LINKS ANTERIORES DEIXAM DE FUNCIONAR
+	async function handleResend(translator: Translator) {
+		setResendingId(translator.id);
+		try {
+			update(await resendTranslatorPasswordLink(translator.id));
+			showToast(`Link reenviado para ${translator.email}.`, 'success');
+		} catch (err) {
+			showToast(
+				err instanceof Error && err.message
+					? err.message
+					: 'Não foi possível reenviar o link. Tente novamente.',
+				'error',
+			);
+		} finally {
+			setResendingId(null);
+		}
+	}
 
 	const activeCount = translators.filter((t) => t.is_active).length;
 	const inactiveCount = translators.length - activeCount;
@@ -119,6 +141,15 @@ export function TranslatorsPage() {
 							</TouchableOpacity>
 						</View>
 					</View>
+
+					{!isLoading && !error && (
+						<PendingAccountsCard
+							translators={translators}
+							busyId={resendingId}
+							canResend={canWriteTranslators}
+							onResend={(translator) => void handleResend(translator)}
+						/>
+					)}
 
 					{/* BARRA DE PESQUISA + FILTROS */}
 					<View className="gap-3">

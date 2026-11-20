@@ -10,6 +10,7 @@ from app.routes import api_router
 from app.shared.database import check_database_connection
 from app.shared.inngest.client import inngest_client
 from app.shared.inngest.functions import support_agent_inngest_functions
+from app.shared.inngest.quote_functions import quote_inngest_functions
 
 load_dotenv()
 
@@ -50,7 +51,7 @@ app.add_middleware(
 inngest.fast_api.serve(
     app,
     inngest_client,
-    support_agent_inngest_functions,
+    [*support_agent_inngest_functions, *quote_inngest_functions],
 )
 
 app.include_router(api_router)

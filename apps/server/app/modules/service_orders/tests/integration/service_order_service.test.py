@@ -95,6 +95,27 @@ def make_quote_with_items(db_session: Session, item_count: int = 2) -> Quote:
     return quote
 
 
+def make_manual_order(service: ServiceOrderService, company: Company, project_name: str):
+    return service.create_manual(
+        ManualServiceOrderRequest(
+            company_id=company.id,
+            project_name=project_name,
+            items=[CreateServiceOrderItemRequest(source_language="pt-BR", target_language="en-US")],
+        )
+    )
+
+
+def make_order_from_quote(db_session: Session, company: Company):
+    quote = make_quote_with_items(db_session, item_count=1)
+    return ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id,
+            company_id=company.id,
+            project_name="Projeto vinculado ao orçamento",
+        )
+    )
+
+
 def make_order_with_assigned_translator(db_session: Session, company: Company):
     quote = make_quote_with_items(db_session, item_count=1)
     service = ServiceOrderService(db_session)
@@ -245,15 +266,8 @@ def test_add_item_creates_item_without_quote_translation_item(
     db_session: Session, fake_upload
 ) -> None:
     company = make_company(db_session)
-    quote = make_quote_with_items(db_session, item_count=1)
     service = ServiceOrderService(db_session)
-    order = service.generate_from_quote(
-        GenerateServiceOrderRequest(
-            quote_id=quote.id,
-            company_id=company.id,
-            project_name="Projeto com item extra",
-        )
-    )
+    order = make_manual_order(service, company, "Projeto com item extra")
 
     item = service.add_item(
         order.id,
@@ -290,15 +304,8 @@ def test_add_item_not_found_raises_404(db_session: Session) -> None:
 
 def test_update_item_changes_fields_and_replaces_file(db_session: Session, fake_upload) -> None:
     company = make_company(db_session)
-    quote = make_quote_with_items(db_session, item_count=1)
     service = ServiceOrderService(db_session)
-    order = service.generate_from_quote(
-        GenerateServiceOrderRequest(
-            quote_id=quote.id,
-            company_id=company.id,
-            project_name="Projeto para editar item",
-        )
-    )
+    order = make_manual_order(service, company, "Projeto para editar item")
     item_id = order.items[0].id
 
     updated = service.update_item(
@@ -778,3 +785,76 @@ def test_delete_service_order_not_found_raises_404(db_session: Session) -> None:
         service.delete_service_order(uuid.uuid4())
 
     assert getattr(exc_info.value, "status_code", None) == 404
+
+
+def test_add_item_rejects_order_linked_to_quote(db_session: Session) -> None:
+    company = make_company(db_session)
+    order = make_order_from_quote(db_session, company)
+    service = ServiceOrderService(db_session)
+
+    with pytest.raises(Exception) as exc_info:
+        service.add_item(
+            order.id,
+            CreateServiceOrderItemRequest(source_language="pt-BR", target_language="en-US"),
+        )
+
+    assert getattr(exc_info.value, "status_code", None) == 409
+    assert len(service.get_service_order(order.id).items) == 1
+
+
+def test_update_item_rejects_order_linked_to_quote(db_session: Session) -> None:
+    company = make_company(db_session)
+    order = make_order_from_quote(db_session, company)
+    service = ServiceOrderService(db_session)
+    item_id = order.items[0].id
+
+    with pytest.raises(Exception) as exc_info:
+        service.update_item(
+            item_id,
+            UpdateServiceOrderItemRequest(source_language="es-ES", target_language="pt-BR"),
+        )
+
+    assert getattr(exc_info.value, "status_code", None) == 409
+    assert service.get_service_order(order.id).items[0].source_language == "pt-BR"
+
+
+def test_delete_item_rejects_order_linked_to_quote(db_session: Session) -> None:
+    company = make_company(db_session)
+    order = make_order_from_quote(db_session, company)
+    service = ServiceOrderService(db_session)
+
+    with pytest.raises(Exception) as exc_info:
+        service.delete_item(order.id, order.items[0].id)
+
+    assert getattr(exc_info.value, "status_code", None) == 409
+    assert len(service.get_service_order(order.id).items) == 1
+
+
+def test_manual_order_allows_item_crud(db_session: Session) -> None:
+    company = make_company(db_session)
+    service = ServiceOrderService(db_session)
+    order = make_manual_order(service, company, "Projeto manual")
+
+    added = service.add_item(
+        order.id, CreateServiceOrderItemRequest(source_language="pt-BR", target_language="fr-FR")
+    )
+    service.update_item(
+        added.id,
+        UpdateServiceOrderItemRequest(source_language="es-ES", target_language="fr-FR"),
+    )
+    service.delete_item(order.id, order.items[0].id)
+
+    items = service.get_service_order(order.id).items
+    assert [item.source_language for item in items] == ["es-ES"]
+
+
+def test_order_stays_visible_after_quote_is_reopened(db_session: Session) -> None:
+    company = make_company(db_session)
+    order = make_order_from_quote(db_session, company)
+    quote = db_session.get(Quote, order.quote_id)
+    quote.status = "draft"
+    db_session.commit()
+    service = ServiceOrderService(db_session)
+
+    assert service.get_service_order(order.id).id == order.id
+    assert order.id in [listed.id for listed in service.list_service_orders()]

@@ -36,11 +36,17 @@ export function CompanyDetailsTabs({
 	const canReadProjects = Boolean(
 		getAuthorizationContext()?.permissions.includes('projects.read'),
 	);
-	const visibleTabs = canReadProjects
-		? TABS
-		: TABS.filter((tab) => tab.key !== 'projects');
+	const canReadContacts = Boolean(
+		getAuthorizationContext()?.permissions.includes('contacts.read'),
+	);
+	const visibleTabs = (
+		canReadProjects ? TABS : TABS.filter((tab) => tab.key !== 'projects')
+	).filter((tab) => tab.key !== 'clients' || canReadContacts);
 	const visibleActiveTab =
-		activeTab === 'projects' && !canReadProjects ? 'info' : activeTab;
+		(activeTab === 'projects' && !canReadProjects) ||
+		(activeTab === 'clients' && !canReadContacts)
+			? 'info'
+			: activeTab;
 	return (
 		<>
 			<ScrollView
@@ -79,7 +85,7 @@ export function CompanyDetailsTabs({
 				{visibleActiveTab === 'info' && (
 					<CompanyDetailsInfoTab company={company} />
 				)}
-				{visibleActiveTab === 'clients' && (
+				{visibleActiveTab === 'clients' && canReadContacts && (
 					<CompanyDetailsContactsTab
 						contacts={contacts}
 						onAdd={onAddContact}

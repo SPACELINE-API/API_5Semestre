@@ -73,3 +73,39 @@ export async function loginAsAdmin(page: Page) {
 		},
 	);
 }
+
+export async function loginAsTranslatorReader(page: Page) {
+	await page.route('**/api/auth/me', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				user: { id: 'reviewer-id', email: 'reviewer@spaceline.com.br' },
+				roles: [{ id: 'reviewer-role', name: 'Revisor' }],
+				permissions: ['translators.read', 'dashboard.read'],
+			}),
+		}),
+	);
+
+	const session = {
+		access_token: 'reviewer-access-token',
+		token_type: 'bearer',
+		expires_in: 3600,
+		user: {
+			id: 'reviewer-id',
+			email: 'reviewer@spaceline.com.br',
+			role: 'revisor',
+		},
+	};
+
+	await page.goto('/login');
+	await page.evaluate(
+		(value) => {
+			document.cookie = `${value.name}=${value.encoded}; path=/; SameSite=Lax`;
+		},
+		{
+			name: SESSION_COOKIE,
+			encoded: encodeURIComponent(JSON.stringify(session)),
+		},
+	);
+}

@@ -6,7 +6,7 @@ import {
 	getAuthorizationContext,
 	subscribeAuthorizationContext,
 } from '../services/auth';
-import { hasFullRouteAccess } from '../services/authorization';
+import { hasFullRouteAccess, hasPermission } from '../services/authorization';
 
 export type SettingsTab = 'permissoes' | 'pessoas' | 'idiomas' | 'sessao';
 
@@ -25,15 +25,23 @@ export function SettingsHeader({ active }: { active: SettingsTab }) {
 		getAuthorizationContext,
 	);
 
+	const canReadPermissions = hasPermission(context, 'roles.read');
+	const canReadSession =
+		hasPermission(context, 'settings.read') ||
+		hasPermission(context, 'settings.write');
 	const tabs: { key: SettingsTab; label: string }[] = [
-		{ key: 'permissoes', label: TAB_LABELS.permissoes },
+		...(canReadPermissions
+			? [{ key: 'permissoes' as const, label: TAB_LABELS.permissoes }]
+			: []),
 		...(hasFullRouteAccess(context)
 			? [
 					{ key: 'pessoas' as const, label: TAB_LABELS.pessoas },
 					{ key: 'idiomas' as const, label: TAB_LABELS.idiomas },
 				]
 			: []),
-		{ key: 'sessao', label: TAB_LABELS.sessao },
+		...(canReadSession
+			? [{ key: 'sessao' as const, label: TAB_LABELS.sessao }]
+			: []),
 	];
 
 	function changeTab(tab: SettingsTab) {

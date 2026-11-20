@@ -17,6 +17,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { CircleAlert } from 'lucide-react-native';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 import {
 	fetchRequestById,
@@ -32,6 +33,10 @@ import { QuoteGenerationPanel } from '../components/QuoteGenerationPanel';
 import { RejectedRequestNotice } from '../components/RejectedRequestNotice';
 import { RequestDecisionPanel } from '../components/RequestDecisionPanel';
 import { RequestSummarySections } from '../components/RequestSummarySections';
+import {
+	getGenerationError,
+	getStatusUpdateError,
+} from '../utils/quoteRequestErrors';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type RequiredRequestField = {
@@ -55,35 +60,6 @@ const REQUIRED_FIELDS: RequiredRequestField[] = [
 	{ key: 'translation_language', label: 'Idioma de destino' },
 	{ key: 'customer_need', label: 'Necessidade' },
 ];
-
-function getGenerationError(status: number, detail?: string) {
-	if (status === 400) {
-		return (
-			detail ?? 'A requisição precisa estar aprovada e conter dados válidos.'
-		);
-	}
-	if (status === 404) return 'Esta requisição não foi encontrada.';
-	if (status === 409) return 'Já existe um orçamento para esta requisição.';
-	if (status === 422)
-		return detail ?? 'O identificador da requisição é inválido.';
-	if (status === 0)
-		return 'Falha de conexão. Verifique a conexão e tente novamente.';
-	return detail ?? 'Não foi possível gerar o orçamento. Tente novamente.';
-}
-
-function getStatusUpdateError(status: number, detail?: string) {
-	if (status === 404) return 'Esta requisição não foi encontrada.';
-	if (status === 409) {
-		return (
-			detail ?? 'A situação da requisição foi alterada. Atualize os dados.'
-		);
-	}
-	if (status === 422)
-		return detail ?? 'Informe um motivo válido para reprovar.';
-	if (status === 0)
-		return 'Falha de conexão. Verifique a conexão e tente novamente.';
-	return detail ?? 'Não foi possível atualizar a requisição. Tente novamente.';
-}
 
 function LoadingState() {
 	const themeColors = useThemeColors();
@@ -137,6 +113,8 @@ export default function GenerateQuoteFromRequestPage() {
 		? rawRequestId[0]
 		: rawRequestId;
 	const router = useRouter();
+	const canWriteRequests = usePermission('requests.write');
+	const canWriteQuotes = usePermission('quotes.write');
 	const [request, setRequest] = useState<RequestItem | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [loadError, setLoadError] = useState('');
@@ -181,11 +159,15 @@ export default function GenerateQuoteFromRequestPage() {
 	);
 	const isApproved = request?.status === 'approved';
 	const canGenerate = Boolean(
-		request && isApproved && !request.quote_id && missingFields.length === 0,
+		canWriteQuotes &&
+		request &&
+		isApproved &&
+		!request.quote_id &&
+		missingFields.length === 0,
 	);
 
 	async function handleGenerateQuote() {
-		if (!request || !canGenerate || generating) return;
+		if (!request || !canGenerate || generating || !canWriteQuotes) return;
 		setGenerationError('');
 		setGenerating(true);
 		const result = await generateQuoteFromRequest(request.id);
@@ -195,7 +177,7 @@ export default function GenerateQuoteFromRequestPage() {
 	}
 
 	async function handleStatusUpdate(status: 'approved' | 'reproved') {
-		if (!request || statusUpdating) return;
+		if (!request || statusUpdating || !canWriteRequests) return;
 		if (status === 'reproved' && !reprovalReason.trim()) {
 			setStatusError('Informe o motivo da reprovação.');
 			return;

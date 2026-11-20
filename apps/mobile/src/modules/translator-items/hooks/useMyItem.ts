@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ApiError } from '../../../shared/services/publicApiClient';
+import {
+	ApiError,
+	FORBIDDEN_ERROR_MESSAGE,
+} from '../../../shared/services/publicApiClient';
 import { getMyItem } from '../services/translatorItemService';
 import type { TranslatorItem } from '../types/item';
 
@@ -17,10 +20,11 @@ export function useMyItem(itemId: string) {
 		} catch (cause) {
 			setItem(null);
 			setError(
-				cause instanceof ApiError &&
-					(cause.status === 404 || cause.status === 403)
-					? 'Item não encontrado.'
-					: 'Não foi possível carregar o item. Tente novamente.',
+				cause instanceof ApiError && cause.status === 403
+					? FORBIDDEN_ERROR_MESSAGE
+					: cause instanceof ApiError && cause.status === 404
+						? 'Item não encontrado.'
+						: 'Não foi possível carregar o item. Tente novamente.',
 			);
 		} finally {
 			setIsLoading(false);

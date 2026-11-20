@@ -29,6 +29,11 @@ import {
 	maskCurrencyDigits,
 } from '../../../../shared/utils/currency';
 import { usePermission } from '../../../auth/hooks/usePermission';
+import {
+	parseWordCountInput,
+	WORD_COUNT_MAX_DIGITS,
+	wordCountInputValue,
+} from '../../utils/wordCount';
 
 import { useThemeColors } from '../../../../shared/theme/ThemeProvider';
 const { width } = Dimensions.get('window');
@@ -42,6 +47,7 @@ type QuoteItem = {
 	price: string;
 	fileName: string;
 	fileUrl: string | null;
+	wordCount: number | null;
 };
 
 function createEmptyItem(): QuoteItem {
@@ -53,6 +59,7 @@ function createEmptyItem(): QuoteItem {
 		price: '',
 		fileName: '',
 		fileUrl: null,
+		wordCount: null,
 	};
 }
 
@@ -71,6 +78,7 @@ export function NewQuoteModal({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState('');
 	const canWriteDocuments = usePermission('documents.write');
+	const canWriteQuotes = usePermission('quotes.write');
 	const [bannerMessage, setBannerMessage] = useState<string | null>(null);
 
 	const handleAddItem = () => {
@@ -88,14 +96,19 @@ export function NewQuoteModal({
 	};
 
 	const handlePickFile = async (itemId: string) => {
+		if (!canWriteDocuments) return;
 		const file = await pickDocument();
 		if (!file) return;
 
 		setUploadingItemId(itemId);
 		try {
-			const fileUrl = await uploadQuoteDocument(file.uri, file.name);
-			if (fileUrl) {
-				updateItem(itemId, { fileName: file.name, fileUrl });
+			const uploaded = await uploadQuoteDocument(file.uri, file.name);
+			if (uploaded) {
+				updateItem(itemId, {
+					fileName: file.name,
+					fileUrl: uploaded.file_url,
+					wordCount: uploaded.word_count,
+				});
 			} else {
 				setSubmitError('Não foi possível enviar o arquivo. Tente novamente.');
 			}
@@ -116,6 +129,7 @@ export function NewQuoteModal({
 	};
 
 	const handleSubmitQuote = async () => {
+		if (!canWriteQuotes) return;
 		setSubmitError('');
 		const validItems = items.filter((item) => item.source && item.target);
 		if (!validItems.length) {
@@ -139,6 +153,7 @@ export function NewQuoteModal({
 					target_language: item.target,
 					document_type: item.docType || undefined,
 					file_url: item.fileUrl ?? undefined,
+					word_count: item.wordCount ?? undefined,
 					estimated_value: item.price ? Number(item.price) : undefined,
 				});
 			}
@@ -320,6 +335,36 @@ export function NewQuoteModal({
 												</View>
 											</View>
 											<View
+												className={isDesktop ? 'w-[48%]' : 'w-full'}
+												style={{ zIndex: 15 }}
+											>
+												<Text className="mb-1.5 font-inter-medium text-xs text-foreground-secondary">
+													Quantidade de palavras
+												</Text>
+												<TextInput
+													accessibilityLabel="Quantidade de palavras"
+													testID="new-quote-item-word-count-input"
+													className="h-[46px] rounded-md border border-border bg-surface p-3 font-inter text-sm text-foreground"
+													placeholder="Preenchida ao anexar o arquivo"
+													placeholderTextColor={themeColors.foregroundSubtle}
+													keyboardType="number-pad"
+													inputMode="numeric"
+													maxLength={WORD_COUNT_MAX_DIGITS}
+													value={wordCountInputValue(item.wordCount)}
+													onChangeText={(val) =>
+														updateItem(item.id, {
+															wordCount: parseWordCountInput(val),
+														})
+													}
+												/>
+												{item.fileUrl && item.wordCount == null ? (
+													<Text className="mt-1 font-inter text-xs text-foreground-muted">
+														Não foi possível contar as palavras do arquivo.
+														Informe a quantidade manualmente.
+													</Text>
+												) : null}
+											</View>
+											<View
 												className={isDesktop ? 'w-[32%]' : 'w-full'}
 												style={{ zIndex: 10 }}
 											>
@@ -384,10 +429,15 @@ export function NewQuoteModal({
 							</TouchableOpacity>
 							<TouchableOpacity
 								accessibilityRole="button"
-								disabled={isSubmitting}
+								disabled={isSubmitting || !canWriteQuotes}
+								accessibilityState={{
+									disabled: isSubmitting || !canWriteQuotes,
+								}}
 								onPress={() => void handleSubmitQuote()}
 								className={`${isDesktop ? 'rounded-lg px-5 py-2.5' : 'w-full min-h-[44px] items-center justify-center rounded-lg px-5 py-2.5'} ${
-									isSubmitting ? 'bg-border-strong opacity-60' : 'bg-primary'
+									isSubmitting || !canWriteQuotes
+										? 'bg-border-strong opacity-60'
+										: 'bg-primary'
 								}`}
 							>
 								<Text className="font-inter font-semibold text-primary-foreground text-sm">

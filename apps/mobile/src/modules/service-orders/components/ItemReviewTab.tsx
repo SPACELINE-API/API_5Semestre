@@ -20,6 +20,7 @@ import {
 	reviewedDeliveries,
 } from '../utils/fileReview';
 import { RequestChangesModal } from './RequestChangesModal';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ItemReviewTabProps = {
@@ -45,6 +46,7 @@ export function ItemReviewTab({
 	onRequestChanges,
 }: ItemReviewTabProps) {
 	const themeColors = useThemeColors();
+	const canWriteDocuments = usePermission('documents.write');
 	const [busyFileId, setBusyFileId] = useState<string | null>(null);
 	const [changesTarget, setChangesTarget] = useState<ServiceOrderFile | null>(
 		null,
@@ -65,6 +67,7 @@ export function ItemReviewTab({
 	}
 
 	async function approve(file: ServiceOrderFile) {
+		if (!canWriteDocuments) return;
 		setBusyFileId(file.id);
 		try {
 			await onApprove(file);
@@ -74,7 +77,7 @@ export function ItemReviewTab({
 	}
 
 	async function submitChanges(note: string) {
-		if (!changesTarget) return;
+		if (!canWriteDocuments || !changesTarget) return;
 		setBusyFileId(changesTarget.id);
 		try {
 			if (await onRequestChanges(changesTarget, note)) setChangesTarget(null);
@@ -151,12 +154,14 @@ export function ItemReviewTab({
 
 								<View className="flex-row flex-wrap justify-end gap-3">
 									<TouchableOpacity
-										onPress={() => setChangesTarget(file)}
-										disabled={isBusy}
+										onPress={() => {
+											if (canWriteDocuments) setChangesTarget(file);
+										}}
+										disabled={isBusy || !canWriteDocuments}
 										activeOpacity={0.7}
 										accessibilityRole="button"
 										accessibilityLabel="Pedir ajustes"
-										className="rounded-lg border border-border-strong px-4 py-2.5"
+										className={`rounded-lg border border-border-strong px-4 py-2.5 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 									>
 										<Text className="font-inter font-medium text-foreground-secondary text-sm">
 											Pedir ajustes
@@ -164,11 +169,11 @@ export function ItemReviewTab({
 									</TouchableOpacity>
 									<TouchableOpacity
 										onPress={() => void approve(file)}
-										disabled={isBusy}
+										disabled={isBusy || !canWriteDocuments}
 										activeOpacity={0.7}
 										accessibilityRole="button"
 										accessibilityLabel="Aprovar entrega"
-										className={`flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${isBusy ? 'opacity-60' : ''}`}
+										className={`flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${isBusy ? 'opacity-60' : ''} ${!canWriteDocuments ? 'opacity-40' : ''}`}
 									>
 										{isBusy && (
 											<ActivityIndicator

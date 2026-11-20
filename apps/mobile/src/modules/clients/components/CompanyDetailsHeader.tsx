@@ -9,7 +9,7 @@ import { usePermission } from '../../auth/hooks/usePermission';
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyDetailsHeaderProps = {
 	company: Company;
-	contactCount: number;
+	contactCount: number | null;
 	onEdit: () => void;
 	onDelete: () => void;
 };
@@ -22,6 +22,7 @@ export function CompanyDetailsHeader({
 }: CompanyDetailsHeaderProps) {
 	const themeColors = useThemeColors();
 	const canWriteClients = usePermission('clients.write');
+	const canReadProjects = usePermission('projects.read');
 
 	return (
 		<View className="border-b border-border pb-7">
@@ -47,9 +48,15 @@ export function CompanyDetailsHeader({
 
 				<View className="flex-row flex-wrap items-center gap-5 self-start md:self-auto">
 					<View className="flex-row items-center">
-						<SummaryCount label="Funcionários" count={contactCount} />
-						<View className="h-10 w-px bg-border" />
-						<SummaryCount label="Projetos" count={COMPANY_PROJECT_COUNT} />
+						{contactCount !== null && (
+							<>
+								<SummaryCount label="Funcionários" count={contactCount} />
+								{canReadProjects && <View className="h-10 w-px bg-border" />}
+							</>
+						)}
+						{canReadProjects && (
+							<SummaryCount label="Projetos" count={COMPANY_PROJECT_COUNT} />
+						)}
 					</View>
 					<View className="flex-row items-center gap-2">
 						<TouchableOpacity

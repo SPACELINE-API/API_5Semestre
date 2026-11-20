@@ -54,7 +54,7 @@ def test_create_quote_endpoint_persists_quote(db_client: TestClient, isolated_db
 
     assert response.status_code == 201
     data = response.json()
-    assert data["status"] == "pending"
+    assert data["status"] == "draft"
     assert isolated_db_session.get(Quote, uuid.UUID(data["id"])) is not None
 
 
@@ -119,7 +119,7 @@ def test_generate_quote_from_request_endpoint_uses_approved_request(
     assert response.status_code == 201
     data = response.json()
     assert data["request_id"] == str(request.id)
-    assert data["status"] == "pending"
+    assert data["status"] == "draft"
     assert data["customer_name"] == request.customer_name
 
 

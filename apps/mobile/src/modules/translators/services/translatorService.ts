@@ -75,6 +75,14 @@ export function setTranslatorActive(
 	);
 }
 
+// REENVIA O LINK DE DEFINICAO DE SENHA ENQUANTO A CONTA DO TRADUTOR NAO FOI ATIVADA
+export function resendTranslatorPasswordLink(id: string): Promise<Translator> {
+	return apiPostAuth<Translator, Record<string, never>>(
+		`${BASE}/${id}/password-setup-link/resend`,
+		{},
+	);
+}
+
 export function deleteTranslator(id: string): Promise<void> {
 	return apiDeleteAuth(`${BASE}/${id}`);
 }

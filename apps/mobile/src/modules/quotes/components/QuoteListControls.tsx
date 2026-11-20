@@ -17,9 +17,11 @@ import type { QuoteStatusFilter } from '../services/quotesService';
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const statusOptions: { value: QuoteStatusFilter; label: string }[] = [
 	{ value: 'all', label: 'Todos' },
-	{ value: 'pending', label: 'Pendentes' },
+	{ value: 'draft', label: 'Em preparação' },
+	{ value: 'pending', label: 'Aguardando aprovação' },
 	{ value: 'approved', label: 'Aprovados' },
 	{ value: 'reproved', label: 'Reprovados' },
+	{ value: 'cancelled', label: 'Cancelados' },
 ];
 
 export function QuoteSearchBar({

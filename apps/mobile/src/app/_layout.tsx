@@ -10,6 +10,7 @@ import { Redirect, Slot, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { SideBar } from '../components/SideBar';
+import { AccessDenied } from '../modules/auth/components/AccessDenied';
 import { NotificationCenter } from '../modules/notifications/components/NotificationCenter';
 import {
 	Inter_400Regular,
@@ -35,6 +36,7 @@ import { ApiError } from '../shared/services/publicApiClient';
 import {
 	canAccess,
 	firstAllowedRoute,
+	isInternalUserPath,
 	isPublicPath,
 	requiredPermission,
 } from '../modules/auth/services/authorization';
@@ -152,10 +154,13 @@ function AppLayoutContent() {
 	if (
 		!isPublic &&
 		authorizationLoaded &&
-		requiredPermission(pathname) &&
+		(requiredPermission(pathname) || isInternalUserPath(pathname)) &&
 		!canAccess(authorizationContext, pathname)
 	) {
-		return <Redirect href={firstAllowedRoute(authorizationContext) as never} />;
+		const redirectTo = canAccess(authorizationContext, '/dashboard')
+			? '/dashboard'
+			: firstAllowedRoute(authorizationContext);
+		return <AccessDenied redirectTo={redirectTo} />;
 	}
 	const showAppShell = !isPublic && Boolean(session || authorizationContext);
 

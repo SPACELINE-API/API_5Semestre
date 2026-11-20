@@ -27,6 +27,7 @@ import {
 } from '../../contacts/services/contactService';
 import { useContactsByCompany } from '../../contacts/hooks/useContactsByCompany';
 import type { Contact } from '../../contacts/types/contact';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyDetailsPageProps = { id: string };
@@ -45,9 +46,12 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	const { company, isLoading, error, setCompany } = useCompany(id);
 	const { contacts, refreshContacts } = useContactsByCompany(company?.id);
 	const { toast, showToast } = useToast();
+	const canWriteClients = usePermission('clients.write');
+	const canReadContacts = usePermission('contacts.read');
+	const canWriteContacts = usePermission('contacts.write');
 
 	async function handleDelete() {
-		if (!company) return;
+		if (!canWriteClients || !company) return;
 		setIsDeleting(true);
 		try {
 			await deleteCompany(company.id);
@@ -65,7 +69,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	}
 
 	async function handleDeleteContact() {
-		if (!contactToDelete) return;
+		if (!canWriteContacts || !contactToDelete) return;
 		setIsDeletingContact(true);
 		try {
 			await deleteContact(contactToDelete.id);
@@ -85,12 +89,13 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	}
 
 	function openContactForm(contact: Contact | null = null) {
+		if (!canWriteContacts) return;
 		setEditingContact(contact);
 		setIsContactModalVisible(true);
 	}
 
 	async function saveCompany(data: Parameters<typeof updateCompany>[1]) {
-		if (!company) return;
+		if (!canWriteClients || !company) return;
 		try {
 			const updated = await updateCompany(company.id, data);
 			setCompany(updated);
@@ -108,6 +113,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	}
 
 	async function saveContact(data: Parameters<typeof createContact>[0]) {
+		if (!canWriteContacts) return;
 		try {
 			if (editingContact) {
 				await updateContact(editingContact.id, data);
@@ -174,7 +180,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 					<View>
 						<CompanyDetailsHeader
 							company={company}
-							contactCount={contacts.length}
+							contactCount={canReadContacts ? contacts.length : null}
 							onEdit={() => setIsEditVisible(true)}
 							onDelete={() => setIsDeleteConfirmVisible(true)}
 						/>

@@ -55,6 +55,7 @@ export function TranslatorsInviteTab({
 	>('');
 	const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 	const canWriteAssignments = usePermission('assignments.write');
+	const canManageAssignments = usePermission('assignments.manage');
 	const [selectedTranslatorIds, setSelectedTranslatorIds] = useState<
 		Set<string>
 	>(new Set());
@@ -274,6 +275,16 @@ export function TranslatorsInviteTab({
 				</View>
 			)}
 
+			{!canManageAssignments && (
+				<View className="rounded-lg bg-warning-soft px-3.5 py-3">
+					<Text className="font-inter text-warning-text text-xs">
+						Você pode enviar convites, mas não tem permissão para consultar os
+						convites existentes. A lista e a verificação de convites pendentes
+						ficam indisponíveis.
+					</Text>
+				</View>
+			)}
+
 			<View className="w-full flex-row items-center gap-3">
 				<View
 					className={`min-w-0 flex-1 flex-row items-center gap-2 rounded-lg border border-border bg-surface-subtle px-3 py-2.5 ${
@@ -451,13 +462,13 @@ export function TranslatorsInviteTab({
 			>
 				<View className="flex-row items-center gap-3 border-b border-border-subtle bg-surface-subtle px-4 py-2.5">
 					<Text className="w-6" />
-					<Text className="flex-1 font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
+					<Text className="flex-1 font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
 						Nome
 					</Text>
-					<Text className="flex-1 font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
+					<Text className="flex-1 font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
 						Email
 					</Text>
-					<Text className="w-24 font-inter font-medium text-[12px] uppercase tracking-wide text-foreground-subtle">
+					<Text className="w-24 font-inter font-medium text-[11px] uppercase tracking-wide text-foreground-subtle">
 						Status
 					</Text>
 				</View>
@@ -602,7 +613,7 @@ export function TranslatorsInviteTab({
 				onCancel={() => setIsConfirmingAll(false)}
 			/>
 
-			{!isLoadingInvites && invites.length > 0 && (
+			{canManageAssignments && !isLoadingInvites && invites.length > 0 && (
 				<View className="gap-2 border-t border-border-subtle pt-5">
 					<Text className="font-inter font-semibold text-foreground-secondary text-xs uppercase tracking-wide">
 						Convites deste item
