@@ -7,7 +7,7 @@
 
 ## Documentos
 
-- [CI - GitHub Actions](<pdf/CI - GitHub Actions.pdf>)
+- [CI - GitHub Actions](pdf/guias/ci-github-actions.pdf)
 - [Guia de Models e Migrations no Backend](<pdf/Guia de Models e Migrations no Backend com SQLAlchemy e Alembic.pdf>)
 - [PRD EP.1 - Cadastro de Clientes e Contatos](<pdf/PRD EP.1 - Cadastro de Clientes e Contatos.pdf>)
 - [PRD EP.2 - Cadastro de Recursos e Tradutores](<pdf/PRD EP.2 - Cadastro de Recursos e Tradutores.pdf>)
