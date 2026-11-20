@@ -59,6 +59,7 @@ export function RequestDecisionPanel({
 						multiline
 						textAlignVertical="top"
 						placeholder="Explique por que a solicitação foi reprovada"
+						placeholderTextColor={themeColors.foregroundSubtle}
 						className="min-h-24 rounded-lg border border-border-strong bg-surface px-3 py-2 font-inter text-sm text-foreground"
 					/>
 					<Text className="text-right font-inter text-xs text-foreground-subtle">

@@ -320,6 +320,7 @@ export function TranslatorLanguagesStep({
 						<TextInput
 							className="mb-4 rounded-md border border-border bg-surface p-3 font-inter text-sm text-foreground"
 							placeholder="pt-BR"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							value={newLanguageId}
 							onChangeText={(value) => {
 								setNewLanguageId(value);
@@ -333,6 +334,7 @@ export function TranslatorLanguagesStep({
 						<TextInput
 							className="mb-4 rounded-md border border-border bg-surface p-3 font-inter text-sm text-foreground"
 							placeholder="Português"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							value={newLanguageName}
 							onChangeText={(value) => {
 								setNewLanguageName(value);

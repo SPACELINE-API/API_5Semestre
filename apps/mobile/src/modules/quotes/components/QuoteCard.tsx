@@ -1208,6 +1208,7 @@ export function QuoteCard({
 										multiline
 										textAlignVertical="top"
 										placeholder="Motivo da reprovação"
+										placeholderTextColor={themeColors.foregroundSubtle}
 										className="min-h-24 rounded-lg border border-border-strong bg-surface px-3 py-2 font-inter text-sm text-foreground"
 									/>
 									<View className="flex-row flex-wrap gap-3">

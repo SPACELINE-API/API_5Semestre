@@ -149,6 +149,7 @@ export default function LanguageSettingsPage() {
 										setFieldError(null);
 									}}
 									placeholder="Ex.: Hindi"
+									placeholderTextColor={themeColors.foregroundSubtle}
 									maxLength={100}
 									accessibilityLabel="Nome do idioma"
 									className="rounded-md border border-border-strong px-3 py-2.5 font-inter text-foreground text-sm"
@@ -165,6 +166,7 @@ export default function LanguageSettingsPage() {
 										setFieldError(null);
 									}}
 									placeholder="Ex.: hi-IN"
+									placeholderTextColor={themeColors.foregroundSubtle}
 									maxLength={20}
 									autoCapitalize="none"
 									accessibilityLabel="Código identificador do idioma"

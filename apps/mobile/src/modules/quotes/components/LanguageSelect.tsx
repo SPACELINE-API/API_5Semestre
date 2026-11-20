@@ -186,6 +186,7 @@ export function LanguageSelect({
 							<TextInput
 								className="border border-border rounded-md p-3 text-sm text-foreground font-inter bg-surface"
 								placeholder="pt-BR"
+								placeholderTextColor={themeColors.foregroundSubtle}
 								value={newLangId}
 								onChangeText={setNewLangId}
 							/>
@@ -198,6 +199,7 @@ export function LanguageSelect({
 							<TextInput
 								className="border border-border rounded-md p-3 text-sm text-foreground font-inter bg-surface"
 								placeholder="Português"
+								placeholderTextColor={themeColors.foregroundSubtle}
 								value={newLangName}
 								onChangeText={setNewLangName}
 							/>

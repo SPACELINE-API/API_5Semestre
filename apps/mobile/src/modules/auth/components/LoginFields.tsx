@@ -61,6 +61,7 @@ export function LoginFields({
 				<PasswordField
 					label="Nova senha"
 					placeholder="Digite sua nova senha"
+					placeholderTextColor={themeColors.foregroundSubtle}
 					value={newPassword}
 					onChangeText={onNewPasswordChange}
 					visible={showNewPassword}

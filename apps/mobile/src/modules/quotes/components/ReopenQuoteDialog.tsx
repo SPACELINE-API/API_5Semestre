@@ -79,6 +79,7 @@ export function ReopenQuoteDialog({
 							multiline
 							textAlignVertical="top"
 							placeholder="Ex.: o cliente enviou um novo documento"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							className="min-h-24 rounded-lg border border-border-strong bg-surface px-3 py-2 font-inter text-sm text-foreground"
 						/>
 					</View>
