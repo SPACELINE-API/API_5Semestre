@@ -43,7 +43,9 @@ async def criar_pergunta_chat(
     session_id: str | None = Query(default=None, max_length=64, pattern=r"^[A-Za-z0-9_-]+$"),
     current_user=Depends(support_write_permission),
 ):
-    return await enfileirar_pergunta_chat(payload, user_id=current_user.email, session_id=session_id)
+    return await enfileirar_pergunta_chat(
+        payload, user_id=current_user.email, session_id=session_id
+    )
 
 
 @router.get("/chat/{event_id}/status")
