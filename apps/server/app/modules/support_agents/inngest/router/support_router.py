@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app.modules.auth.dependencies.dependencies import require_permission
 from app.modules.support_agents.inngest.schema.agent_schema import (
@@ -40,9 +40,10 @@ async def criar_pergunta(
 @router.post("/chat", status_code=201)
 async def criar_pergunta_chat(
     payload: SuportePerguntaRequest,
+    session_id: str | None = Query(default=None, max_length=64, pattern=r"^[A-Za-z0-9_-]+$"),
     current_user=Depends(support_write_permission),
 ):
-    return await enfileirar_pergunta_chat(payload, user_id=current_user.email)
+    return await enfileirar_pergunta_chat(payload, user_id=current_user.email, session_id=session_id)
 
 
 @router.get("/chat/{event_id}/status")

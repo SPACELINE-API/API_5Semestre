@@ -1,14 +1,23 @@
+import os
+
 import inngest
 from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
 from app.modules.support_agents.adk.agents import root_agent
 from app.shared.google_adk.config import ADK_MODEL, ADK_PROVIDER
+from app.shared.google_adk.mongo_session_service import MongoSessionService
 
 from .client import inngest_client
 
 USER_ID_PADRAO = "chat-support"
+APP_NAME = "support_agents"
+
+session_service = MongoSessionService(
+    url=os.getenv("MONGO_URL", "mongodb://localhost:27017"),
+    db_name=os.getenv("MONGO_DB", "support_agents"),
+)
+runner = Runner(app_name=APP_NAME, agent=root_agent, session_service=session_service)
 
 
 def extrair_user_id(data: dict) -> str:
@@ -29,18 +38,20 @@ def extract_final_response(events) -> str:
     return ""
 
 
-async def run_support_agent(texto: str, user_id: str) -> str:
-    app_name = "support_agents"
-    session_service = InMemorySessionService()
-    session = await session_service.create_session(app_name=app_name, user_id=user_id)
-    runner = Runner(app_name=app_name, agent=root_agent, session_service=session_service)
+async def run_support_agent(texto: str, user_id: str, session_id: str | None = None) -> str:
+    session_id = session_id or user_id  # sem session_id: uma conversa contínua por usuário
+    session = await session_service.get_session(
+        app_name=APP_NAME, user_id=user_id, session_id=session_id
+    )
+    if session is None:
+        await session_service.create_session(
+            app_name=APP_NAME, user_id=user_id, session_id=session_id
+        )
     message = types.Content(role="user", parts=[types.Part(text=texto)])
     events = [
         event
         async for event in runner.run_async(
-            user_id=user_id,
-            session_id=session.id,
-            new_message=message,
+            user_id=user_id, session_id=session_id, new_message=message
         )
     ]
     return extract_final_response(events)
@@ -72,6 +83,7 @@ async def test_support_agent(ctx: inngest.Context) -> dict:
 @inngest_client.create_function(
     fn_id="support-agent-chat",
     trigger=inngest.TriggerEvent(event="support/chat.ask"),
+    concurrency=[inngest.Concurrency(limit=1, key="event.data.session_id")],
 )
 async def process_chat_message(ctx: inngest.Context) -> dict:
     texto = ctx.event.data.get("texto", "")
@@ -80,8 +92,11 @@ async def process_chat_message(ctx: inngest.Context) -> dict:
         raise ValueError("O campo 'texto' deve ser uma string")
 
     user_id = extrair_user_id(dict(ctx.event.data))
+    session_id = ctx.event.data.get("session_id")
 
-    resposta = await ctx.step.run("run-support-agent", lambda: run_support_agent(texto, user_id))
+    resposta = await ctx.step.run(
+        "run-support-agent", lambda: run_support_agent(texto, user_id, session_id)
+    )
     return {"resposta": resposta}
 
 

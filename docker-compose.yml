@@ -288,8 +288,28 @@ services:
     networks:
       - spaceline
 
+  spaceline-mongo:
+    container_name: spaceline-mongo
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${MONGO_PORT:-27017}:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin}
+    volumes:
+      - spaceline-mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.adminCommand("ping")']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - spaceline
+
 volumes:
   spaceline-db-data:
+  spaceline-mongo-data:
   spaceline-storage-data:
 
 networks:
