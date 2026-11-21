@@ -264,8 +264,10 @@ function AppShell({
 				{showNavigation ? (
 					<View
 						style={{ paddingTop: insets.top, minHeight: 56 + insets.top }}
-						className="hidden border-b border-border-subtle bg-surface md:flex"
-					/>
+						className="hidden flex-row items-center justify-end border-b border-border-subtle bg-surface pr-[76px] md:flex"
+					>
+						<ThemeToggle />
+					</View>
 				) : null}
 				{showNavigation ? (
 					<View pointerEvents="box-none" className="absolute inset-0 z-50">
