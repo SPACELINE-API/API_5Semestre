@@ -7,6 +7,7 @@ import {
 } from 'react-native-safe-area-context';
 import { Menu } from 'lucide-react-native';
 import { Redirect, Slot, usePathname } from 'expo-router';
+import Head from 'expo-router/head';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { SideBar } from '../components/SideBar';
@@ -48,9 +49,14 @@ SplashScreen.preventAutoHideAsync();
 
 export default function AppLayout() {
 	return (
-		<ThemeProvider>
-			<AppLayoutContent />
-		</ThemeProvider>
+		<>
+			<Head>
+				<title>SpaceLang</title>
+			</Head>
+			<ThemeProvider>
+				<AppLayoutContent />
+			</ThemeProvider>
+		</>
 	);
 }
 
