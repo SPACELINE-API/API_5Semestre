@@ -262,6 +262,12 @@ function AppShell({
 					</View>
 				) : null}
 				{showNavigation ? (
+					<View
+						style={{ paddingTop: insets.top, minHeight: 56 + insets.top }}
+						className="hidden border-b border-border-subtle bg-surface md:flex"
+					/>
+				) : null}
+				{showNavigation ? (
 					<View pointerEvents="box-none" className="absolute inset-0 z-50">
 						<NotificationCenter topOffset={insets.top - 4} />
 						<View
