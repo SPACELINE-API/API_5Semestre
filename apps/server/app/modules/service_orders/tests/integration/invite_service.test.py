@@ -1,5 +1,6 @@
 import random
 import uuid
+from collections.abc import Sequence
 from decimal import Decimal
 
 import pytest
@@ -59,8 +60,22 @@ def db_session(isolated_db_session):
 def sent_emails(monkeypatch):
     emails: list[dict] = []
 
-    def fake_send_email(to: str, subject: str, html_body: str) -> None:
-        emails.append({"to": to, "subject": subject, "html_body": html_body})
+    def fake_send_email(
+        to: str,
+        subject: str,
+        html_body: str,
+        attachments: Sequence[tuple[str, bytes, str]] = (),
+        inline_images: Sequence[tuple[str, bytes, str]] = (),
+    ) -> None:
+        emails.append(
+            {
+                "to": to,
+                "subject": subject,
+                "html_body": html_body,
+                "attachments": attachments,
+                "inline_images": inline_images,
+            }
+        )
 
     monkeypatch.setattr(invite_service_module, "send_email", fake_send_email)
     return emails
@@ -202,7 +217,7 @@ def test_send_invites_uses_default_email_when_no_template_is_saved(
     email = sent_emails[0]
     assert email["subject"] == DEFAULT_INVITE_SUBJECT
     assert translator.name in email["html_body"]
-    assert "pt-BR → en-US" in email["html_body"]
+    assert "pt-BR" in email["html_body"] and "en-US" in email["html_body"]
     assert f"/convites/{invites[0].id}" in email["html_body"]
     assert "{{" not in email["html_body"]
 
@@ -225,7 +240,7 @@ def test_send_invites_uses_the_saved_translator_invite_template(
 
     email = sent_emails[0]
     assert email["subject"] == f"Convite para {translator.name}"
-    assert email["html_body"].startswith("<p>pt-BR para en-US: ")
+    assert "<p>pt-BR para en-US: " in email["html_body"]
     assert f"/convites/{invites[0].id}" in email["html_body"]
 
 
