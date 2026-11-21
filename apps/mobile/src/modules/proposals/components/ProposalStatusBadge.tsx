@@ -6,16 +6,16 @@ import {
 } from '../utils/proposalFormat';
 
 const PROPOSAL_STATUS_BACKGROUNDS: Record<ProposalStatus, string> = {
-	draft: 'bg-blue-50',
-	pending: 'bg-amber-50',
-	approved: 'bg-green-50',
-	reproved: 'bg-red-50',
-	cancelled: 'bg-gray-100',
+	draft: 'bg-primary-soft',
+	pending: 'bg-warning-soft',
+	approved: 'bg-success-soft',
+	reproved: 'bg-danger-soft',
+	cancelled: 'bg-surface-muted',
 };
 
 export function ProposalStatusBadge({ status }: { status: ProposalStatus }) {
 	const color = PROPOSAL_STATUS_COLORS[status];
-	const background = PROPOSAL_STATUS_BACKGROUNDS[status] ?? 'bg-amber-50';
+	const background = PROPOSAL_STATUS_BACKGROUNDS[status] ?? 'bg-warning-soft';
 
 	return (
 		<View className={`self-start rounded-full px-2.5 py-1 ${background}`}>

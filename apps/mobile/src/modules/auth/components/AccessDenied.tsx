@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const REDIRECT_DELAY_MS = 3000;
 
 type AccessDeniedProps = {
@@ -9,6 +10,7 @@ type AccessDeniedProps = {
 };
 
 export function AccessDenied({ redirectTo }: AccessDeniedProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const redirectMessage =
 		redirectTo === '/dashboard'
@@ -32,14 +34,20 @@ export function AccessDenied({ redirectTo }: AccessDeniedProps) {
 				padding: 24,
 			}}
 		>
-			<Text style={{ fontSize: 20, fontWeight: '600', color: '#111827' }}>
+			<Text
+				style={{
+					fontSize: 20,
+					fontWeight: '600',
+					color: themeColors.foreground,
+				}}
+			>
 				Acesso negado
 			</Text>
 			<Text
 				style={{
 					fontSize: 16,
 					textAlign: 'center',
-					color: '#374151',
+					color: themeColors.foregroundSecondary,
 					marginTop: 8,
 				}}
 			>
@@ -49,7 +57,7 @@ export function AccessDenied({ redirectTo }: AccessDeniedProps) {
 				style={{
 					fontSize: 14,
 					textAlign: 'center',
-					color: '#6b7280',
+					color: themeColors.foregroundMuted,
 					marginTop: 12,
 				}}
 			>

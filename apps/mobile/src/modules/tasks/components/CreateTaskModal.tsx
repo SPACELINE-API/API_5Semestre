@@ -12,6 +12,7 @@ import { SelectField } from '../../../shared/components/SelectField';
 import { createTask, listTaskAssignees } from '../services/taskService';
 import type { Task, TaskPerson } from '../types/task';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const DESCRIPTION_MAX = 5000;
 
 type CreateTaskModalProps = {
@@ -39,6 +40,7 @@ export function CreateTaskModal({
 	onClose,
 	onCreated,
 }: CreateTaskModalProps) {
+	const themeColors = useThemeColors();
 	const [assignees, setAssignees] = useState<TaskPerson[]>([]);
 	const [loadingAssignees, setLoadingAssignees] = useState(false);
 	const [assigneeId, setAssigneeId] = useState('');
@@ -104,8 +106,11 @@ export function CreateTaskModal({
 			<View className="gap-1.5">
 				{loadingAssignees ? (
 					<View className="flex-row items-center gap-2 py-2">
-						<ActivityIndicator size="small" color="#6B7280" />
-						<Text className="font-inter text-gray-500 text-sm">
+						<ActivityIndicator
+							size="small"
+							color={themeColors.foregroundMuted}
+						/>
+						<Text className="font-inter text-foreground-muted text-sm">
 							Carregando funcionários...
 						</Text>
 					</View>
@@ -124,7 +129,7 @@ export function CreateTaskModal({
 			</View>
 
 			<View className="gap-1.5">
-				<Text className="font-inter font-semibold text-gray-800 text-xs">
+				<Text className="font-inter font-semibold text-foreground text-xs">
 					Descrição
 				</Text>
 				<TextInput
@@ -134,12 +139,12 @@ export function CreateTaskModal({
 					maxLength={DESCRIPTION_MAX}
 					editable={!isSaving}
 					placeholder="Descreva o que precisa ser feito"
-					placeholderTextColor="#9CA3AF"
+					placeholderTextColor={themeColors.foregroundSubtle}
 					accessibilityLabel="Descrição da tarefa"
 					textAlignVertical="top"
-					className="min-h-[96px] rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-sm text-gray-900 outline-none"
+					className="min-h-[96px] rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none"
 				/>
-				<Text className="self-end font-inter text-gray-400 text-xs">
+				<Text className="self-end font-inter text-foreground-subtle text-xs">
 					{description.length}/{DESCRIPTION_MAX}
 				</Text>
 			</View>
@@ -158,7 +163,7 @@ export function CreateTaskModal({
 						accessibilityRole="button"
 						className="self-start"
 					>
-						<Text className="font-inter font-medium text-blue-600 text-xs">
+						<Text className="font-inter font-medium text-primary-text text-xs">
 							Remover prazo
 						</Text>
 					</TouchableOpacity>
@@ -168,7 +173,7 @@ export function CreateTaskModal({
 			{error && (
 				<Text
 					accessibilityRole="alert"
-					className="font-inter text-red-700 text-sm"
+					className="font-inter text-danger text-sm"
 				>
 					{error}
 				</Text>

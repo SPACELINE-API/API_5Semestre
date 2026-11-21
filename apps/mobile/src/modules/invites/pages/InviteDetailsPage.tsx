@@ -19,11 +19,13 @@ import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type InviteDetailsPageProps = {
 	id: string;
 };
 
 export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const { invite, item, isLoading, error, setInvite } = useInviteDetails(id);
 	const { toast, showToast } = useToast();
@@ -79,7 +81,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 	const canRespond = invite?.status === 'pendente';
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="
@@ -94,41 +96,46 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 					activeOpacity={0.7}
 					className="mb-7 flex-row items-center gap-2"
 				>
-					<ArrowLeft size={16} color="#6B7280" />
+					<ArrowLeft size={16} color={themeColors.foregroundMuted} />
 
-					<Text className="font-inter text-gray-500 text-sm">
+					<Text className="font-inter text-foreground-muted text-sm">
 						Voltar para meus convites
 					</Text>
 				</TouchableOpacity>
 
 				{isLoading && (
 					<View className="min-h-[400px] items-center justify-center">
-						<ActivityIndicator size="large" color="#6B7280" />
+						<ActivityIndicator
+							size="large"
+							color={themeColors.foregroundMuted}
+						/>
 
-						<Text className="mt-4 font-inter text-gray-400 text-sm">
+						<Text className="mt-4 font-inter text-foreground-subtle text-sm">
 							Carregando dados do convite...
 						</Text>
 					</View>
 				)}
 
 				{!isLoading && error && (
-					<View className="gap-1 border-t border-gray-200 py-8">
+					<View className="gap-1 border-t border-border py-8">
 						<View className="flex-row items-center gap-2">
-							<AlertCircle size={16} color="#DC2626" />
+							<AlertCircle size={16} color={themeColors.danger} />
 
-							<Text className="font-inter font-semibold text-red-600 text-sm">
+							<Text className="font-inter font-semibold text-danger text-sm">
 								Não foi possível carregar o convite
 							</Text>
 						</View>
 
-						<Text className="font-inter text-gray-500 text-sm">{error}</Text>
+						<Text className="font-inter text-foreground-muted text-sm">
+							{error}
+						</Text>
 					</View>
 				)}
 
 				{!isLoading && !error && invite && (
 					<View className="gap-6">
-						<View className="flex-row flex-wrap items-center gap-3 border-b border-gray-200 pb-6">
-							<Text className="font-inter font-bold text-gray-950 text-xl">
+						<View className="flex-row flex-wrap items-center gap-3 border-b border-border pb-6">
+							<Text className="font-inter font-bold text-foreground text-xl">
 								Convite de tradução
 							</Text>
 
@@ -137,7 +144,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 
 						{item ? (
 							<View className="gap-4">
-								<Text className="font-inter font-semibold text-gray-900 text-sm">
+								<Text className="font-inter font-semibold text-foreground text-sm">
 									{item.source_language} → {item.target_language}
 								</Text>
 
@@ -147,44 +154,44 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 
 								<View className="flex-row flex-wrap gap-x-10 gap-y-4">
 									<View className="gap-0.5">
-										<Text className="font-inter text-gray-400 text-xs">
+										<Text className="font-inter text-foreground-subtle text-xs">
 											Tipo de documento
 										</Text>
-										<Text className="font-inter font-medium text-gray-800 text-sm">
+										<Text className="font-inter font-medium text-foreground text-sm">
 											{item.document_type ?? 'Não informado'}
 										</Text>
 									</View>
 
 									<View className="gap-0.5">
-										<Text className="font-inter text-gray-400 text-xs">
+										<Text className="font-inter text-foreground-subtle text-xs">
 											Preço
 										</Text>
-										<Text className="font-inter font-medium text-gray-800 text-sm">
+										<Text className="font-inter font-medium text-foreground text-sm">
 											{formatPrice(item.price)}
 										</Text>
 									</View>
 
 									<View className="gap-0.5">
-										<Text className="font-inter text-gray-400 text-xs">
+										<Text className="font-inter text-foreground-subtle text-xs">
 											Prazo
 										</Text>
-										<Text className="font-inter font-medium text-gray-800 text-sm">
+										<Text className="font-inter font-medium text-foreground text-sm">
 											{formatDate(item.deadline)}
 										</Text>
 									</View>
 
 									<View className="gap-0.5">
-										<Text className="font-inter text-gray-400 text-xs">
+										<Text className="font-inter text-foreground-subtle text-xs">
 											Quantidade de palavras
 										</Text>
-										<Text className="font-inter font-medium text-gray-800 text-sm">
+										<Text className="font-inter font-medium text-foreground text-sm">
 											{item.word_count ?? 'Não informado'}
 										</Text>
 									</View>
 								</View>
 
 								<View className="gap-2">
-									<Text className="font-inter text-gray-400 text-xs">
+									<Text className="font-inter text-foreground-subtle text-xs">
 										Documento
 									</Text>
 									{item.file_url ? (
@@ -192,20 +199,20 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 											<FilePreview fileUrl={item.file_url} openInNewPage />
 										</>
 									) : (
-										<Text className="font-inter font-medium text-gray-400 text-sm">
+										<Text className="font-inter font-medium text-foreground-subtle text-sm">
 											Nenhum documento anexado
 										</Text>
 									)}
 								</View>
 							</View>
 						) : (
-							<Text className="font-inter text-gray-400 text-sm">
+							<Text className="font-inter text-foreground-subtle text-sm">
 								Não foi possível carregar os detalhes do item associado a este
 								convite.
 							</Text>
 						)}
 
-						<View className="flex-row items-center gap-3 border-t border-gray-100 pt-6">
+						<View className="flex-row items-center gap-3 border-t border-border-subtle pt-6">
 							{canRespond ? (
 								<>
 									<TouchableOpacity
@@ -213,7 +220,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 										disabled={isResponding || !canRespondInvites}
 										accessibilityRole="button"
 										accessibilityLabel="Aceitar convite"
-										className={`flex-row items-center gap-1.5 rounded-lg bg-green-600 px-5 py-2.5 ${
+										className={`flex-row items-center gap-1.5 rounded-lg bg-success px-5 py-2.5 ${
 											isResponding
 												? 'opacity-60'
 												: !canRespondInvites
@@ -221,8 +228,8 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 													: ''
 										}`}
 									>
-										<Check size={15} color="#FFFFFF" />
-										<Text className="font-inter font-semibold text-white text-sm">
+										<Check size={15} color={themeColors.primaryForeground} />
+										<Text className="font-inter font-semibold text-primary-foreground text-sm">
 											Aceitar
 										</Text>
 									</TouchableOpacity>
@@ -232,7 +239,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 										disabled={isResponding || !canRespondInvites}
 										accessibilityRole="button"
 										accessibilityLabel="Recusar convite"
-										className={`flex-row items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-5 py-2.5 ${
+										className={`flex-row items-center gap-1.5 rounded-lg border border-danger/40 bg-danger-soft px-5 py-2.5 ${
 											isResponding
 												? 'opacity-60'
 												: !canRespondInvites
@@ -240,14 +247,14 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 													: ''
 										}`}
 									>
-										<X size={15} color="#791F1F" />
-										<Text className="font-inter font-semibold text-red-900 text-sm">
+										<X size={15} color={themeColors.dangerText} />
+										<Text className="font-inter font-semibold text-danger-text text-sm">
 											Recusar
 										</Text>
 									</TouchableOpacity>
 								</>
 							) : (
-								<Text className="font-inter text-gray-500 text-sm">
+								<Text className="font-inter text-foreground-muted text-sm">
 									Este convite já foi respondido e não pode mais ser alterado.
 								</Text>
 							)}

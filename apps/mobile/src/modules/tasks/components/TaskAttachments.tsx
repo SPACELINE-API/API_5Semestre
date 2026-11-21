@@ -12,6 +12,7 @@ import {
 } from '../services/taskService';
 import type { Task, TaskAttachment } from '../types/task';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type TaskAttachmentsProps = {
 	task: Task;
 	editable: boolean;
@@ -27,6 +28,7 @@ export function TaskAttachments({
 	editable,
 	onChanged,
 }: TaskAttachmentsProps) {
+	const themeColors = useThemeColors();
 	const [busyId, setBusyId] = useState<string | null>(null);
 	const [confirmingId, setConfirmingId] = useState<string | null>(null);
 	const [isAdding, setIsAdding] = useState(false);
@@ -85,12 +87,12 @@ export function TaskAttachments({
 
 	return (
 		<View className="gap-2">
-			<Text className="font-inter font-semibold text-gray-800 text-sm">
+			<Text className="font-inter font-semibold text-foreground text-sm">
 				Anexos
 			</Text>
 
 			{task.attachments.length === 0 && (
-				<Text className="font-inter text-gray-500 text-xs">
+				<Text className="font-inter text-foreground-muted text-xs">
 					Nenhum arquivo anexado.
 				</Text>
 			)}
@@ -102,38 +104,41 @@ export function TaskAttachments({
 				return (
 					<View
 						key={attachment.id}
-						className="flex-row items-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5"
+						className="flex-row items-center gap-2 rounded-lg border border-border px-3 py-2.5"
 					>
-						<FileText size={16} color="#6B7280" />
+						<FileText size={16} color={themeColors.foregroundMuted} />
 						<Text
-							className="flex-1 font-inter text-gray-700 text-sm"
+							className="flex-1 font-inter text-foreground-secondary text-sm"
 							numberOfLines={1}
 						>
 							{attachment.filename}
 						</Text>
-						<Text className="font-inter text-gray-400 text-xs">
+						<Text className="font-inter text-foreground-subtle text-xs">
 							{formatFileSize(attachment.size_bytes)}
 						</Text>
 						{isBusy ? (
-							<ActivityIndicator size="small" color="#374151" />
+							<ActivityIndicator
+								size="small"
+								color={themeColors.foregroundSecondary}
+							/>
 						) : isConfirming ? (
 							<>
 								<TouchableOpacity
 									onPress={() => void handleRemove(attachment)}
 									accessibilityRole="button"
 									accessibilityLabel={`Confirmar remoção de ${attachment.filename}`}
-									className="rounded-md bg-red-600 px-2 py-1"
+									className="rounded-md bg-danger px-2 py-1"
 								>
-									<Text className="font-inter font-semibold text-white text-xs">
+									<Text className="font-inter font-semibold text-primary-foreground text-xs">
 										Remover
 									</Text>
 								</TouchableOpacity>
 								<TouchableOpacity
 									onPress={() => setConfirmingId(null)}
 									accessibilityRole="button"
-									className="rounded-md border border-gray-300 px-2 py-1"
+									className="rounded-md border border-border-strong px-2 py-1"
 								>
-									<Text className="font-inter text-gray-700 text-xs">
+									<Text className="font-inter text-foreground-secondary text-xs">
 										Cancelar
 									</Text>
 								</TouchableOpacity>
@@ -147,7 +152,7 @@ export function TaskAttachments({
 									hitSlop={6}
 									className="rounded-md p-1"
 								>
-									<Eye size={16} color="#374151" />
+									<Eye size={16} color={themeColors.foregroundSecondary} />
 								</TouchableOpacity>
 								{editable && (
 									<TouchableOpacity
@@ -157,7 +162,7 @@ export function TaskAttachments({
 										hitSlop={6}
 										className="rounded-md p-1"
 									>
-										<Trash2 size={16} color="#B91C1C" />
+										<Trash2 size={16} color={themeColors.danger} />
 									</TouchableOpacity>
 								)}
 							</>
@@ -172,22 +177,25 @@ export function TaskAttachments({
 					disabled={isAdding}
 					accessibilityRole="button"
 					accessibilityLabel="Anexar arquivo"
-					className={`flex-row items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 py-2.5 ${
+					className={`flex-row items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong px-3 py-2.5 ${
 						isAdding ? 'opacity-60' : ''
 					}`}
 				>
 					{isAdding ? (
-						<ActivityIndicator size="small" color="#374151" />
+						<ActivityIndicator
+							size="small"
+							color={themeColors.foregroundSecondary}
+						/>
 					) : (
-						<Paperclip size={16} color="#374151" />
+						<Paperclip size={16} color={themeColors.foregroundSecondary} />
 					)}
-					<Text className="font-inter font-semibold text-gray-800 text-sm">
+					<Text className="font-inter font-semibold text-foreground text-sm">
 						{isAdding ? 'Enviando…' : 'Anexar arquivo'}
 					</Text>
 				</TouchableOpacity>
 			)}
 			{editable && (
-				<Text className="font-inter text-gray-400 text-xs">
+				<Text className="font-inter text-foreground-subtle text-xs">
 					PDF, Word, planilha, texto ou imagem, até 10 MB.
 				</Text>
 			)}
@@ -195,7 +203,7 @@ export function TaskAttachments({
 			{error && (
 				<Text
 					accessibilityRole="alert"
-					className="font-inter text-red-700 text-xs"
+					className="font-inter text-danger text-xs"
 				>
 					{error}
 				</Text>

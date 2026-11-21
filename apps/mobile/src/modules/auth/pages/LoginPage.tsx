@@ -1,12 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-	Image,
-	Platform,
-	Pressable,
-	Text,
-	TextInput,
-	View,
-} from 'react-native';
+import { Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { Check } from 'lucide-react-native';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiError } from '../../../shared/services/publicApiClient';
@@ -21,12 +14,14 @@ import {
 	saveSession,
 } from '../services/auth';
 import { isTranslatorProfile } from '../services/authorization';
-import logoAlianca from '../../../shared/assets/logo-alianca.png';
+import { BrandLogo } from '../../../shared/components/BrandLogo';
 import { GradientButton } from '../components/GradientButton';
 import { LoginBackground } from '../components/LoginBackground';
 import { LoginFields } from '../components/LoginFields';
 import { LoginScroll } from '../components/LoginScroll';
+import { ThemeToggle } from '../../../shared/theme/ThemeToggle';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type LoginError = {
 	code: string;
 	title: string;
@@ -90,6 +85,7 @@ function getLoginError(cause: unknown): LoginError {
 }
 
 export function LoginPage() {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const passwordInputRef = useRef<TextInput>(null);
 	const [email, setEmail] = useState('');
@@ -256,26 +252,26 @@ export function LoginPage() {
 		<View
 			className={
 				Platform.OS === 'web'
-					? 'min-h-screen flex-1 bg-[#f6faff]'
-					: 'flex-1 bg-[#f6faff]'
+					? 'min-h-screen flex-1 bg-surface-subtle'
+					: 'flex-1 bg-surface-subtle'
 			}
 		>
 			<LoginBackground />
+			<View
+				className={`absolute right-5 z-20 sm:right-8 ${Platform.OS === 'web' ? 'top-5 sm:top-6' : 'top-14'}`}
+			>
+				<ThemeToggle />
+			</View>
 			<LoginScroll>
 				<View className="z-10 grow justify-center gap-8 px-6 py-8 sm:px-10 md:flex-row md:items-stretch md:justify-between md:gap-10 md:px-[7%] md:py-10">
 					<View className="items-center md:flex-1 md:items-start md:justify-between md:py-1">
-						<Image
-							source={logoAlianca}
-							style={{ width: 170, height: 44 }}
-							resizeMode="contain"
-							accessibilityLabel="Aliança Traduções"
-						/>
+						<BrandLogo width={170} height={44} />
 						<View className="hidden max-w-[520px] md:flex">
-							<Text className="text-[52px] font-extrabold leading-[1.05] tracking-[-1.5px] text-[#0f1b33]">
-								Traduções com <Text className="text-[#2783d4]">clareza</Text>,
-								prazo e controle.
+							<Text className="text-[52px] font-extrabold leading-[1.05] tracking-[-1.5px] text-foreground">
+								Traduções com <Text className="text-primary-text">clareza</Text>
+								, prazo e controle.
 							</Text>
-							<Text className="mt-6 max-w-[430px] text-lg leading-7 text-[#52647e]">
+							<Text className="mt-6 max-w-[430px] text-lg leading-7 text-foreground-muted">
 								Acompanhe orçamentos, solicitações e documentos de tradução em
 								um só lugar.
 							</Text>
@@ -284,11 +280,11 @@ export function LoginPage() {
 					</View>
 
 					<View className="w-full self-center md:w-[46%] md:max-w-[480px] md:justify-center">
-						<View className="w-full rounded-[22px] border border-[#e1ebf5] bg-white px-6 py-7 shadow-xl shadow-[#173a68]/10 sm:px-8">
-							<Text className="text-[28px] font-extrabold tracking-[-0.8px] text-[#0f1b33]">
+						<View className="w-full rounded-[22px] border border-border bg-surface px-6 py-7 shadow-xl shadow-overlay/10 sm:px-8">
+							<Text className="text-[28px] font-extrabold tracking-[-0.8px] text-foreground">
 								{heading}
 							</Text>
-							<Text className="mb-6 mt-1 text-sm text-[#52647e]">
+							<Text className="mb-6 mt-1 text-sm text-foreground-muted">
 								{subheading}
 							</Text>
 							<LoginFields
@@ -325,18 +321,22 @@ export function LoginPage() {
 										onPress={() => setRemember(!remember)}
 									>
 										<View
-											className={`h-[22px] w-[22px] items-center justify-center rounded-md border-[1.5px] ${remember ? 'border-[#2d83cd] bg-[#2d83cd]' : 'border-[#7db9e8] bg-white'}`}
+											className={`h-[22px] w-[22px] items-center justify-center rounded-md border-[1.5px] ${remember ? 'border-primary bg-primary' : 'border-primary/40 bg-surface'}`}
 										>
 											{remember ? (
-												<Check color="#ffffff" size={14} strokeWidth={3} />
+												<Check
+													color={themeColors.primaryForeground}
+													size={14}
+													strokeWidth={3}
+												/>
 											) : null}
 										</View>
-										<Text className="text-[13px] text-[#52647e]">
+										<Text className="text-[14px] text-foreground-muted">
 											Lembrar-me
 										</Text>
 									</Pressable>
 									<Pressable onPress={startRecovery}>
-										<Text className="text-[13px] font-bold text-[#176ed0]">
+										<Text className="text-[14px] font-bold text-primary-text">
 											Esqueci minha senha
 										</Text>
 									</Pressable>
@@ -344,20 +344,20 @@ export function LoginPage() {
 							) : null}
 							{error ? (
 								<View
-									className="mb-4 mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3"
+									className="mb-4 mt-4 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3"
 									accessibilityRole="alert"
 									accessibilityLiveRegion="assertive"
 								>
-									<Text className="text-[10px] font-bold uppercase tracking-wider text-red-700">
+									<Text className="text-[11px] font-bold uppercase tracking-wider text-danger">
 										{error.code}
 									</Text>
-									<Text className="mt-1 text-sm font-bold text-red-900">
+									<Text className="mt-1 text-sm font-bold text-danger-text">
 										{error.title}
 									</Text>
-									<Text className="mt-1 text-sm text-red-800">
+									<Text className="mt-1 text-sm text-danger-text">
 										{error.description}
 									</Text>
-									<Text className="mt-2 text-xs text-red-700">
+									<Text className="mt-2 text-xs text-danger">
 										{error.action}
 									</Text>
 								</View>
@@ -370,16 +370,16 @@ export function LoginPage() {
 							/>
 							{recovery ? (
 								<Pressable
-									className="mt-3 h-11 items-center justify-center rounded-full border border-[#2d83cd] bg-transparent"
+									className="mt-3 h-11 items-center justify-center rounded-full border border-primary bg-transparent"
 									onPress={returnToLogin}
 								>
-									<Text className="text-sm font-bold text-[#176ed0]">
+									<Text className="text-sm font-bold text-primary-text">
 										Voltar para o login
 									</Text>
 								</Pressable>
 							) : null}
 							{message ? (
-								<Text className="mt-5 text-center text-sm font-semibold text-emerald-600">
+								<Text className="mt-5 text-center text-sm font-semibold text-success-text">
 									{message}
 								</Text>
 							) : null}
@@ -387,12 +387,12 @@ export function LoginPage() {
 
 						{!recovery && !token ? (
 							<View className="mt-6 items-center gap-3">
-								<Text className="text-center text-[13px] text-[#4d6483]">
+								<Text className="text-center text-[14px] text-foreground-muted">
 									Ainda não tem acesso? Solicite seu cadastro.
 								</Text>
 								<Link href="/solicitar-servico" asChild>
-									<Pressable className="h-12 w-full items-center justify-center rounded-full border border-[#2d83cd]/50 bg-white/85 sm:w-60">
-										<Text className="font-bold text-[#176ed0]">
+									<Pressable className="h-12 w-full items-center justify-center rounded-full border border-primary/50 bg-surface/85 sm:w-60">
+										<Text className="font-bold text-primary-text">
 											Solicitar serviço
 										</Text>
 									</Pressable>

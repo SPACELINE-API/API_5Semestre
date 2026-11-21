@@ -10,11 +10,11 @@ import { ProposalStatusBadge } from './ProposalStatusBadge';
 
 function DetailField({ label, value }: { label: string; value: string }) {
 	return (
-		<View className="gap-1 border-b border-gray-100 py-3 last:border-b-0">
-			<Text className="font-inter font-medium text-gray-400 text-xs uppercase tracking-wide">
+		<View className="gap-1 border-b border-border-subtle py-3 last:border-b-0">
+			<Text className="font-inter font-medium text-foreground-subtle text-xs uppercase tracking-wide">
 				{label}
 			</Text>
-			<Text className="font-inter text-gray-800 text-sm">{value}</Text>
+			<Text className="font-inter text-foreground text-sm">{value}</Text>
 		</View>
 	);
 }
@@ -55,8 +55,8 @@ export function ProposalDetailModal({
 						label="Valor total"
 						value={formatProposalValue(proposal.total_value)}
 					/>
-					<View className="gap-1 border-b border-gray-100 py-3">
-						<Text className="font-inter font-medium text-gray-400 text-xs uppercase tracking-wide">
+					<View className="gap-1 border-b border-border-subtle py-3">
+						<Text className="font-inter font-medium text-foreground-subtle text-xs uppercase tracking-wide">
 							Situação
 						</Text>
 						<ProposalStatusBadge status={proposal.status} />
@@ -74,9 +74,9 @@ export function ProposalDetailModal({
 					<TouchableOpacity
 						accessibilityRole="button"
 						onPress={() => onOpenQuote(proposal)}
-						className="mt-5 items-center rounded-lg bg-blue-600 px-4 py-3"
+						className="mt-5 items-center rounded-lg bg-primary px-4 py-3"
 					>
-						<Text className="font-inter font-semibold text-white text-sm">
+						<Text className="font-inter font-semibold text-primary-foreground text-sm">
 							Abrir orçamento
 						</Text>
 					</TouchableOpacity>

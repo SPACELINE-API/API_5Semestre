@@ -9,6 +9,7 @@ import { canReview } from '../utils/taskStatus';
 import { TaskAttachments } from './TaskAttachments';
 import { TaskInfo } from './TaskInfo';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const REASON_MAX = 2000;
 
 type Step = 'details' | 'confirm-approve' | 'reject';
@@ -27,6 +28,7 @@ export function TaskReviewModal({
 	onClose,
 	onReviewed,
 }: TaskReviewModalProps) {
+	const themeColors = useThemeColors();
 	const [step, setStep] = useState<Step>('details');
 	const [reason, setReason] = useState('');
 	const [isSaving, setIsSaving] = useState(false);
@@ -105,7 +107,7 @@ export function TaskReviewModal({
 				onClose={() => setStep('details')}
 			>
 				<View className="gap-1.5">
-					<Text className="font-inter font-medium text-gray-700 text-[13px]">
+					<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
 						Justificativa
 					</Text>
 					<TextInput
@@ -114,16 +116,16 @@ export function TaskReviewModal({
 						multiline
 						maxLength={REASON_MAX}
 						placeholder="Ex.: faltaram os contratos do cliente Acme"
-						placeholderTextColor="#9CA3AF"
+						placeholderTextColor={themeColors.foregroundSubtle}
 						accessibilityLabel="Justificativa da reprovação"
 						textAlignVertical="top"
-						className="min-h-[96px] rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-sm text-gray-900 outline-none"
+						className="min-h-[96px] rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none"
 					/>
 					<View className="flex-row justify-between">
-						<Text className="font-inter text-gray-500 text-xs">
+						<Text className="font-inter text-foreground-muted text-xs">
 							{trimmedReason ? '' : 'A justificativa é obrigatória.'}
 						</Text>
-						<Text className="font-inter text-gray-400 text-xs">
+						<Text className="font-inter text-foreground-subtle text-xs">
 							{reason.length}/{REASON_MAX}
 						</Text>
 					</View>
@@ -139,10 +141,10 @@ export function TaskReviewModal({
 				onPress={() => setStep('reject')}
 				accessibilityRole="button"
 				accessibilityLabel="Reprovar tarefa"
-				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-red-300 px-4 py-2.5"
+				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-danger/40 px-4 py-2.5"
 			>
-				<X size={16} color="#B91C1C" />
-				<Text className="font-inter font-semibold text-red-700 text-sm">
+				<X size={16} color={themeColors.danger} />
+				<Text className="font-inter font-semibold text-danger text-sm">
 					Reprovar
 				</Text>
 			</TouchableOpacity>
@@ -150,10 +152,10 @@ export function TaskReviewModal({
 				onPress={() => setStep('confirm-approve')}
 				accessibilityRole="button"
 				accessibilityLabel="Aprovar tarefa"
-				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5"
+				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5"
 			>
-				<Check size={16} color="#FFFFFF" />
-				<Text className="font-inter font-semibold text-sm text-white">
+				<Check size={16} color={themeColors.primaryForeground} />
+				<Text className="font-inter font-semibold text-sm text-primary-foreground">
 					Aprovar
 				</Text>
 			</TouchableOpacity>
@@ -162,9 +164,9 @@ export function TaskReviewModal({
 		<TouchableOpacity
 			onPress={close}
 			accessibilityRole="button"
-			className="flex-1 items-center rounded-lg bg-blue-600 px-4 py-2.5"
+			className="flex-1 items-center rounded-lg bg-primary px-4 py-2.5"
 		>
-			<Text className="font-inter font-semibold text-sm text-white">
+			<Text className="font-inter font-semibold text-sm text-primary-foreground">
 				Fechar
 			</Text>
 		</TouchableOpacity>
@@ -182,10 +184,10 @@ export function TaskReviewModal({
 			<TaskInfo task={task} showAssignee />
 
 			<View className="gap-2">
-				<Text className="font-inter font-semibold text-gray-800 text-sm">
+				<Text className="font-inter font-semibold text-foreground text-sm">
 					Descrição da execução
 				</Text>
-				<Text className="font-inter text-gray-700 text-sm">
+				<Text className="font-inter text-foreground-secondary text-sm">
 					{task.execution_description || 'Nenhuma descrição registrada.'}
 				</Text>
 			</View>
@@ -193,7 +195,7 @@ export function TaskReviewModal({
 			<TaskAttachments task={task} editable={false} />
 
 			{!isReviewable && (
-				<Text className="font-inter text-gray-500 text-xs">
+				<Text className="font-inter text-foreground-muted text-xs">
 					{canReview(task) && !hasReviewPermission
 						? 'A tarefa está em análise. A aprovação ou reprovação é feita por quem tem permissão para avaliar tarefas.'
 						: 'Somente tarefas em análise podem ser aprovadas ou reprovadas.'}
@@ -203,7 +205,7 @@ export function TaskReviewModal({
 			{error && (
 				<Text
 					accessibilityRole="alert"
-					className="font-inter text-red-700 text-sm"
+					className="font-inter text-danger text-sm"
 				>
 					{error}
 				</Text>

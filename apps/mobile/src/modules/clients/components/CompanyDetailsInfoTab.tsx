@@ -11,9 +11,9 @@ type InfoFieldProps = {
 function InfoField({ label, value }: InfoFieldProps) {
 	return (
 		<View className="min-w-[180px] flex-1 gap-1">
-			<Text className="font-inter text-gray-400 text-xs">{label}</Text>
+			<Text className="font-inter text-foreground-subtle text-xs">{label}</Text>
 			<Text
-				className="font-inter font-medium text-gray-800 text-sm"
+				className="font-inter font-medium text-foreground text-sm"
 				numberOfLines={2}
 			>
 				{value || 'Não informado'}
@@ -31,7 +31,7 @@ function InfoSection({
 }) {
 	return (
 		<View className="gap-4">
-			<Text className="font-inter font-semibold text-gray-900 text-sm">
+			<Text className="font-inter font-semibold text-foreground text-sm">
 				{title}
 			</Text>
 			<View className="flex-row flex-wrap gap-x-10 gap-y-6">{children}</View>
@@ -57,7 +57,7 @@ export function CompanyDetailsInfoTab({ company }: { company: Company }) {
 				<InfoField label="E-mail" value={company.email} />
 			</InfoSection>
 
-			<View className="border-t border-gray-100 pt-7">
+			<View className="border-t border-border-subtle pt-7">
 				<InfoSection title="Endereço">
 					<InfoField label="Logradouro" value={address} />
 					<InfoField label="Bairro" value={company.neighborhood} />
@@ -66,7 +66,7 @@ export function CompanyDetailsInfoTab({ company }: { company: Company }) {
 				</InfoSection>
 			</View>
 
-			<View className="border-t border-gray-100 pt-7">
+			<View className="border-t border-border-subtle pt-7">
 				<InfoSection title="Registro">
 					<InfoField
 						label="Cadastrado em"

@@ -18,7 +18,7 @@ export const CERTIFICATE_STATUS_PRESENTATION: Record<
 > = {
 	approved: {
 		label: 'Válido',
-		badge: { background: 'bg-green-50', text: 'text-green-800' },
+		badge: { background: 'bg-success-soft', text: 'text-success-text' },
 		modalType: 'success',
 		title: 'Certificado válido',
 		message:
@@ -26,7 +26,7 @@ export const CERTIFICATE_STATUS_PRESENTATION: Record<
 	},
 	pending: {
 		label: 'Em análise',
-		badge: { background: 'bg-amber-50', text: 'text-amber-800' },
+		badge: { background: 'bg-warning-soft', text: 'text-warning-text' },
 		modalType: 'warning',
 		title: 'Certificado pendente',
 		message:
@@ -34,7 +34,7 @@ export const CERTIFICATE_STATUS_PRESENTATION: Record<
 	},
 	rejected: {
 		label: 'Recusado',
-		badge: { background: 'bg-red-50', text: 'text-red-800' },
+		badge: { background: 'bg-danger-soft', text: 'text-danger-text' },
 		modalType: 'error',
 		title: 'Certificado recusado',
 		message:
@@ -42,7 +42,10 @@ export const CERTIFICATE_STATUS_PRESENTATION: Record<
 	},
 	unavailable: {
 		label: 'Indisponível',
-		badge: { background: 'bg-gray-100', text: 'text-gray-700' },
+		badge: {
+			background: 'bg-surface-muted',
+			text: 'text-foreground-secondary',
+		},
 		modalType: 'error',
 		title: 'Certificado indisponível',
 		message: 'O arquivo deste certificado não foi encontrado no armazenamento.',

@@ -16,10 +16,12 @@ import {
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const MIN_MINUTES = 1;
 const MAX_MINUTES = 1440;
 
 export default function SessionSettingsPage() {
+	const themeColors = useThemeColors();
 	const { toast, showToast } = useToast();
 	const canEdit = usePermission('settings.write');
 	const [minutes, setMinutes] = useState('');
@@ -91,7 +93,7 @@ export default function SessionSettingsPage() {
 	const isSaveDisabled = !canEdit || !hasChanges || isSaving;
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
@@ -100,28 +102,28 @@ export default function SessionSettingsPage() {
 				<View className="gap-6">
 					{isLoading ? (
 						<View className="py-20 items-center">
-							<ActivityIndicator size="large" color="#2563eb" />
+							<ActivityIndicator size="large" color={themeColors.primaryText} />
 						</View>
 					) : error ? (
 						<View className="py-20 items-center">
-							<Text className="font-inter text-red-600 text-sm text-center">
+							<Text className="font-inter text-danger text-sm text-center">
 								{error}
 							</Text>
 						</View>
 					) : (
-						<View className="rounded-2xl border border-gray-200 bg-white p-6 gap-5">
+						<View className="rounded-2xl border border-border bg-surface p-6 gap-5">
 							<View className="gap-1">
-								<Text className="font-inter font-semibold text-gray-900 text-sm">
+								<Text className="font-inter font-semibold text-foreground text-sm">
 									Tempo máximo de inatividade
 								</Text>
-								<Text className="font-inter text-gray-500 text-xs">
+								<Text className="font-inter text-foreground-muted text-xs">
 									Tempo em minutos sem atividade até a sessão do usuário ser
 									encerrada.
 								</Text>
 							</View>
 
-							<View className="self-start rounded-lg bg-blue-50 px-3 py-2">
-								<Text className="font-inter text-blue-900 text-sm">
+							<View className="self-start rounded-lg bg-primary-soft px-3 py-2">
+								<Text className="font-inter text-primary-strong text-sm">
 									Tempo atual:{' '}
 									<Text className="font-inter font-semibold">
 										{savedMinutes} {savedMinutes === 1 ? 'minuto' : 'minutos'}
@@ -130,30 +132,30 @@ export default function SessionSettingsPage() {
 							</View>
 
 							<View className="gap-1.5 max-w-[240px]">
-								<Text className="font-inter font-semibold text-gray-800 text-xs">
+								<Text className="font-inter font-semibold text-foreground text-xs">
 									Novo tempo (minutos)
 								</Text>
 								<TextInput
 									value={minutes}
 									onChangeText={handleChange}
 									placeholder="Ex: 30"
-									placeholderTextColor="#8A8A8A"
+									placeholderTextColor={themeColors.foregroundMuted}
 									keyboardType="number-pad"
 									maxLength={4}
 									editable={canEdit && !isSaving}
-									className={`rounded-lg border px-3 py-2.5 font-inter text-sm text-gray-900 outline-none ${
-										fieldError ? 'border-red-900' : 'border-gray-300'
-									} ${!canEdit ? 'bg-gray-50 text-gray-500' : ''}`}
+									className={`rounded-lg border px-3 py-2.5 font-inter text-sm text-foreground outline-none ${
+										fieldError ? 'border-danger-text' : 'border-border-strong'
+									} ${!canEdit ? 'bg-surface-subtle text-foreground-muted' : ''}`}
 								/>
 								{fieldError && (
-									<Text className="font-inter text-red-900 text-xs">
+									<Text className="font-inter text-danger-text text-xs">
 										{fieldError}
 									</Text>
 								)}
 							</View>
 
 							{!canEdit && (
-								<Text className="font-inter text-gray-500 text-xs">
+								<Text className="font-inter text-foreground-muted text-xs">
 									Seu perfil não tem permissão para alterar o tempo de sessão.
 								</Text>
 							)}
@@ -163,9 +165,9 @@ export default function SessionSettingsPage() {
 									accessibilityRole="button"
 									onPress={handleSave}
 									disabled={isSaveDisabled}
-									className={`rounded-lg bg-blue-600 px-5 py-2.5 ${isSaveDisabled ? 'opacity-40' : ''}`}
+									className={`rounded-lg bg-primary px-5 py-2.5 ${isSaveDisabled ? 'opacity-40' : ''}`}
 								>
-									<Text className="font-inter font-semibold text-white text-sm">
+									<Text className="font-inter font-semibold text-primary-foreground text-sm">
 										{isSaving ? 'Salvando...' : 'Salvar'}
 									</Text>
 								</TouchableOpacity>

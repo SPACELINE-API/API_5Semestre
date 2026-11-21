@@ -49,6 +49,7 @@ import { AdditionalServicesTab } from '../components/AdditionalServicesTab';
 import { ServiceOrderVersionsTab } from '../components/ServiceOrderVersionsTab';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ServiceOrderDetailsPageProps = {
 	id: string;
 	initialTab?: string;
@@ -58,6 +59,7 @@ export function ServiceOrderDetailsPage({
 	id,
 	initialTab,
 }: ServiceOrderDetailsPageProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 
 	const { serviceOrder, isLoading, error, refresh, setServiceOrder } =
@@ -135,7 +137,7 @@ export function ServiceOrderDetailsPage({
 	}
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="
@@ -153,34 +155,39 @@ export function ServiceOrderDetailsPage({
 					activeOpacity={0.7}
 					className="mb-7 flex-row items-center gap-2"
 				>
-					<ArrowLeft size={16} color="#6B7280" />
+					<ArrowLeft size={16} color={themeColors.foregroundMuted} />
 
-					<Text className="font-inter text-gray-500 text-sm">
+					<Text className="font-inter text-foreground-muted text-sm">
 						Voltar para ordens de serviço
 					</Text>
 				</TouchableOpacity>
 
 				{isLoading && (
 					<View className="min-h-[500px] items-center justify-center">
-						<ActivityIndicator size="large" color="#6B7280" />
+						<ActivityIndicator
+							size="large"
+							color={themeColors.foregroundMuted}
+						/>
 
-						<Text className="mt-4 font-inter text-gray-400 text-sm">
+						<Text className="mt-4 font-inter text-foreground-subtle text-sm">
 							Carregando dados da ordem de serviço...
 						</Text>
 					</View>
 				)}
 
 				{!isLoading && error && (
-					<View className="gap-1 border-t border-gray-200 py-8">
+					<View className="gap-1 border-t border-border py-8">
 						<View className="flex-row items-center gap-2">
-							<AlertCircle size={16} color="#DC2626" />
+							<AlertCircle size={16} color={themeColors.danger} />
 
-							<Text className="font-inter font-semibold text-red-600 text-sm">
+							<Text className="font-inter font-semibold text-danger text-sm">
 								Não foi possível carregar a ordem de serviço
 							</Text>
 						</View>
 
-						<Text className="font-inter text-gray-500 text-sm">{error}</Text>
+						<Text className="font-inter text-foreground-muted text-sm">
+							{error}
+						</Text>
 					</View>
 				)}
 
@@ -227,7 +234,7 @@ export function ServiceOrderDetailsPage({
 											))}
 
 											{serviceOrder.items.length === 0 && (
-												<Text className="font-inter text-gray-400 text-sm">
+												<Text className="font-inter text-foreground-subtle text-sm">
 													Esta ordem de serviço não possui itens.
 												</Text>
 											)}
@@ -268,7 +275,7 @@ export function ServiceOrderDetailsPage({
 												contacts={companyContacts}
 											/>
 										) : (
-											<Text className="font-inter text-gray-500 text-sm">
+											<Text className="font-inter text-foreground-muted text-sm">
 												Sem permissão para consultar contatos.
 											</Text>
 										))}
@@ -443,7 +450,7 @@ export function ServiceOrderDetailsPage({
 								))}
 
 								{serviceOrder.items.length === 0 && (
-									<Text className="font-inter text-gray-400 text-sm">
+									<Text className="font-inter text-foreground-subtle text-sm">
 										Esta ordem de serviço não possui itens.
 									</Text>
 								)}
