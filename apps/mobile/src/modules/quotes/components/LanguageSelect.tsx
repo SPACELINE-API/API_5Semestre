@@ -97,7 +97,7 @@ export function LanguageSelect({
 			>
 				{selectedLanguage ? (
 					<View className="min-w-0 flex-1 flex-row items-center gap-2">
-						<Text className="text-base">
+						<Text className="text-base text-foreground-secondary">
 							{getLanguageFlag(selectedLanguage)}
 						</Text>
 						<Text
@@ -146,7 +146,9 @@ export function LanguageSelect({
 										setIsOpen(false);
 									}}
 								>
-									<Text className="text-base">{getLanguageFlag(item)}</Text>
+									<Text className="text-base text-foreground-secondary">
+										{getLanguageFlag(item)}
+									</Text>
 									<Text
 										className={`font-inter text-sm ${value === item.id ? 'text-primary-text font-inter-medium' : 'text-foreground-secondary'}`}
 										numberOfLines={1}

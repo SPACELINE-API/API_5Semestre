@@ -157,7 +157,7 @@ export function TranslatorLanguagesStep({
 							>
 								{selectedLanguage ? (
 									<View className="flex-row items-center gap-2">
-										<Text className="text-base">
+										<Text className="text-base text-foreground-secondary">
 											{getLanguageFlag(selectedLanguage)}
 										</Text>
 										<Text className="text-sm text-foreground">
@@ -273,7 +273,9 @@ export function TranslatorLanguagesStep({
 											}}
 											className="flex-row items-center gap-3 border-b border-border-subtle px-2 py-3"
 										>
-											<Text className="text-lg">{getLanguageFlag(option)}</Text>
+											<Text className="text-lg text-foreground-secondary">
+												{getLanguageFlag(option)}
+											</Text>
 											<Text className="flex-1 font-inter font-medium text-foreground text-sm">
 												{option.name}
 											</Text>
