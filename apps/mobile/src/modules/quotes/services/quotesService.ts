@@ -73,6 +73,7 @@ export type QuoteResponse = {
 	reproval_reason?: string | null;
 	validity_starts_at?: string | null;
 	valid_until?: string | null;
+	deadline?: string | null;
 	sent_to_customer_at?: string | null;
 	sent_to_customer_email?: string | null;
 	reopened_at?: string | null;
@@ -92,7 +93,6 @@ export type QuoteManagerItem = {
 	file_url: string | null;
 	word_count: number | null;
 	estimated_value: number | string | null;
-	deadline: string | null;
 	created_at: string;
 	updated_at: string;
 };
@@ -201,6 +201,7 @@ export type QuoteUpdateInput = Partial<{
 	original_language: string;
 	translation_language: string;
 	customer_need: string;
+	deadline: string | null;
 }>;
 
 export type QuoteEditResult =
@@ -234,7 +235,6 @@ export type QuoteTranslationItemUpdateInput = Partial<{
 	file_url: string | null;
 	word_count: number | null;
 	estimated_value: number | null;
-	deadline: string | null;
 }>;
 
 export type QuoteItemEditResult =
@@ -281,8 +281,38 @@ export type QuoteTranslationItemCreate = {
 	file_url?: string;
 	word_count?: number;
 	estimated_value?: number;
-	deadline?: string;
 };
+
+export type QuoteCreateInput = Partial<{
+	company_id: string | null;
+	customer_name: string;
+	email: string;
+	customer_need: string;
+	deadline: string | null;
+}>;
+
+export type QuoteCreateResult =
+	| { success: true; data: QuoteResponse }
+	| { success: false; status: number; detail?: string };
+
+export async function createQuoteWithDetail(
+	input: QuoteCreateInput,
+): Promise<QuoteCreateResult> {
+	try {
+		const data = await apiPostAuth<QuoteResponse, QuoteCreateInput>(
+			'/api/quotes',
+			input,
+		);
+		return { success: true, data };
+	} catch (error) {
+		const apiError = error as { status?: number; message?: string };
+		return {
+			success: false,
+			status: apiError.status ?? 0,
+			detail: apiError.message,
+		};
+	}
+}
 
 export async function createQuote(): Promise<QuoteResponse | null> {
 	try {
