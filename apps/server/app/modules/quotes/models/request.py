@@ -3,8 +3,8 @@ import uuid
 from datetime import date, datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import DateTime, ForeignKey, LargeBinary, String, func
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import ForeignKey, LargeBinary, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -47,6 +47,8 @@ class Request(Base):
     status: Mapped[StatusEnum] = mapped_column(SQLEnum(StatusEnum), default=StatusEnum.PENDING)
 
     request_date: Mapped[date] = mapped_column(server_default=func.current_date())
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     approved_at: Mapped[datetime | None]
 
