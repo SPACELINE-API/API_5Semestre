@@ -577,6 +577,10 @@ export function QuoteCard({
 		setDraftItems((current) => current.filter((item) => item.id !== id));
 	}
 
+	function removeDraftItemFile(id: string) {
+		updateDraftItem(id, { file_url: null, word_count: null });
+	}
+
 	function addDraftItem() {
 		setDraftItems((current) => [
 			...current,
@@ -1293,11 +1297,24 @@ export function QuoteCard({
 						<WordCountSummary items={isEditing ? draftItems : quote.items} />
 						{isEditing ? (
 							<View className="gap-3">
-								{draftItems.map((item) => (
+								{draftItems.map((item, index) => (
 									<View
 										key={item.id}
 										className="gap-3 rounded-xl border border-border bg-surface p-4"
 									>
+										<View className="flex-row items-center justify-between gap-3">
+											<Text className="font-inter-semibold text-sm text-foreground">
+												Documento {index + 1}
+											</Text>
+											<TouchableOpacity
+												accessibilityRole="button"
+												accessibilityLabel={`Remover documento ${index + 1}`}
+												onPress={() => removeDraftItem(item.id)}
+												className="h-8 w-8 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft"
+											>
+												<Trash2 size={14} color={themeColors.danger} />
+											</TouchableOpacity>
+										</View>
 										<View className="flex-row flex-wrap gap-x-5 gap-y-3">
 											<View className="w-full gap-1 md:w-[47%]">
 												<Text className="font-inter-medium text-xs text-foreground-muted">
@@ -1366,33 +1383,37 @@ export function QuoteCard({
 												</TouchableOpacity>
 											)}
 											{item.file_url && (
-												<TouchableOpacity
-													accessibilityRole="link"
-													accessibilityLabel={`Visualizar arquivo ${getFileName(item.file_url)}`}
-													onPress={() => openDocument(item.file_url!)}
-													className="min-w-0 flex-1 flex-row items-center gap-2"
-												>
-													<Text
-														className="min-w-0 flex-1 font-inter-medium text-sm text-primary-text"
-														numberOfLines={1}
-														ellipsizeMode="tail"
+												<>
+													<TouchableOpacity
+														accessibilityRole="link"
+														accessibilityLabel={`Visualizar arquivo ${getFileName(item.file_url)}`}
+														onPress={() => openDocument(item.file_url!)}
+														className="min-w-0 flex-1 flex-row items-center gap-2"
 													>
-														{getFileName(item.file_url)}
-													</Text>
-													<ExternalLink
-														size={14}
-														color={themeColors.primaryText}
-													/>
-												</TouchableOpacity>
+														<Text
+															className="min-w-0 shrink font-inter-medium text-sm text-primary-text"
+															numberOfLines={1}
+															ellipsizeMode="tail"
+														>
+															{getFileName(item.file_url)}
+														</Text>
+														<ExternalLink
+															size={14}
+															color={themeColors.primaryText}
+														/>
+													</TouchableOpacity>
+													{canWriteDocuments && (
+														<TouchableOpacity
+															accessibilityRole="button"
+															accessibilityLabel="Remover arquivo"
+															onPress={() => removeDraftItemFile(item.id)}
+															className="h-8 w-8 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft"
+														>
+															<X size={14} color={themeColors.danger} />
+														</TouchableOpacity>
+													)}
+												</>
 											)}
-											<TouchableOpacity
-												accessibilityRole="button"
-												accessibilityLabel="Remover item"
-												onPress={() => removeDraftItem(item.id)}
-												className="h-8 w-8 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft"
-											>
-												<Trash2 size={14} color={themeColors.danger} />
-											</TouchableOpacity>
 										</View>
 									</View>
 								))}
