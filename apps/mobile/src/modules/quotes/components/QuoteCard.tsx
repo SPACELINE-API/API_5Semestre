@@ -425,6 +425,7 @@ export function QuoteCard({
 	const [sendDialogOpen, setSendDialogOpen] = useState(false);
 
 	const [isEditing, setIsEditing] = useState(false);
+	const [isLinkingCompany, setIsLinkingCompany] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [saveError, setSaveError] = useState('');
 	const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
@@ -564,6 +565,25 @@ export function QuoteCard({
 		setCompanyId(quote.company_id ?? null);
 		setSaveError('');
 		setIsEditing(true);
+	}
+
+	async function handleLinkCompany(id: string) {
+		if (!canEditQuote || isLinkingCompany) return;
+		setIsLinkingCompany(true);
+		setSendError('');
+		try {
+			const result = await updateQuote(quote.id, { company_id: id });
+			if (result.success) {
+				onQuoteChange({ ...quote, ...result.data, items: quote.items });
+			} else {
+				setSendError(
+					result.detail ??
+						'Não foi possível vincular a empresa. Tente novamente.',
+				);
+			}
+		} finally {
+			setIsLinkingCompany(false);
+		}
 	}
 
 	function cancelEditing() {
@@ -969,7 +989,8 @@ export function QuoteCard({
 								Revise os dados e envie o orçamento ao cliente. Ele recebe um
 								e-mail com os valores, a validade e um link para aprovar ou
 								reprovar. Depois do envio, o orçamento fica bloqueado para
-								edição.
+								edição. Use Editar orçamento para alterar cliente, projeto,
+								documentos e serviços adicionais.
 							</Text>
 							{!quote.company_id && (
 								<View className="mt-3 flex-row items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft p-3">
@@ -1022,20 +1043,34 @@ export function QuoteCard({
 									{sendError}
 								</Text>
 							) : null}
-							<TouchableOpacity
-								accessibilityRole="button"
-								disabled={updating || !canWriteQuotes || !canSendQuote}
-								onPress={() => {
-									setSendError('');
-									setSendDialogOpen(true);
-								}}
-								className={`mt-4 flex-row items-center gap-2 self-start rounded-lg px-4 py-2.5 ${updating || !canSendQuote ? 'bg-border-strong' : 'bg-primary'} ${!canWriteQuotes || !canSendQuote ? 'opacity-40' : ''}`}
-							>
-								<Send size={15} color={themeColors.primaryForeground} />
-								<Text className="font-inter-medium text-sm text-primary-foreground">
-									{updating ? 'Enviando...' : 'Enviar orçamento ao cliente'}
-								</Text>
-							</TouchableOpacity>
+							<View className="mt-4 flex-row flex-wrap items-center gap-3">
+								<TouchableOpacity
+									accessibilityRole="button"
+									accessibilityLabel="Editar orçamento"
+									onPress={startEditing}
+									disabled={!canEditQuote}
+									className={`flex-row items-center gap-2 rounded-lg border border-primary/40 bg-surface px-4 py-2.5 ${!canEditQuote ? 'opacity-40' : ''}`}
+								>
+									<Pencil size={15} color={themeColors.primaryText} />
+									<Text className="font-inter-medium text-sm text-primary-text">
+										Editar orçamento
+									</Text>
+								</TouchableOpacity>
+								<TouchableOpacity
+									accessibilityRole="button"
+									disabled={updating || !canWriteQuotes || !canSendQuote}
+									onPress={() => {
+										setSendError('');
+										setSendDialogOpen(true);
+									}}
+									className={`flex-row items-center gap-2 rounded-lg px-4 py-2.5 ${updating || !canSendQuote ? 'bg-border-strong' : 'bg-primary'} ${!canWriteQuotes || !canSendQuote ? 'opacity-40' : ''}`}
+								>
+									<Send size={15} color={themeColors.primaryForeground} />
+									<Text className="font-inter-medium text-sm text-primary-foreground">
+										{updating ? 'Enviando...' : 'Enviar orçamento ao cliente'}
+									</Text>
+								</TouchableOpacity>
+							</View>
 						</View>
 					) : null}
 
@@ -1232,17 +1267,6 @@ export function QuoteCard({
 					<View>
 						<View className="mb-4 flex-row items-center justify-between">
 							<SectionTitle>Cliente</SectionTitle>
-							{!isEditing && isDraft && (
-								<TouchableOpacity
-									accessibilityRole="button"
-									accessibilityLabel="Editar orçamento"
-									onPress={startEditing}
-									disabled={!canEditQuote}
-									className={`h-8 w-8 items-center justify-center rounded-lg border border-border hover:bg-surface-subtle ${!canEditQuote ? 'opacity-40' : ''}`}
-								>
-									<Pencil size={14} color={themeColors.foregroundMuted} />
-								</TouchableOpacity>
-							)}
 						</View>
 						{isEditing ? (
 							<View className="flex-row flex-wrap gap-x-5 gap-y-4">
@@ -1271,13 +1295,26 @@ export function QuoteCard({
 									value={display(quote.customer_name)}
 								/>
 								<QuoteField label="E-mail" value={display(quote.email)} />
-								<QuoteField
-									label="Empresa"
-									value={
-										companies.find((company) => company.id === quote.company_id)
-											?.trade_name ?? display(quote.enterprise)
-									}
-								/>
+								{canEditQuote ? (
+									<View className="min-w-[220px]">
+										<CompanyLinkField
+											label="Empresa"
+											companies={companies}
+											companyId={quote.company_id ?? null}
+											onSelectCompany={handleLinkCompany}
+											onRequestCreate={requestCreateCompany}
+										/>
+									</View>
+								) : (
+									<QuoteField
+										label="Empresa"
+										value={
+											companies.find(
+												(company) => company.id === quote.company_id,
+											)?.trade_name ?? display(quote.enterprise)
+										}
+									/>
+								)}
 							</View>
 						)}
 					</View>
@@ -1285,7 +1322,10 @@ export function QuoteCard({
 					<View>
 						<SectionTitle>Projeto</SectionTitle>
 						{isEditing ? (
-							<View className="w-full md:w-[47%]" style={{ zIndex: 20 }}>
+							<View
+								className="w-full flex-row md:w-[47%]"
+								style={{ zIndex: 20 }}
+							>
 								<DateField
 									label="Prazo final de entrega"
 									value={deadline}

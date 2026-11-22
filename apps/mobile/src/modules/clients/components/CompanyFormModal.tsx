@@ -512,7 +512,7 @@ export function CompanyFormModal({
 								disabled={isSubmitting}
 								className={`rounded-lg bg-primary px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 							>
-								<Text className="font-inter font-semibold text-primary-strong text-sm">
+								<Text className="font-inter font-semibold text-primary-foreground text-sm">
 									{isSubmitting ? 'Salvando…' : 'Salvar'}
 								</Text>
 							</TouchableOpacity>
@@ -521,7 +521,7 @@ export function CompanyFormModal({
 								onPress={handleNext}
 								className="rounded-lg bg-primary px-5 py-2.5"
 							>
-								<Text className="font-inter font-semibold text-primary-strong text-sm">
+								<Text className="font-inter font-semibold text-primary-foreground text-sm">
 									Avançar
 								</Text>
 							</TouchableOpacity>
