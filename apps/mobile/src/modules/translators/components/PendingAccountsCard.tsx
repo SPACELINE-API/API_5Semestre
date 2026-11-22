@@ -5,6 +5,7 @@ import { describeExpiry } from '../../internal-users/utils/inviteExpiry';
 import type { Translator } from '../types/translator';
 import { pendingAccounts } from '../utils/translatorAccount';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type PendingAccountsCardProps = {
 	translators: Translator[];
 	busyId: string | null;
@@ -19,6 +20,7 @@ export function PendingAccountsCard({
 	canResend,
 	onResend,
 }: PendingAccountsCardProps) {
+	const themeColors = useThemeColors();
 	const [now, setNow] = useState(() => Date.now());
 	const [expanded, setExpanded] = useState(true);
 
@@ -41,7 +43,7 @@ export function PendingAccountsCard({
 	).length;
 
 	return (
-		<View className="overflow-hidden rounded-xl border border-amber-200 bg-amber-50">
+		<View className="overflow-hidden rounded-xl border border-warning/40 bg-warning-soft">
 			<TouchableOpacity
 				onPress={() => setExpanded((current) => !current)}
 				accessibilityRole="button"
@@ -49,22 +51,22 @@ export function PendingAccountsCard({
 				accessibilityLabel="Contas de tradutores pendentes"
 				className="flex-row items-center gap-3 px-4 py-3.5"
 			>
-				<View className="h-9 w-9 items-center justify-center rounded-full bg-amber-100">
-					<Clock size={18} color="#B45309" />
+				<View className="h-9 w-9 items-center justify-center rounded-full bg-warning-soft">
+					<Clock size={18} color={themeColors.warningText} />
 				</View>
 				<View className="min-w-0 flex-1">
-					<Text className="font-inter font-semibold text-amber-900 text-sm">
+					<Text className="font-inter font-semibold text-warning-text text-sm">
 						{pending.length === 1
 							? '1 tradutor aguardando a definição de senha'
 							: `${pending.length} tradutores aguardando a definição de senha`}
 					</Text>
-					<Text className="font-inter text-amber-800 text-xs">
+					<Text className="font-inter text-warning-text text-xs">
 						{expiredCount > 0
 							? `${expiredCount} ${expiredCount === 1 ? 'link expirou' : 'links expiraram'}. Reenvie o link para o tradutor conseguir entrar.`
 							: 'O link vale por 3 dias. Depois disso é preciso reenviar.'}
 					</Text>
 				</View>
-				<Chevron size={18} color="#B45309" />
+				<Chevron size={18} color={themeColors.warningText} />
 			</TouchableOpacity>
 
 			{expanded &&
@@ -85,17 +87,17 @@ export function PendingAccountsCard({
 					return (
 						<View
 							key={translator.id}
-							className="flex-col gap-3 border-t border-amber-200 bg-white px-4 py-3 md:flex-row md:items-center md:gap-4"
+							className="flex-col gap-3 border-t border-warning/40 bg-surface px-4 py-3 md:flex-row md:items-center md:gap-4"
 						>
 							<View className="min-w-0 md:flex-1">
 								<Text
-									className="font-inter font-semibold text-gray-900 text-sm"
+									className="font-inter font-semibold text-foreground text-sm"
 									numberOfLines={1}
 								>
 									{translator.name}
 								</Text>
 								<Text
-									className="font-inter text-gray-500 text-xs"
+									className="font-inter text-foreground-muted text-xs"
 									numberOfLines={1}
 								>
 									{translator.email}
@@ -106,22 +108,22 @@ export function PendingAccountsCard({
 								<Text
 									className={`font-inter font-medium text-xs ${
 										info.expired
-											? 'text-red-700'
+											? 'text-danger'
 											: info.urgent
-												? 'text-amber-700'
-												: 'text-gray-700'
+												? 'text-warning-text'
+												: 'text-foreground-secondary'
 									}`}
 								>
 									{info.label}
 								</Text>
-								<View className="h-1.5 overflow-hidden rounded-full bg-gray-100">
+								<View className="h-1.5 overflow-hidden rounded-full bg-surface-muted">
 									<View
 										className={`h-full rounded-full ${
 											info.expired
-												? 'bg-red-500'
+												? 'bg-danger'
 												: info.urgent
-													? 'bg-amber-500'
-													: 'bg-blue-500'
+													? 'bg-warning'
+													: 'bg-primary'
 										}`}
 										style={{ width: `${Math.round(info.progress * 100)}%` }}
 									/>
@@ -134,16 +136,19 @@ export function PendingAccountsCard({
 								accessibilityRole="button"
 								accessibilityLabel={`Reenviar link para ${translator.name}`}
 								accessibilityState={{ disabled, busy }}
-								className={`flex-row items-center justify-center gap-1.5 rounded-lg border border-blue-200 px-3 py-2 ${
+								className={`flex-row items-center justify-center gap-1.5 rounded-lg border border-primary/30 px-3 py-2 ${
 									disabled ? 'opacity-50' : ''
 								}`}
 							>
 								{busy ? (
-									<ActivityIndicator size="small" color="#1D4ED8" />
+									<ActivityIndicator
+										size="small"
+										color={themeColors.primaryText}
+									/>
 								) : (
-									<Mail size={14} color="#1D4ED8" />
+									<Mail size={14} color={themeColors.primaryText} />
 								)}
-								<Text className="font-inter font-medium text-blue-700 text-xs">
+								<Text className="font-inter font-medium text-primary-text text-xs">
 									Reenviar link
 								</Text>
 							</TouchableOpacity>

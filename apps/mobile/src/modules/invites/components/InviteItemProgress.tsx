@@ -5,6 +5,7 @@ import {
 	WORKFLOW_STEPS,
 } from '../../service-orders/utils/workflowSteps';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type InviteItemProgressProps = {
 	status: string;
 };
@@ -15,6 +16,7 @@ function remainingLabel(remaining: number) {
 }
 
 export function InviteItemProgress({ status }: InviteItemProgressProps) {
+	const themeColors = useThemeColors();
 	const currentIndex = WORKFLOW_STEPS.findIndex(
 		(step) => step.status === status,
 	);
@@ -25,12 +27,12 @@ export function InviteItemProgress({ status }: InviteItemProgressProps) {
 	const remaining = lastIndex - currentIndex;
 
 	return (
-		<View className="gap-4 rounded-xl border border-gray-100 p-4">
+		<View className="gap-4 rounded-xl border border-border-subtle p-4">
 			<View className="gap-0.5">
-				<Text className="font-inter font-semibold text-gray-900 text-sm">
+				<Text className="font-inter font-semibold text-foreground text-sm">
 					Progresso do item
 				</Text>
-				<Text className="font-inter text-gray-500 text-xs">
+				<Text className="font-inter text-foreground-muted text-xs">
 					Etapa {currentIndex + 1} de {WORKFLOW_STEPS.length} ·{' '}
 					{remainingLabel(remaining)}
 				</Text>
@@ -48,23 +50,27 @@ export function InviteItemProgress({ status }: InviteItemProgressProps) {
 								<View
 									className={`h-6 w-6 items-center justify-center rounded-full ${
 										isDone
-											? 'bg-green-600'
+											? 'bg-success'
 											: isCurrent
 												? WORKFLOW_CURRENT_BAND_CLASS[step.status]
-												: 'bg-gray-200'
+												: 'bg-border'
 									}`}
 								>
 									{isDone ? (
-										<Check size={13} color="#FFFFFF" strokeWidth={3} />
+										<Check
+											size={13}
+											color={themeColors.primaryForeground}
+											strokeWidth={3}
+										/>
 									) : (
 										<View
-											className={`h-2 w-2 rounded-full ${isCurrent ? 'bg-white' : 'bg-gray-400'}`}
+											className={`h-2 w-2 rounded-full ${isCurrent ? 'bg-surface' : 'bg-foreground-subtle'}`}
 										/>
 									)}
 								</View>
 								{!isLast && (
 									<View
-										className={`my-1 w-0.5 flex-1 ${isDone ? 'bg-green-600' : 'bg-gray-200'}`}
+										className={`my-1 w-0.5 flex-1 ${isDone ? 'bg-success' : 'bg-border'}`}
 										style={{ minHeight: 16 }}
 									/>
 								)}
@@ -74,15 +80,15 @@ export function InviteItemProgress({ status }: InviteItemProgressProps) {
 								<Text
 									className={`font-inter text-sm ${
 										isCurrent
-											? 'font-semibold text-gray-900'
+											? 'font-semibold text-foreground'
 											: isDone
-												? 'font-medium text-gray-700'
-												: 'text-gray-400'
+												? 'font-medium text-foreground-secondary'
+												: 'text-foreground-subtle'
 									}`}
 								>
 									{step.title}
 								</Text>
-								<Text className="font-inter text-gray-500 text-xs">
+								<Text className="font-inter text-foreground-muted text-xs">
 									{isDone
 										? step.doneLabel
 										: isCurrent

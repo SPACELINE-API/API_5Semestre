@@ -54,20 +54,23 @@ export function KpiGrid({ summary }: KpiGridProps) {
 			{buildKpis(summary).map((kpi) => (
 				<View
 					key={kpi.key}
-					className="min-w-[44%] flex-1 gap-1 rounded-xl border border-gray-100 bg-white p-4 md:min-w-[30%] xl:min-w-[15%]"
+					className="min-w-[44%] flex-1 gap-1 rounded-xl border border-border-subtle bg-surface p-4 md:min-w-[30%] xl:min-w-[15%]"
 				>
-					<Text className="font-inter text-gray-500 text-xs" numberOfLines={1}>
+					<Text
+						className="font-inter text-foreground-muted text-xs"
+						numberOfLines={1}
+					>
 						{kpi.label}
 					</Text>
 					<Text
-						className="font-inter font-bold text-gray-950 text-xl"
+						className="font-inter font-bold text-foreground text-xl"
 						numberOfLines={1}
 					>
 						{kpi.value}
 					</Text>
 					{kpi.hint && (
 						<Text
-							className="font-inter text-gray-400 text-xs"
+							className="font-inter text-foreground-subtle text-xs"
 							numberOfLines={1}
 						>
 							{kpi.hint}

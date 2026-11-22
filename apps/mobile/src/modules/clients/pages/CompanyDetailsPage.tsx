@@ -29,9 +29,11 @@ import { useContactsByCompany } from '../../contacts/hooks/useContactsByCompany'
 import type { Contact } from '../../contacts/types/contact';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyDetailsPageProps = { id: string };
 
 export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const [activeTab, setActiveTab] = useState<CompanyDetailsTab>('info');
 	const [isEditVisible, setIsEditVisible] = useState(false);
@@ -135,7 +137,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	}
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-6 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
@@ -145,28 +147,33 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 					activeOpacity={0.7}
 					className="mb-7 flex-row items-center gap-2"
 				>
-					<ArrowLeft size={16} color="#6B7280" />
-					<Text className="font-inter text-gray-500 text-sm">
+					<ArrowLeft size={16} color={themeColors.foregroundMuted} />
+					<Text className="font-inter text-foreground-muted text-sm">
 						Voltar para clientes
 					</Text>
 				</TouchableOpacity>
 				{isLoading && (
 					<View className="min-h-[500px] items-center justify-center">
-						<ActivityIndicator size="large" color="#6B7280" />
-						<Text className="mt-4 font-inter text-gray-400 text-sm">
+						<ActivityIndicator
+							size="large"
+							color={themeColors.foregroundMuted}
+						/>
+						<Text className="mt-4 font-inter text-foreground-subtle text-sm">
 							Carregando dados da empresa...
 						</Text>
 					</View>
 				)}
 				{!isLoading && error && (
-					<View className="gap-1 border-t border-gray-200 py-8">
+					<View className="gap-1 border-t border-border py-8">
 						<View className="flex-row items-center gap-2">
-							<AlertCircle size={16} color="#DC2626" />
-							<Text className="font-inter font-semibold text-red-600 text-sm">
+							<AlertCircle size={16} color={themeColors.danger} />
+							<Text className="font-inter font-semibold text-danger text-sm">
 								Não foi possível carregar a empresa
 							</Text>
 						</View>
-						<Text className="font-inter text-gray-500 text-sm">{error}</Text>
+						<Text className="font-inter text-foreground-muted text-sm">
+							{error}
+						</Text>
 					</View>
 				)}
 				{!isLoading && !error && company && (

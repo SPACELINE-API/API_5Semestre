@@ -50,15 +50,15 @@ export function TaskStatusFilter({
 						accessibilityLabel={`Filtrar ${option.label}`}
 						className={`rounded-full border px-3 py-1.5 ${
 							selected
-								? 'border-blue-600 bg-blue-50'
-								: 'border-gray-200 bg-white'
+								? 'border-primary bg-primary-soft'
+								: 'border-border bg-surface'
 						}`}
 					>
 						<Text
 							className={`font-inter text-xs ${
 								selected
-									? 'font-semibold text-blue-700'
-									: 'font-medium text-gray-600'
+									? 'font-semibold text-primary-text'
+									: 'font-medium text-foreground-secondary'
 							}`}
 						>
 							{option.label} ({option.count})

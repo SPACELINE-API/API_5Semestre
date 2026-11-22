@@ -7,6 +7,7 @@ import type {
 	ServiceOrderVersionChange,
 } from '../types/serviceOrder';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const FIELD_LABELS: Record<string, string> = {
 	source_language: 'Idioma de origem',
 	target_language: 'Idioma de destino',
@@ -20,9 +21,9 @@ const ACTION_STYLES: Record<
 	ServiceOrderVersionChange['action'],
 	{ label: string; classes: string }
 > = {
-	added: { label: 'Adicionado', classes: 'bg-emerald-50 text-emerald-700' },
-	updated: { label: 'Alterado', classes: 'bg-blue-50 text-blue-700' },
-	removed: { label: 'Removido', classes: 'bg-red-50 text-red-700' },
+	added: { label: 'Adicionado', classes: 'bg-success-soft text-success-text' },
+	updated: { label: 'Alterado', classes: 'bg-primary-soft text-primary-text' },
+	removed: { label: 'Removido', classes: 'bg-danger-soft text-danger' },
 };
 
 function formatDateTime(value: string) {
@@ -57,7 +58,7 @@ function ChangeRow({ change }: { change: ServiceOrderVersionChange }) {
 	const style = ACTION_STYLES[change.action];
 	const fields = Object.entries(change.fields ?? {});
 	return (
-		<View className="gap-1.5 border-t border-gray-100 pt-2">
+		<View className="gap-1.5 border-t border-border-subtle pt-2">
 			<View className="flex-row flex-wrap items-center gap-2">
 				<View
 					className={`rounded-full px-2 py-0.5 ${style.classes.split(' ')[0]}`}
@@ -68,10 +69,12 @@ function ChangeRow({ change }: { change: ServiceOrderVersionChange }) {
 						{style.label}
 					</Text>
 				</View>
-				<Text className="font-inter text-sm text-gray-800">{change.item}</Text>
+				<Text className="font-inter text-sm text-foreground">
+					{change.item}
+				</Text>
 			</View>
 			{fields.map(([field, diff]) => (
-				<Text key={field} className="font-inter text-xs text-gray-500">
+				<Text key={field} className="font-inter text-xs text-foreground-muted">
 					{FIELD_LABELS[field] ?? field}: {formatValue(field, diff.before)} →{' '}
 					{formatValue(field, diff.after)}
 				</Text>
@@ -87,6 +90,7 @@ export function ServiceOrderVersionsTab({
 	serviceOrderId: string;
 	refreshToken: number;
 }) {
+	const themeColors = useThemeColors();
 	const [versions, setVersions] = useState<ServiceOrderVersion[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
@@ -114,8 +118,8 @@ export function ServiceOrderVersionsTab({
 	if (loading) {
 		return (
 			<View className="items-center gap-2 py-10">
-				<ActivityIndicator color="#6B7280" />
-				<Text className="font-inter text-sm text-gray-400">
+				<ActivityIndicator color={themeColors.foregroundMuted} />
+				<Text className="font-inter text-sm text-foreground-subtle">
 					Carregando versões...
 				</Text>
 			</View>
@@ -123,12 +127,12 @@ export function ServiceOrderVersionsTab({
 	}
 
 	if (error) {
-		return <Text className="font-inter text-sm text-red-600">{error}</Text>;
+		return <Text className="font-inter text-sm text-danger">{error}</Text>;
 	}
 
 	if (!versions.length) {
 		return (
-			<Text className="font-inter text-sm text-gray-500">
+			<Text className="font-inter text-sm text-foreground-muted">
 				Esta ordem de serviço ainda não possui histórico de versões.
 			</Text>
 		);
@@ -139,32 +143,32 @@ export function ServiceOrderVersionsTab({
 			{versions.map((version, index) => (
 				<View
 					key={version.id}
-					className="gap-3 rounded-xl border border-gray-200 bg-white p-4"
+					className="gap-3 rounded-xl border border-border bg-surface p-4"
 				>
 					<View className="flex-row flex-wrap items-center justify-between gap-2">
 						<View className="flex-row items-center gap-2">
-							<History size={16} color="#4b5563" />
-							<Text className="font-inter font-semibold text-gray-900 text-sm">
+							<History size={16} color={themeColors.foregroundSecondary} />
+							<Text className="font-inter font-semibold text-foreground text-sm">
 								Versão {version.version}
 								{index === 0 ? ' (atual)' : ''}
 							</Text>
 						</View>
-						<Text className="font-inter text-xs text-gray-500">
+						<Text className="font-inter text-xs text-foreground-muted">
 							{formatDateTime(version.created_at)}
 						</Text>
 					</View>
-					<Text className="font-inter text-sm text-gray-700">
+					<Text className="font-inter text-sm text-foreground-secondary">
 						{version.origin === 'quote_reapproval'
 							? 'Atualizada após o orçamento ser reaberto e aprovado novamente.'
 							: 'Criada a partir da aprovação do orçamento.'}
 					</Text>
 					{version.reason ? (
-						<Text className="font-inter text-sm text-gray-700">
+						<Text className="font-inter text-sm text-foreground-secondary">
 							Motivo da reabertura: {version.reason}
 						</Text>
 					) : null}
 					{version.actor_email ? (
-						<Text className="font-inter text-xs text-gray-500">
+						<Text className="font-inter text-xs text-foreground-muted">
 							Aprovado por: {version.actor_email}
 						</Text>
 					) : null}
@@ -178,7 +182,7 @@ export function ServiceOrderVersionsTab({
 							))}
 						</View>
 					) : version.origin === 'quote_reapproval' ? (
-						<Text className="font-inter text-xs text-gray-500">
+						<Text className="font-inter text-xs text-foreground-muted">
 							Nenhum item foi alterado nesta versão.
 						</Text>
 					) : null}

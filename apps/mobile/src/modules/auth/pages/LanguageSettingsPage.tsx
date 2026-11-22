@@ -20,6 +20,7 @@ import {
 } from '../../translators/services/translatorService';
 import type { LanguageResponse } from '../../translators/types/translator';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function sortLanguages(languages: LanguageResponse[]) {
 	return [...languages].sort((first, second) =>
 		first.name.localeCompare(second.name, 'pt-BR'),
@@ -35,6 +36,7 @@ function languageError(error: unknown) {
 }
 
 export default function LanguageSettingsPage() {
+	const themeColors = useThemeColors();
 	const { toast, showToast } = useToast();
 	const canEdit = usePermission('languages.write');
 	const [languages, setLanguages] = useState<LanguageResponse[]>([]);
@@ -116,30 +118,30 @@ export default function LanguageSettingsPage() {
 	}
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
 			>
 				<SettingsHeader active="idiomas" />
 				<View className="gap-6">
-					<View className="rounded-xl border border-gray-200 p-5 md:p-6">
+					<View className="rounded-xl border border-border p-5 md:p-6">
 						<View className="mb-5 flex-row items-center gap-3">
-							<View className="rounded-lg bg-blue-50 p-2.5">
-								<Languages size={20} color="#2563eb" />
+							<View className="rounded-lg bg-primary-soft p-2.5">
+								<Languages size={20} color={themeColors.primaryText} />
 							</View>
 							<View className="flex-1">
-								<Text className="font-inter font-semibold text-gray-900 text-base">
+								<Text className="font-inter font-semibold text-foreground text-base">
 									Cadastrar idioma
 								</Text>
-								<Text className="mt-1 font-inter text-gray-500 text-sm">
+								<Text className="mt-1 font-inter text-foreground-muted text-sm">
 									Adicione idiomas que poderão ser usados pela plataforma.
 								</Text>
 							</View>
 						</View>
 						<View className="flex-col gap-4 md:flex-row">
 							<View className="flex-1 gap-1.5">
-								<Text className="font-inter font-medium text-gray-700 text-sm">
+								<Text className="font-inter font-medium text-foreground-secondary text-sm">
 									Nome
 								</Text>
 								<TextInput
@@ -149,13 +151,14 @@ export default function LanguageSettingsPage() {
 										setFieldError(null);
 									}}
 									placeholder="Ex.: Hindi"
+									placeholderTextColor={themeColors.foregroundSubtle}
 									maxLength={100}
 									accessibilityLabel="Nome do idioma"
-									className="rounded-md border border-gray-300 px-3 py-2.5 font-inter text-gray-900 text-sm"
+									className="rounded-md border border-border-strong px-3 py-2.5 font-inter text-foreground text-sm"
 								/>
 							</View>
 							<View className="flex-1 gap-1.5">
-								<Text className="font-inter font-medium text-gray-700 text-sm">
+								<Text className="font-inter font-medium text-foreground-secondary text-sm">
 									Código identificador
 								</Text>
 								<TextInput
@@ -165,17 +168,18 @@ export default function LanguageSettingsPage() {
 										setFieldError(null);
 									}}
 									placeholder="Ex.: hi-IN"
+									placeholderTextColor={themeColors.foregroundSubtle}
 									maxLength={20}
 									autoCapitalize="none"
 									accessibilityLabel="Código identificador do idioma"
-									className="rounded-md border border-gray-300 px-3 py-2.5 font-inter text-gray-900 text-sm"
+									className="rounded-md border border-border-strong px-3 py-2.5 font-inter text-foreground text-sm"
 								/>
 							</View>
 						</View>
 						{fieldError && (
 							<Text
 								accessibilityRole="alert"
-								className="mt-3 font-inter text-red-700 text-sm"
+								className="mt-3 font-inter text-danger text-sm"
 							>
 								{fieldError}
 							</Text>
@@ -185,27 +189,30 @@ export default function LanguageSettingsPage() {
 								onPress={() => void handleCreate()}
 								disabled={isSaving}
 								accessibilityRole="button"
-								className={`mt-5 flex-row items-center justify-center gap-2 self-start rounded-lg px-4 py-2.5 ${isSaving ? 'bg-blue-300' : 'bg-blue-600'}`}
+								className="mt-5 flex-row items-center justify-center gap-2 self-start rounded-lg bg-primary px-4 py-2.5"
 							>
 								{isSaving ? (
-									<ActivityIndicator size="small" color="#ffffff" />
+									<ActivityIndicator
+										size="small"
+										color={themeColors.primaryForeground}
+									/>
 								) : (
-									<Plus size={17} color="#ffffff" />
+									<Plus size={17} color={themeColors.primaryForeground} />
 								)}
-								<Text className="font-inter font-semibold text-sm text-white">
+								<Text className="font-inter font-semibold text-sm text-primary-foreground">
 									{isSaving ? 'Salvando...' : 'Cadastrar idioma'}
 								</Text>
 							</TouchableOpacity>
 						)}
 					</View>
 
-					<View className="rounded-xl border border-gray-200 p-5 md:p-6">
+					<View className="rounded-xl border border-border p-5 md:p-6">
 						<View className="mb-4 flex-row items-center justify-between gap-3">
 							<View>
-								<Text className="font-inter font-semibold text-gray-900 text-base">
+								<Text className="font-inter font-semibold text-foreground text-base">
 									Idiomas cadastrados
 								</Text>
-								<Text className="mt-1 font-inter text-gray-500 text-sm">
+								<Text className="mt-1 font-inter text-foreground-muted text-sm">
 									{languages.length}{' '}
 									{languages.length === 1 ? 'idioma' : 'idiomas'}
 								</Text>
@@ -213,8 +220,8 @@ export default function LanguageSettingsPage() {
 						</View>
 						{isLoading ? (
 							<View className="items-center gap-3 py-10">
-								<ActivityIndicator color="#2563eb" />
-								<Text className="font-inter text-gray-500 text-sm">
+								<ActivityIndicator color={themeColors.primaryText} />
+								<Text className="font-inter text-foreground-muted text-sm">
 									Carregando idiomas...
 								</Text>
 							</View>
@@ -222,32 +229,32 @@ export default function LanguageSettingsPage() {
 							<View className="items-center gap-3 py-8">
 								<Text
 									accessibilityRole="alert"
-									className="text-center font-inter text-red-700 text-sm"
+									className="text-center font-inter text-danger text-sm"
 								>
 									{error}
 								</Text>
 								<TouchableOpacity onPress={() => void loadLanguages()}>
-									<Text className="font-inter font-semibold text-blue-600 text-sm">
+									<Text className="font-inter font-semibold text-primary-text text-sm">
 										Tentar novamente
 									</Text>
 								</TouchableOpacity>
 							</View>
 						) : languages.length === 0 ? (
-							<Text className="py-8 text-center font-inter text-gray-500 text-sm">
+							<Text className="py-8 text-center font-inter text-foreground-muted text-sm">
 								Nenhum idioma cadastrado.
 							</Text>
 						) : (
-							<View className="border-t border-gray-100">
+							<View className="border-t border-border-subtle">
 								{languages.map((language) => (
 									<View
 										key={language.id}
-										className="flex-row items-center justify-between gap-4 border-b border-gray-100 py-3.5"
+										className="flex-row items-center justify-between gap-4 border-b border-border-subtle py-3.5"
 									>
-										<Text className="flex-1 font-inter font-medium text-gray-800 text-sm">
+										<Text className="flex-1 font-inter font-medium text-foreground text-sm">
 											{language.name}
 										</Text>
 										<View className="flex-row items-center gap-3">
-											<Text className="rounded-md bg-gray-50 px-2.5 py-1 font-inter text-gray-500 text-xs">
+											<Text className="rounded-md bg-surface-subtle px-2.5 py-1 font-inter text-foreground-muted text-xs">
 												{language.id}
 											</Text>
 											{canEdit && (
@@ -257,7 +264,7 @@ export default function LanguageSettingsPage() {
 													accessibilityLabel={`Remover idioma ${language.name}`}
 													className="rounded-md p-2"
 												>
-													<Trash2 size={17} color="#b91c1c" />
+													<Trash2 size={17} color={themeColors.danger} />
 												</TouchableOpacity>
 											)}
 										</View>

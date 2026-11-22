@@ -4,6 +4,7 @@ import { X } from 'lucide-react-native';
 import type { RoleFormData } from '../../types/roles';
 import { FormField } from '../../../clients/components/FormField';
 
+import { useThemeColors } from '../../../../shared/theme/ThemeProvider';
 type RoleFormModalProps = {
 	visible: boolean;
 	onClose: () => void;
@@ -15,6 +16,7 @@ export function RoleFormModal({
 	onClose,
 	onSubmit,
 }: RoleFormModalProps) {
+	const themeColors = useThemeColors();
 	const [name, setName] = useState('');
 	const [description, setDescription] = useState('');
 	const [error, setError] = useState<string | null>(null);
@@ -61,16 +63,16 @@ export function RoleFormModal({
 			animationType="none"
 			onRequestClose={onClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="w-full max-w-[480px] max-h-[85%] rounded-xl bg-white overflow-hidden">
-					<View className="flex-row items-center justify-between border-b border-gray-300 px-6 py-4">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+				<View className="w-full max-w-[480px] max-h-[85%] rounded-xl bg-surface overflow-hidden">
+					<View className="flex-row items-center justify-between border-b border-border-strong px-6 py-4">
 						<View className="min-w-0 flex-1 gap-0.5">
-							<Text className="font-inter font-bold text-gray-900 text-lg">
+							<Text className="font-inter font-bold text-foreground text-lg">
 								Novo perfil de acesso
 							</Text>
 						</View>
 						<TouchableOpacity onPress={onClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
@@ -96,18 +98,20 @@ export function RoleFormModal({
 						/>
 
 						{error && (
-							<View className="rounded-lg bg-red-50 px-3 py-2.5">
-								<Text className="font-inter text-red-900 text-sm">{error}</Text>
+							<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+								<Text className="font-inter text-danger-text text-sm">
+									{error}
+								</Text>
 							</View>
 						)}
 					</ScrollView>
 
-					<View className="flex-row flex-wrap items-center justify-end gap-3 border-t border-gray-300 px-6 py-4">
+					<View className="flex-row flex-wrap items-center justify-end gap-3 border-t border-border-strong px-6 py-4">
 						<TouchableOpacity
 							onPress={onClose}
-							className="rounded-lg border border-gray-300 px-5 py-2.5"
+							className="rounded-lg border border-border-strong px-5 py-2.5"
 						>
-							<Text className="font-inter font-medium text-gray-800 text-sm">
+							<Text className="font-inter font-medium text-foreground text-sm">
 								Cancelar
 							</Text>
 						</TouchableOpacity>
@@ -117,9 +121,9 @@ export function RoleFormModal({
 							disabled={isSubmitting}
 							accessibilityRole="button"
 							accessibilityLabel="Confirmar cadastro do perfil de acesso"
-							className={`rounded-lg bg-blue-600 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+							className={`rounded-lg bg-primary px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 						>
-							<Text className="font-inter font-semibold text-white text-sm">
+							<Text className="font-inter font-semibold text-primary-foreground text-sm">
 								{isSubmitting ? 'Cadastrando…' : 'Cadastrar perfil'}
 							</Text>
 						</TouchableOpacity>

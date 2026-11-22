@@ -12,10 +12,10 @@ const STATUS_STYLE: Record<
 	ServiceOrderItemStatus,
 	{ bg: string; text: string }
 > = {
-	pendente: { bg: 'bg-gray-100', text: 'text-gray-700' },
-	em_andamento: { bg: 'bg-blue-50', text: 'text-blue-900' },
-	em_analise: { bg: 'bg-yellow-50', text: 'text-yellow-900' },
-	concluida: { bg: 'bg-green-50', text: 'text-green-900' },
+	pendente: { bg: 'bg-surface-muted', text: 'text-foreground-secondary' },
+	em_andamento: { bg: 'bg-primary-soft', text: 'text-primary-strong' },
+	em_analise: { bg: 'bg-warning-soft', text: 'text-warning-text' },
+	concluida: { bg: 'bg-success-soft', text: 'text-success-text' },
 };
 
 type StatusBadgeProps = {

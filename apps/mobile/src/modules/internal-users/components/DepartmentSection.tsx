@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react-native';
 import type { Department, InternalUser } from '../types/internalUser';
 import { PersonRow } from './PersonRow';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type DepartmentSectionProps = {
 	department: Department;
 	currentUserEmail: string | null;
@@ -23,6 +24,7 @@ export function DepartmentSection({
 	onSendLink,
 	onDeactivate,
 }: DepartmentSectionProps) {
+	const themeColors = useThemeColors();
 	const [expanded, setExpanded] = useState(true);
 	const Chevron = expanded ? ChevronDown : ChevronRight;
 	const activeCount = department.people.filter(
@@ -30,32 +32,32 @@ export function DepartmentSection({
 	).length;
 
 	return (
-		<View className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+		<View className="overflow-hidden rounded-xl border border-border bg-surface">
 			<TouchableOpacity
 				onPress={() => setExpanded((current) => !current)}
 				accessibilityRole="button"
 				accessibilityState={{ expanded }}
 				accessibilityLabel={`Departamento ${department.name}`}
-				className="flex-row items-center justify-between gap-3 bg-gray-50 px-4 py-3"
+				className="flex-row items-center justify-between gap-3 bg-surface-subtle px-4 py-3"
 			>
 				<View className="min-w-0 flex-1 flex-row items-center gap-3">
-					<Chevron size={18} color="#4B5563" />
+					<Chevron size={18} color={themeColors.foregroundSecondary} />
 					<Text
-						className="font-inter font-bold text-gray-900 text-sm"
+						className="font-inter font-bold text-foreground text-sm"
 						numberOfLines={1}
 					>
 						{department.name}
 					</Text>
 				</View>
 				<View className="flex-row items-center gap-2">
-					<View className="rounded-full bg-white px-2.5 py-0.5">
-						<Text className="font-inter font-semibold text-gray-700 text-xs">
+					<View className="rounded-full bg-surface px-2.5 py-0.5">
+						<Text className="font-inter font-semibold text-foreground-secondary text-xs">
 							{department.people.length}{' '}
 							{department.people.length === 1 ? 'pessoa' : 'pessoas'}
 						</Text>
 					</View>
-					<View className="hidden rounded-full bg-green-50 px-2.5 py-0.5 sm:flex">
-						<Text className="font-inter font-medium text-green-800 text-xs">
+					<View className="hidden rounded-full bg-success-soft px-2.5 py-0.5 sm:flex">
+						<Text className="font-inter font-medium text-success-text text-xs">
 							{activeCount} {activeCount === 1 ? 'ativa' : 'ativas'}
 						</Text>
 					</View>

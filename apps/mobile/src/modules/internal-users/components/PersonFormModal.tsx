@@ -6,6 +6,7 @@ import { maskPhone } from '../../clients/utils/mask';
 import type { InternalUser } from '../types/internalUser';
 import { RoleMultiSelect } from './RoleMultiSelect';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export type PersonFormValues = {
 	name: string;
 	email: string;
@@ -42,7 +43,7 @@ function Field({
 }) {
 	return (
 		<View className="gap-1.5">
-			<Text className="font-inter font-semibold text-gray-800 text-xs">
+			<Text className="font-inter font-semibold text-foreground text-xs">
 				{label}
 			</Text>
 			{children}
@@ -51,7 +52,7 @@ function Field({
 }
 
 const INPUT_CLASS =
-	'rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-sm text-gray-900 outline-none';
+	'rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none';
 
 export function PersonFormModal({
 	visible,
@@ -60,6 +61,7 @@ export function PersonFormModal({
 	onClose,
 	onSubmit,
 }: PersonFormModalProps) {
+	const themeColors = useThemeColors();
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
 	const [phone, setPhone] = useState('');
@@ -128,7 +130,7 @@ export function PersonFormModal({
 						value={name}
 						onChangeText={setName}
 						placeholder="Ex: Ana Souza"
-						placeholderTextColor="#8A8A8A"
+						placeholderTextColor={themeColors.foregroundMuted}
 						maxLength={150}
 						accessibilityLabel="Nome completo"
 						className={INPUT_CLASS}
@@ -137,15 +139,17 @@ export function PersonFormModal({
 
 				<Field label="E-mail">
 					{emailLocked ? (
-						<View className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
-							<Text className="font-inter text-gray-500 text-sm">{email}</Text>
+						<View className="rounded-lg border border-border bg-surface-subtle px-3 py-2.5">
+							<Text className="font-inter text-foreground-muted text-sm">
+								{email}
+							</Text>
 						</View>
 					) : (
 						<TextInput
 							value={email}
 							onChangeText={setEmail}
 							placeholder="nome@empresa.com"
-							placeholderTextColor="#8A8A8A"
+							placeholderTextColor={themeColors.foregroundMuted}
 							autoCapitalize="none"
 							keyboardType="email-address"
 							maxLength={255}
@@ -154,7 +158,7 @@ export function PersonFormModal({
 						/>
 					)}
 					{emailLocked && (
-						<Text className="font-inter text-gray-400 text-xs">
+						<Text className="font-inter text-foreground-subtle text-xs">
 							O e-mail não pode ser alterado depois que a senha é definida.
 						</Text>
 					)}
@@ -165,7 +169,7 @@ export function PersonFormModal({
 						value={phone}
 						onChangeText={(value) => setPhone(maskPhone(value))}
 						placeholder="(11) 99999-0000"
-						placeholderTextColor="#8A8A8A"
+						placeholderTextColor={themeColors.foregroundMuted}
 						keyboardType="phone-pad"
 						accessibilityLabel="Telefone"
 						className={INPUT_CLASS}
@@ -184,8 +188,8 @@ export function PersonFormModal({
 				</Field>
 
 				{error && (
-					<View className="rounded-lg bg-red-50 px-3 py-2.5">
-						<Text className="font-inter text-red-900 text-sm">{error}</Text>
+					<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+						<Text className="font-inter text-danger-text text-sm">{error}</Text>
 					</View>
 				)}
 			</View>

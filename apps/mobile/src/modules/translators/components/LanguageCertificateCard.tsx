@@ -8,6 +8,7 @@ import {
 } from '../utils/certificateStatus';
 import { formatFileSize } from '../utils/profileFiles';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type LanguageCertificateCardProps = {
 	certificates: TranslatorCertificate[];
 	isLoading: boolean;
@@ -28,20 +29,21 @@ export function LanguageCertificateCard({
 	onSelect,
 	onNewCertificate,
 }: LanguageCertificateCardProps) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="gap-4">
 			<View className="flex-row items-center justify-between gap-3">
-				<Text className="font-inter font-bold text-gray-900 text-sm">
+				<Text className="font-inter font-bold text-foreground text-sm">
 					Certificados enviados
 				</Text>
 				<TouchableOpacity
 					onPress={onNewCertificate}
 					activeOpacity={0.7}
 					accessibilityRole="button"
-					className="flex-row items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5"
+					className="flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5"
 				>
-					<Plus size={16} color="#ffffff" />
-					<Text className="font-inter-medium text-sm text-white">
+					<Plus size={16} color={themeColors.primaryForeground} />
+					<Text className="font-inter-medium text-sm text-primary-foreground">
 						Novo certificado
 					</Text>
 				</TouchableOpacity>
@@ -49,20 +51,20 @@ export function LanguageCertificateCard({
 
 			{isLoading && certificates.length === 0 && (
 				<View className="items-center py-6">
-					<ActivityIndicator color="#6B7280" />
-					<Text className="mt-2 font-inter text-gray-400 text-sm">
+					<ActivityIndicator color={themeColors.foregroundMuted} />
+					<Text className="mt-2 font-inter text-foreground-subtle text-sm">
 						Carregando certificados...
 					</Text>
 				</View>
 			)}
 
 			{error && (
-				<View className="flex-row items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2.5">
-					<Text className="flex-1 font-inter text-red-900 text-sm">
+				<View className="flex-row items-center justify-between gap-2 rounded-lg bg-danger-soft px-3 py-2.5">
+					<Text className="flex-1 font-inter text-danger-text text-sm">
 						{error}
 					</Text>
 					<TouchableOpacity onPress={onRetry} accessibilityRole="button">
-						<Text className="font-inter font-semibold text-red-900 text-sm">
+						<Text className="font-inter font-semibold text-danger-text text-sm">
 							Tentar novamente
 						</Text>
 					</TouchableOpacity>
@@ -70,12 +72,12 @@ export function LanguageCertificateCard({
 			)}
 
 			{!isLoading && !error && certificates.length === 0 && (
-				<View className="items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-8">
-					<FileX size={28} color="#9CA3AF" />
-					<Text className="text-center font-inter font-semibold text-gray-700 text-sm">
+				<View className="items-center gap-2 rounded-lg border border-dashed border-border-strong px-4 py-8">
+					<FileX size={28} color={themeColors.foregroundSubtle} />
+					<Text className="text-center font-inter font-semibold text-foreground-secondary text-sm">
 						Nenhum certificado foi anexado.
 					</Text>
-					<Text className="text-center font-inter text-gray-500 text-xs">
+					<Text className="text-center font-inter text-foreground-muted text-xs">
 						Envie um certificado para comprovar um novo idioma de trabalho.
 					</Text>
 				</View>
@@ -96,12 +98,12 @@ export function LanguageCertificateCard({
 						activeOpacity={0.7}
 						accessibilityRole="button"
 						accessibilityLabel={`Certificado de ${certificate.language_name}: ${presentation.label}`}
-						className="flex-row items-center gap-3 rounded-lg border border-gray-200 p-3"
+						className="flex-row items-center gap-3 rounded-lg border border-border p-3"
 					>
 						<View className="flex-1 gap-2">
 							<View className="flex-row items-center justify-between gap-2">
 								<Text
-									className="flex-1 font-inter font-semibold text-gray-900 text-sm"
+									className="flex-1 font-inter font-semibold text-foreground text-sm"
 									numberOfLines={1}
 								>
 									{certificate.language_name} ·{' '}
@@ -118,9 +120,9 @@ export function LanguageCertificateCard({
 								</View>
 							</View>
 							<View className="flex-row items-center gap-2">
-								<FileText size={14} color="#6B7280" />
+								<FileText size={14} color={themeColors.foregroundMuted} />
 								<Text
-									className="flex-1 font-inter text-gray-500 text-xs"
+									className="flex-1 font-inter text-foreground-muted text-xs"
 									numberOfLines={1}
 								>
 									{certificate.filename} ·{' '}
@@ -128,7 +130,9 @@ export function LanguageCertificateCard({
 								</Text>
 							</View>
 						</View>
-						{onSelect && <ChevronRight size={16} color="#9CA3AF" />}
+						{onSelect && (
+							<ChevronRight size={16} color={themeColors.foregroundSubtle} />
+						)}
 					</TouchableOpacity>
 				);
 			})}

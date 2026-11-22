@@ -16,8 +16,8 @@ function InfoItem({ label, value, wide = false }: InfoItemProps) {
 		<View
 			className={`${wide ? 'min-w-[220px]' : 'min-w-[140px]'} flex-1 gap-0.5`}
 		>
-			<Text className="font-inter text-gray-500 text-xs">{label}</Text>
-			<Text className="font-inter font-medium text-gray-800 text-sm">
+			<Text className="font-inter text-foreground-muted text-xs">{label}</Text>
+			<Text className="font-inter font-medium text-foreground text-sm">
 				{value}
 			</Text>
 		</View>
@@ -34,12 +34,12 @@ export function TaskInfo({ task, showAssignee = false }: TaskInfoProps) {
 		<View className="gap-4">
 			<View className="gap-2">
 				<TaskStatusBadge status={task.status} />
-				<Text className="font-inter text-gray-900 text-sm leading-5">
+				<Text className="font-inter text-foreground text-sm leading-5">
 					{task.description}
 				</Text>
 			</View>
 
-			<View className="flex-row flex-wrap gap-x-4 gap-y-3 rounded-xl border border-gray-200 p-4">
+			<View className="flex-row flex-wrap gap-x-4 gap-y-3 rounded-xl border border-border p-4">
 				<InfoItem label="Prazo" value={formatDueDate(task.due_date)} />
 				<InfoItem label="Criada em" value={formatDateTime(task.created_at)} />
 				{showAssignee && (
@@ -61,9 +61,9 @@ export function TaskInfo({ task, showAssignee = false }: TaskInfoProps) {
 			{showsRejectionReason(task) && (
 				<View
 					accessibilityLabel="Motivo da reprovação"
-					className="rounded-xl border border-red-200 bg-red-50 px-4 py-3"
+					className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3"
 				>
-					<Text className="font-inter text-red-900 text-sm">
+					<Text className="font-inter text-danger-text text-sm">
 						<Text className="font-semibold">
 							{task.status === 'rejected'
 								? 'Motivo da reprovação: '

@@ -54,10 +54,10 @@ export function SettingsHeader({ active }: { active: SettingsTab }) {
 	return (
 		<View className="mb-6 gap-4">
 			<View>
-				<Text className="font-inter font-bold text-gray-950 text-2xl">
+				<Text className="font-inter font-bold text-foreground text-2xl">
 					Configurações
 				</Text>
-				<Text className="mt-2 font-inter text-gray-500 text-sm">
+				<Text className="mt-2 font-inter text-foreground-muted text-sm">
 					Gerencie permissões, pessoas, idiomas e sessão da plataforma.
 				</Text>
 			</View>

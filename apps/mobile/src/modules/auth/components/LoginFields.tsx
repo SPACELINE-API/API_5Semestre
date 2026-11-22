@@ -2,6 +2,7 @@ import { RefObject } from 'react';
 import { Platform, Text, TextInput, View } from 'react-native';
 import { PasswordField } from './PasswordField';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type LoginFieldsProps = {
 	token: string;
 	recovery: boolean;
@@ -45,6 +46,7 @@ export function LoginFields({
 	onEmailSubmitEditing,
 	onPasswordSubmitEditing,
 }: LoginFieldsProps) {
+	const themeColors = useThemeColors();
 	const handleWebSubmit =
 		(onSubmitEditing: () => void) =>
 		(event: { nativeEvent: { key?: string } }) => {
@@ -59,6 +61,7 @@ export function LoginFields({
 				<PasswordField
 					label="Nova senha"
 					placeholder="Digite sua nova senha"
+					placeholderTextColor={themeColors.foregroundSubtle}
 					value={newPassword}
 					onChangeText={onNewPasswordChange}
 					visible={showNewPassword}
@@ -78,13 +81,13 @@ export function LoginFields({
 
 	return (
 		<>
-			<Text className="mb-2 text-sm font-semibold text-[#0f1b33]">
+			<Text className="mb-2 text-sm font-semibold text-foreground">
 				{recovery ? 'E-mail para recuperação' : 'E-mail'}
 			</Text>
 			<TextInput
-				className="h-12 rounded-xl border border-[#d5e3f1] bg-[#f5f9fd] px-4 text-sm text-[#12233c]"
+				className="h-12 rounded-xl border border-border bg-surface-subtle px-4 text-sm text-foreground"
 				placeholder={recovery ? 'Digite seu e-mail' : 'seuemail@exemplo.com'}
-				placeholderTextColor="#94a3b8"
+				placeholderTextColor={themeColors.foregroundSubtle}
 				keyboardType="email-address"
 				autoCapitalize="none"
 				returnKeyType={recovery ? 'done' : 'next'}
@@ -101,7 +104,7 @@ export function LoginFields({
 			/>
 			{!recovery ? (
 				<>
-					<Text className="mb-2 mt-5 text-sm font-semibold text-[#0f1b33]">
+					<Text className="mb-2 mt-5 text-sm font-semibold text-foreground">
 						Senha
 					</Text>
 					<PasswordField
