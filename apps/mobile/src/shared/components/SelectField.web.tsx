@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { SearchTextInput } from './SearchTextInput';
 import { createPortal } from 'react-dom';
 import {
 	Pressable,
 	ScrollView,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
@@ -135,14 +135,15 @@ export function SelectField({
 					{searchable && (
 						<View className="flex-row items-center gap-2 border-b border-border-subtle px-3">
 							<Search size={14} color={themeColors.foregroundSubtle} />
-							<TextInput
+							<SearchTextInput
 								autoFocus
 								value={query}
 								onChangeText={setQuery}
 								placeholder="Pesquisar"
+								numberOfLines={1}
 								placeholderTextColor={themeColors.foregroundSubtle}
 								accessibilityLabel={`Pesquisar ${label}`}
-								className="h-10 flex-1 font-inter text-foreground text-sm outline-none"
+								className="h-10 flex-1 font-inter text-ellipsis text-foreground text-sm outline-none"
 							/>
 						</View>
 					)}

@@ -1,11 +1,6 @@
 import { useMemo, useState } from 'react';
-import {
-	ScrollView,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	View,
-} from 'react-native';
+import { SearchTextInput } from './SearchTextInput';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Check, ChevronDown, Search } from 'lucide-react-native';
 
 import { useThemeColors } from '../theme/ThemeProvider';
@@ -80,13 +75,14 @@ export function SelectField({
 					{searchable && (
 						<View className="mx-3 mt-3 flex-row items-center gap-2 rounded-lg border border-border-strong px-3">
 							<Search size={14} color={themeColors.foregroundSubtle} />
-							<TextInput
+							<SearchTextInput
 								value={query}
 								onChangeText={setQuery}
 								placeholder="Pesquisar"
+								numberOfLines={1}
 								placeholderTextColor={themeColors.foregroundSubtle}
 								accessibilityLabel={`Pesquisar ${label}`}
-								className="h-10 flex-1 font-inter text-foreground text-sm"
+								className="h-10 flex-1 font-inter text-ellipsis text-foreground text-sm"
 							/>
 						</View>
 					)}

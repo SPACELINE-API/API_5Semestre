@@ -1,11 +1,6 @@
 import { useMemo, useState } from 'react';
-import {
-	ScrollView,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	View,
-} from 'react-native';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Check, ChevronDown, ChevronUp, Search, X } from 'lucide-react-native';
 import type { Role } from '../../auth/types/roles';
 import { normalizeText } from '../utils/departments';
@@ -97,13 +92,14 @@ export function RoleMultiSelect({
 				<View className="overflow-hidden rounded-lg border border-border bg-surface">
 					<View className="flex-row items-center gap-2 border-b border-border px-3">
 						<Search size={14} color={themeColors.foregroundSubtle} />
-						<TextInput
+						<SearchTextInput
 							value={query}
 							onChangeText={setQuery}
 							placeholder="Pesquisar"
+							numberOfLines={1}
 							placeholderTextColor={themeColors.foregroundSubtle}
 							accessibilityLabel="Pesquisar perfil"
-							className="h-10 flex-1 font-inter text-foreground text-sm outline-none"
+							className="h-10 flex-1 font-inter text-ellipsis text-foreground text-sm outline-none"
 						/>
 					</View>
 					<ScrollView

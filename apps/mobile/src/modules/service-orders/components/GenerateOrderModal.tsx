@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	Modal,
 	View,
@@ -385,7 +386,7 @@ export function GenerateOrderModal({
 										}`}
 									>
 										<Search size={16} color={themeColors.foregroundSubtle} />
-										<TextInput
+										<SearchTextInput
 											value={companySearch}
 											onChangeText={setCompanySearch}
 											onFocus={() => setIsCompanyPickerOpen(true)}
@@ -394,8 +395,9 @@ export function GenerateOrderModal({
 													? 'Buscar empresa'
 													: 'Buscar empresa por nome'
 											}
+											numberOfLines={1}
 											placeholderTextColor={themeColors.foregroundSubtle}
-											className="flex-1 font-inter text-sm text-foreground outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
+											className="flex-1 font-inter text-ellipsis text-sm text-foreground outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 											accessibilityLabel="Buscar empresa"
 										/>
 									</View>

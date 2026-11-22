@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	Modal,
 	Pressable,
 	ScrollView,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
@@ -112,13 +112,14 @@ export function CompanyLinkField({
 					>
 						<View className="flex-row items-center gap-2 border-b border-border-subtle px-3 py-2">
 							<Search size={14} color={themeColors.foregroundSubtle} />
-							<TextInput
+							<SearchTextInput
 								autoFocus
 								value={search}
 								onChangeText={setSearch}
 								placeholder="Buscar empresa"
+								numberOfLines={1}
 								placeholderTextColor={themeColors.foregroundSubtle}
-								className="flex-1 font-inter text-sm text-foreground max-md:min-w-0 max-md:shrink max-md:leading-5"
+								className="flex-1 font-inter text-ellipsis text-sm text-foreground max-md:min-w-0 max-md:shrink max-md:leading-5"
 							/>
 							<TouchableOpacity
 								accessibilityRole="button"

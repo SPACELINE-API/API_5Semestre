@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	Modal,
 	Pressable,
 	ScrollView,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	View,
 	useWindowDimensions,
@@ -113,7 +113,7 @@ export function RequestLanguageSelect({
 						</View>
 						<View className="mx-4 mt-4 flex-row items-center gap-2 rounded-lg border border-border-strong bg-surface px-3">
 							<Search size={17} color={themeColors.foregroundSubtle} />
-							<TextInput
+							<SearchTextInput
 								value={search}
 								onChangeText={setSearch}
 								placeholder={
@@ -121,6 +121,7 @@ export function RequestLanguageSelect({
 										? 'Buscar idioma ou código'
 										: 'Buscar por idioma ou código'
 								}
+								numberOfLines={1}
 								placeholderTextColor={themeColors.foregroundSubtle}
 								autoCapitalize="none"
 								autoCorrect={false}

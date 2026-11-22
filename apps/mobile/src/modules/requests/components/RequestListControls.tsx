@@ -1,7 +1,7 @@
 import { Check, Search, SlidersHorizontal } from 'lucide-react-native';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	Text,
-	TextInput,
 	TouchableOpacity,
 	View,
 	useWindowDimensions,
@@ -33,7 +33,7 @@ export function RequestSearchBar({
 		<View className="mb-4 flex-row items-center gap-3">
 			<View className="h-10 flex-1 flex-row items-center rounded-lg border border-border bg-surface px-3">
 				<Search size={17} color={themeColors.foregroundSubtle} />
-				<TextInput
+				<SearchTextInput
 					value={searchInput}
 					onChangeText={onSearchInputChange}
 					placeholder={
@@ -41,10 +41,11 @@ export function RequestSearchBar({
 							? 'Buscar solicitação, cliente ou documento'
 							: 'Buscar por cliente, empresa, e-mail, documento ou idioma'
 					}
+					numberOfLines={1}
 					placeholderTextColor={themeColors.foregroundSubtle}
 					returnKeyType="search"
 					accessibilityLabel="Buscar solicitação"
-					className="ml-2 flex-1 border-0 font-inter text-foreground text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
+					className="ml-2 flex-1 border-0 font-inter text-ellipsis text-foreground text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
 				/>
 			</View>
 

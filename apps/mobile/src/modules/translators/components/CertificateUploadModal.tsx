@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	ActivityIndicator,
 	Platform,
 	ScrollView,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
@@ -325,13 +325,14 @@ export function CertificateUploadModal({
 					<View className="overflow-hidden rounded-lg border border-border">
 						<View className="flex-row items-center gap-2 border-b border-border px-3">
 							<Search size={14} color={themeColors.foregroundSubtle} />
-							<TextInput
+							<SearchTextInput
 								value={search}
 								onChangeText={setSearch}
 								placeholder="Buscar idioma"
+								numberOfLines={1}
 								placeholderTextColor={themeColors.foregroundSubtle}
 								accessibilityLabel="Buscar idioma"
-								className="h-10 flex-1 font-inter text-sm text-foreground outline-none"
+								className="h-10 flex-1 font-inter text-ellipsis text-sm text-foreground outline-none"
 							/>
 						</View>
 						<ScrollView

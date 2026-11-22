@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	ActivityIndicator,
 	ScrollView,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
@@ -239,13 +239,14 @@ export function InternalUsersPage() {
 				<View className="mb-5 flex-col gap-3 md:flex-row md:items-center md:justify-between">
 					<View className="h-11 w-full flex-row items-center gap-2 rounded-lg border border-border-strong px-3 md:w-auto md:max-w-[420px] md:flex-1">
 						<Search size={16} color={themeColors.foregroundSubtle} />
-						<TextInput
+						<SearchTextInput
 							value={search}
 							onChangeText={setSearch}
 							placeholder="Buscar por nome ou e-mail"
+							numberOfLines={1}
 							placeholderTextColor={themeColors.foregroundSubtle}
 							accessibilityLabel="Buscar pessoa"
-							className="h-full flex-1 font-inter text-foreground text-sm outline-none"
+							className="h-full flex-1 font-inter text-ellipsis text-foreground text-sm outline-none"
 						/>
 					</View>
 					<View className="flex-row flex-wrap gap-2">
