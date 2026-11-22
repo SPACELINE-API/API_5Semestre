@@ -94,9 +94,7 @@ export function PersonRow({
 							disabled={isBusy}
 							accessibilityRole="button"
 							accessibilityLabel={`${linkLabel} para ${displayName(person)}`}
-							className={`flex-row items-center gap-1.5 rounded-lg border border-primary/30 px-3 py-2 ${
-								isBusy ? 'opacity-50' : ''
-							}`}
+							className={`flex-row items-center gap-1.5 rounded-lg border border-primary/30 px-3 py-2 ${isBusy ? 'opacity-50' : ''}`}
 						>
 							{isBusy ? (
 								<ActivityIndicator

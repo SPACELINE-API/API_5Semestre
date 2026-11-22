@@ -51,10 +51,10 @@ function errorText(cause: unknown, fallback: string) {
 }
 
 export function InternalUsersPage() {
-	const themeColors = useThemeColors();
 	const canEditUsers = usePermission('users.write');
 	const { people, roles, isLoading, error, reload } =
 		useInternalUsers(canEditUsers);
+	const themeColors = useThemeColors();
 	const { toast, showToast } = useToast();
 	const [search, setSearch] = useState('');
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');

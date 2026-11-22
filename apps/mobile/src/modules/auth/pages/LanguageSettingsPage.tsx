@@ -189,7 +189,7 @@ export default function LanguageSettingsPage() {
 								onPress={() => void handleCreate()}
 								disabled={isSaving}
 								accessibilityRole="button"
-								className={`mt-5 flex-row items-center justify-center gap-2 self-start rounded-lg px-4 py-2.5 ${isSaving ? 'bg-primary' : 'bg-primary'}`}
+								className="mt-5 flex-row items-center justify-center gap-2 self-start rounded-lg bg-primary px-4 py-2.5"
 							>
 								{isSaving ? (
 									<ActivityIndicator
