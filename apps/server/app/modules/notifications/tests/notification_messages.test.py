@@ -133,7 +133,9 @@ def test_describe_changes_lists_added_removed_and_updated_documents():
 def test_describe_changes_summarises_the_overflow():
     from app.modules.notifications.services.notification_messages import describe_changes
 
-    changes = [{"action": "added", "item": f"Documento {index}", "fields": {}} for index in range(6)]
+    changes = [
+        {"action": "added", "item": f"Documento {index}", "fields": {}} for index in range(6)
+    ]
 
     text = describe_changes(changes)
 

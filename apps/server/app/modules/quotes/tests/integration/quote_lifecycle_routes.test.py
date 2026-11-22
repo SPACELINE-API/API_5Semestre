@@ -1226,7 +1226,9 @@ def test_reopen_without_service_order_does_not_notify_managers(
     response = db_client.post(f"/api/quotes/{quote.id}/reopen", json={"reason": "Revisar valores"})
 
     assert response.status_code == 200
-    assert isolated_db_session.query(Notification).filter_by(event_type="quote_reopened").count() == 0
+    assert (
+        isolated_db_session.query(Notification).filter_by(event_type="quote_reopened").count() == 0
+    )
 
 
 def test_reapproval_notifies_managers_with_the_changes(
@@ -1246,7 +1248,9 @@ def test_reapproval_notifies_managers_with_the_changes(
 
     reapprove(db_client, quote)
 
-    notification = isolated_db_session.query(Notification).filter_by(event_type="quote_updated").one()
+    notification = (
+        isolated_db_session.query(Notification).filter_by(event_type="quote_updated").one()
+    )
     assert notification.recipient_user_id == manager.id
     assert notification.related_type == "service_order"
     assert notification.related_id == order.id
@@ -1262,4 +1266,6 @@ def test_reapproval_without_changes_does_not_notify_managers(
 
     reapprove(db_client, quote)
 
-    assert isolated_db_session.query(Notification).filter_by(event_type="quote_updated").count() == 0
+    assert (
+        isolated_db_session.query(Notification).filter_by(event_type="quote_updated").count() == 0
+    )

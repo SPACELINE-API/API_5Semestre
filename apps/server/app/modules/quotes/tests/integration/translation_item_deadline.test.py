@@ -68,7 +68,9 @@ def test_update_item_changes_deadline(db_session: Session) -> None:
     service = TranslationItemService(db_session)
     item = service.create_item(
         quote.id,
-        QuoteTranslationItemCreate(source_language="pt-BR", target_language="en-US", deadline=day(5)),
+        QuoteTranslationItemCreate(
+            source_language="pt-BR", target_language="en-US", deadline=day(5)
+        ),
     )
     new_deadline = day(12)
 
