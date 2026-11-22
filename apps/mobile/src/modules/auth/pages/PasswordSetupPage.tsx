@@ -29,7 +29,7 @@ type LoadState =
 	| { kind: 'ready'; info: PasswordSetupLinkInfo }
 	| {
 			kind: 'blocked';
-			reason: 'invalido' | 'aceito' | 'rejeitado' | 'expirado';
+			reason: 'invalido' | 'aceito' | 'rejeitado' | 'expirado' | 'cancelado';
 	  }
 	| { kind: 'error'; message: string };
 
@@ -47,6 +47,11 @@ const BLOCKED_COPY = {
 	rejeitado: {
 		title: 'Este link foi substituído',
 		text: 'Um novo link foi enviado para o seu e-mail. Use o mais recente para definir a sua senha.',
+		Icon: Link2Off,
+	},
+	cancelado: {
+		title: 'Este convite foi cancelado',
+		text: 'O administrador cancelou este convite. Peça um novo link para definir a sua senha.',
 		Icon: Link2Off,
 	},
 	expirado: {
@@ -196,7 +201,9 @@ export function PasswordSetupPage() {
 					? 'aceito'
 					: cause.message.includes('substitu')
 						? 'rejeitado'
-						: 'expirado';
+						: cause.message.includes('cancelado')
+							? 'cancelado'
+							: 'expirado';
 				setState({ kind: 'blocked', reason: gone });
 				return;
 			}

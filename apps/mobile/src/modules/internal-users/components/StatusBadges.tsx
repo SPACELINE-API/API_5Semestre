@@ -7,6 +7,7 @@ const LINK_STYLES: Record<LinkStatus, { bg: string; text: string }> = {
 	aceito: { bg: 'bg-success-soft', text: 'text-success-text' },
 	rejeitado: { bg: 'bg-danger-soft', text: 'text-danger-text' },
 	expirado: { bg: 'bg-surface-muted', text: 'text-foreground-secondary' },
+	cancelado: { bg: 'bg-surface-muted', text: 'text-foreground-secondary' },
 };
 
 export function AccountBadge({ active }: { active: boolean }) {

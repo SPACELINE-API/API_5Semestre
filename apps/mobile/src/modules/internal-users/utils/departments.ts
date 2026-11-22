@@ -28,6 +28,7 @@ export const LINK_STATUS_LABELS: Record<LinkStatus, string> = {
 	aceito: 'Aceito',
 	rejeitado: 'Rejeitado',
 	expirado: 'Expirado',
+	cancelado: 'Cancelado',
 };
 
 export function displayName(person: InternalUser) {

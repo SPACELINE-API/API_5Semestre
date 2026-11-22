@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
-import { ChevronDown, ChevronRight, Clock, Mail } from 'lucide-react-native';
+import {
+	ChevronDown,
+	ChevronRight,
+	Clock,
+	Mail,
+	XCircle,
+} from 'lucide-react-native';
 import type { InternalUser } from '../types/internalUser';
 import { displayName } from '../utils/departments';
 import { describeExpiry, pendingInvites } from '../utils/inviteExpiry';
@@ -10,12 +16,14 @@ type PendingInvitesCardProps = {
 	people: InternalUser[];
 	busyId: string | null;
 	onResend: (person: InternalUser) => void;
+	onCancel: (person: InternalUser) => void;
 };
 
 export function PendingInvitesCard({
 	people,
 	busyId,
 	onResend,
+	onCancel,
 }: PendingInvitesCardProps) {
 	const themeColors = useThemeColors();
 	const [now, setNow] = useState(() => Date.now());
@@ -136,6 +144,21 @@ export function PendingInvitesCard({
 								)}
 								<Text className="font-inter font-medium text-primary-text text-xs">
 									Reenviar link
+								</Text>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								onPress={() => onCancel(person)}
+								disabled={busy}
+								accessibilityRole="button"
+								accessibilityLabel={`Cancelar convite de ${displayName(person)}`}
+								className={`flex-row items-center justify-center gap-1.5 rounded-lg border border-danger/30 px-3 py-2 ${
+									busy ? 'opacity-50' : ''
+								}`}
+							>
+								<XCircle size={14} color={themeColors.danger} />
+								<Text className="font-inter font-medium text-danger text-xs">
+									Cancelar convite
 								</Text>
 							</TouchableOpacity>
 						</View>

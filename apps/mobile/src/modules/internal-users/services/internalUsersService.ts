@@ -67,6 +67,13 @@ export function sendPasswordSetupLink(id: string): Promise<InternalUser> {
 	);
 }
 
+export function cancelPasswordSetupLink(id: string): Promise<InternalUser> {
+	return apiPostAuth<InternalUser, Record<string, never>>(
+		`${PATH}/${id}/password-setup-link/cancel`,
+		{},
+	);
+}
+
 export function resendPasswordSetupLink(id: string): Promise<InternalUser> {
 	return apiPostAuth<InternalUser, Record<string, never>>(
 		`${PATH}/${id}/password-setup-link/resend`,

@@ -23,6 +23,7 @@ import {
 import { useInternalUsers } from '../hooks/useInternalUsers';
 import {
 	addInternalUserRole,
+	cancelPasswordSetupLink,
 	createInternalUser,
 	deactivateInternalUser,
 	removeInternalUserRole,
@@ -62,6 +63,10 @@ export function InternalUsersPage() {
 	const [editing, setEditing] = useState<InternalUser | null>(null);
 	const [deactivating, setDeactivating] = useState<InternalUser | null>(null);
 	const [isDeactivating, setIsDeactivating] = useState(false);
+	const [cancellingInvite, setCancellingInvite] = useState<InternalUser | null>(
+		null,
+	);
+	const [isCancellingInvite, setIsCancellingInvite] = useState(false);
 	const [busyId, setBusyId] = useState<string | null>(null);
 	const currentUserEmail = getAuthorizationContext()?.user.email ?? null;
 
@@ -150,6 +155,25 @@ export function InternalUsersPage() {
 		}
 	}
 
+	async function confirmCancelInvite() {
+		if (!cancellingInvite) return;
+		setIsCancellingInvite(true);
+		try {
+			await cancelPasswordSetupLink(cancellingInvite.id);
+			showToast(`Convite de ${displayName(cancellingInvite)} cancelado.`);
+			setCancellingInvite(null);
+			await reload();
+		} catch (cause) {
+			showToast(
+				errorText(cause, 'Não foi possível cancelar o convite.'),
+				'error',
+			);
+			setCancellingInvite(null);
+		} finally {
+			setIsCancellingInvite(false);
+		}
+	}
+
 	async function confirmDeactivate() {
 		if (!deactivating) return;
 		setIsDeactivating(true);
@@ -208,6 +232,7 @@ export function InternalUsersPage() {
 						people={people}
 						busyId={busyId}
 						onResend={(person) => void handleSendLink(person)}
+						onCancel={setCancellingInvite}
 					/>
 				)}
 
@@ -360,6 +385,18 @@ export function InternalUsersPage() {
 					isLoading={isDeactivating}
 					onConfirm={() => void confirmDeactivate()}
 					onCancel={() => setDeactivating(null)}
+				/>
+			)}
+			{canEditUsers && (
+				<ConfirmDialog
+					visible={cancellingInvite !== null}
+					title="Cancelar convite?"
+					message={`${cancellingInvite ? displayName(cancellingInvite) : ''} não conseguirá mais usar o link enviado e o convite sai desta lista. Você pode enviar um novo link depois.`}
+					confirmLabel="Cancelar convite"
+					destructive
+					isLoading={isCancellingInvite}
+					onConfirm={() => void confirmCancelInvite()}
+					onCancel={() => setCancellingInvite(null)}
 				/>
 			)}
 			<Toast toast={toast} />
