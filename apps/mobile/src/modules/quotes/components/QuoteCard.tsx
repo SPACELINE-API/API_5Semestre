@@ -413,9 +413,13 @@ export function QuoteCard({
 	const hasItemWithoutFile = quote.items.some(
 		(item) => !(item.file_url ?? '').trim(),
 	);
+	const hasItemWithoutPrice = quote.items.some(
+		(item) => !(Number(item.estimated_value) > 0),
+	);
 	const canSendQuote =
 		Boolean(quote.company_id) &&
 		Boolean(quote.deadline) &&
+		!hasItemWithoutPrice &&
 		quote.items.length > 0 &&
 		!hasItemWithoutFile;
 	const [sendDialogOpen, setSendDialogOpen] = useState(false);
@@ -993,6 +997,17 @@ export function QuoteCard({
 									</Text>
 								</View>
 							)}
+							{quote.company_id &&
+								quote.items.length > 0 &&
+								hasItemWithoutPrice && (
+									<View className="mt-3 flex-row items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft p-3">
+										<CircleAlert size={16} color={themeColors.warningText} />
+										<Text className="flex-1 font-inter text-sm text-warning-text">
+											Informe o preço de todos os documentos antes de enviar o
+											orçamento.
+										</Text>
+									</View>
+								)}
 							{quote.company_id && hasItemWithoutFile && (
 								<View className="mt-3 flex-row items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft p-3">
 									<CircleAlert size={16} color={themeColors.warningText} />

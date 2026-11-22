@@ -45,6 +45,17 @@ def upload_quote_document(
     return public_url
 
 
+def download_document(url: str) -> bytes | None:
+    try:
+        with create_supabase_http_client() as client:
+            response = client.get(url, timeout=15)
+        if response.status_code != 200:
+            return None
+        return response.content
+    except Exception:
+        return None
+
+
 def upload_request_document(
     filename: str,
     file_data: BinaryIO,

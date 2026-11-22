@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from unittest.mock import MagicMock
 
 import pytest
@@ -139,6 +140,45 @@ def test_generate_quote_reuses_uploaded_request_document_url(mock_db_session):
 
     assert len(result.items) == 1
     assert result.items[0].file_url == request.document_url
+
+
+def test_generate_quote_counts_words_of_request_document(mock_db_session, monkeypatch):
+    request = approved_request()
+    request.document = b"conteudo"
+    request.document_filename = "contrato.txt"
+    monkeypatch.setattr(
+        quote_service_module,
+        "upload_quote_document",
+        lambda filename, file_data, content_type: "https://storage.test/contrato.txt",
+    )
+    monkeypatch.setattr(quote_service_module, "count_document_words", lambda data, name: 42)
+
+    service = QuoteService(mock_db_session)
+    service.request_repository.get_by_id = MagicMock(return_value=request)
+    service.quote_repository.get_by_request_id = MagicMock(return_value=None)
+    mock_db_session.refresh.side_effect = lambda obj: None
+
+    result = service.generate_from_approved_request(request.id)
+
+    assert result.items[0].word_count == 42
+
+
+def test_generate_quote_downloads_request_document_to_count_words(mock_db_session, monkeypatch):
+    request = approved_request()
+    request.document_filename = "contrato.txt"
+    request.document_url = "https://storage.test/requests/contrato.txt"
+    download = MagicMock(return_value=b"um dois tres")
+    monkeypatch.setattr(quote_service_module, "download_document", download)
+
+    service = QuoteService(mock_db_session)
+    service.request_repository.get_by_id = MagicMock(return_value=request)
+    service.quote_repository.get_by_request_id = MagicMock(return_value=None)
+    mock_db_session.refresh.side_effect = lambda obj: None
+
+    result = service.generate_from_approved_request(request.id)
+
+    download.assert_called_once_with(request.document_url)
+    assert result.items[0].word_count == 3
 
 
 def test_generate_quote_without_document_creates_no_item(mock_db_session):
@@ -305,7 +345,9 @@ def test_update_quote_rejects_locked_status(mock_db_session, status):
 def draft_quote_ready_to_send(mock_db_session, **overrides):
     quote = quote_for_update(mock_db_session, "draft")
     quote.company_id = uuid.uuid4()
-    quote.items = [MagicMock(file_url="https://storage.test/contrato.pdf")]
+    quote.items = [
+        MagicMock(file_url="https://storage.test/contrato.pdf", estimated_value=Decimal("100"))
+    ]
     quote.contact = MagicMock(email="contato@cliente.com", name="Contato")
     quote.sent_to_customer_at = None
     quote.valid_until = None
@@ -363,6 +405,18 @@ def test_send_to_customer_keeps_draft_when_email_fails(mock_db_session, monkeypa
         ({"company_id": None}, "Vincule uma empresa"),
         ({"items": []}, "Adicione ao menos um documento"),
         ({"items": [MagicMock(file_url=None)]}, "Anexe o arquivo"),
+        (
+            {"items": [MagicMock(file_url="https://storage.test/a.pdf", estimated_value=None)]},
+            "Informe o preço",
+        ),
+        (
+            {
+                "items": [
+                    MagicMock(file_url="https://storage.test/a.pdf", estimated_value=Decimal("0"))
+                ]
+            },
+            "Informe o preço",
+        ),
     ],
 )
 def test_send_to_customer_requires_complete_quote(mock_db_session, monkeypatch, overrides, message):
