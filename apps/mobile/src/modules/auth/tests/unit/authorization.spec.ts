@@ -72,9 +72,9 @@ test.describe('canAccess', () => {
 		expect(canAccess(withPermissions, '/configuracoes/permissoes')).toBe(true);
 		expect(canAccess(withPermissions, '/configuracoes/pessoas')).toBe(true);
 		expect(canAccess(withPermissions, '/configuracoes/idiomas')).toBe(false);
-		expect(canAccess(context(['languages.read']), '/configuracoes/idiomas')).toBe(
-			true,
-		);
+		expect(
+			canAccess(context(['languages.read']), '/configuracoes/idiomas'),
+		).toBe(true);
 		expect(canAccess(context(['settings.read']), '/configuracoes/sessao')).toBe(
 			true,
 		);

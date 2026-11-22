@@ -181,17 +181,19 @@ export function InternalUsersPage() {
 						<Text className="min-w-0 flex-1 font-inter font-semibold text-gray-900 text-base">
 							Pessoas internas
 						</Text>
-						{canEditUsers && <TouchableOpacity
-							onPress={openCreate}
-							accessibilityRole="button"
-							accessibilityLabel="Convidar pessoa"
-							className="shrink-0 flex-row items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2.5 md:gap-2 md:px-4 md:py-3"
-						>
-							<Plus size={16} color="#FFFFFF" />
-							<Text className="font-inter font-semibold text-sm text-white">
-								Convidar pessoa
-							</Text>
-						</TouchableOpacity>}
+						{canEditUsers && (
+							<TouchableOpacity
+								onPress={openCreate}
+								accessibilityRole="button"
+								accessibilityLabel="Convidar pessoa"
+								className="shrink-0 flex-row items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2.5 md:gap-2 md:px-4 md:py-3"
+							>
+								<Plus size={16} color="#FFFFFF" />
+								<Text className="font-inter font-semibold text-sm text-white">
+									Convidar pessoa
+								</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 					<Text className="font-inter text-gray-500 text-sm">
 						Convide e gerencie quem trabalha na plataforma, separado por
@@ -296,15 +298,17 @@ export function InternalUsersPage() {
 							Cadastre quem vai trabalhar na plataforma. A pessoa recebe um
 							e-mail para criar a própria senha.
 						</Text>
-						{canEditUsers && <TouchableOpacity
-							onPress={openCreate}
-							accessibilityRole="button"
-							className="mt-1 rounded-lg bg-blue-600 px-4 py-2.5"
-						>
-							<Text className="font-inter font-semibold text-sm text-white">
-								Convidar pessoa
-							</Text>
-						</TouchableOpacity>}
+						{canEditUsers && (
+							<TouchableOpacity
+								onPress={openCreate}
+								accessibilityRole="button"
+								className="mt-1 rounded-lg bg-blue-600 px-4 py-2.5"
+							>
+								<Text className="font-inter font-semibold text-sm text-white">
+									Convidar pessoa
+								</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 				) : departments.length === 0 ? (
 					<View className="items-center gap-2 rounded-xl border border-dashed border-gray-300 px-6 py-12">
@@ -331,23 +335,27 @@ export function InternalUsersPage() {
 				)}
 			</ScrollView>
 
-			{canEditUsers && <PersonFormModal
-				visible={formOpen}
-				person={editing}
-				roles={roles}
-				onClose={() => setFormOpen(false)}
-				onSubmit={handleSubmit}
-			/>}
-			{canEditUsers && <ConfirmDialog
-				visible={deactivating !== null}
-				title="Desativar conta?"
-				message={`${deactivating ? displayName(deactivating) : ''} perde o acesso à plataforma. Os dados e o histórico são mantidos.`}
-				confirmLabel="Desativar"
-				destructive
-				isLoading={isDeactivating}
-				onConfirm={() => void confirmDeactivate()}
-				onCancel={() => setDeactivating(null)}
-			/>}
+			{canEditUsers && (
+				<PersonFormModal
+					visible={formOpen}
+					person={editing}
+					roles={roles}
+					onClose={() => setFormOpen(false)}
+					onSubmit={handleSubmit}
+				/>
+			)}
+			{canEditUsers && (
+				<ConfirmDialog
+					visible={deactivating !== null}
+					title="Desativar conta?"
+					message={`${deactivating ? displayName(deactivating) : ''} perde o acesso à plataforma. Os dados e o histórico são mantidos.`}
+					confirmLabel="Desativar"
+					destructive
+					isLoading={isDeactivating}
+					onConfirm={() => void confirmDeactivate()}
+					onCancel={() => setDeactivating(null)}
+				/>
+			)}
 			<Toast toast={toast} />
 		</View>
 	);

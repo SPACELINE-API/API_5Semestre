@@ -28,9 +28,9 @@ test.describe('acesso às telas de tarefas', () => {
 			),
 		).toBe(true);
 		expect(canAccess(context(['Atendimento']), '/tarefas')).toBe(false);
-		expect(canAccess(context(['Atendimento'], ['tasks.read']), '/tarefas')).toBe(
-			false,
-		);
+		expect(
+			canAccess(context(['Atendimento'], ['tasks.read']), '/tarefas'),
+		).toBe(false);
 		expect(canAccess(context(['Atendimento']), '/tarefas/minhas')).toBe(false);
 		expect(canAccess(context(['Administrador']), '/tarefas')).toBe(true);
 	});

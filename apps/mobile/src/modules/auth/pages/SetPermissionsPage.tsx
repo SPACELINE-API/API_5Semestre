@@ -212,8 +212,8 @@ export default function SetPermissionsPage() {
 												profile={selectedRole}
 												disabled={!canEditRoles}
 												hideRead={
-												module.key === 'tasks' || module.key === 'support'
-											}
+													module.key === 'tasks' || module.key === 'support'
+												}
 												writeLabel={
 													module.key === 'requests'
 														? 'Aprovação'

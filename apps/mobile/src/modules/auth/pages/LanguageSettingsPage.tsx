@@ -180,21 +180,23 @@ export default function LanguageSettingsPage() {
 								{fieldError}
 							</Text>
 						)}
-						{canEdit && <TouchableOpacity
-							onPress={() => void handleCreate()}
-							disabled={isSaving}
-							accessibilityRole="button"
-							className={`mt-5 flex-row items-center justify-center gap-2 self-start rounded-lg px-4 py-2.5 ${isSaving ? 'bg-blue-300' : 'bg-blue-600'}`}
-						>
-							{isSaving ? (
-								<ActivityIndicator size="small" color="#ffffff" />
-							) : (
-								<Plus size={17} color="#ffffff" />
-							)}
-							<Text className="font-inter font-semibold text-sm text-white">
-								{isSaving ? 'Salvando...' : 'Cadastrar idioma'}
-							</Text>
-						</TouchableOpacity>}
+						{canEdit && (
+							<TouchableOpacity
+								onPress={() => void handleCreate()}
+								disabled={isSaving}
+								accessibilityRole="button"
+								className={`mt-5 flex-row items-center justify-center gap-2 self-start rounded-lg px-4 py-2.5 ${isSaving ? 'bg-blue-300' : 'bg-blue-600'}`}
+							>
+								{isSaving ? (
+									<ActivityIndicator size="small" color="#ffffff" />
+								) : (
+									<Plus size={17} color="#ffffff" />
+								)}
+								<Text className="font-inter font-semibold text-sm text-white">
+									{isSaving ? 'Salvando...' : 'Cadastrar idioma'}
+								</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 
 					<View className="rounded-xl border border-gray-200 p-5 md:p-6">
@@ -248,14 +250,16 @@ export default function LanguageSettingsPage() {
 											<Text className="rounded-md bg-gray-50 px-2.5 py-1 font-inter text-gray-500 text-xs">
 												{language.id}
 											</Text>
-											{canEdit && <TouchableOpacity
-												onPress={() => setLanguageToDelete(language)}
-												accessibilityRole="button"
-												accessibilityLabel={`Remover idioma ${language.name}`}
-												className="rounded-md p-2"
-											>
-												<Trash2 size={17} color="#b91c1c" />
-											</TouchableOpacity>}
+											{canEdit && (
+												<TouchableOpacity
+													onPress={() => setLanguageToDelete(language)}
+													accessibilityRole="button"
+													accessibilityLabel={`Remover idioma ${language.name}`}
+													className="rounded-md p-2"
+												>
+													<Trash2 size={17} color="#b91c1c" />
+												</TouchableOpacity>
+											)}
 										</View>
 									</View>
 								))}
