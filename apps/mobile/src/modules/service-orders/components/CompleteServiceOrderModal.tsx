@@ -15,7 +15,7 @@ import {
 	Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { Check, FileText, Square, X } from 'lucide-react-native';
+import { Check, FileText, Square, TriangleAlert, X } from 'lucide-react-native';
 import type {
 	ServiceOrder,
 	ServiceOrderEmailTemplate,
@@ -104,6 +104,9 @@ export function CompleteServiceOrderModal({
 	const [isSending, setIsSending] = useState(false);
 	const [sendError, setSendError] = useState<string | null>(null);
 	const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
+	const [pendingAction, setPendingAction] = useState<
+		'send' | 'finalize' | null
+	>(null);
 
 	const currentFiles = currentOutputDeliveries(serviceOrder.files);
 	const deliveryFiles = approvedDeliveries(currentFiles);
@@ -125,6 +128,7 @@ export function CompleteServiceOrderModal({
 		setTemplateError(null);
 		setSendError(null);
 		setIsSending(false);
+		setPendingAction(null);
 		setSelectedFileIds(
 			approvedDeliveries(currentOutputDeliveries(serviceOrder.files))
 				.filter((file) => file.delivery_status !== 'sent')
@@ -170,6 +174,28 @@ export function CompleteServiceOrderModal({
 		selectedFileIds.length > 0;
 	const canFinalize =
 		canFinalizeOrder(serviceOrder.items, serviceOrder.files) && !isSending;
+	const incompleteItems = serviceOrder.items.filter(
+		(item) => item.status === 'pendente' || item.status === 'em_andamento',
+	);
+
+	function incompleteItemsMessage(action: 'send' | 'finalize' | null): string {
+		const pendingCount = incompleteItems.filter(
+			(item) => item.status === 'pendente',
+		).length;
+		const inProgressCount = incompleteItems.length - pendingCount;
+		const statuses = [
+			pendingCount > 0 && `${pendingCount} pendente(s)`,
+			inProgressCount > 0 && `${inProgressCount} em andamento`,
+		]
+			.filter(Boolean)
+			.join(' e ');
+		const nextStep =
+			action === 'finalize'
+				? 'finalizar a ordem de serviço'
+				: 'enviar os documentos selecionados';
+
+		return `Ainda há ${incompleteItems.length} documento(s) sem conclusão (${statuses}). Tem certeza de que deseja ${nextStep} mesmo assim?`;
+	}
 
 	function toggleFile(fileId: string) {
 		setSelectedFileIds((current) =>
@@ -217,6 +243,17 @@ export function CompleteServiceOrderModal({
 		} finally {
 			setIsSending(false);
 		}
+	}
+
+	function requestAction(action: 'send' | 'finalize') {
+		if (action === 'send' && !canSend) return;
+		if (action === 'finalize' && !canFinalize) return;
+		if (incompleteItems.length > 0) {
+			setPendingAction(action);
+			return;
+		}
+		if (action === 'send') void handleSend();
+		else void handleFinalize();
 	}
 
 	async function handleOpenDocument(fileUrl: string) {
@@ -467,7 +504,7 @@ export function CompleteServiceOrderModal({
 						</TouchableOpacity>
 						{canFinalize ? (
 							<TouchableOpacity
-								onPress={handleFinalize}
+								onPress={() => requestAction('finalize')}
 								accessibilityRole="button"
 								accessibilityState={{ busy: isSending }}
 								className="flex-row items-center gap-2 rounded-lg bg-primary px-5 py-2.5"
@@ -484,7 +521,7 @@ export function CompleteServiceOrderModal({
 							</TouchableOpacity>
 						) : (
 							<TouchableOpacity
-								onPress={handleSend}
+								onPress={() => requestAction('send')}
 								disabled={!canSend}
 								accessibilityRole="button"
 								accessibilityState={{ disabled: !canSend, busy: isSending }}
@@ -502,6 +539,54 @@ export function CompleteServiceOrderModal({
 							</TouchableOpacity>
 						)}
 					</View>
+					{pendingAction && (
+						<View className="absolute inset-0 z-50 items-center justify-center bg-overlay/60 px-4">
+							<View className="w-full max-w-[400px] items-center gap-4 rounded-xl bg-surface p-7">
+								<View className="h-14 w-14 items-center justify-center rounded-full bg-warning-soft">
+									<TriangleAlert
+										size={26}
+										color={themeColors.warningText}
+										strokeWidth={2}
+									/>
+								</View>
+								<View className="gap-1.5">
+									<Text className="text-center font-inter font-bold text-foreground text-lg">
+										Tem certeza?
+									</Text>
+									<Text className="text-center font-inter text-foreground-muted text-sm">
+										{incompleteItemsMessage(pendingAction)}
+									</Text>
+								</View>
+								<View className="mt-2 w-full flex-row gap-3">
+									<TouchableOpacity
+										onPress={() => setPendingAction(null)}
+										disabled={isSending}
+										className="flex-1 items-center rounded-lg border border-border-strong px-4 py-2.5"
+									>
+										<Text className="font-inter font-medium text-foreground text-sm">
+											Cancelar
+										</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										onPress={() => {
+											const action = pendingAction;
+											setPendingAction(null);
+											if (action === 'send') void handleSend();
+											if (action === 'finalize') void handleFinalize();
+										}}
+										disabled={isSending}
+										className="flex-1 items-center rounded-lg bg-primary px-4 py-2.5"
+									>
+										<Text className="font-inter font-semibold text-primary-foreground text-sm">
+											{pendingAction === 'finalize'
+												? 'Finalizar mesmo assim'
+												: 'Enviar mesmo assim'}
+										</Text>
+									</TouchableOpacity>
+								</View>
+							</View>
+						</View>
+					)}
 				</View>
 			</View>
 		</Modal>
