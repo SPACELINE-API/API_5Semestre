@@ -937,7 +937,9 @@ def test_sync_updates_the_project_deadline_and_keeps_document_deadlines(
     new_project_deadline = future_deadline(45)
 
     quote.deadline = new_project_deadline
-    version = sync_service_order_with_quote(db_session, quote, service_order, "atendimento@teste.com")
+    version = sync_service_order_with_quote(
+        db_session, quote, service_order, "atendimento@teste.com"
+    )
     db_session.commit()
 
     assert service_order.deadline == new_project_deadline

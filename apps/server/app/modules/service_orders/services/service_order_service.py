@@ -200,12 +200,8 @@ class ServiceOrderService:
 
         if data.deadline is not None:
             for item in data.items:
-                if item.deadline is not None and _utc_day(item.deadline) > _utc_day(
-                    data.deadline
-                ):
-                    raise HTTPException(
-                        status_code=422, detail=ITEM_DEADLINE_AFTER_PROJECT_MESSAGE
-                    )
+                if item.deadline is not None and _utc_day(item.deadline) > _utc_day(data.deadline):
+                    raise HTTPException(status_code=422, detail=ITEM_DEADLINE_AFTER_PROJECT_MESSAGE)
 
         service_order = ServiceOrder(
             quote_id=None,
@@ -517,9 +513,7 @@ class ServiceOrderService:
 
         return ServiceOrderItemResponse.model_validate(item)
 
-    def set_item_deadline(
-        self, item_id: uuid.UUID, deadline: datetime
-    ) -> ServiceOrderItemResponse:
+    def set_item_deadline(self, item_id: uuid.UUID, deadline: datetime) -> ServiceOrderItemResponse:
         item = self.db.query(ServiceOrderItem).filter(ServiceOrderItem.id == item_id).first()
         if not item:
             raise HTTPException(status_code=404, detail="Item da ordem de serviço não encontrado")

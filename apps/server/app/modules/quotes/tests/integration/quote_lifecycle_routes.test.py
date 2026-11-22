@@ -1182,9 +1182,7 @@ def test_reapproval_updates_the_project_deadline_and_keeps_document_deadlines(
     new_deadline = project_deadline(50)
 
     assert (
-        db_client.patch(
-            f"/api/quotes/{quote.id}", json={"deadline": new_deadline.isoformat()}
-        )
+        db_client.patch(f"/api/quotes/{quote.id}", json={"deadline": new_deadline.isoformat()})
     ).status_code == 200
     reapprove(db_client, quote)
 
@@ -1302,7 +1300,9 @@ def test_reopen_without_service_order_does_not_notify_managers(
     response = db_client.post(f"/api/quotes/{quote.id}/reopen", json={"reason": "Revisar valores"})
 
     assert response.status_code == 200
-    assert isolated_db_session.query(Notification).filter_by(event_type="quote_reopened").count() == 0
+    assert (
+        isolated_db_session.query(Notification).filter_by(event_type="quote_reopened").count() == 0
+    )
 
 
 def test_reapproval_notifies_managers_with_the_changes(
@@ -1322,7 +1322,9 @@ def test_reapproval_notifies_managers_with_the_changes(
 
     reapprove(db_client, quote)
 
-    notification = isolated_db_session.query(Notification).filter_by(event_type="quote_updated").one()
+    notification = (
+        isolated_db_session.query(Notification).filter_by(event_type="quote_updated").one()
+    )
     assert notification.recipient_user_id == manager.id
     assert notification.related_type == "service_order"
     assert notification.related_id == order.id
@@ -1338,7 +1340,9 @@ def test_reapproval_without_changes_does_not_notify_managers(
 
     reapprove(db_client, quote)
 
-    assert isolated_db_session.query(Notification).filter_by(event_type="quote_updated").count() == 0
+    assert (
+        isolated_db_session.query(Notification).filter_by(event_type="quote_updated").count() == 0
+    )
 
 
 def test_reapproval_warns_about_documents_scheduled_after_the_new_project_deadline(
@@ -1358,7 +1362,9 @@ def test_reapproval_warns_about_documents_scheduled_after_the_new_project_deadli
 
     reapprove(db_client, quote)
 
-    notification = isolated_db_session.query(Notification).filter_by(event_type="quote_updated").one()
+    notification = (
+        isolated_db_session.query(Notification).filter_by(event_type="quote_updated").one()
+    )
     assert "Atenção: 1 documento está com prazo depois do prazo final do projeto" in (
         notification.message
     )

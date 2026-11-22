@@ -137,7 +137,7 @@ def quote_changes_message(
 ) -> NotificationMessage:
     display_name = (company_name or "não identificada").strip()
     message = (
-        f'O orçamento da empresa {display_name} foi alterado e a ordem de serviço '
+        f"O orçamento da empresa {display_name} foi alterado e a ordem de serviço "
         f'"{project_name}" foi atualizada.'
     )
     description = describe_changes(changes)

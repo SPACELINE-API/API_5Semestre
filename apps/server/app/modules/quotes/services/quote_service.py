@@ -104,9 +104,7 @@ class QuoteService:
         self.request_repository = RequestRepository(db)
 
     @staticmethod
-    def _ensure_deadline_not_in_past(
-        new: datetime | None, current: datetime | None = None
-    ) -> None:
+    def _ensure_deadline_not_in_past(new: datetime | None, current: datetime | None = None) -> None:
         if new is None or new == current:
             return
         if new.date() < datetime.now(SAO_PAULO_TIMEZONE).date():
