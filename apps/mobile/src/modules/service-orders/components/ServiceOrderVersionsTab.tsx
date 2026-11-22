@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { History } from 'lucide-react-native';
+import { formatDateOnly } from '../../../shared/utils/dateOnly';
 import { listServiceOrderVersions } from '../services/serviceOrderService';
 import type {
 	ServiceOrderVersion,
@@ -14,6 +15,7 @@ const FIELD_LABELS: Record<string, string> = {
 	document_type: 'Tipo de documento',
 	file_url: 'Arquivo',
 	word_count: 'Palavras',
+	deadline: 'Prazo',
 	price: 'Valor',
 };
 
@@ -47,6 +49,7 @@ function formatValue(field: string, value: unknown) {
 			currency: 'BRL',
 		});
 	}
+	if (field === 'deadline') return formatDateOnly(String(value));
 	if (field === 'file_url') {
 		const text = String(value);
 		return decodeURIComponent(text.split('/').pop() ?? text);

@@ -34,6 +34,11 @@ import {
 	WORD_COUNT_MAX_DIGITS,
 	wordCountInputValue,
 } from '../../utils/wordCount';
+import { DateField } from '../../../../shared/components/DateField';
+import {
+	dateInputToIso,
+	todayInputValue,
+} from '../../../../shared/utils/dateOnly';
 
 import { useThemeColors } from '../../../../shared/theme/ThemeProvider';
 const { width } = Dimensions.get('window');
@@ -48,6 +53,7 @@ type QuoteItem = {
 	fileName: string;
 	fileUrl: string | null;
 	wordCount: number | null;
+	deadline: string;
 };
 
 function createEmptyItem(): QuoteItem {
@@ -60,6 +66,7 @@ function createEmptyItem(): QuoteItem {
 		fileName: '',
 		fileUrl: null,
 		wordCount: null,
+		deadline: '',
 	};
 }
 
@@ -154,6 +161,7 @@ export function NewQuoteModal({
 					document_type: item.docType || undefined,
 					file_url: item.fileUrl ?? undefined,
 					word_count: item.wordCount ?? undefined,
+					deadline: dateInputToIso(item.deadline) ?? undefined,
 					estimated_value: item.price ? Number(item.price) : undefined,
 				});
 			}
@@ -383,6 +391,19 @@ export function NewQuoteModal({
 														updateItem(item.id, {
 															price: maskCurrencyDigits(val),
 														})
+													}
+												/>
+											</View>
+											<View
+												className={isDesktop ? 'w-[32%]' : 'w-full'}
+												style={{ zIndex: 10 }}
+											>
+												<DateField
+													label="Prazo do documento"
+													value={item.deadline}
+													minDate={todayInputValue()}
+													onChangeText={(value) =>
+														updateItem(item.id, { deadline: value })
 													}
 												/>
 											</View>

@@ -79,6 +79,13 @@ import {
 	WORD_COUNT_MAX_DIGITS,
 	wordCountInputValue,
 } from '../utils/wordCount';
+import { DateField } from '../../../shared/components/DateField';
+import {
+	dateInputToIso,
+	formatDateOnly,
+	isoToDateInput,
+	todayInputValue,
+} from '../../../shared/utils/dateOnly';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export const quoteStatusStyles: Record<
@@ -508,6 +515,7 @@ type DraftItem = {
 	estimated_value: string;
 	file_url: string | null;
 	word_count: number | null;
+	deadline: string;
 };
 
 function toDraftItem(item: QuoteManagerItem): DraftItem {
@@ -521,6 +529,7 @@ function toDraftItem(item: QuoteManagerItem): DraftItem {
 			item.estimated_value == null ? '' : String(item.estimated_value),
 		file_url: item.file_url,
 		word_count: item.word_count ?? null,
+		deadline: isoToDateInput(item.deadline),
 	};
 }
 
@@ -744,6 +753,7 @@ export function QuoteCard({
 				estimated_value: '',
 				file_url: null,
 				word_count: null,
+				deadline: '',
 			},
 		]);
 	}
@@ -914,6 +924,7 @@ export function QuoteCard({
 							: null,
 						file_url: draft.file_url,
 						word_count: draft.word_count,
+						deadline: dateInputToIso(draft.deadline),
 					};
 					return draft.isNew
 						? createQuoteItem(quote.id, {
@@ -922,6 +933,7 @@ export function QuoteCard({
 								document_type: payload.document_type ?? undefined,
 								file_url: payload.file_url ?? undefined,
 								word_count: payload.word_count ?? undefined,
+								deadline: payload.deadline ?? undefined,
 								estimated_value: payload.estimated_value ?? undefined,
 							})
 						: updateQuoteItem(quote.id, draft.id, payload);
@@ -1464,6 +1476,19 @@ export function QuoteCard({
 													updateDraftItem(item.id, { word_count: value })
 												}
 											/>
+											<View
+												className="w-full md:w-[47%]"
+												style={{ zIndex: 10 }}
+											>
+												<DateField
+													label="Prazo do documento"
+													value={item.deadline}
+													minDate={todayInputValue()}
+													onChangeText={(value) =>
+														updateDraftItem(item.id, { deadline: value })
+													}
+												/>
+											</View>
 										</View>
 										<View className="flex-row items-center gap-3 border-t border-border-subtle pt-3">
 											{!item.file_url && (
@@ -1596,6 +1621,14 @@ export function QuoteCard({
 													{item.word_count != null
 														? formatWordCount(item.word_count)
 														: 'Não foi possível contar as palavras deste arquivo'}
+												</Text>
+											) : null}
+											{item.deadline ? (
+												<Text
+													testID="quote-item-deadline"
+													className="mt-2 font-inter text-xs text-foreground-secondary"
+												>
+													Prazo do documento: {formatDateOnly(item.deadline)}
 												</Text>
 											) : null}
 											<Text className="mt-2 font-inter text-xs text-foreground-subtle">

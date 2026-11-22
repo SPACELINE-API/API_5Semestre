@@ -1,5 +1,23 @@
 import { expect, test } from '@playwright/test';
-import { formatDateOnly } from './dateOnly';
+import {
+	dateInputToIso,
+	formatDateOnly,
+	isoToDateInput,
+	todayInputValue,
+} from './dateOnly';
+
+test.describe('date input helpers', () => {
+	test('converts the picker value to a UTC midnight timestamp and back', () => {
+		expect(dateInputToIso('2026-12-10')).toBe('2026-12-10T00:00:00.000Z');
+		expect(dateInputToIso('')).toBeNull();
+		expect(isoToDateInput('2026-12-10T00:00:00.000Z')).toBe('2026-12-10');
+		expect(isoToDateInput(null)).toBe('');
+	});
+
+	test('formats the local calendar day as the picker value', () => {
+		expect(todayInputValue()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+	});
+});
 
 test.describe('formatDateOnly', () => {
 	test('keeps the calendar day of a date-only value', () => {

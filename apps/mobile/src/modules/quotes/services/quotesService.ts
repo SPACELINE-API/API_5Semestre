@@ -92,6 +92,7 @@ export type QuoteManagerItem = {
 	file_url: string | null;
 	word_count: number | null;
 	estimated_value: number | string | null;
+	deadline: string | null;
 	created_at: string;
 	updated_at: string;
 };
@@ -233,6 +234,7 @@ export type QuoteTranslationItemUpdateInput = Partial<{
 	file_url: string | null;
 	word_count: number | null;
 	estimated_value: number | null;
+	deadline: string | null;
 }>;
 
 export type QuoteItemEditResult =
@@ -279,6 +281,7 @@ export type QuoteTranslationItemCreate = {
 	file_url?: string;
 	word_count?: number;
 	estimated_value?: number;
+	deadline?: string;
 };
 
 export async function createQuote(): Promise<QuoteResponse | null> {
