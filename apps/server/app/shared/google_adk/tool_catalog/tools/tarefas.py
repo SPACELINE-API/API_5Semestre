@@ -231,7 +231,10 @@ def _handler_funcionario(
         )
         return {
             "status": "created",
-            "mensagem": "Tarefa criada com sucesso para o funcionário interno.",
+            "mensagem": (
+                f"Tarefa criada para {funcionario.name or funcionario.email}. Ela aparece em "
+                "'Atribuídas a mim' na conta dessa pessoa; você acompanha em 'Atribuídas por mim'."
+            ),
             "missing_fields": [],
             "task_id": task.id,
             "task_status": task.status.value,
