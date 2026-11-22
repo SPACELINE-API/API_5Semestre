@@ -154,6 +154,16 @@ def resend_password_setup_link(
     return PasswordSetupService(db, admin_client).resend(user_id, actor)
 
 
+@router.post("/{user_id}/password-setup-link/cancel", response_model=InternalUserResponse)
+def cancel_password_setup_link(
+    user_id: uuid.UUID,
+    db: DbSession,
+    admin_client: AdminClient,
+    actor: UserWriter,
+) -> InternalUserResponse:
+    return PasswordSetupService(db, admin_client).cancel(user_id, actor)
+
+
 @password_setup_router.get("/{token}", response_model=PasswordSetupLinkInfo)
 def get_password_setup_link(token: str, db: DbSession) -> PasswordSetupLinkInfo:
     return PasswordSetupService(db).describe(token)

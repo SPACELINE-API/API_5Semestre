@@ -299,3 +299,89 @@ def test_full_lifecycle_is_audited(env) -> None:
     assert by_action["internal_user_created"].actor_email == "admin@example.com"
     assert by_action["password_defined"].actor_email == "ana@example.com"
     assert all("token" not in str(row.after) for row in rows)
+
+
+def test_cancel_pending_invite_marks_it_cancelled_and_blocks_the_link(env) -> None:
+    person = env.create_person(env.role("Projetos"))
+    env.client.post(link_url(person["id"]))
+    token = env.last_token()
+
+    response = env.client.post(link_url(person["id"], "/cancel"))
+
+    assert response.status_code == 200
+    assert response.json()["latest_link"]["status"] == "cancelado"
+    assert env.client.get(f"/api/auth/password-setup/{token}").json()["status"] == "cancelado"
+    attempt = define(env, token)
+    assert attempt.status_code == 410
+    assert "cancelado" in attempt.json()["detail"]
+    stored = env.db.get(User, uuid.UUID(person["id"]))
+    assert stored.is_active is False and stored.password_set_at is None
+
+
+def test_cancel_expired_invite_removes_it_from_the_pending_list(env) -> None:
+    person = env.create_person(env.role("Projetos"))
+    env.client.post(link_url(person["id"]))
+    expire_token(env, env.last_token())
+
+    response = env.client.post(link_url(person["id"], "/cancel"))
+
+    assert response.status_code == 200
+    assert response.json()["latest_link"]["status"] == "cancelado"
+    listed = env.client.get("/api/internal-users", params={"is_active": "false"}).json()
+    assert listed[0]["latest_link"]["status"] == "cancelado"
+
+
+def test_cancel_requires_an_invite_to_cancel(env) -> None:
+    person = env.create_person(env.role("Projetos"))
+
+    never_sent = env.client.post(link_url(person["id"], "/cancel"))
+    env.client.post(link_url(person["id"]))
+    env.client.post(link_url(person["id"], "/cancel"))
+    already_cancelled = env.client.post(link_url(person["id"], "/cancel"))
+
+    assert never_sent.status_code == 409
+    assert already_cancelled.status_code == 409
+    assert "convite pendente" in already_cancelled.json()["detail"]
+
+
+def test_cancel_is_not_allowed_once_the_password_is_defined(env) -> None:
+    person = env.create_person(env.role("Projetos"))
+    env.client.post(link_url(person["id"]))
+    assert define(env, env.last_token()).status_code == 200
+
+    response = env.client.post(link_url(person["id"], "/cancel"))
+
+    assert response.status_code == 409
+
+
+def test_resend_after_cancel_issues_a_new_working_link(env) -> None:
+    person = env.create_person(env.role("Projetos"))
+    env.client.post(link_url(person["id"]))
+    cancelled_token = env.last_token()
+    env.client.post(link_url(person["id"], "/cancel"))
+
+    resent = env.client.post(link_url(person["id"], "/resend"))
+    new_token = env.last_token()
+
+    assert resent.status_code == 200
+    assert resent.json()["latest_link"]["status"] == "pendente"
+    assert define(env, cancelled_token).status_code == 410
+    assert define(env, new_token).status_code == 200
+
+
+def test_cancel_is_audited(env) -> None:
+    person = env.create_person(env.role("Projetos"))
+    env.client.post(link_url(person["id"]))
+    env.client.post(link_url(person["id"], "/cancel"))
+
+    row = env.db.scalar(
+        select(AuthorizationAuditLog).where(
+            AuthorizationAuditLog.target_id == uuid.UUID(person["id"]),
+            AuthorizationAuditLog.action == "password_setup_link_cancelled",
+        )
+    )
+
+    assert row is not None
+    assert row.actor_email == "admin@example.com"
+    assert row.before == {"link_status": "pendente"}
+    assert row.after == {"link_status": "cancelado"}

@@ -36,6 +36,15 @@ class PasswordSetupTokenRepository:
             is not None
         )
 
+    def get_latest(self, user_id: uuid.UUID) -> PasswordSetupToken | None:
+        return self.db.scalar(
+            select(PasswordSetupToken)
+            .where(PasswordSetupToken.user_id == user_id)
+            .order_by(PasswordSetupToken.created_at.desc())
+            .limit(1)
+            .with_for_update()
+        )
+
     def latest_for_users(self, user_ids: list[uuid.UUID]) -> dict[uuid.UUID, PasswordSetupToken]:
         if not user_ids:
             return {}
