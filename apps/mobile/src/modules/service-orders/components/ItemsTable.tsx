@@ -127,28 +127,26 @@ function ItemCard({
 					</View>
 				</View>
 
-				<View className="flex-row gap-4">
-					<View className="min-w-0 flex-1 gap-1">
-						<Text className="font-inter text-foreground-subtle text-xs">
-							Prazo
-						</Text>
-						<ItemDeadline
-							item={item}
-							onEdit={onEditDeadline}
-							textClassName="font-inter text-foreground-secondary text-sm"
-						/>
-					</View>
-					<View className="min-w-0 flex-1 gap-1">
-						<Text className="font-inter text-foreground-subtle text-xs">
-							Tradutor
-						</Text>
-						<Text
-							className="font-inter text-foreground-secondary text-sm"
-							numberOfLines={2}
-						>
-							{translatorName}
-						</Text>
-					</View>
+				<View className="min-w-0 gap-1">
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Prazo
+					</Text>
+					<ItemDeadline
+						item={item}
+						onEdit={onEditDeadline}
+						textClassName="font-inter text-foreground-secondary text-sm"
+					/>
+				</View>
+				<View className="min-w-0 gap-1">
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Tradutor
+					</Text>
+					<Text
+						className="font-inter text-foreground-secondary text-sm"
+						numberOfLines={2}
+					>
+						{translatorName}
+					</Text>
 				</View>
 
 				<View className="flex-row flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-border-subtle pt-3">

@@ -351,7 +351,9 @@ export function NewQuoteModal({
 										/>
 									</View>
 									<View
-										className={isDesktop ? 'w-[48%]' : 'w-full'}
+										className={
+											isDesktop ? 'w-[48%] flex-row' : 'w-full flex-row'
+										}
 										style={{ zIndex: 10 }}
 									>
 										<DateField
@@ -365,16 +367,19 @@ export function NewQuoteModal({
 							</View>
 
 							<View>
-								<View className="mb-4 flex-row items-center justify-between">
-									<Text className="font-inter-bold text-sm text-foreground">
+								<View className="mb-4 flex-row items-center justify-between gap-4">
+									<Text className="flex-1 font-inter-bold text-sm text-foreground">
 										Documentos do orçamento
 									</Text>
 									<TouchableOpacity
 										accessibilityRole="button"
 										onPress={handleAddItem}
-										className="items-center rounded-full border border-primary/30 bg-surface px-4 py-2"
+										className="shrink-0 items-center rounded-full border border-primary/30 bg-surface px-4 py-2"
 									>
-										<Text className="font-inter-medium text-xs text-primary-text">
+										<Text
+											numberOfLines={1}
+											className="font-inter-medium text-xs text-primary-text"
+										>
 											+ Adicionar documento
 										</Text>
 									</TouchableOpacity>
