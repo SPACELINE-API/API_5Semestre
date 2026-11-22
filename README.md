@@ -12,8 +12,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-em%20andamento-yellow?style=flat-square" />
-  <img src="https://img.shields.io/badge/sprint%20atual-02-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/status-concluido-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/sprint%20atual-03-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/branch%20strategy-GitFlow-orange?style=flat-square" />
 </p>
 
