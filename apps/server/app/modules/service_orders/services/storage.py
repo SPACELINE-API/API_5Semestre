@@ -9,6 +9,7 @@ from app.shared.supabase.client import (
     create_supabase_http_client,
     get_supabase_config,
 )
+from app.shared.supabase.filenames import safe_storage_filename
 
 
 def upload_service_order_file(filename: str, file_data: BinaryIO, content_type: str) -> str:
@@ -16,7 +17,7 @@ def upload_service_order_file(filename: str, file_data: BinaryIO, content_type: 
     bucket = "service-order-files"
 
     unique_id = str(uuid.uuid4())
-    file_path = f"{unique_id}_{filename}"
+    file_path = f"{unique_id}_{safe_storage_filename(filename)}"
 
     upload_url = f"{config.url}/storage/v1/object/{bucket}/{file_path}"
 
