@@ -535,6 +535,7 @@ class ServiceOrderService:
         service_orders = (
             self.db.query(ServiceOrder)
             .options(selectinload(ServiceOrder.items), selectinload(ServiceOrder.files))
+            .order_by(ServiceOrder.created_at.desc(), ServiceOrder.id.desc())
             .all()
         )
         return [to_response(service_order) for service_order in service_orders]

@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { env } from '../../../shared/env';
 import {
 	apiDeleteAuth,
@@ -7,6 +8,7 @@ import {
 } from '../../../shared/services/apiClient';
 import { FORBIDDEN_ERROR_MESSAGE } from '../../../shared/services/publicApiClient';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
+import { toUploadable } from '../../../shared/utils/toUploadable';
 import type { UploadableFile } from '../../../shared/types/file';
 
 const API_BASE_URL = env.apiUrl;
@@ -466,21 +468,11 @@ export async function uploadQuoteDocument(
 	fileName: string,
 ): Promise<UploadedQuoteDocument | null> {
 	try {
-		const isWeb =
-			typeof window !== 'undefined' && typeof window.document !== 'undefined';
-
-		let file: UploadableFile;
-		if (isWeb) {
-			const fetchResponse = await fetch(fileUri);
-			const blob = await fetchResponse.blob();
-			file = blob as UploadableFile;
-		} else {
-			file = {
-				uri: fileUri,
-				name: fileName,
-				type: 'application/octet-stream',
-			} as UploadableFile;
-		}
+		const file: UploadableFile = await toUploadable({
+			uri: fileUri,
+			name: fileName,
+			type: Platform.OS === 'web' ? '' : 'application/octet-stream',
+		});
 
 		const data = await uploadFileMultipart<{
 			file_url: string;

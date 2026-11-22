@@ -12,6 +12,7 @@ from app.modules.clients.models.company import Company
 from app.modules.clients.schemas.company import calculate_cnpj_check_digit
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
+from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
 from app.modules.service_orders.models.service_order_email_template import (
     SERVICE_ORDER_EMAIL_TEMPLATE_KEY,
@@ -1133,3 +1134,25 @@ def test_add_item_to_manual_order_rejects_deadline_after_the_project_deadline(
         )
 
     assert error.value.status_code == 422
+
+
+def test_list_service_orders_returns_the_newest_first(db_session: Session) -> None:
+    company = make_company(db_session)
+    service = ServiceOrderService(db_session)
+    oldest = make_manual_order(service, company, "Mais antiga")
+    newest = make_manual_order(service, company, "Mais recente")
+    middle = make_manual_order(service, company, "Intermediária")
+    base = datetime.now(UTC)
+    for order, days_ago in ((oldest, 3), (middle, 2), (newest, 1)):
+        db_session.query(ServiceOrder).filter(ServiceOrder.id == order.id).update(
+            {"created_at": base - timedelta(days=days_ago)}
+        )
+    db_session.commit()
+
+    listed = service.list_service_orders()
+
+    assert [order.project_name for order in listed] == [
+        "Mais recente",
+        "Intermediária",
+        "Mais antiga",
+    ]
