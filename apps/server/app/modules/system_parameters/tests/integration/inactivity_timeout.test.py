@@ -51,8 +51,19 @@ def test_get_requires_authentication(client: TestClient) -> None:
     assert response.status_code in (401, 403)
 
 
-def test_get_returns_default_timeout(client: TestClient) -> None:
+def test_get_rejects_user_without_settings_read_permission(client: TestClient, db: Session) -> None:
     authenticate()
+    create_user(db, "Tradutor")
+
+    response = client.get(URL)
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Usuário sem permissão para esta operação"}
+
+
+def test_get_returns_default_timeout(client: TestClient, db: Session) -> None:
+    authenticate()
+    create_user(db, "Configurações", ["settings.read"])
 
     response = client.get(URL)
 
@@ -60,10 +71,11 @@ def test_get_returns_default_timeout(client: TestClient) -> None:
     assert response.json() == {"minutes": 30}
 
 
-def test_get_returns_stored_timeout_for_any_authenticated_user(
+def test_get_returns_stored_timeout_for_user_with_settings_read_permission(
     client: TestClient, db: Session
 ) -> None:
     authenticate()
+    create_user(db, "Configurações", ["settings.read"])
     db.add(SystemParameter(key=INACTIVITY_TIMEOUT_KEY, value="15"))
     db.flush()
 
