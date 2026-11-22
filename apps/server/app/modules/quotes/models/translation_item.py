@@ -33,6 +33,7 @@ class QuoteTranslationItem(Base):
     file_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     word_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     estimated_value: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

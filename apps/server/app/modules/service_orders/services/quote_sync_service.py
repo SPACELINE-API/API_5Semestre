@@ -27,8 +27,9 @@ SYNCED_FIELDS = {
     "file_url": "file_url",
     "price": "estimated_value",
     "word_count": "word_count",
+    "deadline": "deadline",
 }
-OPTIONAL_SYNCED_FIELDS = {"word_count"}
+OPTIONAL_SYNCED_FIELDS = {"word_count", "deadline"}
 
 ITEM_IN_PROGRESS_MESSAGE = (
     "Este documento já está em andamento na ordem de serviço (tradutor atribuído ou entrega "
@@ -39,6 +40,8 @@ ITEM_IN_PROGRESS_MESSAGE = (
 def _serialize(value: Any) -> Any:
     if isinstance(value, Decimal):
         return f"{value:.2f}"
+    if isinstance(value, datetime):
+        return value.astimezone(UTC).date().isoformat()
     return value
 
 
@@ -140,6 +143,7 @@ def sync_service_order_with_quote(
                 file_url=quote_item.file_url,
                 word_count=quote_item.word_count,
                 price=quote_item.estimated_value,
+                deadline=quote_item.deadline,
             )
             service_order.items.append(new_item)
             changes.append({"action": "added", "item": _item_label(quote_item), "fields": {}})

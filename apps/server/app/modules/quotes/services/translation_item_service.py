@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -10,9 +11,19 @@ from app.modules.quotes.schemas.translation_item import (
     QuoteTranslationItemUpdate,
 )
 from app.modules.quotes.services.quote_lock import ensure_quote_is_editable
+from app.modules.quotes.services.receipt_formatting import SAO_PAULO_TIMEZONE
 from app.modules.service_orders.services.quote_sync_service import (
     detach_quote_item_from_service_order,
 )
+
+DEADLINE_IN_PAST_MESSAGE = "O prazo não pode ser anterior à data de hoje."
+
+
+def _ensure_deadline_not_in_past(new: datetime | None, current: datetime | None = None) -> None:
+    if new is None or new == current:
+        return
+    if new.date() < datetime.now(SAO_PAULO_TIMEZONE).date():
+        raise HTTPException(status_code=422, detail=DEADLINE_IN_PAST_MESSAGE)
 
 
 class TranslationItemService:
@@ -26,6 +37,7 @@ class TranslationItemService:
         if not quote:
             raise HTTPException(status_code=404, detail="Quote not found")
         ensure_quote_is_editable(quote)
+        _ensure_deadline_not_in_past(item_data.deadline)
 
         item = QuoteTranslationItem(
             quote_id=quote_id,
@@ -35,6 +47,7 @@ class TranslationItemService:
             file_url=item_data.file_url,
             word_count=item_data.word_count,
             estimated_value=item_data.estimated_value,
+            deadline=item_data.deadline,
         )
         self.db.add(item)
         self.db.commit()
@@ -69,8 +82,11 @@ class TranslationItemService:
         if item is None:
             raise HTTPException(status_code=404, detail="Item do orçamento não encontrado.")
         ensure_quote_is_editable(item.quote)
+        changes = item_data.model_dump(exclude_unset=True)
+        if "deadline" in changes:
+            _ensure_deadline_not_in_past(changes["deadline"], item.deadline)
 
-        for field, value in item_data.model_dump(exclude_unset=True).items():
+        for field, value in changes.items():
             setattr(item, field, value)
 
         self.db.commit()

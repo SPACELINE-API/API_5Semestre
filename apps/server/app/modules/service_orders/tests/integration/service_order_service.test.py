@@ -1,6 +1,7 @@
 import io
 import random
 import uuid
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
@@ -37,6 +38,9 @@ from app.modules.service_orders.services import (
     service_order_service as service_order_service_module,
 )
 from app.modules.service_orders.services.delivery_service import ServiceOrderDeliveryService
+from app.modules.service_orders.services.quote_sync_service import (
+    sync_service_order_with_quote,
+)
 from app.modules.service_orders.services.service_order_service import ServiceOrderService
 from app.modules.translators.models.translator import Translator
 
@@ -858,3 +862,107 @@ def test_order_stays_visible_after_quote_is_reopened(db_session: Session) -> Non
 
     assert service.get_service_order(order.id).id == order.id
     assert order.id in [listed.id for listed in service.list_service_orders()]
+
+
+def future_deadline(days: int = 10) -> datetime:
+    target = datetime.now(UTC) + timedelta(days=days)
+    return target.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def test_generate_from_quote_copies_word_count_and_deadline(db_session: Session) -> None:
+    company = make_company(db_session)
+    deadline = future_deadline()
+    quote = Quote(status="approved")
+    quote.items.append(
+        QuoteTranslationItem(
+            source_language="pt-BR",
+            target_language="en-US",
+            document_type="contrato",
+            word_count=1200,
+            estimated_value=Decimal("100.00"),
+            deadline=deadline,
+        )
+    )
+    quote.items.append(
+        QuoteTranslationItem(source_language="pt-BR", target_language="es-ES", word_count=300)
+    )
+    db_session.add(quote)
+    db_session.commit()
+
+    response = ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id, company_id=company.id, project_name="Projeto com prazos"
+        )
+    )
+
+    by_target = {item.target_language: item for item in response.items}
+    assert by_target["en-US"].word_count == 1200
+    assert by_target["en-US"].deadline == deadline
+    assert by_target["es-ES"].word_count == 300
+    assert by_target["es-ES"].deadline is None
+
+
+def test_sync_copies_changed_deadline_and_records_it_in_the_version(
+    db_session: Session,
+) -> None:
+    company = make_company(db_session)
+    first_deadline = future_deadline(10)
+    second_deadline = future_deadline(20)
+    quote = Quote(status="approved")
+    quote.items.append(
+        QuoteTranslationItem(
+            source_language="pt-BR",
+            target_language="en-US",
+            word_count=1200,
+            deadline=first_deadline,
+        )
+    )
+    db_session.add(quote)
+    db_session.commit()
+    ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id, company_id=company.id, project_name="Projeto sincronizado"
+        )
+    )
+    service_order = quote.service_orders[0]
+
+    quote.items[0].deadline = second_deadline
+    quote.items[0].word_count = 1500
+    version = sync_service_order_with_quote(
+        db_session, quote, service_order, "atendimento@teste.com"
+    )
+    db_session.commit()
+
+    item = service_order.items[0]
+    assert item.deadline == second_deadline
+    assert item.word_count == 1500
+    fields = version.changes[0]["fields"]
+    assert fields["deadline"] == {
+        "before": first_deadline.date().isoformat(),
+        "after": second_deadline.date().isoformat(),
+    }
+    assert fields["word_count"] == {"before": 1200, "after": 1500}
+
+
+def test_sync_keeps_order_deadline_when_quote_document_has_no_deadline(
+    db_session: Session,
+) -> None:
+    company = make_company(db_session)
+    quote = Quote(status="approved")
+    quote.items.append(QuoteTranslationItem(source_language="pt-BR", target_language="en-US"))
+    db_session.add(quote)
+    db_session.commit()
+    ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id, company_id=company.id, project_name="Projeto sem prazo"
+        )
+    )
+    service_order = quote.service_orders[0]
+    kept = future_deadline(5)
+    service_order.items[0].deadline = kept
+    db_session.commit()
+
+    sync_service_order_with_quote(db_session, quote, service_order, None)
+    db_session.commit()
+
+    assert service_order.items[0].deadline == kept
