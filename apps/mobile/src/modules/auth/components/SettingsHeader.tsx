@@ -6,7 +6,7 @@ import {
 	getAuthorizationContext,
 	subscribeAuthorizationContext,
 } from '../services/auth';
-import { hasFullRouteAccess, hasPermission } from '../services/authorization';
+import { hasPermission } from '../services/authorization';
 
 export type SettingsTab = 'permissoes' | 'pessoas' | 'idiomas' | 'sessao';
 
@@ -26,6 +26,8 @@ export function SettingsHeader({ active }: { active: SettingsTab }) {
 	);
 
 	const canReadPermissions = hasPermission(context, 'roles.read');
+	const canReadPeople = hasPermission(context, 'users.read');
+	const canReadLanguages = hasPermission(context, 'languages.read');
 	const canReadSession =
 		hasPermission(context, 'settings.read') ||
 		hasPermission(context, 'settings.write');
@@ -33,11 +35,11 @@ export function SettingsHeader({ active }: { active: SettingsTab }) {
 		...(canReadPermissions
 			? [{ key: 'permissoes' as const, label: TAB_LABELS.permissoes }]
 			: []),
-		...(hasFullRouteAccess(context)
-			? [
-					{ key: 'pessoas' as const, label: TAB_LABELS.pessoas },
-					{ key: 'idiomas' as const, label: TAB_LABELS.idiomas },
-				]
+		...(canReadPeople
+			? [{ key: 'pessoas' as const, label: TAB_LABELS.pessoas }]
+			: []),
+		...(canReadLanguages
+			? [{ key: 'idiomas' as const, label: TAB_LABELS.idiomas }]
 			: []),
 		...(canReadSession
 			? [{ key: 'sessao' as const, label: TAB_LABELS.sessao }]
@@ -56,7 +58,7 @@ export function SettingsHeader({ active }: { active: SettingsTab }) {
 					Configurações
 				</Text>
 				<Text className="mt-2 font-inter text-foreground-muted text-sm">
-					Gerencie idiomas, permissões e pessoas da plataforma.
+					Gerencie permissões, pessoas, idiomas e sessão da plataforma.
 				</Text>
 			</View>
 			<TabBar tabs={tabs} activeTab={active} onTabChange={changeTab} />

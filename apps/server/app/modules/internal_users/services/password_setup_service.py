@@ -15,6 +15,7 @@ from app.modules.auth.services.authorization_audit_service import record_authori
 from app.modules.auth.services.supabase_admin_client import SupabaseAdminClient
 from app.modules.internal_users.models.password_setup_token import (
     LINK_STATUS_ACEITO,
+    LINK_STATUS_CANCELADO,
     LINK_STATUS_EXPIRADO,
     LINK_STATUS_PENDENTE,
     LINK_STATUS_REJEITADO,
@@ -38,13 +39,17 @@ from app.shared.EnvProvider import env_provider
 
 ACTION_LINK_SENT = "password_setup_link_sent"
 ACTION_LINK_RESENT = "password_setup_link_resent"
+ACTION_LINK_CANCELLED = "password_setup_link_cancelled"
 ACTION_PASSWORD_DEFINED = "password_defined"
 
 INACTIVE_LINK_MESSAGES = {
     LINK_STATUS_ACEITO: "Este link já foi utilizado",
     LINK_STATUS_REJEITADO: "Este link foi substituído por um mais recente",
     LINK_STATUS_EXPIRADO: "Este link expirou. Solicite um novo link ao administrador",
+    LINK_STATUS_CANCELADO: "Este convite foi cancelado. Solicite um novo link ao administrador",
 }
+
+CANCELLABLE_LINK_STATUSES = {LINK_STATUS_PENDENTE, LINK_STATUS_EXPIRADO}
 
 
 def hash_token(raw_token: str) -> str:
@@ -108,6 +113,28 @@ class PasswordSetupService:
                 detail="Nenhum link foi enviado ainda. Use o envio inicial",
             )
         return self._issue(user, actor, ACTION_LINK_RESENT)
+
+    def cancel(self, user_id: uuid.UUID, actor: SupabaseAuthenticatedUser) -> InternalUserResponse:
+        user = self.people.load_user(user_id)
+        ensure_awaiting_password(user)
+        token = self.tokens.get_latest(user.id)
+        if token is None or token.status not in CANCELLABLE_LINK_STATUSES:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Não há convite pendente para cancelar",
+            )
+        previous_status = token.status
+        token.status = LINK_STATUS_CANCELADO
+        self.people.record_audit(
+            user,
+            actor,
+            ACTION_LINK_CANCELLED,
+            {"link_status": previous_status},
+            {"link_status": token.status},
+        )
+        self.db.commit()
+        self.db.refresh(token)
+        return present_user(user, token)
 
     def describe(self, raw_token: str) -> PasswordSetupLinkInfo:
         token = self.tokens.get_by_hash(hash_token(raw_token))

@@ -156,6 +156,9 @@ export function SideBar({
 			authorizationContext ? { ...authorizationContext, permissions } : null,
 			permission,
 		);
+	const canAccessTasks =
+		can('tasks.read') &&
+		(can('tasks.write') || can('tasks.assigned_to_me.read'));
 
 	function navigate(path: string) {
 		router.push(path as never);
@@ -296,6 +299,7 @@ export function SideBar({
 											label="Tarefas"
 											isOpen={showExpanded}
 											active={isTasksActive}
+											disabled={!canAccessTasks}
 											onPress={() => navigate('/tarefas')}
 										/>
 									</View>
@@ -388,6 +392,8 @@ export function SideBar({
 							active={pathname.startsWith('/configuracoes')}
 							disabled={
 								!can('roles.read') &&
+								!can('users.read') &&
+								!can('languages.read') &&
 								!can('settings.read') &&
 								!can('settings.write')
 							}
@@ -395,7 +401,11 @@ export function SideBar({
 								navigate(
 									can('roles.read')
 										? '/configuracoes/permissoes'
-										: '/configuracoes/sessao',
+										: can('users.read')
+											? '/configuracoes/pessoas'
+											: can('languages.read')
+												? '/configuracoes/idiomas'
+												: '/configuracoes/sessao',
 								)
 							}
 						/>

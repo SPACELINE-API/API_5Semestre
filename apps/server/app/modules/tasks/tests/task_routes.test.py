@@ -50,9 +50,9 @@ def test_create_task_requires_the_agent_task_permission(env: TasksEnv) -> None:
     assert response.status_code == 403
 
 
-def test_user_with_assignments_write_can_create_but_not_review(env: TasksEnv) -> None:
+def test_user_with_tasks_write_can_create_but_not_review(env: TasksEnv) -> None:
     employee = env.user()
-    manager = env.user(permissions=("assignments.write",))
+    manager = env.user(permissions=("tasks.read", "tasks.write"))
     env.act_as(manager)
 
     created = env.client.post(
@@ -456,7 +456,7 @@ def test_assignees_requires_permission_to_create_tasks(env: TasksEnv) -> None:
 
 
 def test_assigned_by_me_lists_only_tasks_created_by_the_user(env: TasksEnv) -> None:
-    manager = env.user(permissions=("assignments.write",))
+    manager = env.user(permissions=("tasks.read", "tasks.write"))
     employee = env.user()
     mine = _create_as(env, manager, employee, "Minha atribuição")
     env.create_task(employee, "Atribuída pelo admin")
@@ -477,7 +477,7 @@ def test_assigned_by_me_requires_permission_to_create_tasks(env: TasksEnv) -> No
 def test_requester_follows_the_task_but_cannot_review_without_permission(
     env: TasksEnv,
 ) -> None:
-    manager = env.user(permissions=("assignments.write",))
+    manager = env.user(permissions=("tasks.read", "tasks.write"))
     employee = env.user()
     task_id = _create_as(env, manager, employee)["id"]
     env.act_as(employee)

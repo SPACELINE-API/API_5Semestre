@@ -25,6 +25,7 @@ import { WorkflowItemCard } from '../components/WorkflowItemCard';
 import { GeneralInfoTab } from '../components/GeneralInfoTab';
 import { ClientInfoTab } from '../components/ClientInfoTab';
 import { ItemsTable } from '../components/ItemsTable';
+import { ItemDeadlineModal } from '../components/ItemDeadlineModal';
 import { ServiceOrderFilesTab } from '../components/ServiceOrderFilesTab';
 import { TranslatorsInviteTab } from '../components/TranslatorsInviteTab';
 import { ItemReviewTab } from '../components/ItemReviewTab';
@@ -55,6 +56,9 @@ type ServiceOrderDetailsPageProps = {
 	initialTab?: string;
 };
 
+const MISSING_DEADLINE_MESSAGE =
+	'Defina o prazo do documento antes de convidar um tradutor.';
+
 export function ServiceOrderDetailsPage({
 	id,
 	initialTab,
@@ -80,6 +84,8 @@ export function ServiceOrderDetailsPage({
 	);
 	const [inviteTargetItem, setInviteTargetItem] =
 		useState<ServiceOrderItem | null>(null);
+	const [deadlineTargetItem, setDeadlineTargetItem] =
+		useState<ServiceOrderItem | null>(null);
 	const [refreshToken, setRefreshToken] = useState(0);
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 	const [isCompleteModalVisible, setIsCompleteModalVisible] = useState(false);
@@ -89,6 +95,14 @@ export function ServiceOrderDetailsPage({
 		inviteTargetItem?.id ?? '',
 		refreshToken,
 	);
+
+	function handleInviteTranslators(item: ServiceOrderItem) {
+		if (!item.deadline) {
+			showToast(MISSING_DEADLINE_MESSAGE, 'error');
+			return;
+		}
+		setInviteTargetItem(item);
+	}
 
 	const {
 		services: additionalServices,
@@ -228,14 +242,15 @@ export function ServiceOrderDetailsPage({
 													key={item.id}
 													item={item}
 													translatorsById={translatorsById}
-													onInviteTranslators={setInviteTargetItem}
+													onInviteTranslators={handleInviteTranslators}
+													onEditDeadline={setDeadlineTargetItem}
 													refreshToken={refreshToken}
 												/>
 											))}
 
 											{serviceOrder.items.length === 0 && (
 												<Text className="font-inter text-foreground-subtle text-sm">
-													Esta ordem de serviço não possui itens.
+													Esta ordem de serviço não possui documentos.
 												</Text>
 											)}
 										</View>
@@ -247,9 +262,17 @@ export function ServiceOrderDetailsPage({
 											translators={translators}
 											translatorsById={translatorsById}
 											refreshToken={refreshToken}
+											onEditDeadline={setDeadlineTargetItem}
 											onSendInvites={async (itemId, translatorIds) => {
 												try {
 													if (!canWriteAssignments) return;
+													const target = serviceOrder.items.find(
+														(item) => item.id === itemId,
+													);
+													if (target && !target.deadline) {
+														showToast(MISSING_DEADLINE_MESSAGE, 'error');
+														return;
+													}
 													await sendItemInvites(itemId, translatorIds);
 													setRefreshToken((current) => current + 1);
 													showToast(
@@ -305,6 +328,7 @@ export function ServiceOrderDetailsPage({
 										<ItemsTable
 											items={serviceOrder.items}
 											translatorsById={translatorsById}
+											onEditDeadline={setDeadlineTargetItem}
 											isInServiceOrder={true}
 										/>
 									)}
@@ -444,14 +468,15 @@ export function ServiceOrderDetailsPage({
 										key={item.id}
 										item={item}
 										translatorsById={translatorsById}
-										onInviteTranslators={setInviteTargetItem}
+										onInviteTranslators={handleInviteTranslators}
+										onEditDeadline={setDeadlineTargetItem}
 										refreshToken={refreshToken}
 									/>
 								))}
 
 								{serviceOrder.items.length === 0 && (
 									<Text className="font-inter text-foreground-subtle text-sm">
-										Esta ordem de serviço não possui itens.
+										Esta ordem de serviço não possui documentos.
 									</Text>
 								)}
 							</View>
@@ -460,6 +485,16 @@ export function ServiceOrderDetailsPage({
 				)}
 			</ScrollView>
 
+			<ItemDeadlineModal
+				item={deadlineTargetItem}
+				projectDeadline={serviceOrder?.deadline ?? null}
+				onClose={() => setDeadlineTargetItem(null)}
+				onSaved={async () => {
+					setDeadlineTargetItem(null);
+					await refresh();
+					showToast('Prazo do documento definido.', 'success');
+				}}
+			/>
 			<InviteTranslatorsModal
 				visible={inviteTargetItem !== null}
 				translators={translators}

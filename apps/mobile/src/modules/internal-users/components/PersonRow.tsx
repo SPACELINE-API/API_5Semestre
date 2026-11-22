@@ -15,6 +15,7 @@ type PersonRowProps = {
 	person: InternalUser;
 	isSelf: boolean;
 	isBusy: boolean;
+	canEdit: boolean;
 	onEdit: (person: InternalUser) => void;
 	onSendLink: (person: InternalUser) => void;
 	onDeactivate: (person: InternalUser) => void;
@@ -24,6 +25,7 @@ export function PersonRow({
 	person,
 	isSelf,
 	isBusy,
+	canEdit,
 	onEdit,
 	onSendLink,
 	onDeactivate,
@@ -84,54 +86,57 @@ export function PersonRow({
 				{person.latest_link && <LinkBadge status={person.latest_link.status} />}
 			</View>
 
-			<View className="flex-row flex-wrap items-center gap-2 md:justify-end">
-				{(showSend || showResend) && (
+			{canEdit && (
+				<View className="flex-row flex-wrap items-center gap-2 md:justify-end">
+					{(showSend || showResend) && (
+						<TouchableOpacity
+							onPress={() => onSendLink(person)}
+							disabled={isBusy}
+							accessibilityRole="button"
+							accessibilityLabel={`${linkLabel} para ${displayName(person)}`}
+							className={`flex-row items-center gap-1.5 rounded-lg border border-primary/30 px-3 py-2 ${isBusy ? 'opacity-50' : ''}`}
+						>
+							{isBusy ? (
+								<ActivityIndicator
+									size="small"
+									color={themeColors.primaryText}
+								/>
+							) : (
+								<Mail size={14} color={themeColors.primaryText} />
+							)}
+							<Text className="font-inter font-medium text-primary-text text-xs">
+								{linkLabel}
+							</Text>
+						</TouchableOpacity>
+					)}
 					<TouchableOpacity
-						onPress={() => onSendLink(person)}
+						onPress={() => onEdit(person)}
 						disabled={isBusy}
 						accessibilityRole="button"
-						accessibilityLabel={`${linkLabel} para ${displayName(person)}`}
-						className={`flex-row items-center gap-1.5 rounded-lg border border-primary/30 px-3 py-2 ${
-							isBusy ? 'opacity-50' : ''
-						}`}
+						accessibilityLabel={`Editar ${displayName(person)}`}
+						className="flex-row items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2"
 					>
-						{isBusy ? (
-							<ActivityIndicator size="small" color={themeColors.primaryText} />
-						) : (
-							<Mail size={14} color={themeColors.primaryText} />
-						)}
-						<Text className="font-inter font-medium text-primary-text text-xs">
-							{linkLabel}
+						<Pencil size={14} color={themeColors.foregroundSecondary} />
+						<Text className="font-inter font-medium text-foreground text-xs">
+							Editar
 						</Text>
 					</TouchableOpacity>
-				)}
-				<TouchableOpacity
-					onPress={() => onEdit(person)}
-					disabled={isBusy}
-					accessibilityRole="button"
-					accessibilityLabel={`Editar ${displayName(person)}`}
-					className="flex-row items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2"
-				>
-					<Pencil size={14} color={themeColors.foregroundSecondary} />
-					<Text className="font-inter font-medium text-foreground text-xs">
-						Editar
-					</Text>
-				</TouchableOpacity>
-				{person.is_active && !isSelf && (
-					<TouchableOpacity
-						onPress={() => onDeactivate(person)}
-						disabled={isBusy}
-						accessibilityRole="button"
-						accessibilityLabel={`Desativar ${displayName(person)}`}
-						className="flex-row items-center gap-1.5 rounded-lg border border-danger/30 px-3 py-2"
-					>
-						<UserX size={14} color={themeColors.danger} />
-						<Text className="font-inter font-medium text-danger text-xs">
-							Desativar
-						</Text>
-					</TouchableOpacity>
-				)}
-			</View>
+					{person.is_active && !isSelf && (
+						<TouchableOpacity
+							onPress={() => onDeactivate(person)}
+							disabled={isBusy}
+							accessibilityRole="button"
+							accessibilityLabel={`Desativar ${displayName(person)}`}
+							className="flex-row items-center gap-1.5 rounded-lg border border-danger/30 px-3 py-2"
+						>
+							<UserX size={14} color={themeColors.danger} />
+							<Text className="font-inter font-medium text-danger text-xs">
+								Desativar
+							</Text>
+						</TouchableOpacity>
+					)}
+				</View>
+			)}
 		</View>
 	);
 }

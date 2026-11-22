@@ -256,7 +256,7 @@ export function GenerateOrderModal({
 		if (
 			manualItems.some((item) => !item.source_language || !item.target_language)
 		) {
-			nextFieldErrors.items = 'Informe os idiomas de todos os itens.';
+			nextFieldErrors.items = 'Informe os idiomas de todos os documentos.';
 		}
 		if (
 			manualItems.some(
@@ -264,7 +264,7 @@ export function GenerateOrderModal({
 			)
 		) {
 			nextFieldErrors.items =
-				'O prazo dos itens não pode ser anterior à data de hoje.';
+				'O prazo dos documentos não pode ser anterior à data de hoje.';
 		}
 
 		setFieldErrors(nextFieldErrors);
@@ -471,7 +471,7 @@ export function GenerateOrderModal({
 						)}
 
 						<View className="gap-3">
-							<SectionLabel step={2} label="Itens da ordem" />
+							<SectionLabel step={2} label="Documentos da ordem" />
 							{manualItems.map((item, index) => (
 								<View
 									key={item.id}
@@ -479,7 +479,7 @@ export function GenerateOrderModal({
 								>
 									<View className="flex-row items-center justify-between">
 										<Text className="font-inter font-semibold text-foreground text-sm">
-											Item {index + 1}
+											Documento {index + 1}
 										</Text>
 										{manualItems.length > 1 && (
 											<TouchableOpacity
@@ -625,7 +625,7 @@ export function GenerateOrderModal({
 								className="self-start rounded-lg border border-dashed border-border-strong px-4 py-2.5"
 							>
 								<Text className="font-inter font-semibold text-foreground-secondary text-sm">
-									Adicionar item
+									Adicionar documento
 								</Text>
 							</TouchableOpacity>
 						</View>

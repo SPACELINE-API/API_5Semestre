@@ -165,8 +165,8 @@ def test_translator_registration_rejects_email_of_internal_user(env) -> None:
     assert response.json()["detail"] == "Email already registered"
 
 
-def test_only_administrators_can_use_the_flow(env) -> None:
-    projetos = env.role("Projetos", ("users.write", "users.read"))
+def test_people_permissions_separate_reading_from_writing(env) -> None:
+    projetos = env.role("Projetos", ("users.read",))
     person = env.create_person(projetos)
     non_admin = User(
         id=uuid.uuid4(),
@@ -203,7 +203,17 @@ def test_only_administrators_can_use_the_flow(env) -> None:
         env.client.post(f"/api/internal-users/{person_id}/password-setup-link/resend"),
     ]
 
-    assert [response.status_code for response in responses] == [403] * len(responses)
+    assert [response.status_code for response in responses] == [
+        403,
+        200,
+        200,
+        403,
+        403,
+        403,
+        403,
+        403,
+        403,
+    ]
 
 
 def test_list_and_detail_expose_only_internal_people(env) -> None:

@@ -239,8 +239,8 @@ export function CustomerQuoteApprovalPage() {
 									{state.quote.customer_name
 										? `Olá, ${state.quote.customer_name}. `
 										: ''}
-									Confira os itens e os valores abaixo e responda se aprova ou
-									reprova este orçamento.
+									Confira os documentos e os valores abaixo e responda se aprova
+									ou reprova este orçamento.
 								</Text>
 							) : null}
 

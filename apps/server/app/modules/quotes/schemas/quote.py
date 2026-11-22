@@ -12,6 +12,10 @@ class QuoteCreate(BaseModel):
 
     company_id: uuid.UUID | None = None
     contact_id: uuid.UUID | None = None
+    customer_name: str | None = Field(default=None, max_length=255)
+    email: str | None = Field(default=None, max_length=155)
+    customer_need: str | None = Field(default=None, max_length=100)
+    deadline: datetime | None = None
 
 
 class QuoteUpdate(BaseModel):
@@ -25,6 +29,7 @@ class QuoteUpdate(BaseModel):
     original_language: str | None = Field(default=None, max_length=50)
     translation_language: str | None = Field(default=None, max_length=50)
     customer_need: str | None = Field(default=None, max_length=100)
+    deadline: datetime | None = None
 
 
 class QuoteStatusUpdate(BaseModel):
@@ -68,6 +73,7 @@ class QuoteResponse(BaseModel):
     terms_accepted_at: datetime | None = None
     validity_starts_at: datetime | None = None
     valid_until: datetime | None = None
+    deadline: datetime | None = None
     sent_to_customer_at: datetime | None = None
     sent_to_customer_email: str | None = None
     reopened_at: datetime | None = None
@@ -93,6 +99,7 @@ class QuoteManagerResponse(BaseModel):
     service_order_id: uuid.UUID | None = None
     validity_starts_at: datetime | None = None
     valid_until: datetime | None = None
+    deadline: datetime | None = None
     sent_to_customer_at: datetime | None = None
     sent_to_customer_email: str | None = None
     reopened_at: datetime | None = None
@@ -171,6 +178,7 @@ class QuoteCustomerResponse(BaseModel):
     additional_services: list[QuoteCustomerService]
     total_value: Decimal
     valid_until: datetime | None = None
+    deadline: datetime | None = None
     sent_to_customer_at: datetime | None = None
     approved_at: datetime | None = None
     reproved_at: datetime | None = None

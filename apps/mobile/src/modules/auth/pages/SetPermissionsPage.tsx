@@ -27,15 +27,16 @@ const MODULE_LABELS: Record<string, string> = {
 	requests: 'Requisições',
 	quotes: 'Orçamentos',
 	service_orders: 'Ordens de serviço',
-	assignments: 'Tarefas atribuídas',
+	tasks: 'Tarefas atribuídas',
 	clients: 'Clientes',
 	contacts: 'Contatos',
 	translators: 'Tradutores',
 	documents: 'Documentos',
-	projects: 'Projetos',
 	support: 'Suporte',
-	roles: 'Perfis de acesso',
-	settings: 'Configurações',
+	roles: 'Configuração / Permissões',
+	users: 'Configuração / Pessoas',
+	languages: 'Configuração / Idiomas',
+	settings: 'Configuração / Sessão',
 	proposals: 'Propostas',
 };
 
@@ -46,8 +47,7 @@ const VISIBLE_PERMISSIONS = new Set([
 	'quotes.write',
 	'service_orders.read',
 	'service_orders.write',
-	'assignments.read',
-	'assignments.write',
+	'tasks.read',
 	'clients.read',
 	'clients.write',
 	'contacts.read',
@@ -55,13 +55,16 @@ const VISIBLE_PERMISSIONS = new Set([
 	'translators.read',
 	'translators.write',
 	'documents.write',
-	'projects.read',
 	'support.read',
 	'support.write',
 	'proposals.read',
 	'reports.productivity.read',
 	'settings.read',
 	'settings.write',
+	'users.read',
+	'users.write',
+	'languages.read',
+	'languages.write',
 	'roles.read',
 	'roles.write',
 ]);
@@ -69,8 +72,9 @@ const VISIBLE_PERMISSIONS = new Set([
 const EXTRA_PERMISSION_LABELS: Record<string, string> = {
 	'quotes.approve': 'Aprovação',
 	'quotes.reopen': 'Reabrir orçamentos',
-	'assignments.respond': 'Responder convites',
-	'assignments.manage': 'Gerenciar convites',
+	'proposals.report.generate': 'Gerar relatório',
+	'tasks.write': 'Tarefas atribuídas por mim',
+	'tasks.assigned_to_me.read': 'Tarefas atribuídas a mim',
 };
 
 function buildModules(permissions: Permission[]): PermissionModule[] {
@@ -85,14 +89,18 @@ function buildModules(permissions: Permission[]): PermissionModule[] {
 		const moduleKey =
 			permission.code === 'reports.productivity.read'
 				? 'reports.productivity'
-				: key;
+				: permission.code === 'proposals.report.generate'
+					? 'proposals'
+					: permission.code === 'tasks.assigned_to_me.read'
+						? 'tasks'
+						: key;
 
 		const module = modules.get(moduleKey) ?? {
 			key: moduleKey,
 			label:
 				permission.code === 'reports.productivity.read'
 					? 'Produtividade'
-					: (MODULE_LABELS[key] ?? key),
+					: (MODULE_LABELS[moduleKey] ?? MODULE_LABELS[key] ?? key),
 			extras: [],
 		};
 		if (extraLabel) {
@@ -105,9 +113,20 @@ function buildModules(permissions: Permission[]): PermissionModule[] {
 		modules.set(moduleKey, module);
 	}
 
-	return [...modules.values()].sort((a, b) =>
-		a.label.localeCompare(b.label, 'pt-BR'),
-	);
+	const moduleList = [...modules.values()];
+	const taskPermissionOrder = new Map([
+		['tasks.write', 0],
+		['tasks.assigned_to_me.read', 1],
+	]);
+	moduleList
+		.find((module) => module.key === 'tasks')
+		?.extras.sort((a, b) => {
+			const aOrder = taskPermissionOrder.get(a.permission.code) ?? 99;
+			const bOrder = taskPermissionOrder.get(b.permission.code) ?? 99;
+			return aOrder - bOrder;
+		});
+
+	return moduleList.sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
 }
 
 export default function SetPermissionsPage() {
@@ -194,6 +213,16 @@ export default function SetPermissionsPage() {
 												module={module}
 												profile={selectedRole}
 												disabled={!canEditRoles}
+												hideRead={
+													module.key === 'tasks' || module.key === 'support'
+												}
+												writeLabel={
+													module.key === 'requests'
+														? 'Aprovação'
+														: module.key === 'support'
+															? 'Execução'
+															: undefined
+												}
 												onChange={(permissionIds) =>
 													setRolePermissionIds(selectedRole.id, permissionIds)
 												}

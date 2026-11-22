@@ -9,6 +9,7 @@ type DepartmentSectionProps = {
 	department: Department;
 	currentUserEmail: string | null;
 	busyId: string | null;
+	canEdit: boolean;
 	onEdit: (person: InternalUser) => void;
 	onSendLink: (person: InternalUser) => void;
 	onDeactivate: (person: InternalUser) => void;
@@ -18,6 +19,7 @@ export function DepartmentSection({
 	department,
 	currentUserEmail,
 	busyId,
+	canEdit,
 	onEdit,
 	onSendLink,
 	onDeactivate,
@@ -68,6 +70,7 @@ export function DepartmentSection({
 						person={person}
 						isSelf={person.email === currentUserEmail}
 						isBusy={busyId === person.id}
+						canEdit={canEdit}
 						onEdit={onEdit}
 						onSendLink={onSendLink}
 						onDeactivate={onDeactivate}

@@ -1,7 +1,7 @@
 import { Text, TouchableOpacity, View } from 'react-native';
 import { ExternalLink, FileText } from 'lucide-react-native';
 import { openDocument } from '../../../shared/components/FilePreview';
-import { formatDate } from '../../invites/utils/format';
+import { formatDate, formatDeadline } from '../../invites/utils/format';
 import type { ProductivityDocument } from '../types/productivity';
 import { formatCurrencyValue, formatInteger } from '../utils/format';
 import { PunctualityBadge } from './PunctualityBadge';
@@ -78,7 +78,7 @@ export function DocumentsList({ documents }: DocumentsListProps) {
 							label="Valor"
 							value={formatCurrencyValue(document.price)}
 						/>
-						<Metadata label="Prazo" value={formatDate(document.deadline)} />
+						<Metadata label="Prazo" value={formatDeadline(document.deadline)} />
 						<Metadata
 							label="Concluído em"
 							value={formatDate(document.completed_at)}

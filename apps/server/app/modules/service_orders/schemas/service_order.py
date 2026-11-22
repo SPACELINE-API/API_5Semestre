@@ -99,6 +99,10 @@ class UpdateServiceOrderItemRequest(BaseModel):
     deadline: datetime | None = None
 
 
+class SetItemDeadlineRequest(BaseModel):
+    deadline: datetime
+
+
 class ServiceOrderFileResponse(BaseModel):
     id: uuid.UUID
     service_order_id: uuid.UUID

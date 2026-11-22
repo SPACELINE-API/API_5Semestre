@@ -1,16 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import {
-	Modal,
-	Pressable,
-	ScrollView,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	View,
-} from 'react-native';
-import {
-	Building2,
 	CalendarDays,
 	ChevronDown,
 	ChevronUp,
@@ -22,7 +13,6 @@ import {
 	Lock,
 	Plus,
 	RotateCcw,
-	Search,
 	Send,
 	Trash2,
 	X,
@@ -49,6 +39,7 @@ import {
 } from '../../clients/services/companyService';
 import type { Company, CompanyCreateInput } from '../../clients/types/company';
 import { CompanyFormModal } from '../../clients/components/CompanyFormModal';
+import { CompanyLinkField } from './CompanyLinkField';
 import { usePermission } from '../../auth/hooks/usePermission';
 import type {
 	AdditionalService,
@@ -79,6 +70,13 @@ import {
 	WORD_COUNT_MAX_DIGITS,
 	wordCountInputValue,
 } from '../utils/wordCount';
+import { DateField } from '../../../shared/components/DateField';
+import {
+	dateInputToIso,
+	formatDateOnly,
+	isoToDateInput,
+	todayInputValue,
+} from '../../../shared/utils/dateOnly';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export const quoteStatusStyles: Record<
@@ -317,164 +315,6 @@ function CurrencyField({
 	);
 }
 
-function CompanyLinkField({
-	companies,
-	companyId,
-	onSelectCompany,
-	onRequestCreate,
-}: {
-	companies: Company[];
-	companyId: string | null;
-	onSelectCompany: (id: string) => void;
-	onRequestCreate: (searchText: string) => void;
-}) {
-	const themeColors = useThemeColors();
-	const canWriteClients = usePermission('clients.write');
-	const [isOpen, setIsOpen] = useState(false);
-	const [search, setSearch] = useState('');
-	const triggerRef = useRef<View>(null);
-	const [anchor, setAnchor] = useState<{
-		x: number;
-		y: number;
-		width: number;
-		height: number;
-	} | null>(null);
-	const selected = companies.find((company) => company.id === companyId);
-
-	const filtered = companies.filter((company) => {
-		const query = search.trim().toLowerCase();
-		if (!query) return true;
-		return (
-			company.trade_name.toLowerCase().includes(query) ||
-			company.legal_name.toLowerCase().includes(query)
-		);
-	});
-
-	function openPicker() {
-		triggerRef.current?.measureInWindow((x, y, width, height) => {
-			setAnchor({ x, y, width, height });
-			setIsOpen(true);
-		});
-	}
-
-	function closePicker() {
-		setIsOpen(false);
-		setSearch('');
-	}
-
-	return (
-		<View className="w-full gap-1">
-			<Text className="font-inter-medium text-xs text-foreground-muted">
-				Empresa vinculada
-			</Text>
-			<View ref={triggerRef} collapsable={false}>
-				{selected ? (
-					<View className="flex-row items-center justify-between rounded-lg border border-border-strong bg-surface px-3 py-2">
-						<Text className="font-inter text-sm text-foreground">
-							{selected.trade_name}
-						</Text>
-						<TouchableOpacity accessibilityRole="button" onPress={openPicker}>
-							<Text className="font-inter-medium text-xs text-primary-text">
-								Trocar
-							</Text>
-						</TouchableOpacity>
-					</View>
-				) : (
-					<TouchableOpacity
-						accessibilityRole="button"
-						onPress={openPicker}
-						className="flex-row items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong bg-surface px-3 py-2.5"
-					>
-						<Building2 size={14} color={themeColors.foregroundMuted} />
-						<Text className="font-inter-medium text-sm text-foreground-secondary">
-							Vincular empresa
-						</Text>
-					</TouchableOpacity>
-				)}
-			</View>
-
-			<Modal
-				visible={isOpen && !!anchor}
-				transparent
-				animationType="none"
-				onRequestClose={closePicker}
-			>
-				<Pressable className="absolute inset-0" onPress={closePicker} />
-
-				{anchor && (
-					<View
-						className="absolute rounded-lg border border-border bg-surface shadow-sm"
-						style={{
-							top: anchor.y + anchor.height + 4,
-							left: anchor.x,
-							width: anchor.width,
-							maxHeight: 280,
-							backgroundColor: 'white',
-						}}
-					>
-						<View className="flex-row items-center gap-2 border-b border-border-subtle px-3 py-2">
-							<Search size={14} color={themeColors.foregroundSubtle} />
-							<TextInput
-								autoFocus
-								value={search}
-								onChangeText={setSearch}
-								placeholder="Buscar empresa"
-								placeholderTextColor={themeColors.foregroundSubtle}
-								className="flex-1 font-inter text-sm text-foreground max-md:min-w-0 max-md:shrink max-md:leading-5"
-							/>
-							<TouchableOpacity
-								accessibilityRole="button"
-								accessibilityLabel="Fechar busca de empresa"
-								onPress={closePicker}
-							>
-								<X size={14} color={themeColors.foregroundMuted} />
-							</TouchableOpacity>
-						</View>
-						<ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
-							{filtered.map((company) => (
-								<TouchableOpacity
-									key={company.id}
-									onPress={() => {
-										onSelectCompany(company.id);
-										closePicker();
-									}}
-									className="border-b border-border-subtle px-3 py-2"
-								>
-									<Text className="font-inter text-sm text-foreground">
-										{company.trade_name}
-									</Text>
-									<Text className="font-inter text-xs text-foreground-subtle">
-										{company.legal_name}
-									</Text>
-								</TouchableOpacity>
-							))}
-							{filtered.length === 0 && (
-								<Text className="px-3 py-3 font-inter text-sm text-foreground-subtle">
-									Nenhuma empresa encontrada.
-								</Text>
-							)}
-						</ScrollView>
-						<TouchableOpacity
-							accessibilityRole="button"
-							onPress={() => {
-								onRequestCreate(search.trim());
-								closePicker();
-							}}
-							disabled={!canWriteClients}
-							className={`flex-row items-center gap-2 border-t border-border-subtle bg-surface-subtle px-3 py-2.5 ${!canWriteClients ? 'opacity-40' : ''}`}
-						>
-							<Plus size={14} color={themeColors.primaryText} />
-							<Text className="font-inter-medium text-xs text-primary-text">
-								Criar nova empresa
-							</Text>
-						</TouchableOpacity>
-					</View>
-				)}
-			</Modal>
-		</View>
-	);
-}
-
 function SectionTitle({ children }: { children: ReactNode }) {
 	return (
 		<Text className="mb-4 font-inter-semibold text-sm text-foreground">
@@ -574,7 +414,10 @@ export function QuoteCard({
 		(item) => !(item.file_url ?? '').trim(),
 	);
 	const canSendQuote =
-		Boolean(quote.company_id) && quote.items.length > 0 && !hasItemWithoutFile;
+		Boolean(quote.company_id) &&
+		Boolean(quote.deadline) &&
+		quote.items.length > 0 &&
+		!hasItemWithoutFile;
 	const [sendDialogOpen, setSendDialogOpen] = useState(false);
 
 	const [isEditing, setIsEditing] = useState(false);
@@ -591,6 +434,7 @@ export function QuoteCard({
 		quote.translation_language ?? '',
 	);
 	const [customerNeed, setCustomerNeed] = useState(quote.customer_need ?? '');
+	const [deadline, setDeadline] = useState(isoToDateInput(quote.deadline));
 	const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
 	const [companies, setCompanies] = useState<Company[]>([]);
 	const [companyId, setCompanyId] = useState<string | null>(
@@ -670,7 +514,7 @@ export function QuoteCard({
 			.catch(() => {
 				if (active)
 					setServiceOrderItemsError(
-						'Não foi possível carregar os itens do orçamento.',
+						'Não foi possível carregar os documentos do orçamento.',
 					);
 			})
 			.finally(() => {
@@ -706,6 +550,7 @@ export function QuoteCard({
 		setOriginalLanguage(quote.original_language ?? '');
 		setTranslationLanguage(quote.translation_language ?? '');
 		setCustomerNeed(quote.customer_need ?? '');
+		setDeadline(isoToDateInput(quote.deadline));
 		setDraftItems(quote.items.map(toDraftItem));
 		setDraftAdditionalServices(
 			additionalServices
@@ -889,6 +734,7 @@ export function QuoteCard({
 				original_language: originalLanguage.trim(),
 				translation_language: translationLanguage.trim(),
 				customer_need: customerNeed.trim(),
+				deadline: dateInputToIso(deadline),
 			});
 
 			if (!quoteResult.success) {
@@ -931,7 +777,7 @@ export function QuoteCard({
 			const failedItem = itemResults.find((result) => !result.success);
 			if (failedItem && !failedItem.success) {
 				setSaveError(
-					failedItem.detail ?? 'Não foi possível salvar um dos itens.',
+					failedItem.detail ?? 'Não foi possível salvar um dos documentos.',
 				);
 				return;
 			}
@@ -1131,6 +977,15 @@ export function QuoteCard({
 									<Text className="flex-1 font-inter text-sm text-warning-text">
 										Adicione ao menos um documento ao orçamento antes de
 										enviá-lo.
+									</Text>
+								</View>
+							)}
+							{quote.company_id && !quote.deadline && (
+								<View className="mt-3 flex-row items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft p-3">
+									<CircleAlert size={16} color={themeColors.warningText} />
+									<Text className="flex-1 font-inter text-sm text-warning-text">
+										Defina o prazo final de entrega do projeto antes de enviar o
+										orçamento.
 									</Text>
 								</View>
 							)}
@@ -1409,6 +1264,29 @@ export function QuoteCard({
 					</View>
 
 					<View>
+						<SectionTitle>Projeto</SectionTitle>
+						{isEditing ? (
+							<View className="w-full md:w-[47%]" style={{ zIndex: 20 }}>
+								<DateField
+									label="Prazo final de entrega"
+									value={deadline}
+									minDate={todayInputValue()}
+									onChangeText={setDeadline}
+								/>
+							</View>
+						) : (
+							<QuoteField
+								label="Prazo final de entrega"
+								value={
+									quote.deadline
+										? formatDateOnly(quote.deadline)
+										: 'Não definido'
+								}
+							/>
+						)}
+					</View>
+
+					<View>
 						<SectionTitle>
 							Documentos ({isEditing ? draftItems.length : quote.items.length})
 						</SectionTitle>
@@ -1525,7 +1403,7 @@ export function QuoteCard({
 								>
 									<Plus size={15} color={themeColors.foregroundSecondary} />
 									<Text className="font-inter-medium text-sm text-foreground-secondary">
-										Adicionar item
+										Adicionar documento
 									</Text>
 								</TouchableOpacity>
 							</View>
@@ -1695,11 +1573,11 @@ export function QuoteCard({
 					{quote.service_order_id ? (
 						<View>
 							<SectionTitle>
-								Itens da ordem de serviço ({serviceOrderItems.length})
+								Documentos da ordem de serviço ({serviceOrderItems.length})
 							</SectionTitle>
 							{serviceOrderItemsLoading ? (
 								<Text className="font-inter text-sm text-foreground-muted">
-									Carregando itens da ordem de serviço...
+									Carregando documentos da ordem de serviço...
 								</Text>
 							) : serviceOrderItemsError ? (
 								<Text className="font-inter text-sm text-danger">

@@ -1,3 +1,5 @@
+import { formatDateOnly } from '../../../shared/utils/dateOnly';
+
 export function formatDate(value: string | null): string {
 	if (!value) return 'Não definido';
 
@@ -7,6 +9,11 @@ export function formatDate(value: string | null): string {
 		year: 'numeric',
 		timeZone: 'America/Sao_Paulo',
 	});
+}
+
+export function formatDeadline(value: string | null): string {
+	if (!value) return 'Não definido';
+	return formatDateOnly(value);
 }
 
 export function formatPrice(value: string | null): string {

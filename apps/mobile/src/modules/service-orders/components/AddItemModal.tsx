@@ -128,7 +128,7 @@ export function AddItemModal({
 				<View className="w-full max-w-[480px] max-h-[85%] rounded-xl bg-surface overflow-hidden">
 					<View className="flex-row items-center justify-between border-b border-border-strong px-6 py-4">
 						<Text className="font-inter font-bold text-foreground text-lg">
-							Adicionar item
+							Adicionar documento
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
 							<X size={20} color={themeColors.foregroundSecondary} />
@@ -258,7 +258,7 @@ export function AddItemModal({
 							className={`rounded-lg bg-primary px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 						>
 							<Text className="font-inter font-semibold text-primary-foreground text-sm">
-								{isSubmitting ? 'Adicionando…' : 'Adicionar item'}
+								{isSubmitting ? 'Adicionando…' : 'Adicionar documento'}
 							</Text>
 						</TouchableOpacity>
 					</View>

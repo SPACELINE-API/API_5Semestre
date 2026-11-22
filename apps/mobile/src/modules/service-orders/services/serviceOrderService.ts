@@ -270,6 +270,16 @@ export async function updateServiceOrderItem(
 	return response.json() as Promise<ServiceOrderItem>;
 }
 
+export function setServiceOrderItemDeadline(
+	itemId: string,
+	deadline: string,
+): Promise<ServiceOrderItem> {
+	return apiPatchAuth<ServiceOrderItem, { deadline: string }>(
+		`/api/service-orders/items/${encodeURIComponent(itemId)}/deadline`,
+		{ deadline },
+	);
+}
+
 export function sendItemInvites(
 	itemId: string,
 	translatorIds: string[],

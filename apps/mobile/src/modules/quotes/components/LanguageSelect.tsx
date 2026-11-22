@@ -47,7 +47,7 @@ export function LanguageSelect({
 	const [newLangId, setNewLangId] = useState('');
 	const [newLangName, setNewLangName] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const canWriteSettings = usePermission('settings.write');
+	const canWriteSettings = usePermission('languages.write');
 
 	useEffect(() => {
 		loadLanguages();

@@ -363,7 +363,7 @@ class ReceiptPDFGenerator:
 
         widths = [0.8 * cm, 5.2 * cm, 3.5 * cm, 3.5 * cm, CONTENT_WIDTH - 13 * cm]
         return [
-            self._section_title(f"Itens de Tradução ({len(quote.items)})"),
+            self._section_title(f"Documentos para Tradução ({len(quote.items)})"),
             self._grid(data, widths),
             Spacer(1, 0.3 * cm),
         ]

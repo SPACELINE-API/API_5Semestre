@@ -1,11 +1,22 @@
+import { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import {
+	CalendarDays,
+	ChevronDown,
+	ChevronUp,
+	Inbox,
+} from 'lucide-react-native';
 import { usePermission } from '@/modules/auth/hooks/usePermission';
 
+import { formatDateOnly } from '../../../shared/utils/dateOnly';
+
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export interface CardRequestProps {
 	id: number | string;
 	customer_name: string;
 	enterprise: string;
+	email?: string;
 	original_language: string;
 	translation_language: string;
 	customer_need: string;
@@ -15,25 +26,24 @@ export interface CardRequestProps {
 }
 
 function formatRequestDate(request_date: string): string {
-	const date = new Date(request_date);
-
-	if (Number.isNaN(date.getTime())) {
-		return request_date;
-	}
-
-	const formatted = date.toLocaleDateString('pt-BR', {
-		day: '2-digit',
-		month: 'long',
-		year: 'numeric',
-	});
-
+	const formatted = formatDateOnly(request_date, 'long');
 	return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
+function DetailField({ label, value }: { label: string; value: string }) {
+	return (
+		<View className="min-w-[180px] flex-1 gap-1">
+			<Text className="font-inter text-xs text-foreground-subtle">{label}</Text>
+			<Text className="font-inter-medium text-sm text-foreground">{value}</Text>
+		</View>
+	);
 }
 
 export default function CardRequest({
 	id,
 	customer_name,
 	enterprise,
+	email,
 	original_language,
 	translation_language,
 	customer_need,
@@ -41,7 +51,9 @@ export default function CardRequest({
 	request_date,
 	quote_id,
 }: CardRequestProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
+	const [expanded, setExpanded] = useState(false);
 	const canReadRequests = usePermission('requests.read');
 	const canWriteRequests = usePermission('requests.write');
 	const canWriteQuotes = usePermission('quotes.write');
@@ -73,70 +85,100 @@ export default function CardRequest({
 	const shouldShowAction = !(status === 'approved' && quote_id);
 
 	return (
-		<View className="basis-[320px] flex-shrink-0 gap-4 rounded-xl border border-border bg-surface p-5 shadow-sm">
-			<View className="flex-row items-start justify-between gap-2">
-				<View className="min-w-0 flex-1">
-					<Text
-						className="font-inter font-bold text-foreground text-base"
-						numberOfLines={2}
-					>
-						{customer_name}
-					</Text>
-					<Text className="mt-0.5 font-inter text-foreground-subtle text-sm">
-						{enterprise}
-					</Text>
+		<View className="mb-5 rounded-2xl border border-border bg-surface">
+			<TouchableOpacity
+				activeOpacity={0.7}
+				accessibilityRole="button"
+				accessibilityState={{ expanded }}
+				accessibilityLabel={`${expanded ? 'Recolher' : 'Expandir'} solicitação de ${customer_name}`}
+				onPress={() => setExpanded((current) => !current)}
+				className={`flex-row flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-6 ${expanded ? 'border-b border-border-subtle' : ''}`}
+			>
+				<View className="max-w-full flex-row items-center gap-3">
+					<View className="h-11 w-11 items-center justify-center rounded-xl bg-primary-soft">
+						<Inbox size={21} color={themeColors.primaryText} />
+					</View>
+					<View className="min-w-0 shrink gap-1">
+						<Text
+							className="font-inter-bold text-base text-foreground"
+							numberOfLines={1}
+						>
+							{customer_name}
+						</Text>
+						<Text
+							className="font-inter-medium text-sm text-foreground-secondary"
+							numberOfLines={1}
+						>
+							{enterprise}
+						</Text>
+						<View className="flex-row flex-wrap items-center gap-x-2 gap-y-1">
+							<View
+								className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}
+							>
+								<Text
+									className={`font-inter-medium text-xs ${statusStyle.text}`}
+								>
+									{statusLabel}
+								</Text>
+							</View>
+							<Text className="font-inter text-xs text-foreground-muted">
+								{customer_need}
+							</Text>
+							<Text className="font-inter text-xs text-foreground-muted">
+								{original_language} → {translation_language}
+							</Text>
+						</View>
+					</View>
 				</View>
-				<View className={`rounded-md px-2.5 py-1 ${statusStyle.container}`}>
-					<Text className={`font-inter-medium text-xs ${statusStyle.text}`}>
-						{statusLabel}
-					</Text>
+				<View className="flex-row flex-wrap items-center gap-3">
+					<View className="flex-row items-center gap-2">
+						<CalendarDays size={15} color={themeColors.foregroundMuted} />
+						<Text className="font-inter text-xs text-foreground-muted">
+							Solicitado em {formatDateOnly(request_date)}
+						</Text>
+					</View>
+					{expanded ? (
+						<ChevronUp size={18} color={themeColors.foregroundMuted} />
+					) : (
+						<ChevronDown size={18} color={themeColors.foregroundMuted} />
+					)}
 				</View>
-			</View>
+			</TouchableOpacity>
 
-			<View className="gap-2 border-t border-border-subtle pt-4">
-				<View className="flex-row flex-wrap justify-between gap-x-2">
-					<Text className="font-inter text-foreground-subtle text-sm">
-						Documento
-					</Text>
-					<Text className="min-w-0 flex-1 text-right font-inter-medium text-foreground text-sm">
-						{customer_need}
-					</Text>
-				</View>
+			{expanded && (
+				<View className="gap-5 p-5 md:p-6">
+					<View className="flex-row flex-wrap gap-x-6 gap-y-4">
+						<DetailField label="Cliente" value={customer_name} />
+						<DetailField label="Empresa" value={enterprise} />
+						{email ? <DetailField label="E-mail" value={email} /> : null}
+						<DetailField label="Documento" value={customer_need} />
+						<DetailField
+							label="Idiomas"
+							value={`${original_language} → ${translation_language}`}
+						/>
+						<DetailField
+							label="Data da solicitação"
+							value={formatRequestDate(request_date)}
+						/>
+					</View>
 
-				<View className="flex-row flex-wrap justify-between gap-x-2">
-					<Text className="font-inter text-foreground-subtle text-sm">
-						Idioma
-					</Text>
-					<Text className="min-w-0 flex-1 text-right font-inter-medium text-foreground text-sm">
-						{original_language} → {translation_language}
-					</Text>
+					{shouldShowAction ? (
+						<TouchableOpacity
+							accessibilityRole="button"
+							accessibilityLabel={`${actionLabel} de ${customer_name}`}
+							onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
+							disabled={!canOpen}
+							className={`items-center self-start rounded-lg px-4 py-2.5 ${
+								status === 'reproved' ? 'bg-foreground-muted' : 'bg-primary'
+							} ${!canOpen ? 'opacity-40' : ''}`}
+						>
+							<Text className="font-inter-semibold text-sm text-primary-foreground">
+								{actionLabel}
+							</Text>
+						</TouchableOpacity>
+					) : null}
 				</View>
-
-				<View className="flex-row flex-wrap justify-between gap-x-2">
-					<Text className="font-inter text-foreground-subtle text-sm">
-						Data da solicitação
-					</Text>
-					<Text className="min-w-0 flex-1 text-right font-inter-medium text-foreground text-sm">
-						{formatRequestDate(request_date)}
-					</Text>
-				</View>
-			</View>
-
-			{shouldShowAction ? (
-				<TouchableOpacity
-					accessibilityRole="button"
-					accessibilityLabel={`${actionLabel} de ${customer_name}`}
-					onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
-					disabled={!canOpen}
-					className={`w-full items-center rounded-lg py-2.5 ${
-						status === 'reproved' ? 'bg-foreground-muted' : 'bg-primary'
-					} ${!canOpen ? 'opacity-40' : ''}`}
-				>
-					<Text className="font-inter-semibold text-sm text-primary-foreground">
-						{actionLabel}
-					</Text>
-				</TouchableOpacity>
-			) : null}
+			)}
 		</View>
 	);
 }

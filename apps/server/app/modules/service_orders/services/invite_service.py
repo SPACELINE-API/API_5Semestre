@@ -66,6 +66,12 @@ class InviteService:
                 detail="Este item já possui um tradutor atribuído",
             )
 
+        if item.deadline is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Defina o prazo do documento antes de convidar um tradutor",
+            )
+
         translators = self.db.query(Translator).filter(Translator.id.in_(translator_ids)).all()
         if len(translators) != len(set(translator_ids)):
             raise HTTPException(status_code=422, detail="Um ou mais tradutores não encontrados")

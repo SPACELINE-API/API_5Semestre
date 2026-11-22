@@ -39,12 +39,25 @@ ITEM_IN_PROGRESS_MESSAGE = (
 def _serialize(value: Any) -> Any:
     if isinstance(value, Decimal):
         return f"{value:.2f}"
+    if isinstance(value, datetime):
+        return value.astimezone(UTC).date().isoformat()
     return value
 
 
-def _item_label(item: ServiceOrderItem | QuoteTranslationItem) -> str:
+def item_label(item: ServiceOrderItem | QuoteTranslationItem) -> str:
     document = item.document_type or "Documento"
     return f"{document} ({item.source_language} → {item.target_language})"
+
+
+def documents_after_deadline(service_order: ServiceOrder) -> list[str]:
+    if service_order.deadline is None:
+        return []
+    limit = service_order.deadline.astimezone(UTC).date()
+    return [
+        item_label(item)
+        for item in service_order.items
+        if item.deadline is not None and item.deadline.astimezone(UTC).date() > limit
+    ]
 
 
 def is_item_in_progress(db: Session, item: ServiceOrderItem) -> bool:
@@ -94,7 +107,7 @@ def record_initial_version(
         origin=VERSION_ORIGIN_QUOTE_APPROVAL,
         reason=None,
         changes=[
-            {"action": "added", "item": _item_label(item), "fields": {}}
+            {"action": "added", "item": item_label(item), "fields": {}}
             for item in service_order.items
         ],
         actor_email=actor_email,
@@ -142,7 +155,7 @@ def sync_service_order_with_quote(
                 price=quote_item.estimated_value,
             )
             service_order.items.append(new_item)
-            changes.append({"action": "added", "item": _item_label(quote_item), "fields": {}})
+            changes.append({"action": "added", "item": item_label(quote_item), "fields": {}})
             continue
 
         field_changes = {}
@@ -156,12 +169,27 @@ def sync_service_order_with_quote(
                 setattr(os_item, os_field, after)
         if field_changes:
             changes.append(
-                {"action": "updated", "item": _item_label(os_item), "fields": field_changes}
+                {"action": "updated", "item": item_label(os_item), "fields": field_changes}
             )
+
+    if quote.deadline is not None and service_order.deadline != quote.deadline:
+        changes.append(
+            {
+                "action": "updated",
+                "item": "Prazo do projeto",
+                "fields": {
+                    "deadline": {
+                        "before": _serialize(service_order.deadline),
+                        "after": _serialize(quote.deadline),
+                    }
+                },
+            }
+        )
+        service_order.deadline = quote.deadline
 
     for os_item in list(service_order.items):
         if os_item.removed_from_quote_at is not None:
-            changes.append({"action": "removed", "item": _item_label(os_item), "fields": {}})
+            changes.append({"action": "removed", "item": item_label(os_item), "fields": {}})
             service_order.items.remove(os_item)
 
     version = ServiceOrderVersion(

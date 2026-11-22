@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.modules.clients.models.company import Company
-from app.modules.proposals.routes import proposals_read_permission
+from app.modules.proposals.routes import proposals_report_permission
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.request import Request, StatusEnum
 from app.shared.database import get_db
@@ -17,7 +17,7 @@ REPORT_URL = "/api/quotes/proposals/reports"
 @pytest.fixture
 def report_client(isolated_db_session, monkeypatch):
     app.dependency_overrides[get_db] = lambda: isolated_db_session
-    app.dependency_overrides[proposals_read_permission] = lambda: object()
+    app.dependency_overrides[proposals_report_permission] = lambda: object()
     monkeypatch.setattr(
         "app.modules.proposals.routes.upload_report",
         lambda content, filename, content_type: f"https://storage.example/signed/{filename}",

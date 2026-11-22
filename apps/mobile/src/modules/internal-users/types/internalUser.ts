@@ -1,4 +1,5 @@
-export type LinkStatus = 'pendente' | 'aceito' | 'rejeitado' | 'expirado';
+export type LinkStatus =
+	'pendente' | 'aceito' | 'rejeitado' | 'expirado' | 'cancelado';
 
 export type InternalUserLink = {
 	status: LinkStatus;

@@ -12,10 +12,11 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { SettingsHeader } from '../components/SettingsHeader';
+import { usePermission } from '../hooks/usePermission';
 import {
 	createLanguage,
 	deleteLanguage,
-	listLanguages,
+	listManageLanguages,
 } from '../../translators/services/translatorService';
 import type { LanguageResponse } from '../../translators/types/translator';
 
@@ -37,6 +38,7 @@ function languageError(error: unknown) {
 export default function LanguageSettingsPage() {
 	const themeColors = useThemeColors();
 	const { toast, showToast } = useToast();
+	const canEdit = usePermission('languages.write');
 	const [languages, setLanguages] = useState<LanguageResponse[]>([]);
 	const [name, setName] = useState('');
 	const [code, setCode] = useState('');
@@ -52,7 +54,7 @@ export default function LanguageSettingsPage() {
 		setIsLoading(true);
 		setError(null);
 		try {
-			setLanguages(sortLanguages(await listLanguages()));
+			setLanguages(sortLanguages(await listManageLanguages()));
 		} catch (loadError) {
 			setError(languageError(loadError));
 		} finally {
@@ -182,24 +184,26 @@ export default function LanguageSettingsPage() {
 								{fieldError}
 							</Text>
 						)}
-						<TouchableOpacity
-							onPress={() => void handleCreate()}
-							disabled={isSaving}
-							accessibilityRole="button"
-							className={`mt-5 flex-row items-center justify-center gap-2 self-start rounded-lg px-4 py-2.5 ${isSaving ? 'bg-primary' : 'bg-primary'}`}
-						>
-							{isSaving ? (
-								<ActivityIndicator
-									size="small"
-									color={themeColors.primaryForeground}
-								/>
-							) : (
-								<Plus size={17} color={themeColors.primaryForeground} />
-							)}
-							<Text className="font-inter font-semibold text-sm text-primary-foreground">
-								{isSaving ? 'Salvando...' : 'Cadastrar idioma'}
-							</Text>
-						</TouchableOpacity>
+						{canEdit && (
+							<TouchableOpacity
+								onPress={() => void handleCreate()}
+								disabled={isSaving}
+								accessibilityRole="button"
+								className="mt-5 flex-row items-center justify-center gap-2 self-start rounded-lg bg-primary px-4 py-2.5"
+							>
+								{isSaving ? (
+									<ActivityIndicator
+										size="small"
+										color={themeColors.primaryForeground}
+									/>
+								) : (
+									<Plus size={17} color={themeColors.primaryForeground} />
+								)}
+								<Text className="font-inter font-semibold text-sm text-primary-foreground">
+									{isSaving ? 'Salvando...' : 'Cadastrar idioma'}
+								</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 
 					<View className="rounded-xl border border-border p-5 md:p-6">
@@ -253,14 +257,16 @@ export default function LanguageSettingsPage() {
 											<Text className="rounded-md bg-surface-subtle px-2.5 py-1 font-inter text-foreground-muted text-xs">
 												{language.id}
 											</Text>
-											<TouchableOpacity
-												onPress={() => setLanguageToDelete(language)}
-												accessibilityRole="button"
-												accessibilityLabel={`Remover idioma ${language.name}`}
-												className="rounded-md p-2"
-											>
-												<Trash2 size={17} color={themeColors.danger} />
-											</TouchableOpacity>
+											{canEdit && (
+												<TouchableOpacity
+													onPress={() => setLanguageToDelete(language)}
+													accessibilityRole="button"
+													accessibilityLabel={`Remover idioma ${language.name}`}
+													className="rounded-md p-2"
+												>
+													<Trash2 size={17} color={themeColors.danger} />
+												</TouchableOpacity>
+											)}
 										</View>
 									</View>
 								))}

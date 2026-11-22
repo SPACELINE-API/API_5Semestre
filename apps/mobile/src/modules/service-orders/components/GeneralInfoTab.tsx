@@ -9,7 +9,11 @@ import { StatusBadge } from './StatusBadge';
 import { InfoField } from './InfoField';
 import { FormField } from '../../clients/components/FormField';
 import { DateField } from '../../../shared/components/DateField';
-import { formatDate, formatDateInputValue } from '../utils/format';
+import {
+	formatDate,
+	formatDateInputValue,
+	formatDeadline,
+} from '../utils/format';
 import { usePermission } from '../../auth/hooks/usePermission';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
@@ -127,10 +131,10 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 						/>
 						<InfoField
 							label="Prazo"
-							value={formatDate(serviceOrder.deadline)}
+							value={formatDeadline(serviceOrder.deadline)}
 						/>
 						<InfoField
-							label="Itens"
+							label="Documentos"
 							value={String(serviceOrder.items.length)}
 						/>
 					</View>
@@ -204,16 +208,23 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 								className="min-w-[180px] flex-1 gap-1"
 								style={deadlineCalendarOpen ? { zIndex: 51 } : undefined}
 							>
-								<DateField
-									label="Prazo"
-									value={deadline}
-									minDate={getTodayInputValue()}
-									onOpenChange={setDeadlineCalendarOpen}
-									onChangeText={(value) => {
-										setDeadline(value);
-										setDeadlineError('');
-									}}
-								/>
+								{serviceOrder.quote_id ? (
+									<InfoField
+										label="Prazo final do projeto"
+										value={formatDeadline(serviceOrder.deadline)}
+									/>
+								) : (
+									<DateField
+										label="Prazo"
+										value={deadline}
+										minDate={getTodayInputValue()}
+										onOpenChange={setDeadlineCalendarOpen}
+										onChangeText={(value) => {
+											setDeadline(value);
+											setDeadlineError('');
+										}}
+									/>
+								)}
 								{deadlineError ? (
 									<Text className="font-inter text-danger text-xs">
 										{deadlineError}
@@ -221,7 +232,7 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 								) : null}
 							</View>
 							<InfoField
-								label="Itens"
+								label="Documentos"
 								value={String(serviceOrder.items.length)}
 							/>
 						</View>

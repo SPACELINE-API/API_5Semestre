@@ -8,7 +8,7 @@ const at = (iso: string) => new Date(iso).getTime();
 
 function person(
 	id: string,
-	status: 'pendente' | 'aceito' | 'rejeitado' | 'expirado' | null,
+	status: 'pendente' | 'aceito' | 'rejeitado' | 'expirado' | 'cancelado' | null,
 	expires = EXPIRES,
 	overrides: Partial<InternalUser> = {},
 ): InternalUser {
@@ -80,6 +80,7 @@ test.describe('pendingInvites', () => {
 				password_defined: true,
 			}),
 			person('replaced', 'rejeitado'),
+			person('cancelled', 'cancelado'),
 		];
 
 		expect(pendingInvites(people).map((item) => item.id)).toEqual([

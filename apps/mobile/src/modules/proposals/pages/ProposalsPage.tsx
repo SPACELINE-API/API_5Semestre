@@ -15,6 +15,7 @@ import { ProposalTable } from '../components/ProposalTable';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { useProposals } from '../hooks/useProposals';
+import { usePermission } from '../../auth/hooks/usePermission';
 import type { Proposal, ProposalFilters as Filters } from '../types/proposal';
 import {
 	listProposalCompanies,
@@ -84,6 +85,7 @@ function ProposalPagination({
 
 export function ProposalsPage() {
 	const router = useRouter();
+	const canGenerateReport = usePermission('proposals.report.generate');
 	const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
 	const [companies, setCompanies] = useState<string[]>([]);
 	const [companiesError, setCompaniesError] = useState<string | null>(null);
@@ -152,17 +154,19 @@ export function ProposalsPage() {
 							situação.
 						</Text>
 					</View>
-					<TouchableOpacity
-						onPress={() => setIsReportModalVisible(true)}
-						activeOpacity={0.8}
-						accessibilityRole="button"
-						accessibilityLabel="Gerar relatório"
-						className="shrink-0 rounded-lg bg-primary px-4 py-3"
-					>
-						<Text className="font-inter font-semibold text-sm text-primary-foreground">
-							Gerar relatório
-						</Text>
-					</TouchableOpacity>
+					{canGenerateReport && (
+						<TouchableOpacity
+							onPress={() => setIsReportModalVisible(true)}
+							activeOpacity={0.8}
+							accessibilityRole="button"
+							accessibilityLabel="Gerar relatório"
+							className="shrink-0 rounded-lg bg-primary px-4 py-3"
+						>
+							<Text className="font-inter font-semibold text-sm text-primary-foreground">
+								Gerar relatório
+							</Text>
+						</TouchableOpacity>
+					)}
 				</View>
 
 				<View className="gap-5">
@@ -229,11 +233,13 @@ export function ProposalsPage() {
 					);
 				}}
 			/>
-			<CompanyReportModal
-				visible={isReportModalVisible}
-				onClose={() => setIsReportModalVisible(false)}
-				onSuccess={showToast}
-			/>
+			{canGenerateReport && (
+				<CompanyReportModal
+					visible={isReportModalVisible}
+					onClose={() => setIsReportModalVisible(false)}
+					onSuccess={showToast}
+				/>
+			)}
 			<Toast toast={toast} />
 		</View>
 	);

@@ -1,7 +1,7 @@
 import { apiPost, request } from '../../../shared/services/publicApiClient';
 
 export type PasswordSetupLinkStatus =
-	'pendente' | 'aceito' | 'rejeitado' | 'expirado';
+	'pendente' | 'aceito' | 'rejeitado' | 'expirado' | 'cancelado';
 
 export type PasswordSetupLinkInfo = {
 	status: PasswordSetupLinkStatus;

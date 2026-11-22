@@ -26,6 +26,7 @@ import { InviteStatusBadge } from './InviteStatusBadge';
 import { useItemInvites } from '../hooks/useItemInvites';
 import { usePermission } from '../../auth/hooks/usePermission';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { ItemDeadline } from './ItemDeadline';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type TranslatorsInviteTabProps = {
@@ -34,6 +35,7 @@ type TranslatorsInviteTabProps = {
 	translatorsById: Map<string, Translator>;
 	refreshToken: number;
 	onSendInvites: (itemId: string, translatorIds: string[]) => Promise<void>;
+	onEditDeadline?: (item: ServiceOrderItem) => void;
 };
 
 export function TranslatorsInviteTab({
@@ -42,6 +44,7 @@ export function TranslatorsInviteTab({
 	translatorsById,
 	refreshToken,
 	onSendInvites,
+	onEditDeadline,
 }: TranslatorsInviteTabProps) {
 	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
@@ -211,7 +214,7 @@ export function TranslatorsInviteTab({
 	if (items.length === 0) {
 		return (
 			<Text className="font-inter text-foreground-subtle text-sm">
-				Esta ordem de serviço não possui itens.
+				Esta ordem de serviço não possui documentos.
 			</Text>
 		);
 	}
@@ -220,7 +223,7 @@ export function TranslatorsInviteTab({
 		<View className="gap-5">
 			<View className="gap-1.5">
 				<Text className="font-inter font-semibold text-foreground text-xs">
-					Item da ordem
+					Documento da ordem
 				</Text>
 
 				<ScrollView style={{ maxHeight: 176 }} nestedScrollEnabled>
@@ -261,6 +264,16 @@ export function TranslatorsInviteTab({
 						})}
 					</View>
 				</ScrollView>
+
+				{selectedItem && !selectedItem.deadline ? (
+					<View className="mt-2 flex-row flex-wrap items-center gap-3 rounded-lg border border-warning/40 bg-warning-soft p-3">
+						<Text className="min-w-0 flex-1 font-inter text-sm text-warning-text">
+							Este documento está sem prazo. Defina o prazo para poder convidar
+							tradutores.
+						</Text>
+						<ItemDeadline item={selectedItem} onEdit={onEditDeadline} />
+					</View>
+				) : null}
 			</View>
 
 			{selectedItem?.translator_id && (

@@ -324,8 +324,8 @@ export function ServiceOrderFilesTab({
 				{!canUploadDelivery && (
 					<Text className="font-inter text-xs text-warning-text">
 						{hasItems
-							? 'Aguardando aceite de tradutor em todos os itens para liberar o envio de arquivos de entrega.'
-							: 'Esta ordem de serviço não possui itens.'}
+							? 'Aguardando aceite de tradutor em todos os documentos para liberar o envio de arquivos de entrega.'
+							: 'Esta ordem de serviço não possui documentos.'}
 					</Text>
 				)}
 
@@ -336,7 +336,7 @@ export function ServiceOrderFilesTab({
 								Entregas
 							</Text>
 							<Text className="font-inter font-semibold text-foreground-secondary text-xs">
-								{deliveredCount} de {items.length} itens entregues
+								{deliveredCount} de {items.length} documentos entregues
 							</Text>
 						</View>
 						<Text className="font-inter text-foreground-subtle text-xs">

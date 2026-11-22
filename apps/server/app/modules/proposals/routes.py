@@ -22,6 +22,9 @@ from app.shared.database import get_db
 router = APIRouter(prefix="/quotes/proposals", tags=["proposals"])
 
 proposals_read_permission = require_permission("proposals.read", allow_full_access=False)
+proposals_report_permission = require_permission(
+    "proposals.report.generate", allow_full_access=False
+)
 
 
 @router.get("/companies", response_model=list[str])
@@ -65,7 +68,7 @@ def list_proposals(
 @router.post("/reports", response_model=None)
 def generate_company_report(
     report_request: CompanyReportRequest,
-    _user=Depends(proposals_read_permission),
+    _user=Depends(proposals_report_permission),
     db: Session = Depends(get_db),
 ) -> CompanyReportFileResponse:
     report = CompanyReportService(db).generate(report_request)

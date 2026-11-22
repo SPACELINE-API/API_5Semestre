@@ -11,7 +11,11 @@ from sqlalchemy.orm import Session
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
 from app.modules.contacts.models.contact import Contact
-from app.modules.notifications.services.notification_messages import quote_approved_message
+from app.modules.notifications.services.notification_messages import (
+    quote_approved_message,
+    quote_changes_message,
+    quote_reopened_message,
+)
 from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.quotes.models.quote import (
     QUOTE_STATUS_APPROVED,
@@ -46,11 +50,18 @@ from app.modules.quotes.services.storage import upload_quote_document
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 from app.modules.service_orders.services.quote_sync_service import (
+    documents_after_deadline,
     record_initial_version,
     sync_service_order_with_quote,
 )
 
 logger = logging.getLogger(__name__)
+
+SERVICE_ORDER_MANAGER_PERMISSION = "service_orders.write"
+DEADLINE_IN_PAST_MESSAGE = "O prazo final do projeto não pode ser anterior à data de hoje."
+DEADLINE_REQUIRED_MESSAGE = (
+    "Defina o prazo final de entrega do projeto antes de enviar o orçamento ao cliente."
+)
 
 REOPENABLE_STATUSES = (QUOTE_STATUS_PENDING, QUOTE_STATUS_APPROVED, QUOTE_STATUS_REPROVED)
 
@@ -92,12 +103,24 @@ class QuoteService:
         self.quote_repository = QuoteRepository(db)
         self.request_repository = RequestRepository(db)
 
+    @staticmethod
+    def _ensure_deadline_not_in_past(new: datetime | None, current: datetime | None = None) -> None:
+        if new is None or new == current:
+            return
+        if new.date() < datetime.now(SAO_PAULO_TIMEZONE).date():
+            raise HTTPException(status_code=422, detail=DEADLINE_IN_PAST_MESSAGE)
+
     def create_quote(self, quote_data: QuoteCreate) -> Quote:
         self._validate_customer_links(quote_data.company_id, quote_data.contact_id)
+        self._ensure_deadline_not_in_past(quote_data.deadline)
         quote = Quote(
             status=QUOTE_STATUS_DRAFT,
             company_id=quote_data.company_id,
             contact_id=quote_data.contact_id,
+            customer_name=quote_data.customer_name,
+            email=quote_data.email,
+            customer_need=quote_data.customer_need,
+            deadline=quote_data.deadline,
         )
         self.db.add(quote)
         self.db.commit()
@@ -114,6 +137,8 @@ class QuoteService:
         company_id = update_data.get("company_id", quote.company_id)
         contact_id = update_data.get("contact_id", quote.contact_id)
         self._validate_customer_links(company_id, contact_id)
+        if "deadline" in update_data:
+            self._ensure_deadline_not_in_past(update_data["deadline"], quote.deadline)
 
         for field, value in update_data.items():
             setattr(quote, field, value)
@@ -209,11 +234,13 @@ class QuoteService:
                 ),
             )
 
+        reapproved_order: ServiceOrder | None = None
         if data.status == "approved":
             self._ensure_ready_for_approval(quote)
             if quote.service_orders:
+                reapproved_order = quote.service_orders[0]
                 version = sync_service_order_with_quote(
-                    self.db, quote, quote.service_orders[0], actor_email
+                    self.db, quote, reapproved_order, actor_email
                 )
             else:
                 service_order = self._build_service_order(quote)
@@ -242,6 +269,25 @@ class QuoteService:
                 related_id=quote.id,
                 idempotency_key=f"quote:{quote.id}:approved:v{version.version}",
             )
+            late_documents = (
+                documents_after_deadline(reapproved_order) if reapproved_order is not None else []
+            )
+            if reapproved_order is not None and (version.changes or late_documents):
+                changes_message = quote_changes_message(
+                    quote.company_name,
+                    reapproved_order.project_name,
+                    version.changes,
+                    late_documents,
+                )
+                NotificationService(self.db).notify_users_with_permission(
+                    SERVICE_ORDER_MANAGER_PERMISSION,
+                    event_type=changes_message.event_type,
+                    title=changes_message.title,
+                    message=changes_message.message,
+                    related_type="service_order",
+                    related_id=reapproved_order.id,
+                    idempotency_key=f"quote:{quote.id}:changes:v{version.version}",
+                )
         try:
             self.db.commit()
         except Exception:
@@ -292,6 +338,7 @@ class QuoteService:
             quote_id=quote.id,
             company_id=quote.company_id,
             project_name=project_name[:150],
+            deadline=quote.deadline,
         )
         for translation_item in quote.items:
             service_order.items.append(
@@ -370,6 +417,11 @@ class QuoteService:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Anexe o arquivo de todos os documentos antes de enviar o orçamento.",
             )
+        if quote.deadline is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=DEADLINE_REQUIRED_MESSAGE,
+            )
 
     def _customer_recipient(self, quote: Quote) -> tuple[str, str]:
         contact = quote.contact
@@ -426,17 +478,28 @@ class QuoteService:
         quote.validity_starts_at = datetime.now(UTC)
         quote.customer_access_token_hash = None
         quote.terms_accepted_at = None
-        self.db.add(
-            QuoteAuditLog(
-                quote_id=quote.id,
-                action=QUOTE_AUDIT_ACTION_REOPEN,
-                previous_status=previous_status,
-                new_status=QUOTE_STATUS_DRAFT,
-                reason=data.reason,
-                actor_user_id=uuid.UUID(current_user.id),
-                actor_email=current_user.email,
-            )
+        audit = QuoteAuditLog(
+            quote_id=quote.id,
+            action=QUOTE_AUDIT_ACTION_REOPEN,
+            previous_status=previous_status,
+            new_status=QUOTE_STATUS_DRAFT,
+            reason=data.reason,
+            actor_user_id=uuid.UUID(current_user.id),
+            actor_email=current_user.email,
         )
+        self.db.add(audit)
+        if quote.service_orders:
+            self.db.flush()
+            reopened_message = quote_reopened_message(quote.company_name, data.reason)
+            NotificationService(self.db).notify_users_with_permission(
+                SERVICE_ORDER_MANAGER_PERMISSION,
+                event_type=reopened_message.event_type,
+                title=reopened_message.title,
+                message=reopened_message.message,
+                related_type="quote",
+                related_id=quote.id,
+                idempotency_key=f"quote:{quote.id}:reopened:{audit.id}",
+            )
         try:
             self.db.commit()
         except Exception:

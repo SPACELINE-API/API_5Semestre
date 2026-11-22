@@ -67,7 +67,13 @@ export function loginAsEmployee(page: Page) {
 	return loginAs(page, {
 		user: { id: EMPLOYEE.id, email: EMPLOYEE.email, role: 'cliente' },
 		roles: [{ id: 'atendimento', name: 'Atendimento' }],
-		permissions: ['clients.read', 'requests.read', 'dashboard.read'],
+		permissions: [
+			'clients.read',
+			'requests.read',
+			'dashboard.read',
+			'tasks.read',
+			'tasks.assigned_to_me.read',
+		],
 	});
 }
 
@@ -75,7 +81,14 @@ export function loginAsAdmin(page: Page) {
 	return loginAs(page, {
 		user: { id: ADMIN.id, email: ADMIN.email, role: 'admin' },
 		roles: [{ id: 'admin-role', name: 'Administrador' }],
-		permissions: ['assignments.write', 'tasks.review', 'dashboard.read'],
+		permissions: [
+			'assignments.write',
+			'tasks.read',
+			'tasks.write',
+			'tasks.assigned_to_me.read',
+			'tasks.review',
+			'dashboard.read',
+		],
 	});
 }
 
@@ -84,7 +97,13 @@ export function loginAsManager(page: Page) {
 	return loginAs(page, {
 		user: { id: MANAGER.id, email: MANAGER.email, role: 'interno' },
 		roles: [{ id: 'projetos', name: 'Projetos' }],
-		permissions: ['assignments.write', 'dashboard.read'],
+		permissions: [
+			'assignments.write',
+			'tasks.read',
+			'tasks.write',
+			'tasks.assigned_to_me.read',
+			'dashboard.read',
+		],
 	});
 }
 

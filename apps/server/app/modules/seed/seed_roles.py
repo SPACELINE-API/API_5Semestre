@@ -38,14 +38,20 @@ ADMIN_PERMISSIONS = (
     "assignments.manage",
     "assignments.respond",
     "tasks.review",
+    "tasks.read",
+    "tasks.write",
+    "tasks.assigned_to_me.read",
     "documents.read",
     "documents.write",
     "support.read",
     "support.write",
     "settings.read",
     "settings.write",
+    "languages.read",
+    "languages.write",
     "finance.read",
     "finance.write",
+    "proposals.report.generate",
 )
 
 
@@ -68,6 +74,8 @@ SEED_ROLES = (
             "support.read",
             "support.write",
             "dashboard.read",
+            "tasks.read",
+            "tasks.assigned_to_me.read",
         ),
     ),
     SeedRole(
@@ -86,10 +94,14 @@ SEED_ROLES = (
             "assignments.read",
             "assignments.write",
             "assignments.manage",
+            "tasks.read",
+            "tasks.write",
+            "tasks.assigned_to_me.read",
             "documents.read",
             "dashboard.read",
             "documents.write",
             "proposals.read",
+            "proposals.report.generate",
         ),
     ),
     SeedRole(
@@ -102,6 +114,8 @@ SEED_ROLES = (
             "service_orders.read",
             "documents.read",
             "dashboard.read",
+            "tasks.read",
+            "tasks.assigned_to_me.read",
         ),
     ),
     SeedRole(

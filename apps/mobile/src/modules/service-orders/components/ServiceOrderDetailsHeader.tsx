@@ -7,7 +7,7 @@ import {
 	View,
 } from 'react-native';
 import { StatusBadge } from './StatusBadge';
-import { formatDate } from '../utils/format';
+import { formatDeadline } from '../utils/format';
 import type { ServiceOrder } from '../types/serviceOrder';
 import { usePermission } from '../../auth/hooks/usePermission';
 
@@ -65,7 +65,7 @@ export function ServiceOrderDetailsHeader({
 							Prazo
 						</Text>
 						<Text className="font-inter font-medium text-foreground text-sm">
-							{formatDate(serviceOrder.deadline)}
+							{formatDeadline(serviceOrder.deadline)}
 						</Text>
 					</View>
 					<View className="gap-0.5">
@@ -160,7 +160,7 @@ const detailTabOptions: { key: ServiceOrderDetailTab; label: string }[] = [
 	{ key: 'equipe', label: 'Equipe' },
 	{ key: 'tradutores', label: 'Tradutores' },
 	{ key: 'cliente', label: 'Cliente' },
-	{ key: 'itens', label: 'Itens' },
+	{ key: 'itens', label: 'Documentos' },
 	{ key: 'adicionais', label: 'Serviços adicionais' },
 	{ key: 'revisao', label: 'Revisão' },
 	{ key: 'arquivos', label: 'Arquivos' },

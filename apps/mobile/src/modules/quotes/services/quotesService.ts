@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { env } from '../../../shared/env';
 import {
 	apiDeleteAuth,
@@ -7,6 +8,7 @@ import {
 } from '../../../shared/services/apiClient';
 import { FORBIDDEN_ERROR_MESSAGE } from '../../../shared/services/publicApiClient';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
+import { toUploadable } from '../../../shared/utils/toUploadable';
 import type { UploadableFile } from '../../../shared/types/file';
 
 const API_BASE_URL = env.apiUrl;
@@ -73,6 +75,7 @@ export type QuoteResponse = {
 	reproval_reason?: string | null;
 	validity_starts_at?: string | null;
 	valid_until?: string | null;
+	deadline?: string | null;
 	sent_to_customer_at?: string | null;
 	sent_to_customer_email?: string | null;
 	reopened_at?: string | null;
@@ -200,6 +203,7 @@ export type QuoteUpdateInput = Partial<{
 	original_language: string;
 	translation_language: string;
 	customer_need: string;
+	deadline: string | null;
 }>;
 
 export type QuoteEditResult =
@@ -280,6 +284,37 @@ export type QuoteTranslationItemCreate = {
 	word_count?: number;
 	estimated_value?: number;
 };
+
+export type QuoteCreateInput = Partial<{
+	company_id: string | null;
+	customer_name: string;
+	email: string;
+	customer_need: string;
+	deadline: string | null;
+}>;
+
+export type QuoteCreateResult =
+	| { success: true; data: QuoteResponse }
+	| { success: false; status: number; detail?: string };
+
+export async function createQuoteWithDetail(
+	input: QuoteCreateInput,
+): Promise<QuoteCreateResult> {
+	try {
+		const data = await apiPostAuth<QuoteResponse, QuoteCreateInput>(
+			'/api/quotes',
+			input,
+		);
+		return { success: true, data };
+	} catch (error) {
+		const apiError = error as { status?: number; message?: string };
+		return {
+			success: false,
+			status: apiError.status ?? 0,
+			detail: apiError.message,
+		};
+	}
+}
 
 export async function createQuote(): Promise<QuoteResponse | null> {
 	try {
@@ -433,21 +468,11 @@ export async function uploadQuoteDocument(
 	fileName: string,
 ): Promise<UploadedQuoteDocument | null> {
 	try {
-		const isWeb =
-			typeof window !== 'undefined' && typeof window.document !== 'undefined';
-
-		let file: UploadableFile;
-		if (isWeb) {
-			const fetchResponse = await fetch(fileUri);
-			const blob = await fetchResponse.blob();
-			file = blob as UploadableFile;
-		} else {
-			file = {
-				uri: fileUri,
-				name: fileName,
-				type: 'application/octet-stream',
-			} as UploadableFile;
-		}
+		const file: UploadableFile = await toUploadable({
+			uri: fileUri,
+			name: fileName,
+			type: Platform.OS === 'web' ? '' : 'application/octet-stream',
+		});
 
 		const data = await uploadFileMultipart<{
 			file_url: string;

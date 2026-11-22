@@ -1,0 +1,2 @@
+ALTER TABLE quotes ADD COLUMN IF NOT EXISTS deadline TIMESTAMPTZ;
+ALTER TABLE quote_translation_items DROP COLUMN IF EXISTS deadline;

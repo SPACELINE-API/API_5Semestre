@@ -12,6 +12,7 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { getAuthorizationContext } from '../../auth/services/auth';
+import { usePermission } from '../../auth/hooks/usePermission';
 import { SettingsHeader } from '../../auth/components/SettingsHeader';
 import { DepartmentSection } from '../components/DepartmentSection';
 import { PendingInvitesCard } from '../components/PendingInvitesCard';
@@ -22,6 +23,7 @@ import {
 import { useInternalUsers } from '../hooks/useInternalUsers';
 import {
 	addInternalUserRole,
+	cancelPasswordSetupLink,
 	createInternalUser,
 	deactivateInternalUser,
 	removeInternalUserRole,
@@ -50,8 +52,10 @@ function errorText(cause: unknown, fallback: string) {
 }
 
 export function InternalUsersPage() {
+	const canEditUsers = usePermission('users.write');
+	const { people, roles, isLoading, error, reload } =
+		useInternalUsers(canEditUsers);
 	const themeColors = useThemeColors();
-	const { people, roles, isLoading, error, reload } = useInternalUsers();
 	const { toast, showToast } = useToast();
 	const [search, setSearch] = useState('');
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -59,6 +63,10 @@ export function InternalUsersPage() {
 	const [editing, setEditing] = useState<InternalUser | null>(null);
 	const [deactivating, setDeactivating] = useState<InternalUser | null>(null);
 	const [isDeactivating, setIsDeactivating] = useState(false);
+	const [cancellingInvite, setCancellingInvite] = useState<InternalUser | null>(
+		null,
+	);
+	const [isCancellingInvite, setIsCancellingInvite] = useState(false);
 	const [busyId, setBusyId] = useState<string | null>(null);
 	const currentUserEmail = getAuthorizationContext()?.user.email ?? null;
 
@@ -147,6 +155,25 @@ export function InternalUsersPage() {
 		}
 	}
 
+	async function confirmCancelInvite() {
+		if (!cancellingInvite) return;
+		setIsCancellingInvite(true);
+		try {
+			await cancelPasswordSetupLink(cancellingInvite.id);
+			showToast(`Convite de ${displayName(cancellingInvite)} cancelado.`);
+			setCancellingInvite(null);
+			await reload();
+		} catch (cause) {
+			showToast(
+				errorText(cause, 'Não foi possível cancelar o convite.'),
+				'error',
+			);
+			setCancellingInvite(null);
+		} finally {
+			setIsCancellingInvite(false);
+		}
+	}
+
 	async function confirmDeactivate() {
 		if (!deactivating) return;
 		setIsDeactivating(true);
@@ -180,17 +207,19 @@ export function InternalUsersPage() {
 						<Text className="min-w-0 flex-1 font-inter font-semibold text-foreground text-base">
 							Pessoas internas
 						</Text>
-						<TouchableOpacity
-							onPress={openCreate}
-							accessibilityRole="button"
-							accessibilityLabel="Convidar pessoa"
-							className="shrink-0 flex-row items-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 md:gap-2 md:px-4 md:py-3"
-						>
-							<Plus size={16} color={themeColors.primaryForeground} />
-							<Text className="font-inter font-semibold text-sm text-primary-foreground">
-								Convidar pessoa
-							</Text>
-						</TouchableOpacity>
+						{canEditUsers && (
+							<TouchableOpacity
+								onPress={openCreate}
+								accessibilityRole="button"
+								accessibilityLabel="Convidar pessoa"
+								className="shrink-0 flex-row items-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 md:gap-2 md:px-4 md:py-3"
+							>
+								<Plus size={16} color={themeColors.primaryForeground} />
+								<Text className="font-inter font-semibold text-sm text-primary-foreground">
+									Convidar pessoa
+								</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 					<Text className="font-inter text-foreground-muted text-sm">
 						Convide e gerencie quem trabalha na plataforma, separado por
@@ -198,11 +227,14 @@ export function InternalUsersPage() {
 					</Text>
 				</View>
 
-				<PendingInvitesCard
-					people={people}
-					busyId={busyId}
-					onResend={(person) => void handleSendLink(person)}
-				/>
+				{canEditUsers && (
+					<PendingInvitesCard
+						people={people}
+						busyId={busyId}
+						onResend={(person) => void handleSendLink(person)}
+						onCancel={setCancellingInvite}
+					/>
+				)}
 
 				<View className="mb-5 flex-col gap-3 md:flex-row md:items-center md:justify-between">
 					<View className="h-11 w-full flex-row items-center gap-2 rounded-lg border border-border-strong px-3 md:w-auto md:max-w-[420px] md:flex-1">
@@ -297,15 +329,17 @@ export function InternalUsersPage() {
 							Cadastre quem vai trabalhar na plataforma. A pessoa recebe um
 							e-mail para criar a própria senha.
 						</Text>
-						<TouchableOpacity
-							onPress={openCreate}
-							accessibilityRole="button"
-							className="mt-1 rounded-lg bg-primary px-4 py-2.5"
-						>
-							<Text className="font-inter font-semibold text-sm text-primary-foreground">
-								Convidar pessoa
-							</Text>
-						</TouchableOpacity>
+						{canEditUsers && (
+							<TouchableOpacity
+								onPress={openCreate}
+								accessibilityRole="button"
+								className="mt-1 rounded-lg bg-primary px-4 py-2.5"
+							>
+								<Text className="font-inter font-semibold text-sm text-primary-foreground">
+									Convidar pessoa
+								</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 				) : departments.length === 0 ? (
 					<View className="items-center gap-2 rounded-xl border border-dashed border-border-strong px-6 py-12">
@@ -322,6 +356,7 @@ export function InternalUsersPage() {
 								department={department}
 								currentUserEmail={currentUserEmail}
 								busyId={busyId}
+								canEdit={canEditUsers}
 								onEdit={openEdit}
 								onSendLink={(person) => void handleSendLink(person)}
 								onDeactivate={setDeactivating}
@@ -331,23 +366,39 @@ export function InternalUsersPage() {
 				)}
 			</ScrollView>
 
-			<PersonFormModal
-				visible={formOpen}
-				person={editing}
-				roles={roles}
-				onClose={() => setFormOpen(false)}
-				onSubmit={handleSubmit}
-			/>
-			<ConfirmDialog
-				visible={deactivating !== null}
-				title="Desativar conta?"
-				message={`${deactivating ? displayName(deactivating) : ''} perde o acesso à plataforma. Os dados e o histórico são mantidos.`}
-				confirmLabel="Desativar"
-				destructive
-				isLoading={isDeactivating}
-				onConfirm={() => void confirmDeactivate()}
-				onCancel={() => setDeactivating(null)}
-			/>
+			{canEditUsers && (
+				<PersonFormModal
+					visible={formOpen}
+					person={editing}
+					roles={roles}
+					onClose={() => setFormOpen(false)}
+					onSubmit={handleSubmit}
+				/>
+			)}
+			{canEditUsers && (
+				<ConfirmDialog
+					visible={deactivating !== null}
+					title="Desativar conta?"
+					message={`${deactivating ? displayName(deactivating) : ''} perde o acesso à plataforma. Os dados e o histórico são mantidos.`}
+					confirmLabel="Desativar"
+					destructive
+					isLoading={isDeactivating}
+					onConfirm={() => void confirmDeactivate()}
+					onCancel={() => setDeactivating(null)}
+				/>
+			)}
+			{canEditUsers && (
+				<ConfirmDialog
+					visible={cancellingInvite !== null}
+					title="Cancelar convite?"
+					message={`${cancellingInvite ? displayName(cancellingInvite) : ''} não conseguirá mais usar o link enviado e o convite sai desta lista. Você pode enviar um novo link depois.`}
+					confirmLabel="Cancelar convite"
+					destructive
+					isLoading={isCancellingInvite}
+					onConfirm={() => void confirmCancelInvite()}
+					onCancel={() => setCancellingInvite(null)}
+				/>
+			)}
 			<Toast toast={toast} />
 		</View>
 	);

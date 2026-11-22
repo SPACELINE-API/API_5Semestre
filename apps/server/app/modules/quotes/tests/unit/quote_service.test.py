@@ -175,7 +175,12 @@ def test_update_quote_not_found_raises_404(mock_db_session):
 
 
 def pending_quote_with_service_order(mock_db_session):
-    quote = MagicMock(id=uuid.uuid4(), status="pending", service_orders=[MagicMock()])
+    quote = MagicMock(
+        id=uuid.uuid4(),
+        status="pending",
+        deadline=None,
+        service_orders=[MagicMock(deadline=None)],
+    )
     query = mock_db_session.query.return_value.filter.return_value.populate_existing.return_value.with_for_update.return_value
     query.first.return_value = quote
     return quote

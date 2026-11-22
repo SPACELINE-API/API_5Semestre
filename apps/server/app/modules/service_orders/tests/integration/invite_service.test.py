@@ -1,6 +1,7 @@
 import random
 import uuid
 from collections.abc import Sequence
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
@@ -116,7 +117,7 @@ def make_company(db_session: Session) -> Company:
     return company
 
 
-def make_item(db_session: Session) -> ServiceOrderItem:
+def make_item(db_session: Session, with_deadline: bool = True) -> ServiceOrderItem:
     company = make_company(db_session)
     quote = Quote(status="approved")
     translation_item = QuoteTranslationItem(
@@ -135,6 +136,7 @@ def make_item(db_session: Session) -> ServiceOrderItem:
         source_language="pt-BR",
         target_language="en-US",
         status=STATUS_PENDENTE,
+        deadline=datetime.now(UTC) + timedelta(days=30) if with_deadline else None,
     )
     service_order.items.append(item)
     db_session.add(service_order)
@@ -450,3 +452,35 @@ def test_list_my_invites_returns_only_own_invites_with_item_summary(
         "deadline",
         "status",
     }
+
+
+def test_send_invites_requires_a_deadline_on_the_item(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session, with_deadline=False)
+    translator = make_translator(db_session)
+
+    with pytest.raises(HTTPException) as exc_info:
+        InviteService(db_session).send_invites(item.id, [translator.id])
+
+    assert exc_info.value.status_code == 422
+    assert "Defina o prazo do documento" in exc_info.value.detail
+    assert sent_emails == []
+    assert db_session.query(ServiceOrderItemInvite).count() == 0
+
+
+def test_send_invites_works_once_the_deadline_is_defined(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session, with_deadline=False)
+    translator = make_translator(db_session)
+    service = InviteService(db_session)
+    with pytest.raises(HTTPException):
+        service.send_invites(item.id, [translator.id])
+
+    item.deadline = datetime.now(UTC) + timedelta(days=10)
+    db_session.commit()
+    invites = service.send_invites(item.id, [translator.id])
+
+    assert len(invites) == 1
+    assert len(sent_emails) == 1

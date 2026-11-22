@@ -14,14 +14,25 @@ function context(
 }
 
 test.describe('acesso às telas de tarefas', () => {
-	test('qualquer funcionário interno acessa as tarefas atribuídas a ele', () => {
-		for (const path of ['/tarefas', '/tarefas/minhas']) {
-			expect(canAccess(context(['Atendimento']), path)).toBe(true);
-			expect(canAccess(context(['Financeiro'], ['finance.read']), path)).toBe(
-				true,
-			);
-			expect(canAccess(context(['Administrador']), path)).toBe(true);
-		}
+	test('cada lista exige a permissão específica do perfil', () => {
+		expect(
+			canAccess(
+				context(['Atendimento'], ['tasks.read', 'tasks.assigned_to_me.read']),
+				'/tarefas',
+			),
+		).toBe(true);
+		expect(
+			canAccess(
+				context(['Atendimento'], ['tasks.read', 'tasks.assigned_to_me.read']),
+				'/tarefas/minhas',
+			),
+		).toBe(true);
+		expect(canAccess(context(['Atendimento']), '/tarefas')).toBe(false);
+		expect(
+			canAccess(context(['Atendimento'], ['tasks.read']), '/tarefas'),
+		).toBe(false);
+		expect(canAccess(context(['Atendimento']), '/tarefas/minhas')).toBe(false);
+		expect(canAccess(context(['Administrador']), '/tarefas')).toBe(true);
 	});
 
 	test('recurso externo e usuário sem sessão não acessam tarefas internas', () => {
@@ -38,7 +49,7 @@ test.describe('acesso às telas de tarefas', () => {
 		);
 		expect(
 			canAccess(
-				context(['Projetos'], ['assignments.write']),
+				context(['Projetos'], ['tasks.read', 'tasks.write']),
 				'/tarefas/atribuidas',
 			),
 		).toBe(true);

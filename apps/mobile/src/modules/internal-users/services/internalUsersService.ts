@@ -4,14 +4,12 @@ import {
 	apiPatchAuth,
 	apiPostAuth,
 } from '../../../shared/services/apiClient';
-import { listRoles } from '../../auth/services/roles';
 import type { Role } from '../../auth/types/roles';
 import type {
 	InternalUser,
 	InternalUserCreateInput,
 	InternalUserUpdateInput,
 } from '../types/internalUser';
-import { isExternalRoleName } from '../utils/departments';
 
 const PATH = '/api/internal-users';
 
@@ -20,10 +18,7 @@ export function listInternalUsers(): Promise<InternalUser[]> {
 }
 
 export async function listAssignableRoles(): Promise<Role[]> {
-	const roles = await listRoles();
-	return roles.filter(
-		(role) => role.is_active && !isExternalRoleName(role.name),
-	);
+	return apiGetAuth<Role[]>(`${PATH}/assignable-roles`);
 }
 
 export function createInternalUser(
@@ -68,6 +63,13 @@ export function removeInternalUserRole(
 export function sendPasswordSetupLink(id: string): Promise<InternalUser> {
 	return apiPostAuth<InternalUser, Record<string, never>>(
 		`${PATH}/${id}/password-setup-link`,
+		{},
+	);
+}
+
+export function cancelPasswordSetupLink(id: string): Promise<InternalUser> {
+	return apiPostAuth<InternalUser, Record<string, never>>(
+		`${PATH}/${id}/password-setup-link/cancel`,
 		{},
 	);
 }

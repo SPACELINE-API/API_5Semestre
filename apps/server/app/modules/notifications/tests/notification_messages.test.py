@@ -102,3 +102,65 @@ def test_notification_message_builders_return_centralized_content(
 def test_document_review_message_rejects_unsupported_status() -> None:
     with pytest.raises(ValueError, match="Unsupported document review status"):
         document_review_message("pending")
+
+
+def test_describe_changes_lists_added_removed_and_updated_documents():
+    from app.modules.notifications.services.notification_messages import describe_changes
+
+    text = describe_changes(
+        [
+            {
+                "action": "updated",
+                "item": "Contrato (pt-BR → en-US)",
+                "fields": {
+                    "word_count": {"before": 1200, "after": 1500},
+                    "deadline": {"before": "2026-12-10", "after": "2026-12-20"},
+                    "price": {"before": "100.00", "after": "150.00"},
+                },
+            },
+            {"action": "added", "item": "Certidão (pt-BR → es-ES)", "fields": {}},
+            {"action": "removed", "item": "Procuração (pt-BR → fr-FR)", "fields": {}},
+        ]
+    )
+
+    assert "palavras 1200 → 1500" in text
+    assert "prazo 10/12/2026 → 20/12/2026" in text
+    assert "valor R$ 100,00 → R$ 150,00" in text
+    assert "Certidão (pt-BR → es-ES): adicionado" in text
+    assert "Procuração (pt-BR → fr-FR): removido" in text
+
+
+def test_describe_changes_summarises_the_overflow():
+    from app.modules.notifications.services.notification_messages import describe_changes
+
+    changes = [
+        {"action": "added", "item": f"Documento {index}", "fields": {}} for index in range(6)
+    ]
+
+    text = describe_changes(changes)
+
+    assert text.count("adicionado") == 4
+    assert text.endswith("(+2 alterações)")
+
+
+def test_quote_reopened_message_includes_the_reason():
+    from app.modules.notifications.services.notification_messages import quote_reopened_message
+
+    message = quote_reopened_message("Acme", " Cliente pediu mais prazo ")
+
+    assert message.event_type == "quote_reopened"
+    assert message.message.endswith("Motivo: Cliente pediu mais prazo")
+
+
+def test_quote_changes_message_names_the_project_and_the_changes():
+    from app.modules.notifications.services.notification_messages import quote_changes_message
+
+    message = quote_changes_message(
+        "Acme",
+        "Projeto Alfa",
+        [{"action": "added", "item": "Contrato (pt-BR → en-US)", "fields": {}}],
+    )
+
+    assert message.event_type == "quote_updated"
+    assert 'ordem de serviço "Projeto Alfa" foi atualizada' in message.message
+    assert "Contrato (pt-BR → en-US): adicionado" in message.message

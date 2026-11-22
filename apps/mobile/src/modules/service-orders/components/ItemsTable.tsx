@@ -11,7 +11,8 @@ import { StatusBadge } from './StatusBadge';
 import { openDocument } from '../../../shared/components/FilePreview';
 import { getTruncatedFileName } from '../../../shared/utils/file';
 import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
-import { formatDate, formatPrice } from '../utils/format';
+import { formatPrice } from '../utils/format';
+import { ItemDeadline } from './ItemDeadline';
 import { usePermission } from '../../auth/hooks/usePermission';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
@@ -21,6 +22,7 @@ type ItemsTableProps = {
 	onAddItem?: () => void;
 	onEditItem?: (item: ServiceOrderItem) => void;
 	onDeleteItem?: (item: ServiceOrderItem) => void;
+	onEditDeadline?: (item: ServiceOrderItem) => void;
 	isInServiceOrder?: boolean;
 	layout?: 'table' | 'cards';
 };
@@ -84,12 +86,14 @@ function ItemCard({
 	translatorName,
 	onEdit,
 	onDelete,
+	onEditDeadline,
 	isInServiceOrder = false,
 }: {
 	item: ServiceOrderItem;
 	translatorName: string;
 	onEdit: () => void;
 	onDelete: () => void;
+	onEditDeadline?: (item: ServiceOrderItem) => void;
 	isInServiceOrder?: boolean;
 }) {
 	const themeColors = useThemeColors();
@@ -123,26 +127,26 @@ function ItemCard({
 					</View>
 				</View>
 
-				<View className="flex-row gap-4">
-					<View className="min-w-0 flex-1 gap-1">
-						<Text className="font-inter text-foreground-subtle text-xs">
-							Prazo
-						</Text>
-						<Text className="font-inter text-foreground-secondary text-sm">
-							{formatDate(item.deadline)}
-						</Text>
-					</View>
-					<View className="min-w-0 flex-1 gap-1">
-						<Text className="font-inter text-foreground-subtle text-xs">
-							Tradutor
-						</Text>
-						<Text
-							className="font-inter text-foreground-secondary text-sm"
-							numberOfLines={2}
-						>
-							{translatorName}
-						</Text>
-					</View>
+				<View className="min-w-0 gap-1">
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Prazo
+					</Text>
+					<ItemDeadline
+						item={item}
+						onEdit={onEditDeadline}
+						textClassName="font-inter text-foreground-secondary text-sm"
+					/>
+				</View>
+				<View className="min-w-0 gap-1">
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Tradutor
+					</Text>
+					<Text
+						className="font-inter text-foreground-secondary text-sm"
+						numberOfLines={2}
+					>
+						{translatorName}
+					</Text>
 				</View>
 
 				<View className="flex-row flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-border-subtle pt-3">
@@ -207,6 +211,7 @@ export function ItemsTable({
 	onAddItem,
 	onEditItem,
 	onDeleteItem,
+	onEditDeadline,
 	isInServiceOrder = false,
 	layout = 'table',
 }: ItemsTableProps) {
@@ -218,7 +223,7 @@ export function ItemsTable({
 		return (
 			<View className="gap-3">
 				<Text className="font-inter text-sm text-foreground-muted">
-					Este orçamento ainda não possui itens.
+					Este orçamento ainda não possui documentos.
 				</Text>
 				{!isInServiceOrder && (
 					<AddItemButton onPress={onAddItem!} layout={layout} />
@@ -261,6 +266,7 @@ export function ItemsTable({
 							translatorName={translator?.name ?? 'Não atribuído'}
 							onEdit={() => onEditItem!(item)}
 							onDelete={() => onDeleteItem!(item)}
+							onEditDeadline={onEditDeadline}
 							isInServiceOrder={isInServiceOrder}
 						/>
 					);
@@ -282,10 +288,10 @@ export function ItemsTable({
 				<HeaderCell label="Idiomas" width="16%" />
 				<HeaderCell label="Documento" width="14%" />
 				<HeaderCell label="Preço" width="10%" />
-				<HeaderCell label="Prazo" width="10%" />
+				<HeaderCell label="Prazo" width="14%" />
 				<HeaderCell label="Status" width="12%" />
 				<HeaderCell label="Tradutor" width="14%" />
-				<HeaderCell label="Arquivo" width="14%" />
+				<HeaderCell label="Arquivo" width="10%" />
 				{!isInServiceOrder && <HeaderCell label="Ações" width="10%" />}
 			</View>
 
@@ -317,10 +323,12 @@ export function ItemsTable({
 								</Text>
 							</View>
 
-							<View className="md:w-[10%]">
-								<Text className="font-inter text-foreground-secondary text-sm">
-									{formatDate(item.deadline)}
-								</Text>
+							<View className="md:w-[14%]">
+								<ItemDeadline
+									item={item}
+									onEdit={onEditDeadline}
+									textClassName="font-inter text-foreground-secondary text-sm"
+								/>
 							</View>
 
 							<View className="md:w-[12%]">
@@ -333,7 +341,7 @@ export function ItemsTable({
 								</Text>
 							</View>
 
-							<View className="min-w-0 md:w-[14%]">
+							<View className="min-w-0 md:w-[10%]">
 								{item.file_url ? (
 									<TouchableOpacity
 										accessibilityRole="link"

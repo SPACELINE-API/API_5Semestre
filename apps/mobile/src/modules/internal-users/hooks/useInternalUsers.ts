@@ -6,7 +6,7 @@ import {
 } from '../services/internalUsersService';
 import type { InternalUser } from '../types/internalUser';
 
-export function useInternalUsers() {
+export function useInternalUsers(canEditUsers: boolean) {
 	const [people, setPeople] = useState<InternalUser[]>([]);
 	const [roles, setRoles] = useState<Role[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -18,7 +18,7 @@ export function useInternalUsers() {
 		try {
 			const [loadedPeople, loadedRoles] = await Promise.all([
 				listInternalUsers(),
-				listAssignableRoles(),
+				canEditUsers ? listAssignableRoles() : Promise.resolve([]),
 			]);
 			setPeople(loadedPeople);
 			setRoles(loadedRoles);
@@ -31,7 +31,7 @@ export function useInternalUsers() {
 		} finally {
 			setIsLoading(false);
 		}
-	}, []);
+	}, [canEditUsers]);
 
 	useEffect(() => {
 		void reload();

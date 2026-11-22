@@ -17,7 +17,7 @@ import {
 	InviteStatusFilterPanel,
 	type InviteStatusFilter,
 } from '../components/InviteFilters';
-import { formatDate } from '../utils/format';
+import { formatDate, formatDeadline } from '../utils/format';
 import { WORKFLOW_STEPS } from '../../service-orders/utils/workflowSteps';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
@@ -150,7 +150,7 @@ export function MyInvitesPage() {
 
 											<Text className="font-inter text-foreground-muted text-xs">
 												Recebido em {formatDate(invite.sent_at)} · Prazo{' '}
-												{formatDate(invite.item.deadline)}
+												{formatDeadline(invite.item.deadline)}
 											</Text>
 
 											<View className="flex-row flex-wrap items-center gap-2">

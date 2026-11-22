@@ -8,13 +8,16 @@ export type TasksTab = 'atribuidas' | 'minhas';
 // MESMO PADRAO DE CONFIGURACOES: CADA ABA E UMA ROTA
 export function TasksHeader({ active }: { active: TasksTab }) {
 	const router = useRouter();
-	const canAssign = usePermission('assignments.write');
+	const canAssignByMe = usePermission('tasks.write');
+	const canViewAssignedToMe = usePermission('tasks.assigned_to_me.read');
 
 	const tabs: { key: TasksTab; label: string }[] = [
-		...(canAssign
+		...(canAssignByMe
 			? [{ key: 'atribuidas' as const, label: 'Atribuídas por mim' }]
 			: []),
-		{ key: 'minhas', label: 'Atribuídas a mim' },
+		...(canViewAssignedToMe
+			? [{ key: 'minhas' as const, label: 'Atribuídas a mim' }]
+			: []),
 	];
 
 	function changeTab(tab: TasksTab) {
@@ -29,9 +32,13 @@ export function TasksHeader({ active }: { active: TasksTab }) {
 					Tarefas
 				</Text>
 				<Text className="mt-2 font-inter text-foreground-muted text-sm">
-					{canAssign
+					{canAssignByMe && canViewAssignedToMe
 						? 'Crie e acompanhe as tarefas que você atribuiu e execute as que foram atribuídas a você.'
-						: 'Execute as tarefas que foram atribuídas a você.'}
+						: canAssignByMe
+							? 'Crie e acompanhe as tarefas que você atribuiu.'
+							: canViewAssignedToMe
+								? 'Execute as tarefas que foram atribuídas a você.'
+								: 'Acesse a área de tarefas.'}
 				</Text>
 			</View>
 			<TabBar tabs={tabs} activeTab={active} onTabChange={changeTab} />
