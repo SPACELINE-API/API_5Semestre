@@ -112,6 +112,65 @@ class TaskService:
         self.db.refresh(proposal)
         return proposal, token
 
+    def propose_for_assignee(
+        self, data: TaskCreateRequest, *, requester: Usuario
+    ) -> tuple[TaskProposal, str]:
+        token = secrets.token_urlsafe(32)
+        proposal = TaskProposal(
+            token_hash=self._token_hash(token),
+            requester_id=requester.id,
+            payload_hash=self._assignee_payload_hash(data),
+            status=TaskProposalStatus.PENDING,
+        )
+        self.db.add(proposal)
+        self.db.flush()
+        key = str(proposal.id)
+        self._add_audit(
+            None,
+            requester,
+            key,
+            "confirmation_required",
+            self._assignee_details(data),
+        )
+        self.db.commit()
+        self.db.refresh(proposal)
+        return proposal, token
+
+    def confirm_assignee_proposal(
+        self, token: str, data: TaskCreateRequest, *, requester: Usuario
+    ) -> Task:
+        proposal = (
+            self.db.query(TaskProposal)
+            .filter(
+                TaskProposal.token_hash == self._token_hash(token),
+                TaskProposal.requester_id == requester.id,
+            )
+            .with_for_update()
+            .first()
+        )
+        if (
+            proposal is None
+            or proposal.status != TaskProposalStatus.PENDING
+            or proposal.payload_hash != self._assignee_payload_hash(data)
+        ):
+            raise HTTPException(status_code=409, detail="Task proposal is invalid or already used")
+
+        key = str(proposal.id)
+        task = self.create_for_assignee(
+            data.model_copy(update={"idempotency_key": key}), requester=requester
+        )
+        proposal.status = TaskProposalStatus.CONSUMED
+        proposal.task_id = task.id
+        self._add_audit(
+            task.id,
+            requester,
+            key,
+            "proposal_consumed",
+            {"proposal_id": str(proposal.id), "payload_hash": proposal.payload_hash},
+        )
+        self.db.commit()
+        return task
+
     def confirm_proposal(self, token: str, data: TaskCreate, *, requester: Usuario) -> Task:
         proposal = (
             self.db.query(TaskProposal)
@@ -255,6 +314,16 @@ class TaskService:
             "description": data.description.strip(),
             "due_date": data.due_date.isoformat() if data.due_date else None,
             "translator_ids": sorted(str(translator_id) for translator_id in data.translator_ids),
+        }
+        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(canonical.encode()).hexdigest()
+
+    @staticmethod
+    def _assignee_payload_hash(data: TaskCreateRequest) -> str:
+        payload = {
+            "description": data.description.strip(),
+            "due_date": data.due_date.isoformat() if data.due_date else None,
+            "assignee_id": str(data.assignee_id),
         }
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical.encode()).hexdigest()

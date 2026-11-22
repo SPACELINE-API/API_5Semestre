@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { Paperclip, Send } from 'lucide-react-native';
+import { Send } from 'lucide-react-native';
 import { Pressable, TextInput, View } from 'react-native';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
@@ -33,9 +33,6 @@ export const ChatInputBar = forwardRef<TextInput, ChatInputBarProps>(
 					isFocused ? 'border-primary' : 'border-border'
 				}`}
 			>
-				<Pressable hitSlop={8} disabled={disabled}>
-					<Paperclip color={themeColors.foregroundSubtle} size={20} />
-				</Pressable>
 				<TextInput
 					ref={ref}
 					className="min-h-[44px] flex-1 py-2 text-sm text-foreground outline-none max-md:min-w-0 max-md:shrink"
