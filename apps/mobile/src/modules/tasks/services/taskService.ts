@@ -31,7 +31,7 @@ export function listTeamTasks(): Promise<Task[]> {
 	return apiGetAuth<Task[]>(TASKS_PATH);
 }
 
-// TAREFAS QUE O USUARIO AUTENTICADO ATRIBUIU (EXIGE assignments.write)
+// TAREFAS QUE O USUARIO AUTENTICADO ATRIBUIU (EXIGE tasks.write)
 export function listTasksAssignedByMe(): Promise<Task[]> {
 	return apiGetAuth<Task[]>(`${TASKS_PATH}/assigned-by-me`);
 }

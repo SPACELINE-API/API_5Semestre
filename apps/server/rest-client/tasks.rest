@@ -25,7 +25,7 @@ Content-Type: application/json
 GET {{serverUrl}}/api/auth/me
 Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
 
-### Criar tarefa para exatamente um funcionário interno (exige assignments.write, a mesma permissão do agente)
+### Criar tarefa para exatamente um funcionário interno (exige tasks.write)
 ### O prazo é opcional. Sem idempotency_key, cada chamada cria uma nova tarefa.
 # @name createTask
 POST {{serverUrl}}/api/tasks
@@ -38,7 +38,7 @@ Content-Type: application/json
   "assignee_id": "{{employeeMe.response.body.$.user.id}}"
 }
 
-### Tarefas do funcionário autenticado (filtro opcional: status=pending|in_progress|in_review|completed|rejected)
+### Tarefas atribuídas ao funcionário autenticado (exige tasks.read e tasks.assigned_to_me.read; filtro opcional de status)
 GET {{serverUrl}}/api/tasks/me
 Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
 
@@ -84,7 +84,7 @@ Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
 POST {{serverUrl}}/api/tasks/{{createTask.response.body.$.id}}/submit
 Authorization: Bearer {{loginEmployee.response.body.$.access_token}}
 
-### Consultar tarefas dos funcionários internos (exige tasks.review; filtros opcionais status e assignee_id)
+### Consultar tarefas dos funcionários internos (exige tasks.read e tasks.review; filtros opcionais status e assignee_id)
 GET {{serverUrl}}/api/tasks?status=in_review
 Authorization: Bearer {{loginAdmin.response.body.$.access_token}}
 

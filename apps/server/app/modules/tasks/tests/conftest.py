@@ -39,7 +39,7 @@ class TasksEnv:
         self,
         *,
         legacy_role: str = "interno",
-        permissions: tuple[str, ...] = (),
+        permissions: tuple[str, ...] = ("tasks.read", "tasks.assigned_to_me.read"),
         is_active: bool = True,
     ) -> User:
         user = User(

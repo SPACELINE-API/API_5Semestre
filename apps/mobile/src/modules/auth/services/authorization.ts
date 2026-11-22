@@ -21,7 +21,9 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/configuracoes/pessoas': 'users.read',
 	'/configuracoes/sessao': 'settings.read',
 	'/projetos': 'projects.read',
-	'/tarefas/atribuidas': 'assignments.write',
+	'/tarefas': 'tasks.read',
+	'/tarefas/minhas': 'tasks.assigned_to_me.read',
+	'/tarefas/atribuidas': 'tasks.write',
 };
 
 const FULL_ROUTE_ACCESS_ROLES = new Set(['administrador', 'admin']);
@@ -70,11 +72,13 @@ export function isTranslatorProfile(context: AuthorizationContext | null) {
 	);
 }
 
-// TELAS DE QUALQUER FUNCIONARIO INTERNO, SEM PERMISSAO ESPECIFICA (TRADUTORES NAO ACESSAM)
-const INTERNAL_USER_PATHS = ['/tarefas', '/tarefas/minhas'];
+// TELAS INTERNAS DE TAREFAS COM PERMISSOES PROPRIAS
+const INTERNAL_USER_PATHS = ['/tarefas'];
 
 export function isInternalUserPath(pathname: string) {
-	return INTERNAL_USER_PATHS.includes(pathname);
+	return INTERNAL_USER_PATHS.some(
+		(path) => pathname === path || pathname.startsWith(`${path}/`),
+	);
 }
 
 export function isInternalUser(context: AuthorizationContext | null) {
@@ -119,7 +123,19 @@ export function canAccess(
 ) {
 	if (isPublicPath(pathname)) return true;
 	if (isAdministratorOnlyPath(pathname)) return hasFullRouteAccess(context);
-	if (isInternalUserPath(pathname)) return isInternalUser(context);
+	if (isInternalUserPath(pathname)) {
+		const permission = requiredPermission(pathname);
+		const hasTaskView =
+			hasPermission(context, 'tasks.write') ||
+			hasPermission(context, 'tasks.assigned_to_me.read');
+		return (
+			permission !== null &&
+			isInternalUser(context) &&
+			hasPermission(context, 'tasks.read') &&
+			hasTaskView &&
+			hasPermission(context, permission)
+		);
+	}
 	if (
 		pathname === '/configuracoes/sessao' ||
 		pathname.startsWith('/configuracoes/sessao/')
@@ -135,6 +151,7 @@ export function canAccess(
 
 export const LANDING_ROUTES = new Set([
 	'/dashboard',
+	'/tarefas',
 	'/convites',
 	'/meus-itens',
 	'/meu-perfil',

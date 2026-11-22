@@ -147,6 +147,9 @@ export function SideBar({
 			authorizationContext ? { ...authorizationContext, permissions } : null,
 			permission,
 		);
+	const canAccessTasks =
+		can('tasks.read') &&
+		(can('tasks.write') || can('tasks.assigned_to_me.read'));
 
 	function navigate(path: string) {
 		router.push(path as never);
@@ -275,6 +278,7 @@ export function SideBar({
 											label="Tarefas"
 											isOpen={showExpanded}
 											active={isTasksActive}
+											disabled={!canAccessTasks}
 											onPress={() => navigate('/tarefas')}
 										/>
 									</View>

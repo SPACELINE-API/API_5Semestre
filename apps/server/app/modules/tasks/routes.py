@@ -7,9 +7,10 @@ from sqlalchemy.orm import Session
 from app.modules.auth.models.user import User
 from app.modules.auth.services.roles_service import has_permission
 from app.modules.tasks.dependencies import (
-    get_current_internal_user,
+    require_assigned_to_me_viewer,
     require_task_reviewer,
     require_task_writer,
+    require_task_viewer,
 )
 from app.modules.tasks.models.task import TaskStatus
 from app.modules.tasks.schemas.task import (
@@ -22,7 +23,11 @@ from app.modules.tasks.schemas.task import (
     TaskResponse,
 )
 from app.modules.tasks.services.attachments import TASK_ATTACHMENT_MAX_BYTES
-from app.modules.tasks.services.task_rules import TASKS_REVIEW_PERMISSION
+from app.modules.tasks.services.task_rules import (
+    TASKS_ASSIGNED_TO_ME_PERMISSION,
+    TASKS_INTERNAL_CREATE_PERMISSION,
+    TASKS_REVIEW_PERMISSION,
+)
 from app.modules.tasks.services.task_service import TaskService
 from app.modules.tasks.services.task_workflow_service import TaskWorkflowService
 from app.shared.database import get_db
@@ -30,14 +35,23 @@ from app.shared.database import get_db
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 DbSession = Annotated[Session, Depends(get_db)]
-InternalUser = Annotated[User, Depends(get_current_internal_user)]
 TaskWriter = Annotated[User, Depends(require_task_writer)]
 TaskReviewer = Annotated[User, Depends(require_task_reviewer)]
+AssignedToMeViewer = Annotated[User, Depends(require_assigned_to_me_viewer)]
+TaskViewer = Annotated[User, Depends(require_task_viewer)]
 StatusFilter = Annotated[TaskStatus | None, Query(alias="status")]
 
 
 def _can_review(user: User) -> bool:
     return has_permission(user.roles, TASKS_REVIEW_PERMISSION)
+
+
+def _can_view_assigned_by_me(user: User) -> bool:
+    return has_permission(user.roles, TASKS_INTERNAL_CREATE_PERMISSION)
+
+
+def _can_view_assigned_to_me(user: User) -> bool:
+    return has_permission(user.roles, TASKS_ASSIGNED_TO_ME_PERMISSION)
 
 
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
@@ -56,7 +70,7 @@ def list_tasks(
 
 
 @router.get("/me", response_model=list[TaskResponse])
-def list_my_tasks(db: DbSession, user: InternalUser, task_status: StatusFilter = None):
+def list_my_tasks(db: DbSession, user: AssignedToMeViewer, task_status: StatusFilter = None):
     return TaskWorkflowService(db).list_for_assignee(user, task_status)
 
 
@@ -73,23 +87,35 @@ def list_tasks_assigned_by_me(db: DbSession, writer: TaskWriter, task_status: St
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
-def get_task(task_id: uuid.UUID, db: DbSession, user: InternalUser):
-    return TaskWorkflowService(db).get_visible(task_id, user, can_review=_can_review(user))
+def get_task(task_id: uuid.UUID, db: DbSession, user: TaskViewer):
+    return TaskWorkflowService(db).get_visible(
+        task_id,
+        user,
+        can_review=_can_review(user),
+        can_view_assigned_by_me=_can_view_assigned_by_me(user),
+        can_view_assigned_to_me=_can_view_assigned_to_me(user),
+    )
 
 
 @router.get("/{task_id}/history", response_model=list[TaskHistoryResponse])
-def get_task_history(task_id: uuid.UUID, db: DbSession, user: InternalUser):
-    return TaskWorkflowService(db).history(task_id, user, can_review=_can_review(user))
+def get_task_history(task_id: uuid.UUID, db: DbSession, user: TaskViewer):
+    return TaskWorkflowService(db).history(
+        task_id,
+        user,
+        can_review=_can_review(user),
+        can_view_assigned_by_me=_can_view_assigned_by_me(user),
+        can_view_assigned_to_me=_can_view_assigned_to_me(user),
+    )
 
 
 @router.post("/{task_id}/start", response_model=TaskResponse)
-def start_task(task_id: uuid.UUID, db: DbSession, user: InternalUser):
+def start_task(task_id: uuid.UUID, db: DbSession, user: AssignedToMeViewer):
     return TaskWorkflowService(db).start(task_id, user)
 
 
 @router.patch("/{task_id}/execution", response_model=TaskResponse)
 def update_task_execution(
-    task_id: uuid.UUID, data: TaskExecutionUpdate, db: DbSession, user: InternalUser
+    task_id: uuid.UUID, data: TaskExecutionUpdate, db: DbSession, user: AssignedToMeViewer
 ):
     return TaskWorkflowService(db).update_execution(task_id, user, data.execution_description)
 
@@ -100,7 +126,7 @@ def update_task_execution(
 def add_task_attachment(
     task_id: uuid.UUID,
     db: DbSession,
-    user: InternalUser,
+    user: AssignedToMeViewer,
     file: UploadFile = File(...),
 ):
     return TaskWorkflowService(db).add_attachment(
@@ -114,27 +140,32 @@ def add_task_attachment(
 
 @router.delete("/{task_id}/attachments/{attachment_id}", response_model=TaskResponse)
 def remove_task_attachment(
-    task_id: uuid.UUID, attachment_id: uuid.UUID, db: DbSession, user: InternalUser
+    task_id: uuid.UUID, attachment_id: uuid.UUID, db: DbSession, user: AssignedToMeViewer
 ):
     return TaskWorkflowService(db).remove_attachment(task_id, attachment_id, user)
 
 
 @router.get("/{task_id}/attachments/{attachment_id}/file", response_model=TaskFileResponse)
 def get_task_attachment_file(
-    task_id: uuid.UUID, attachment_id: uuid.UUID, db: DbSession, user: InternalUser
+    task_id: uuid.UUID, attachment_id: uuid.UUID, db: DbSession, user: TaskViewer
 ):
     return TaskWorkflowService(db).attachment_file(
-        task_id, attachment_id, user, can_review=_can_review(user)
+        task_id,
+        attachment_id,
+        user,
+        can_review=_can_review(user),
+        can_view_assigned_by_me=_can_view_assigned_by_me(user),
+        can_view_assigned_to_me=_can_view_assigned_to_me(user),
     )
 
 
 @router.post("/{task_id}/submit", response_model=TaskResponse)
-def submit_task(task_id: uuid.UUID, db: DbSession, user: InternalUser):
+def submit_task(task_id: uuid.UUID, db: DbSession, user: AssignedToMeViewer):
     return TaskWorkflowService(db).submit(task_id, user)
 
 
 @router.post("/{task_id}/resume", response_model=TaskResponse)
-def resume_task(task_id: uuid.UUID, db: DbSession, user: InternalUser):
+def resume_task(task_id: uuid.UUID, db: DbSession, user: AssignedToMeViewer):
     return TaskWorkflowService(db).resume(task_id, user)
 
 

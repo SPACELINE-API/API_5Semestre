@@ -76,15 +76,41 @@ class TaskWorkflowService:
             statement = statement.where(Task.assignee_id == assignee_id)
         return list(self.db.scalars(statement.order_by(Task.created_at.desc())).unique().all())
 
-    def get_visible(self, task_id: uuid.UUID, viewer: User, *, can_review: bool) -> Task:
+    def get_visible(
+        self,
+        task_id: uuid.UUID,
+        viewer: User,
+        *,
+        can_review: bool,
+        can_view_assigned_by_me: bool,
+        can_view_assigned_to_me: bool,
+    ) -> Task:
         task = self._get_or_404(task_id)
-        # VEEM A TAREFA: QUEM AVALIA, O RESPONSAVEL E QUEM A ATRIBUIU
-        if not can_review and viewer.id not in (task.assignee_id, task.requester_id):
+        can_view = (
+            can_review
+            or (viewer.id == task.requester_id and can_view_assigned_by_me)
+            or (viewer.id == task.assignee_id and can_view_assigned_to_me)
+        )
+        if not can_view:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=TASK_NOT_FOUND)
         return task
 
-    def history(self, task_id: uuid.UUID, viewer: User, *, can_review: bool) -> list[TaskHistory]:
-        task = self.get_visible(task_id, viewer, can_review=can_review)
+    def history(
+        self,
+        task_id: uuid.UUID,
+        viewer: User,
+        *,
+        can_review: bool,
+        can_view_assigned_by_me: bool,
+        can_view_assigned_to_me: bool,
+    ) -> list[TaskHistory]:
+        task = self.get_visible(
+            task_id,
+            viewer,
+            can_review=can_review,
+            can_view_assigned_by_me=can_view_assigned_by_me,
+            can_view_assigned_to_me=can_view_assigned_to_me,
+        )
         return list(
             self.db.scalars(
                 select(TaskHistory)
@@ -168,9 +194,22 @@ class TaskWorkflowService:
         return committed
 
     def attachment_file(
-        self, task_id: uuid.UUID, attachment_id: uuid.UUID, viewer: User, *, can_review: bool
+        self,
+        task_id: uuid.UUID,
+        attachment_id: uuid.UUID,
+        viewer: User,
+        *,
+        can_review: bool,
+        can_view_assigned_by_me: bool,
+        can_view_assigned_to_me: bool,
     ) -> TaskFileResponse:
-        task = self.get_visible(task_id, viewer, can_review=can_review)
+        task = self.get_visible(
+            task_id,
+            viewer,
+            can_review=can_review,
+            can_view_assigned_by_me=can_view_assigned_by_me,
+            can_view_assigned_to_me=can_view_assigned_to_me,
+        )
         attachment = self._get_attachment_or_404(task, attachment_id)
         return TaskFileResponse(
             url=attachments.signed_attachment_url(attachment.storage_path),
