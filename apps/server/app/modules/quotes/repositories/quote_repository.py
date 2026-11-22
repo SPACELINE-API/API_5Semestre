@@ -59,7 +59,12 @@ class QuoteRepository:
         )
         return quotes, total
 
-    def create_from_request(self, request: Request, document_file_url: str | None = None) -> Quote:
+    def create_from_request(
+        self,
+        request: Request,
+        document_file_url: str | None = None,
+        word_count: int | None = None,
+    ) -> Quote:
         quote = Quote(
             request_id=request.id,
             company_id=request.company_id,
@@ -79,6 +84,7 @@ class QuoteRepository:
                     target_language=request.translation_language,
                     document_type=request.customer_need,
                     file_url=document_file_url,
+                    word_count=word_count,
                 )
             )
         self.db.add(quote)

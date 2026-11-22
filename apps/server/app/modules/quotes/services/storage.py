@@ -8,6 +8,7 @@ from app.shared.supabase.client import (
     create_supabase_http_client,
     get_supabase_config,
 )
+from app.shared.supabase.filenames import safe_storage_filename
 
 
 def upload_quote_document(
@@ -21,7 +22,7 @@ def upload_quote_document(
     bucket = "quotes-documents"
 
     if storage_path is None:
-        file_path = f"{uuid.uuid4()}_{filename}"
+        file_path = f"{uuid.uuid4()}_{safe_storage_filename(filename)}"
     else:
         file_path = storage_path
 
@@ -45,6 +46,17 @@ def upload_quote_document(
     return public_url
 
 
+def download_document(url: str) -> bytes | None:
+    try:
+        with create_supabase_http_client() as client:
+            response = client.get(url, timeout=15)
+        if response.status_code != 200:
+            return None
+        return response.content
+    except Exception:
+        return None
+
+
 def upload_request_document(
     filename: str,
     file_data: BinaryIO,
@@ -52,7 +64,7 @@ def upload_request_document(
 ) -> str:
     config = get_supabase_config()
     bucket = "quotes-documents"
-    file_path = f"requests/{uuid.uuid4()}_{filename}"
+    file_path = f"requests/{uuid.uuid4()}_{safe_storage_filename(filename)}"
 
     upload_url = f"{config.url}/storage/v1/object/{bucket}/{file_path}"
 
@@ -79,7 +91,7 @@ def upload_receipt_pdf(
 ) -> str:
     config = get_supabase_config()
     bucket = "quotes-documents"
-    file_path = f"receipts/{uuid.uuid4()}_{filename}"
+    file_path = f"receipts/{uuid.uuid4()}_{safe_storage_filename(filename)}"
 
     upload_url = f"{config.url}/storage/v1/object/{bucket}/{file_path}"
 

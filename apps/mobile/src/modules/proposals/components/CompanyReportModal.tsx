@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	ActivityIndicator,
 	ScrollView,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
@@ -213,7 +213,7 @@ export function CompanyReportModal({
 					</Text>
 				</View>
 
-				<TextInput
+				<SearchTextInput
 					value={search}
 					onChangeText={(value) => {
 						setSearch(value);
@@ -227,7 +227,7 @@ export function CompanyReportModal({
 					numberOfLines={1}
 					textAlignVertical="center"
 					style={{ height: 44, lineHeight: 20, paddingVertical: 0 }}
-					className="w-full min-w-0 rounded-lg border border-border-strong px-3 font-inter text-foreground text-sm"
+					className="w-full min-w-0 rounded-lg border border-border-strong px-3 font-inter text-ellipsis text-foreground text-sm"
 				/>
 
 				{isCompanyPickerOpen &&

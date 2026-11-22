@@ -1,11 +1,6 @@
 import { useMemo, useState } from 'react';
-import {
-	ScrollView,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	View,
-} from 'react-native';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Plus, Search } from 'lucide-react-native';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
@@ -151,13 +146,14 @@ export function AssignedTasksPage() {
 						<>
 							<View className="flex-row items-center gap-2 rounded-lg border border-border-strong px-3">
 								<Search size={16} color={themeColors.foregroundSubtle} />
-								<TextInput
+								<SearchTextInput
 									value={search}
 									onChangeText={setSearch}
 									placeholder="Buscar por funcionário ou descrição"
+									numberOfLines={1}
 									placeholderTextColor={themeColors.foregroundSubtle}
 									accessibilityLabel="Buscar tarefas"
-									className="flex-1 py-2.5 font-inter text-sm text-foreground outline-none"
+									className="flex-1 py-2.5 font-inter text-ellipsis text-sm text-foreground outline-none"
 								/>
 							</View>
 							<TaskStatusFilter

@@ -1,4 +1,5 @@
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import { Check, Search, SlidersHorizontal } from 'lucide-react-native';
 import type { InviteStatus } from '../types/invite';
 
@@ -35,12 +36,13 @@ export function InviteSearchBar({
 		<View className="mb-4 flex-row items-center gap-3">
 			<View className="h-10 flex-1 flex-row items-center rounded-lg border border-border bg-surface px-3">
 				<Search size={17} color={themeColors.foregroundSubtle} />
-				<TextInput
+				<SearchTextInput
 					value={search}
 					onChangeText={onSearchChange}
 					placeholder="Buscar por documento ou idioma"
+					numberOfLines={1}
 					placeholderTextColor={themeColors.foregroundSubtle}
-					className="ml-2 flex-1 border-0 font-inter text-foreground text-sm outline-none h-10"
+					className="ml-2 flex-1 border-0 font-inter text-ellipsis text-foreground text-sm outline-none h-10"
 				/>
 			</View>
 

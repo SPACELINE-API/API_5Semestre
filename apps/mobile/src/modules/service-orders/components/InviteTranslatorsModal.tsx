@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	Modal,
 	View,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	ScrollView,
 	Platform,
@@ -168,13 +168,14 @@ export function InviteTranslatorsModal({
 
 					<View className="flex-row items-center gap-2 border-b border-border-subtle px-6 py-3">
 						<Search size={16} color={themeColors.foregroundSubtle} />
-						<TextInput
+						<SearchTextInput
 							value={search}
 							onChangeText={setSearch}
 							placeholder="Buscar tradutor por nome ou email"
+							numberOfLines={1}
 							placeholderTextColor={themeColors.foregroundSubtle}
 							accessibilityLabel="Buscar tradutor"
-							className="h-9 flex-1 font-inter text-foreground text-sm outline-none"
+							className="h-9 flex-1 font-inter text-ellipsis text-foreground text-sm outline-none"
 						/>
 					</View>
 

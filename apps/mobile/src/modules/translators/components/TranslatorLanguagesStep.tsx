@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	Modal,
 	Pressable,
@@ -245,7 +246,7 @@ export function TranslatorLanguagesStep({
 							</View>
 							<View className="mx-4 mt-4 flex-row items-center gap-2 rounded-lg border border-border-strong bg-surface px-3">
 								<Search size={17} color={themeColors.foregroundSubtle} />
-								<TextInput
+								<SearchTextInput
 									value={languageSearch}
 									onChangeText={setLanguageSearch}
 									placeholder={
@@ -253,6 +254,7 @@ export function TranslatorLanguagesStep({
 											? 'Buscar idioma ou código'
 											: 'Buscar por idioma ou código'
 									}
+									numberOfLines={1}
 									placeholderTextColor={themeColors.foregroundSubtle}
 									autoCapitalize="none"
 									autoCorrect={false}

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	View,
 	Text,
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator,
-	TextInput,
 	useWindowDimensions,
 } from 'react-native';
 
@@ -236,7 +236,7 @@ export function ClientsPage() {
 							<View className="h-10 flex-1 flex-row items-center rounded-lg border border-border bg-surface px-3">
 								<Search size={17} color={themeColors.foregroundSubtle} />
 
-								<TextInput
+								<SearchTextInput
 									value={search}
 									onChangeText={setSearch}
 									placeholder={
@@ -244,8 +244,9 @@ export function ClientsPage() {
 											? 'Buscar nome ou CNPJ'
 											: 'Buscar por nome, CNPJ...'
 									}
+									numberOfLines={1}
 									placeholderTextColor={themeColors.foregroundSubtle}
-									className="ml-2 flex-1 border-0 font-inter text-foreground text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
+									className="ml-2 flex-1 border-0 font-inter text-ellipsis text-foreground text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
 								/>
 
 								{search.length > 0 && (

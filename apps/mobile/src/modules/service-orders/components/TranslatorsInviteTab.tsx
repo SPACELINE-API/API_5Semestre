@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	View,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	ScrollView,
 	Modal,
@@ -305,7 +305,7 @@ export function TranslatorsInviteTab({
 					}`}
 				>
 					<Search size={16} color={themeColors.foregroundSubtle} />
-					<TextInput
+					<SearchTextInput
 						value={search}
 						onChangeText={setSearch}
 						editable={!isItemAssigned}
@@ -314,8 +314,9 @@ export function TranslatorsInviteTab({
 								? 'Buscar tradutor'
 								: 'Buscar tradutor por nome ou email'
 						}
+						numberOfLines={1}
 						placeholderTextColor={themeColors.foregroundSubtle}
-						className="flex-1 font-inter text-sm text-foreground outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
+						className="flex-1 font-inter text-ellipsis text-sm text-foreground outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 						accessibilityLabel="Buscar tradutor"
 					/>
 				</View>

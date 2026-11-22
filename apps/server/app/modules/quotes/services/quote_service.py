@@ -46,7 +46,8 @@ from app.modules.quotes.services.quote_sent_email import (
 )
 from app.modules.quotes.services.receipt_formatting import SAO_PAULO_TIMEZONE
 from app.modules.quotes.services.receipt_service import QuoteReceiptService
-from app.modules.quotes.services.storage import upload_quote_document
+from app.modules.quotes.services.storage import download_document, upload_quote_document
+from app.modules.quotes.services.word_counter import count_document_words
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_item import ServiceOrderItem
 from app.modules.service_orders.services.quote_sync_service import (
@@ -59,6 +60,7 @@ logger = logging.getLogger(__name__)
 
 SERVICE_ORDER_MANAGER_PERMISSION = "service_orders.write"
 DEADLINE_IN_PAST_MESSAGE = "O prazo final do projeto não pode ser anterior à data de hoje."
+PRICE_REQUIRED_MESSAGE = "Informe o preço de todos os documentos antes de enviar o orçamento."
 DEADLINE_REQUIRED_MESSAGE = (
     "Defina o prazo final de entrega do projeto antes de enviar o orçamento ao cliente."
 )
@@ -417,6 +419,11 @@ class QuoteService:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Anexe o arquivo de todos os documentos antes de enviar o orçamento.",
             )
+        if any(item.estimated_value is None or item.estimated_value <= 0 for item in quote.items):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=PRICE_REQUIRED_MESSAGE,
+            )
         if quote.deadline is None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -582,6 +589,11 @@ class QuoteService:
             )
 
         document_file_url = request.document_url
+        document_bytes = request.document
+        document_name = request.document_filename or (document_file_url or "").split("?")[0]
+        if document_bytes is None and document_file_url:
+            document_bytes = download_document(document_file_url)
+        word_count = count_document_words(document_bytes, document_name) if document_bytes else None
         if document_file_url is None and request.document:
             document_file_url = upload_quote_document(
                 filename=request.document_filename or "documento",
@@ -590,7 +602,7 @@ class QuoteService:
             )
 
         try:
-            return self.quote_repository.create_from_request(request, document_file_url)
+            return self.quote_repository.create_from_request(request, document_file_url, word_count)
         except Exception:
             self.db.rollback()
             raise HTTPException(

@@ -14,7 +14,12 @@ class RequestRepository:
         return self.db.get(Request, request_id)
 
     def list_all(self) -> list[Request]:
-        return self.db.query(Request).options(joinedload(Request.quote)).all()
+        return (
+            self.db.query(Request)
+            .options(joinedload(Request.quote))
+            .order_by(Request.request_date.desc(), Request.created_at.desc())
+            .all()
+        )
 
     def create(self, data: dict) -> Request:
         request = Request(**data)
@@ -27,7 +32,7 @@ class RequestRepository:
         return (
             self.db.query(Request)
             .filter(Request.email == email)
-            .order_by(Request.request_date.desc())
+            .order_by(Request.request_date.desc(), Request.created_at.desc())
             .first()
         )
 
