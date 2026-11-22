@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	Modal,
 	View,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	ScrollView,
 	Platform,
@@ -13,6 +13,7 @@ import { X, Check, Search, Users } from 'lucide-react-native';
 import type { Translator } from '../types/serviceOrder';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type InviteTranslatorsModalProps = {
 	visible: boolean;
 	translators: Translator[];
@@ -33,6 +34,7 @@ function Checkbox({
 	onPress: () => void;
 	accessibilityLabel: string;
 }) {
+	const themeColors = useThemeColors();
 	return (
 		<TouchableOpacity
 			disabled={disabled}
@@ -43,10 +45,12 @@ function Checkbox({
 			accessibilityState={{ checked, disabled }}
 			accessibilityLabel={accessibilityLabel}
 			className={`h-[18px] w-[18px] items-center justify-center rounded border ${
-				checked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'
+				checked
+					? 'border-primary bg-primary'
+					: 'border-border-strong bg-surface'
 			}`}
 		>
-			{checked && <Check size={12} color="#FFFFFF" />}
+			{checked && <Check size={12} color={themeColors.primaryForeground} />}
 		</TouchableOpacity>
 	);
 }
@@ -59,6 +63,7 @@ export function InviteTranslatorsModal({
 	onSubmit,
 	toast,
 }: InviteTranslatorsModalProps) {
+	const themeColors = useThemeColors();
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -150,26 +155,27 @@ export function InviteTranslatorsModal({
 			animationType="none"
 			onRequestClose={handleClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="w-full max-w-[480px] max-h-[85%] rounded-xl bg-white overflow-hidden">
-					<View className="flex-row items-center justify-between border-b border-gray-300 px-6 py-4">
-						<Text className="font-inter font-bold text-gray-900 text-lg">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+				<View className="w-full max-w-[480px] max-h-[85%] rounded-xl bg-surface overflow-hidden">
+					<View className="flex-row items-center justify-between border-b border-border-strong px-6 py-4">
+						<Text className="font-inter font-bold text-foreground text-lg">
 							Convidar tradutores
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
-					<View className="flex-row items-center gap-2 border-b border-gray-100 px-6 py-3">
-						<Search size={16} color="#9CA3AF" />
-						<TextInput
+					<View className="flex-row items-center gap-2 border-b border-border-subtle px-6 py-3">
+						<Search size={16} color={themeColors.foregroundSubtle} />
+						<SearchTextInput
 							value={search}
 							onChangeText={setSearch}
 							placeholder="Buscar tradutor por nome ou email"
-							placeholderTextColor="#9CA3AF"
+							numberOfLines={1}
+							placeholderTextColor={themeColors.foregroundSubtle}
 							accessibilityLabel="Buscar tradutor"
-							className="h-9 flex-1 font-inter text-gray-900 text-sm outline-none"
+							className="h-9 flex-1 font-inter text-ellipsis text-foreground text-sm outline-none"
 						/>
 					</View>
 
@@ -197,7 +203,7 @@ export function InviteTranslatorsModal({
 									accessibilityLabel={`Selecionar tradutor ${translator.name}${
 										isInactive ? ' (tradutor inativo)' : ''
 									}${hasPendingInvite ? ' (convite pendente)' : ''}`}
-									className={`flex-row items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5 ${
+									className={`flex-row items-center gap-3 rounded-lg border border-border px-3 py-2.5 ${
 										isDisabled ? 'opacity-50' : ''
 									}`}
 								>
@@ -214,11 +220,11 @@ export function InviteTranslatorsModal({
 									/>
 
 									<View className="flex-1">
-										<Text className="font-inter font-medium text-gray-800 text-sm">
+										<Text className="font-inter font-medium text-foreground text-sm">
 											{translator.name}
 										</Text>
 										<Text
-											className={`font-inter text-xs ${hasPendingInvite ? 'font-medium text-red-900' : 'text-gray-400'}`}
+											className={`font-inter text-xs ${hasPendingInvite ? 'font-medium text-danger-text' : 'text-foreground-subtle'}`}
 										>
 											{hasPendingInvite
 												? 'Convite pendente'
@@ -232,7 +238,7 @@ export function InviteTranslatorsModal({
 						})}
 
 						{filteredTranslators.length === 0 && (
-							<Text className="font-inter text-gray-400 text-sm">
+							<Text className="font-inter text-foreground-subtle text-sm">
 								{translators.length === 0
 									? 'Nenhum tradutor cadastrado.'
 									: 'Nenhum tradutor encontrado.'}
@@ -240,15 +246,17 @@ export function InviteTranslatorsModal({
 						)}
 
 						{error && (
-							<View className="rounded-lg bg-red-50 px-3 py-2.5">
-								<Text className="font-inter text-red-900 text-sm">{error}</Text>
+							<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+								<Text className="font-inter text-danger-text text-sm">
+									{error}
+								</Text>
 							</View>
 						)}
 					</ScrollView>
 
 					{isConfirmingAll && (
-						<View className="gap-3 border-t border-gray-300 bg-gray-50 px-6 py-4">
-							<Text className="font-inter text-gray-800 text-sm">
+						<View className="gap-3 border-t border-border-strong bg-surface-subtle px-6 py-4">
+							<Text className="font-inter text-foreground text-sm">
 								Enviar o convite por e-mail para {eligibleTranslators.length}{' '}
 								tradutores ativos sem convite pendente?
 							</Text>
@@ -256,9 +264,9 @@ export function InviteTranslatorsModal({
 								<TouchableOpacity
 									onPress={() => setIsConfirmingAll(false)}
 									disabled={isSubmitting}
-									className="rounded-lg border border-gray-300 px-4 py-2"
+									className="rounded-lg border border-border-strong px-4 py-2"
 								>
-									<Text className="font-inter font-medium text-gray-800 text-sm">
+									<Text className="font-inter font-medium text-foreground text-sm">
 										Voltar
 									</Text>
 								</TouchableOpacity>
@@ -269,9 +277,9 @@ export function InviteTranslatorsModal({
 										)
 									}
 									disabled={isSubmitting}
-									className={`rounded-lg bg-blue-600 px-4 py-2 ${isSubmitting ? 'opacity-60' : ''}`}
+									className={`rounded-lg bg-primary px-4 py-2 ${isSubmitting ? 'opacity-60' : ''}`}
 								>
-									<Text className="font-inter font-semibold text-sm text-white">
+									<Text className="font-inter font-semibold text-sm text-primary-foreground">
 										{isSubmitting ? 'Enviando…' : 'Confirmar envio'}
 									</Text>
 								</TouchableOpacity>
@@ -284,7 +292,7 @@ export function InviteTranslatorsModal({
 							isWideWeb
 								? 'flex-row flex-nowrap items-center justify-between gap-2'
 								: 'flex-col items-center gap-2'
-						} border-t border-gray-300 px-6 py-4`}
+						} border-t border-border-strong px-6 py-4`}
 					>
 						<TouchableOpacity
 							onPress={handleClose}
@@ -293,11 +301,11 @@ export function InviteTranslatorsModal({
 									? undefined
 									: { alignItems: 'center', justifyContent: 'center' }
 							}
-							className={`rounded-lg border border-gray-300 ${isWideWeb ? 'px-3' : 'w-full items-center justify-center px-5'} py-2.5`}
+							className={`rounded-lg border border-border-strong ${isWideWeb ? 'px-3' : 'w-full items-center justify-center px-5'} py-2.5`}
 						>
 							<Text
 								style={isWideWeb ? undefined : { textAlign: 'center' }}
-								className="font-inter font-medium text-gray-800 text-sm"
+								className="font-inter font-medium text-foreground text-sm"
 							>
 								Cancelar
 							</Text>
@@ -310,7 +318,7 @@ export function InviteTranslatorsModal({
 							accessibilityLabel="Enviar convite para todos os tradutores"
 							className={`${
 								isWideWeb ? '' : 'relative w-full justify-center'
-							} flex-row items-center gap-2 rounded-lg border border-blue-600 ${
+							} flex-row items-center gap-2 rounded-lg border border-primary ${
 								isWideWeb ? 'px-3' : 'px-4'
 							} py-2.5 ${
 								isSubmitting || eligibleTranslators.length === 0
@@ -324,11 +332,11 @@ export function InviteTranslatorsModal({
 							}
 						>
 							<View className={isWideWeb ? '' : 'absolute left-4'}>
-								<Users size={14} color="#2563EB" />
+								<Users size={14} color={themeColors.primaryText} />
 							</View>
 							<Text
 								style={isWideWeb ? undefined : { flex: 1, textAlign: 'center' }}
-								className={`font-inter font-semibold text-blue-600 text-sm ${isWideWeb ? '' : 'flex-1 text-center'}`}
+								className={`font-inter font-semibold text-primary-text text-sm ${isWideWeb ? '' : 'flex-1 text-center'}`}
 							>
 								Enviar para todos ({eligibleTranslators.length})
 							</Text>
@@ -337,7 +345,7 @@ export function InviteTranslatorsModal({
 						<TouchableOpacity
 							onPress={() => void handleSubmit()}
 							disabled={isSubmitting}
-							className={`rounded-lg bg-blue-300 ${isWideWeb ? 'px-3' : 'w-full items-center justify-center px-5'} py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+							className={`rounded-lg bg-primary ${isWideWeb ? 'px-3' : 'w-full items-center justify-center px-5'} py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 							style={
 								isWideWeb
 									? undefined
@@ -346,7 +354,7 @@ export function InviteTranslatorsModal({
 						>
 							<Text
 								style={isWideWeb ? undefined : { textAlign: 'center' }}
-								className="font-inter font-semibold text-blue-900 text-sm"
+								className="font-inter font-semibold text-primary-strong text-sm"
 							>
 								{isSubmitting ? 'Enviando…' : 'Enviar convites'}
 							</Text>

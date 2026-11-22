@@ -3,9 +3,13 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.modules.auth.models.roles import Role
+from app.modules.auth.models.user import User
 from app.modules.clients.models.company import Company
+from app.modules.notifications.models.notification import Notification
 from app.modules.quotes.models.quote import Quote
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_file import (
@@ -30,7 +34,9 @@ def db_session(isolated_db_session: Session) -> Session:
     return isolated_db_session
 
 
-def _make_order_and_item(db: Session) -> tuple[ServiceOrder, ServiceOrderItem]:
+def _make_order_and_item(
+    db: Session, *, linked_to_quote: bool = True
+) -> tuple[ServiceOrder, ServiceOrderItem]:
     suffix = uuid.uuid4().hex[:10]
     company = Company(
         legal_name="Empresa de Teste Ltda",
@@ -58,7 +64,11 @@ def _make_order_and_item(db: Session) -> tuple[ServiceOrder, ServiceOrderItem]:
     db.add(quote)
     db.flush()
 
-    order = ServiceOrder(quote_id=quote.id, company_id=company.id, project_name="Projeto")
+    order = ServiceOrder(
+        quote_id=quote.id if linked_to_quote else None,
+        company_id=company.id,
+        project_name="Projeto",
+    )
     db.add(order)
     db.flush()
 
@@ -131,6 +141,45 @@ def test_superseded_changes_requested_file_does_not_block_completion(db_session:
     assert item.completed_at is not None
     assert old_file.delivery_status == "not_sent"
     assert latest_file.delivery_status == "sent"
+
+
+def test_manual_completion_notifies_active_administrators_once(
+    db_session: Session,
+) -> None:
+    order, item = _make_order_and_item(db_session)
+    admin_role = Role(name="Administrador", is_active=True)
+    admin = User(
+        email=f"admin-{uuid.uuid4()}@example.com",
+        password_hash="hashed",
+        is_active=True,
+        role="legacy",
+        roles=[admin_role],
+    )
+    db_session.add(admin)
+    _add_output_file(
+        db_session,
+        order,
+        item,
+        filename="entrega-final.pdf",
+        uploaded_at=datetime.now(UTC),
+        review_status=REVIEW_APPROVED,
+        delivery_status="sent",
+    )
+    db_session.commit()
+
+    ServiceOrderDeliveryService(db_session).finalize_already_sent_order(order.id)
+    ServiceOrderDeliveryService(db_session)._complete_order_if_ready(order)
+
+    notifications = db_session.scalars(
+        select(Notification).where(Notification.related_id == order.id)
+    ).all()
+    assert len(notifications) == 1
+    notification = notifications[0]
+    assert notification.recipient_user_id == admin.id
+    assert notification.event_type == "service_order_completed"
+    assert notification.title == "Ordem de serviço concluída"
+    assert notification.related_type == "service_order"
+    assert notification.idempotency_key == f"service-order:{order.id}:completed"
 
 
 def test_approved_sent_order_level_file_allows_completion_without_item_link(
@@ -304,7 +353,7 @@ def test_latest_unreviewed_or_changes_requested_file_keeps_item_open(
 def test_deleting_item_with_pending_file_does_not_block_completion(
     db_session: Session,
 ) -> None:
-    order, item = _make_order_and_item(db_session)
+    order, item = _make_order_and_item(db_session, linked_to_quote=False)
     remaining_item = ServiceOrderItem(
         service_order_id=order.id,
         source_language="pt-BR",
@@ -350,7 +399,7 @@ def test_deleting_item_with_pending_file_does_not_block_completion(
 
 
 def test_item_with_approved_unsent_file_cannot_be_deleted(db_session: Session) -> None:
-    order, item = _make_order_and_item(db_session)
+    order, item = _make_order_and_item(db_session, linked_to_quote=False)
     _add_output_file(
         db_session,
         order,
@@ -366,6 +415,7 @@ def test_item_with_approved_unsent_file_cannot_be_deleted(db_session: Session) -
         ServiceOrderService(db_session).delete_item(order.id, item.id)
 
     assert error.value.status_code == 409
+    assert "Envie os documentos aprovados" in error.value.detail
     assert db_session.get(ServiceOrderItem, item.id) is not None
 
 

@@ -25,24 +25,20 @@ import { WorkflowItemCard } from '../components/WorkflowItemCard';
 import { GeneralInfoTab } from '../components/GeneralInfoTab';
 import { ClientInfoTab } from '../components/ClientInfoTab';
 import { ItemsTable } from '../components/ItemsTable';
+import { ItemDeadlineModal } from '../components/ItemDeadlineModal';
 import { ServiceOrderFilesTab } from '../components/ServiceOrderFilesTab';
 import { TranslatorsInviteTab } from '../components/TranslatorsInviteTab';
 import { ItemReviewTab } from '../components/ItemReviewTab';
 import { canCompleteOrder, pendingReviewDeliveries } from '../utils/fileReview';
 import { InviteTranslatorsModal } from '../components/InviteTranslatorsModal';
-import { AddItemModal } from '../components/AddItemModal';
-import { EditItemModal } from '../components/EditItemModal';
 import {
 	approveServiceOrderFile,
-	createServiceOrderItem,
 	deleteServiceOrder,
 	deleteServiceOrderFile,
-	deleteServiceOrderItem,
 	deleteServiceOrderItemFile,
 	requestServiceOrderFileChanges,
 	sendItemInvites,
 	updateServiceOrder,
-	updateServiceOrderItem,
 	uploadServiceOrderFile,
 } from '../services/serviceOrderService';
 import { Toast } from '../../../shared/components/Toast';
@@ -51,19 +47,23 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import type { ServiceOrderItem } from '../types/serviceOrder';
 import { CompleteServiceOrderModal } from '../components/CompleteServiceOrderModal';
 import { AdditionalServicesTab } from '../components/AdditionalServicesTab';
-import { AdditionalServiceFormModal } from '../../quotes/components/AdditionalServiceFormModal';
-import {
-	createAdditionalService,
-	updateAdditionalService,
-	updateAdditionalServiceStatus,
-	type AdditionalService,
-} from '../../quotes/services/additionalService';
+import { ServiceOrderVersionsTab } from '../components/ServiceOrderVersionsTab';
+import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ServiceOrderDetailsPageProps = {
 	id: string;
+	initialTab?: string;
 };
 
-export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
+const MISSING_DEADLINE_MESSAGE =
+	'Defina o prazo do documento antes de convidar um tradutor.';
+
+export function ServiceOrderDetailsPage({
+	id,
+	initialTab,
+}: ServiceOrderDetailsPageProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 
 	const { serviceOrder, isLoading, error, refresh, setServiceOrder } =
@@ -72,30 +72,37 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	const { translators } = useTranslators();
 	const { contacts } = useContacts();
 	const { toast, showToast } = useToast();
+	const canWriteServiceOrders = usePermission('service_orders.write');
+	const canWriteAssignments = usePermission('assignments.write');
+	const canManageAssignments = usePermission('assignments.manage');
+	const canReadContacts = usePermission('contacts.read');
+	const canWriteDocuments = usePermission('documents.write');
 
 	const [view, setView] = useState<ServiceOrderView>('detalhes');
-	const [detailTab, setDetailTab] = useState<ServiceOrderDetailTab>('geral');
+	const [detailTab, setDetailTab] = useState<ServiceOrderDetailTab>(
+		initialTab === 'revisao' ? 'revisao' : 'geral',
+	);
 	const [inviteTargetItem, setInviteTargetItem] =
 		useState<ServiceOrderItem | null>(null);
+	const [deadlineTargetItem, setDeadlineTargetItem] =
+		useState<ServiceOrderItem | null>(null);
 	const [refreshToken, setRefreshToken] = useState(0);
-	const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
-	const [isAdditionalServiceModalVisible, setIsAdditionalServiceModalVisible] =
-		useState(false);
-	const [editingAdditionalService, setEditingAdditionalService] =
-		useState<AdditionalService | null>(null);
-	const [editingItem, setEditingItem] = useState<ServiceOrderItem | null>(null);
-	const [deletingItem, setDeletingItem] = useState<ServiceOrderItem | null>(
-		null,
-	);
 	const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 	const [isCompleteModalVisible, setIsCompleteModalVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
-	const [isDeletingItem, setIsDeletingItem] = useState(false);
 
 	const { invites: inviteTargetItemInvites } = useItemInvites(
 		inviteTargetItem?.id ?? '',
 		refreshToken,
 	);
+
+	function handleInviteTranslators(item: ServiceOrderItem) {
+		if (!item.deadline) {
+			showToast(MISSING_DEADLINE_MESSAGE, 'error');
+			return;
+		}
+		setInviteTargetItem(item);
+	}
 
 	const {
 		services: additionalServices,
@@ -110,10 +117,12 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 
 	const companyContacts = useMemo(
 		() =>
-			contacts.filter(
-				(contact) => contact.company_id === serviceOrder?.company_id,
-			),
-		[contacts, serviceOrder],
+			canReadContacts
+				? contacts.filter(
+						(contact) => contact.company_id === serviceOrder?.company_id,
+					)
+				: [],
+		[canReadContacts, contacts, serviceOrder],
 	);
 
 	const translatorsById = useMemo(
@@ -122,7 +131,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 	);
 
 	async function handleDelete() {
-		if (!serviceOrder) return;
+		if (!canWriteServiceOrders || !serviceOrder) return;
 
 		setIsDeleting(true);
 
@@ -141,45 +150,8 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 		}
 	}
 
-	async function handleCompleteAdditionalService(service: AdditionalService) {
-		try {
-			await updateAdditionalServiceStatus(service.id, 'approved');
-			showToast('Serviço adicional concluído com sucesso!', 'success');
-			setRefreshToken((current) => current + 1);
-		} catch (completeError) {
-			showToast(
-				completeError instanceof Error
-					? completeError.message
-					: 'Não foi possível concluir o serviço adicional.',
-				'error',
-			);
-			throw completeError;
-		}
-	}
-
-	async function handleDeleteItem() {
-		if (!serviceOrder || !deletingItem) return;
-
-		setIsDeletingItem(true);
-		try {
-			await deleteServiceOrderItem(serviceOrder.id, deletingItem.id);
-			setDeletingItem(null);
-			await refresh();
-			showToast('Item excluído com sucesso!', 'success');
-		} catch (deleteError) {
-			showToast(
-				deleteError instanceof Error
-					? deleteError.message
-					: 'Não foi possível excluir o item.',
-				'error',
-			);
-		} finally {
-			setIsDeletingItem(false);
-		}
-	}
-
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="
@@ -197,34 +169,39 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 					activeOpacity={0.7}
 					className="mb-7 flex-row items-center gap-2"
 				>
-					<ArrowLeft size={16} color="#6B7280" />
+					<ArrowLeft size={16} color={themeColors.foregroundMuted} />
 
-					<Text className="font-inter text-gray-500 text-sm">
+					<Text className="font-inter text-foreground-muted text-sm">
 						Voltar para ordens de serviço
 					</Text>
 				</TouchableOpacity>
 
 				{isLoading && (
 					<View className="min-h-[500px] items-center justify-center">
-						<ActivityIndicator size="large" color="#6B7280" />
+						<ActivityIndicator
+							size="large"
+							color={themeColors.foregroundMuted}
+						/>
 
-						<Text className="mt-4 font-inter text-gray-400 text-sm">
+						<Text className="mt-4 font-inter text-foreground-subtle text-sm">
 							Carregando dados da ordem de serviço...
 						</Text>
 					</View>
 				)}
 
 				{!isLoading && error && (
-					<View className="gap-1 border-t border-gray-200 py-8">
+					<View className="gap-1 border-t border-border py-8">
 						<View className="flex-row items-center gap-2">
-							<AlertCircle size={16} color="#DC2626" />
+							<AlertCircle size={16} color={themeColors.danger} />
 
-							<Text className="font-inter font-semibold text-red-600 text-sm">
+							<Text className="font-inter font-semibold text-danger text-sm">
 								Não foi possível carregar a ordem de serviço
 							</Text>
 						</View>
 
-						<Text className="font-inter text-gray-500 text-sm">{error}</Text>
+						<Text className="font-inter text-foreground-muted text-sm">
+							{error}
+						</Text>
 					</View>
 				)}
 
@@ -240,7 +217,9 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 								serviceOrder.files,
 								serviceOrder.items,
 							)}
-							onComplete={() => setIsCompleteModalVisible(true)}
+							onComplete={() => {
+								if (canWriteServiceOrders) setIsCompleteModalVisible(true);
+							}}
 							onViewChange={setView}
 						/>
 
@@ -252,6 +231,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 									reviewCount={
 										pendingReviewDeliveries(serviceOrder.files).length
 									}
+									showVersions={Boolean(serviceOrder.quote_id)}
 								/>
 
 								<View className="py-7">
@@ -262,14 +242,15 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 													key={item.id}
 													item={item}
 													translatorsById={translatorsById}
-													onInviteTranslators={setInviteTargetItem}
+													onInviteTranslators={handleInviteTranslators}
+													onEditDeadline={setDeadlineTargetItem}
 													refreshToken={refreshToken}
 												/>
 											))}
 
 											{serviceOrder.items.length === 0 && (
-												<Text className="font-inter text-gray-400 text-sm">
-													Esta ordem de serviço não possui itens.
+												<Text className="font-inter text-foreground-subtle text-sm">
+													Esta ordem de serviço não possui documentos.
 												</Text>
 											)}
 										</View>
@@ -281,8 +262,17 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											translators={translators}
 											translatorsById={translatorsById}
 											refreshToken={refreshToken}
+											onEditDeadline={setDeadlineTargetItem}
 											onSendInvites={async (itemId, translatorIds) => {
 												try {
+													if (!canWriteAssignments) return;
+													const target = serviceOrder.items.find(
+														(item) => item.id === itemId,
+													);
+													if (target && !target.deadline) {
+														showToast(MISSING_DEADLINE_MESSAGE, 'error');
+														return;
+													}
 													await sendItemInvites(itemId, translatorIds);
 													setRefreshToken((current) => current + 1);
 													showToast(
@@ -301,18 +291,24 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 										/>
 									)}
 
-									{detailTab === 'cliente' && (
-										<ClientInfoTab
-											company={company ?? null}
-											contacts={companyContacts}
-										/>
-									)}
+									{detailTab === 'cliente' &&
+										(canReadContacts ? (
+											<ClientInfoTab
+												company={company ?? null}
+												contacts={companyContacts}
+											/>
+										) : (
+											<Text className="font-inter text-foreground-muted text-sm">
+												Sem permissão para consultar contatos.
+											</Text>
+										))}
 
 									{detailTab === 'geral' && (
 										<GeneralInfoTab
 											serviceOrder={serviceOrder}
 											onSave={async (data) => {
 												try {
+													if (!canWriteServiceOrders) return;
 													await updateServiceOrder(serviceOrder.id, data);
 													await refresh();
 													showToast('Dados salvos com sucesso!', 'success');
@@ -332,9 +328,8 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 										<ItemsTable
 											items={serviceOrder.items}
 											translatorsById={translatorsById}
-											onAddItem={() => setIsAddItemModalVisible(true)}
-											onEditItem={setEditingItem}
-											onDeleteItem={setDeletingItem}
+											onEditDeadline={setDeadlineTargetItem}
+											isInServiceOrder={true}
 										/>
 									)}
 
@@ -343,11 +338,6 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											services={additionalServices}
 											isLoading={isLoadingAdditionalServices}
 											error={additionalServicesError}
-											onAddService={() =>
-												setIsAdditionalServiceModalVisible(true)
-											}
-											onEditService={setEditingAdditionalService}
-											onCompleteService={handleCompleteAdditionalService}
 										/>
 									)}
 									{detailTab === 'revisao' && (
@@ -357,6 +347,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											translatorsById={translatorsById}
 											onApprove={async (file) => {
 												try {
+													if (!canWriteDocuments) return;
 													await approveServiceOrderFile(
 														serviceOrder.id,
 														file.id,
@@ -374,6 +365,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											}}
 											onRequestChanges={async (file, note) => {
 												try {
+													if (!canWriteDocuments) return false;
 													await requestServiceOrderFileChanges(
 														serviceOrder.id,
 														file.id,
@@ -398,12 +390,23 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 										/>
 									)}
 
+									{detailTab === 'versoes' && (
+										<ServiceOrderVersionsTab
+											serviceOrderId={serviceOrder.id}
+											refreshToken={refreshToken}
+										/>
+									)}
+
 									{detailTab === 'arquivos' && (
 										<ServiceOrderFilesTab
 											items={serviceOrder.items}
 											files={serviceOrder.files}
 											onUpload={async (file, direction) => {
 												try {
+													if (!canWriteDocuments)
+														throw new Error(
+															'Sem permissão para enviar arquivos.',
+														);
 													const uploadedFile = await uploadServiceOrderFile(
 														serviceOrder.id,
 														file,
@@ -425,6 +428,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 											}}
 											onDelete={async (target) => {
 												try {
+													if (!canWriteDocuments) return;
 													if (target.kind === 'file') {
 														await deleteServiceOrderFile(
 															serviceOrder.id,
@@ -464,14 +468,15 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 										key={item.id}
 										item={item}
 										translatorsById={translatorsById}
-										onInviteTranslators={setInviteTargetItem}
+										onInviteTranslators={handleInviteTranslators}
+										onEditDeadline={setDeadlineTargetItem}
 										refreshToken={refreshToken}
 									/>
 								))}
 
 								{serviceOrder.items.length === 0 && (
-									<Text className="font-inter text-gray-400 text-sm">
-										Esta ordem de serviço não possui itens.
+									<Text className="font-inter text-foreground-subtle text-sm">
+										Esta ordem de serviço não possui documentos.
 									</Text>
 								)}
 							</View>
@@ -480,21 +485,34 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 				)}
 			</ScrollView>
 
+			<ItemDeadlineModal
+				item={deadlineTargetItem}
+				projectDeadline={serviceOrder?.deadline ?? null}
+				onClose={() => setDeadlineTargetItem(null)}
+				onSaved={async () => {
+					setDeadlineTargetItem(null);
+					await refresh();
+					showToast('Prazo do documento definido.', 'success');
+				}}
+			/>
 			<InviteTranslatorsModal
 				visible={inviteTargetItem !== null}
 				translators={translators}
 				pendingTranslatorIds={
-					new Set(
-						inviteTargetItemInvites
-							.filter((invite) => invite.status === 'pendente')
-							.map((invite) => invite.translator_id),
-					)
+					canManageAssignments
+						? new Set(
+								inviteTargetItemInvites
+									.filter((invite) => invite.status === 'pendente')
+									.map((invite) => invite.translator_id),
+							)
+						: new Set()
 				}
 				onClose={() => setInviteTargetItem(null)}
 				onSubmit={async (translatorIds) => {
 					if (!inviteTargetItem) return;
 
 					try {
+						if (!canWriteAssignments) return;
 						await sendItemInvites(inviteTargetItem.id, translatorIds);
 						setRefreshToken((current) => current + 1);
 						showToast('Convites enviados com sucesso!', 'success');
@@ -509,102 +527,6 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 					}
 				}}
 				toast={inviteTargetItem ? toast : null}
-			/>
-
-			<AddItemModal
-				visible={isAddItemModalVisible}
-				onClose={() => setIsAddItemModalVisible(false)}
-				onSubmit={async (data, file) => {
-					if (!serviceOrder) return;
-
-					try {
-						await createServiceOrderItem(serviceOrder.id, data, file);
-						await refresh();
-						showToast('Item adicionado com sucesso!', 'success');
-					} catch (submitError) {
-						showToast(
-							submitError instanceof Error
-								? submitError.message
-								: 'Não foi possível adicionar o item.',
-							'error',
-						);
-						throw submitError;
-					}
-				}}
-			/>
-
-			<AdditionalServiceFormModal
-				visible={
-					isAdditionalServiceModalVisible || editingAdditionalService !== null
-				}
-				service={editingAdditionalService}
-				onClose={() => {
-					setIsAdditionalServiceModalVisible(false);
-					setEditingAdditionalService(null);
-				}}
-				onSubmit={async (data) => {
-					if (!serviceOrder) return;
-
-					try {
-						if (editingAdditionalService) {
-							await updateAdditionalService(editingAdditionalService.id, data);
-							showToast('Serviço adicional atualizado com sucesso!', 'success');
-						} else {
-							if (!serviceOrder.quote_id) {
-								showToast(
-									'Serviços adicionais exigem uma ordem vinculada a orçamento.',
-									'error',
-								);
-								return;
-							}
-							await createAdditionalService({
-								...data,
-								quote_id: serviceOrder.quote_id,
-							});
-							showToast('Serviço adicional cadastrado com sucesso!', 'success');
-						}
-						setRefreshToken((current) => current + 1);
-					} catch (submitError) {
-						showToast(
-							submitError instanceof Error
-								? submitError.message
-								: 'Não foi possível salvar o serviço adicional.',
-							'error',
-						);
-						throw submitError;
-					}
-				}}
-			/>
-
-			<EditItemModal
-				item={editingItem}
-				onClose={() => setEditingItem(null)}
-				onSubmit={async (itemId, data, file) => {
-					try {
-						await updateServiceOrderItem(itemId, data, file);
-						await refresh();
-						showToast('Item atualizado com sucesso!', 'success');
-					} catch (submitError) {
-						showToast(
-							submitError instanceof Error
-								? submitError.message
-								: 'Não foi possível salvar o item.',
-							'error',
-						);
-						throw submitError;
-					}
-				}}
-			/>
-
-			<ConfirmDialog
-				visible={deletingItem !== null}
-				title="Excluir item"
-				message={`Tem certeza que deseja excluir o item ${deletingItem?.source_language ?? ''} → ${deletingItem?.target_language ?? ''}? Essa ação não pode ser desfeita.`}
-				confirmLabel="Excluir"
-				destructive
-				isLoading={isDeletingItem}
-				onConfirm={handleDeleteItem}
-				onCancel={() => setDeletingItem(null)}
 			/>
 
 			<ConfirmDialog
@@ -638,17 +560,7 @@ export function ServiceOrderDetailsPage({ id }: ServiceOrderDetailsPageProps) {
 			)}
 
 			<Toast
-				toast={
-					inviteTargetItem ||
-					isAddItemModalVisible ||
-					isAdditionalServiceModalVisible ||
-					editingAdditionalService ||
-					editingItem ||
-					isDeleteConfirmVisible ||
-					deletingItem
-						? null
-						: toast
-				}
+				toast={inviteTargetItem || isDeleteConfirmVisible ? null : toast}
 			/>
 		</View>
 	);

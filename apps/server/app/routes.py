@@ -5,13 +5,18 @@ from app.modules.auth.routes import roles_router
 from app.modules.auth.routes import router as auth_router
 from app.modules.clients.routes import router as clients_router
 from app.modules.contacts.routes import router as contacts_router
+from app.modules.internal_users.routes import password_setup_router
+from app.modules.internal_users.routes import router as internal_users_router
+from app.modules.notifications.routes import router as notifications_router
 from app.modules.proposals.routes import router as proposals_router
+from app.modules.quotes.routes import public_router as public_quotes_router
 from app.modules.quotes.routes import router as quotes_router
 from app.modules.reports.routes import router as reports_router
 from app.modules.resources.routes import router as resources_router
 from app.modules.service_orders.routes import router as service_orders_router
 from app.modules.support_agents.inngest.router.support_router import router as support_agent_router
 from app.modules.system_parameters.routes import router as support_router
+from app.modules.tasks.routes import router as tasks_router
 from app.modules.translators.routes import router as translators_router
 from app.modules.users.routes import router as users_router
 
@@ -20,14 +25,19 @@ api_router = APIRouter(prefix="/api")
 api_router.include_router(auth_router)
 api_router.include_router(roles_router)
 api_router.include_router(users_router)
+api_router.include_router(internal_users_router)
+api_router.include_router(notifications_router)
+api_router.include_router(password_setup_router)
 api_router.include_router(clients_router)
 api_router.include_router(contacts_router)
 api_router.include_router(resources_router)
 api_router.include_router(translators_router)
+api_router.include_router(tasks_router)
 api_router.include_router(service_orders_router)
 api_router.include_router(allocations_router)
 api_router.include_router(reports_router)
 api_router.include_router(quotes_router)
+api_router.include_router(public_quotes_router)
 api_router.include_router(proposals_router)
 api_router.include_router(support_router)
 api_router.include_router(support_agent_router)

@@ -1,10 +1,14 @@
+import { Platform } from 'react-native';
 import { env } from '../../../shared/env';
 import {
 	apiDeleteAuth,
 	apiPatchAuth,
+	apiPostAuth,
 	authHeaders,
 } from '../../../shared/services/apiClient';
+import { FORBIDDEN_ERROR_MESSAGE } from '../../../shared/services/publicApiClient';
 import { uploadFileMultipart } from '../../../shared/utils/uploadFileMultipart';
+import { toUploadable } from '../../../shared/utils/toUploadable';
 import type { UploadableFile } from '../../../shared/types/file';
 
 const API_BASE_URL = env.apiUrl;
@@ -65,9 +69,19 @@ export type QuoteResponse = {
 	status: string;
 	approved_at?: string | null;
 	approved_by_email?: string | null;
+	terms_accepted_at?: string | null;
 	reproved_at?: string | null;
 	reproved_by_email?: string | null;
 	reproval_reason?: string | null;
+	validity_starts_at?: string | null;
+	valid_until?: string | null;
+	deadline?: string | null;
+	sent_to_customer_at?: string | null;
+	sent_to_customer_email?: string | null;
+	reopened_at?: string | null;
+	reopen_reason?: string | null;
+	reopened_by_email?: string | null;
+	reopen_count?: number;
 	created_at: string;
 	updated_at: string;
 };
@@ -79,6 +93,7 @@ export type QuoteManagerItem = {
 	target_language: string;
 	document_type: string | null;
 	file_url: string | null;
+	word_count: number | null;
 	estimated_value: number | string | null;
 	created_at: string;
 	updated_at: string;
@@ -97,7 +112,16 @@ export type ManagedQuote = QuoteResponse & {
 	service_order_id: string | null;
 };
 
-export type QuoteStatusFilter = 'pending' | 'approved' | 'reproved' | 'all';
+export type QuoteStatus =
+	'draft' | 'pending' | 'approved' | 'reproved' | 'cancelled';
+
+export type QuoteStatusFilter = QuoteStatus | 'all';
+
+export const REOPENABLE_QUOTE_STATUSES: readonly string[] = [
+	'pending',
+	'approved',
+	'reproved',
+];
 
 export type PaginatedQuotes = {
 	items: ManagedQuote[];
@@ -108,7 +132,8 @@ export type PaginatedQuotes = {
 };
 
 function quoteLoadErrorMessage(status?: number): string {
-	if (status === 401 || status === 403) {
+	if (status === 403) return FORBIDDEN_ERROR_MESSAGE;
+	if (status === 401) {
 		return 'Sua sessão expirou. Entre novamente para continuar.';
 	}
 	if (status && status >= 500) {
@@ -118,13 +143,14 @@ function quoteLoadErrorMessage(status?: number): string {
 }
 
 function quoteDecisionErrorMessage(status: number): string {
-	if (status === 401 || status === 403) {
+	if (status === 403) return FORBIDDEN_ERROR_MESSAGE;
+	if (status === 401) {
 		return 'Sua sessão expirou. Entre novamente para registrar esta decisão.';
 	}
 	if (status === 404)
 		return 'Este orçamento não foi encontrado. Atualize a lista e tente novamente.';
 	if (status === 409)
-		return 'Este orçamento já recebeu uma decisão. Atualize a lista.';
+		return 'Este orçamento não está aguardando aprovação. Atualize a lista.';
 	if (status === 422) return 'Confira os dados informados e tente novamente.';
 	if (status === 0)
 		return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
@@ -177,6 +203,7 @@ export type QuoteUpdateInput = Partial<{
 	original_language: string;
 	translation_language: string;
 	customer_need: string;
+	deadline: string | null;
 }>;
 
 export type QuoteEditResult =
@@ -208,6 +235,7 @@ export type QuoteTranslationItemUpdateInput = Partial<{
 	target_language: string;
 	document_type: string | null;
 	file_url: string | null;
+	word_count: number | null;
 	estimated_value: number | null;
 }>;
 
@@ -253,8 +281,40 @@ export type QuoteTranslationItemCreate = {
 	target_language: string;
 	document_type?: string;
 	file_url?: string;
+	word_count?: number;
 	estimated_value?: number;
 };
+
+export type QuoteCreateInput = Partial<{
+	company_id: string | null;
+	customer_name: string;
+	email: string;
+	customer_need: string;
+	deadline: string | null;
+}>;
+
+export type QuoteCreateResult =
+	| { success: true; data: QuoteResponse }
+	| { success: false; status: number; detail?: string };
+
+export async function createQuoteWithDetail(
+	input: QuoteCreateInput,
+): Promise<QuoteCreateResult> {
+	try {
+		const data = await apiPostAuth<QuoteResponse, QuoteCreateInput>(
+			'/api/quotes',
+			input,
+		);
+		return { success: true, data };
+	} catch (error) {
+		const apiError = error as { status?: number; message?: string };
+		return {
+			success: false,
+			status: apiError.status ?? 0,
+			detail: apiError.message,
+		};
+	}
+}
 
 export async function createQuote(): Promise<QuoteResponse | null> {
 	try {
@@ -297,7 +357,72 @@ export async function updateQuoteStatus(
 		return {
 			success: false,
 			status: apiError.status ?? 0,
-			detail: quoteDecisionErrorMessage(apiError.status ?? 0),
+			detail:
+				apiError.status === 409 && apiError.message
+					? apiError.message
+					: quoteDecisionErrorMessage(apiError.status ?? 0),
+		};
+	}
+}
+
+function quoteTransitionErrorMessage(
+	status: number,
+	message: string | undefined,
+	fallback: string,
+): string {
+	if (status === 403)
+		return 'Você não tem permissão para realizar esta ação neste orçamento.';
+	if (status === 404)
+		return 'Este orçamento não foi encontrado. Atualize a lista e tente novamente.';
+	if ((status === 409 || status === 422) && message) return message;
+	if (status === 0)
+		return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+	return fallback;
+}
+
+export async function sendQuoteToCustomer(
+	quoteId: string,
+): Promise<QuoteDecisionResult> {
+	try {
+		const data = await apiPostAuth<QuoteResponse, Record<string, never>>(
+			`/api/quotes/${encodeURIComponent(quoteId)}/send`,
+			{},
+		);
+		return { success: true, data };
+	} catch (error) {
+		const apiError = error as { status?: number; message?: string };
+		return {
+			success: false,
+			status: apiError.status ?? 0,
+			detail: quoteTransitionErrorMessage(
+				apiError.status ?? 0,
+				apiError.message,
+				'Não foi possível enviar o orçamento ao cliente. Tente novamente.',
+			),
+		};
+	}
+}
+
+export async function reopenQuote(
+	quoteId: string,
+	reason: string,
+): Promise<QuoteDecisionResult> {
+	try {
+		const data = await apiPostAuth<QuoteResponse, { reason: string }>(
+			`/api/quotes/${encodeURIComponent(quoteId)}/reopen`,
+			{ reason },
+		);
+		return { success: true, data };
+	} catch (error) {
+		const apiError = error as { status?: number; message?: string };
+		return {
+			success: false,
+			status: apiError.status ?? 0,
+			detail: quoteTransitionErrorMessage(
+				apiError.status ?? 0,
+				apiError.message,
+				'Não foi possível reabrir o orçamento. Tente novamente.',
+			),
 		};
 	}
 }
@@ -333,28 +458,26 @@ export async function createQuoteItem(
 	}
 }
 
+export type UploadedQuoteDocument = {
+	file_url: string;
+	word_count: number | null;
+};
+
 export async function uploadQuoteDocument(
 	fileUri: string,
 	fileName: string,
-): Promise<string | null> {
+): Promise<UploadedQuoteDocument | null> {
 	try {
-		const isWeb =
-			typeof window !== 'undefined' && typeof window.document !== 'undefined';
+		const file: UploadableFile = await toUploadable({
+			uri: fileUri,
+			name: fileName,
+			type: Platform.OS === 'web' ? '' : 'application/octet-stream',
+		});
 
-		let file: UploadableFile;
-		if (isWeb) {
-			const fetchResponse = await fetch(fileUri);
-			const blob = await fetchResponse.blob();
-			file = blob as UploadableFile;
-		} else {
-			file = {
-				uri: fileUri,
-				name: fileName,
-				type: 'application/octet-stream',
-			} as UploadableFile;
-		}
-
-		const data = await uploadFileMultipart<{ file_url: string }>(
+		const data = await uploadFileMultipart<{
+			file_url: string;
+			word_count?: number | null;
+		}>(
 			`${API_BASE_URL}/api/quotes/upload-document`,
 			file,
 			{},
@@ -363,7 +486,7 @@ export async function uploadQuoteDocument(
 			true,
 		);
 
-		return data.file_url;
+		return { file_url: data.file_url, word_count: data.word_count ?? null };
 	} catch (error) {
 		console.error('Error uploading document:', error);
 		return null;

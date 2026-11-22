@@ -70,7 +70,7 @@ test.describe('autenticação mobile unificada', () => {
 		await expect(emailInput).toHaveValue('user@example.com');
 		await passwordInput.fill('password');
 		await expect(passwordInput).toHaveValue('password');
-		await page.getByText('ENTRAR', { exact: true }).click();
+		await passwordInput.press('Enter');
 
 		await expect(page).toHaveURL(/\/dashboard$/);
 		expect(
@@ -80,16 +80,54 @@ test.describe('autenticação mobile unificada', () => {
 		).toBe(false);
 	});
 
+	test('TI can render the dashboard with client read permission', async ({
+		page,
+	}) => {
+		const pageErrors: string[] = [];
+		page.on('pageerror', (error) => pageErrors.push(error.message));
+		await useExternalProfile(page, ['dashboard.read', 'clients.read'], 'TI');
+		await page.route('**/api/clients', (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([]),
+			}),
+		);
+
+		await page.goto('/dashboard');
+
+		await expect(page).toHaveURL(/\/dashboard$/);
+		await expect(page.getByText('Painel', { exact: true })).toBeVisible();
+		expect(
+			pageErrors.some((error) => error.includes('Maximum update depth')),
+		).toBe(false);
+	});
+
 	test('desabilita orçamento e bloqueia acesso direto para perfil sem quotes.read', async ({
 		page,
 	}) => {
-		await useExternalProfile(page);
-		await page.goto('/visualizar-requisicoes');
+		await useExternalProfile(page, ['dashboard.read']);
+		await page.goto('/dashboard');
 		await expect(
 			page.getByRole('button', { name: 'Orçamento', exact: true }),
 		).toBeDisabled();
 		await page.goto('/orcamento/novo-orcamento');
-		await expect(page).toHaveURL(/\/visualizar-requisicoes$/);
+		await expect(page.getByText('Acesso negado')).toBeVisible();
+		await expect(
+			page.getByText('Redirecionando para o dashboard em 3 segundos...'),
+		).toBeVisible();
+		await expect(page).toHaveURL(/\/dashboard$/, { timeout: 5000 });
+	});
+
+	test('desabilita o menu de tradutor sem assignments.read', async ({
+		page,
+	}) => {
+		await useExternalProfile(page, ['dashboard.read'], 'Recursos externos');
+		await page.goto('/dashboard');
+
+		for (const label of ['Convites', 'Meus itens', 'Meu perfil']) {
+			await expect(page.getByRole('button', { name: label })).toBeDisabled();
+		}
 	});
 
 	test('sidebar navega entre rotas permitidas pelo perfil', async ({
@@ -117,16 +155,16 @@ test.describe('autenticação mobile unificada', () => {
 
 		await expect(
 			page.getByRole('button', { name: 'Orçamento', exact: true }),
-		).toHaveClass(/bg-blue-50/);
+		).toHaveClass(/bg-primary-soft/);
 
 		await page.getByRole('button', { name: 'Propostas', exact: true }).click();
 		await expect(page).toHaveURL(/\/propostas$/);
 		await expect(
 			page.getByRole('button', { name: 'Orçamento', exact: true }),
-		).not.toHaveClass(/bg-blue-50/);
+		).not.toHaveClass(/bg-primary-soft/);
 		await expect(
 			page.getByRole('button', { name: 'Propostas', exact: true }),
-		).toHaveClass(/bg-blue-50/);
+		).toHaveClass(/bg-primary-soft/);
 	});
 
 	for (const roleName of ['Administrador']) {
@@ -264,6 +302,7 @@ test.describe('configuração de permissões', () => {
 				status: 200,
 				contentType: 'application/json',
 				body: JSON.stringify([
+					{ id: 'dashboard-read', code: 'dashboard.read', description: null },
 					{ id: 'clients-read', code: 'clients.read', description: null },
 					{ id: 'clients-write', code: 'clients.write', description: null },
 				]),
@@ -295,6 +334,11 @@ test.describe('configuração de permissões', () => {
 						description: null,
 						is_active: true,
 						permissions: [
+							{
+								id: 'dashboard-read',
+								code: 'dashboard.read',
+								description: null,
+							},
 							{ id: 'clients-read', code: 'clients.read', description: null },
 						],
 					},
@@ -304,6 +348,7 @@ test.describe('configuração de permissões', () => {
 
 		await page.goto('/configuracoes/permissoes');
 		await expect(page.getByText('Atendimento').first()).toBeVisible();
+		await expect(page.getByText('Dashboard', { exact: true })).toHaveCount(1);
 
 		await page.getByRole('button', { name: 'Novo perfil' }).click();
 		await page.getByPlaceholder('Ex: Comercial').fill('Comercial');

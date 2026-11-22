@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime
 from typing import BinaryIO
 
 from fastapi import HTTPException
@@ -7,6 +8,8 @@ from sqlalchemy.orm import Session, selectinload
 from app.modules.clients.models.company import Company
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
+from app.modules.quotes.services.quote_lock import ensure_service_order_items_are_editable
+from app.modules.quotes.services.receipt_formatting import SAO_PAULO_TIMEZONE
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
 from app.modules.service_orders.models.service_order_file import (
@@ -20,6 +23,7 @@ from app.modules.service_orders.models.service_order_item import (
     STATUS_PENDENTE,
     ServiceOrderItem,
 )
+from app.modules.service_orders.models.service_order_version import ServiceOrderVersion
 from app.modules.service_orders.schemas.service_order import (
     CreateServiceOrderItemRequest,
     GenerateServiceOrderRequest,
@@ -30,6 +34,7 @@ from app.modules.service_orders.schemas.service_order import (
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
+from app.modules.service_orders.services.quote_sync_service import record_initial_version
 from app.modules.service_orders.services.storage import (
     delete_service_order_file,
     get_service_order_storage_path,
@@ -72,11 +77,40 @@ def to_response(service_order: ServiceOrder) -> ServiceOrderResponse:
         internal_notes=service_order.internal_notes,
         external_notes=service_order.external_notes,
         status=compute_aggregate_status(service_order.items),
+        current_version=max((version.version for version in service_order.versions), default=1),
+        revised_after_reopen=any(version.version > 1 for version in service_order.versions),
         items=[ServiceOrderItemResponse.model_validate(item) for item in service_order.items],
         files=[ServiceOrderFileResponse.model_validate(file) for file in service_order.files],
         created_at=service_order.created_at,
         updated_at=service_order.updated_at,
     )
+
+
+PROJECT_DEADLINE_LOCKED_MESSAGE = (
+    "O prazo final do projeto é definido no orçamento. Reabra o orçamento para alterá-lo."
+)
+ITEM_DEADLINE_IN_PAST_MESSAGE = "O prazo do documento não pode ser anterior à data de hoje."
+ITEM_DEADLINE_AFTER_PROJECT_MESSAGE = (
+    "O prazo do documento não pode ser depois do prazo final do projeto."
+)
+
+
+def _utc_day(value: datetime):
+    return value.astimezone(UTC).date()
+
+
+def ensure_item_deadline_valid(
+    deadline: datetime | None,
+    service_order: ServiceOrder,
+    current: datetime | None = None,
+) -> None:
+    if deadline is None or deadline == current:
+        return
+    if deadline.date() < datetime.now(SAO_PAULO_TIMEZONE).date():
+        raise HTTPException(status_code=422, detail=ITEM_DEADLINE_IN_PAST_MESSAGE)
+    project_deadline = service_order.deadline
+    if project_deadline is not None and _utc_day(deadline) > _utc_day(project_deadline):
+        raise HTTPException(status_code=422, detail=ITEM_DEADLINE_AFTER_PROJECT_MESSAGE)
 
 
 class ServiceOrderService:
@@ -87,8 +121,6 @@ class ServiceOrderService:
         service_order = (
             self.db.query(ServiceOrder)
             .options(selectinload(ServiceOrder.items), selectinload(ServiceOrder.files))
-            .outerjoin(Quote, ServiceOrder.quote_id == Quote.id)
-            .filter((ServiceOrder.quote_id.is_(None)) | (Quote.status == "approved"))
             .filter(ServiceOrder.id == service_order_id)
             .first()
         )
@@ -118,7 +150,7 @@ class ServiceOrderService:
         if not quote.items:
             raise HTTPException(
                 status_code=422,
-                detail="Orçamento não possui itens de tradução",
+                detail="Orçamento não possui documentos para tradução",
             )
 
         company = self.db.query(Company).filter(Company.id == data.company_id).first()
@@ -129,7 +161,7 @@ class ServiceOrderService:
             quote_id=data.quote_id,
             company_id=data.company_id,
             project_name=data.project_name,
-            deadline=data.deadline,
+            deadline=data.deadline if data.deadline is not None else quote.deadline,
             domain_area=data.domain_area,
             price_category=data.price_category,
             internal_notes=data.internal_notes,
@@ -144,20 +176,32 @@ class ServiceOrderService:
                     target_language=translation_item.target_language,
                     document_type=translation_item.document_type,
                     file_url=translation_item.file_url,
+                    word_count=translation_item.word_count,
                     price=translation_item.estimated_value,
                 )
             )
 
         self.db.add(service_order)
+        self.db.flush()
+        record_initial_version(self.db, service_order, None)
         self.db.commit()
         self.db.refresh(service_order)
 
         return to_response(service_order)
 
+    def list_versions(self, service_order_id: uuid.UUID) -> list[ServiceOrderVersion]:
+        service_order = self._get_service_order_or_404(service_order_id)
+        return list(service_order.versions)
+
     def create_manual(self, data: ManualServiceOrderRequest) -> ServiceOrderResponse:
         company = self.db.query(Company).filter(Company.id == data.company_id).first()
         if not company:
             raise HTTPException(status_code=404, detail="Empresa não encontrada")
+
+        if data.deadline is not None:
+            for item in data.items:
+                if item.deadline is not None and _utc_day(item.deadline) > _utc_day(data.deadline):
+                    raise HTTPException(status_code=422, detail=ITEM_DEADLINE_AFTER_PROJECT_MESSAGE)
 
         service_order = ServiceOrder(
             quote_id=None,
@@ -191,7 +235,15 @@ class ServiceOrderService:
     ) -> ServiceOrderResponse:
         service_order = self._get_service_order_or_404(service_order_id)
 
-        for field, value in data.model_dump(exclude_unset=True).items():
+        changes = data.model_dump(exclude_unset=True)
+        if (
+            service_order.quote_id is not None
+            and "deadline" in changes
+            and changes["deadline"] != service_order.deadline
+        ):
+            raise HTTPException(status_code=409, detail=PROJECT_DEADLINE_LOCKED_MESSAGE)
+
+        for field, value in changes.items():
             setattr(service_order, field, value)
 
         self.db.commit()
@@ -213,14 +265,14 @@ class ServiceOrderService:
             if not service_order.items:
                 raise HTTPException(
                     status_code=409,
-                    detail="Esta ordem de serviço não possui itens.",
+                    detail="Esta ordem de serviço não possui documentos.",
                 )
             if any(item.translator_id is None for item in service_order.items):
                 raise HTTPException(
                     status_code=409,
                     detail=(
                         "Só é possível enviar arquivos de entrega quando todos os "
-                        "itens tiverem um tradutor com convite aceito."
+                        "documentos tiverem um tradutor com convite aceito."
                     ),
                 )
 
@@ -345,7 +397,8 @@ class ServiceOrderService:
         self.db.commit()
 
     def delete_item(self, service_order_id: uuid.UUID, item_id: uuid.UUID) -> None:
-        self._get_service_order_or_404(service_order_id)
+        service_order = self._get_service_order_or_404(service_order_id)
+        ensure_service_order_items_are_editable(service_order)
         item = (
             self.db.query(ServiceOrderItem)
             .filter(
@@ -406,6 +459,8 @@ class ServiceOrderService:
         content_type: str | None = None,
     ) -> ServiceOrderItemResponse:
         service_order = self._get_service_order_or_404(service_order_id)
+        ensure_service_order_items_are_editable(service_order)
+        ensure_item_deadline_valid(data.deadline, service_order)
 
         file_url = None
         if file_data is not None and filename is not None and content_type is not None:
@@ -438,6 +493,8 @@ class ServiceOrderService:
         item = self.db.query(ServiceOrderItem).filter(ServiceOrderItem.id == item_id).first()
         if not item:
             raise HTTPException(status_code=404, detail="Item da ordem de serviço não encontrado")
+        ensure_service_order_items_are_editable(item.service_order)
+        ensure_item_deadline_valid(data.deadline, item.service_order, item.deadline)
 
         if not data.source_language or not data.target_language:
             raise HTTPException(
@@ -456,12 +513,23 @@ class ServiceOrderService:
 
         return ServiceOrderItemResponse.model_validate(item)
 
+    def set_item_deadline(self, item_id: uuid.UUID, deadline: datetime) -> ServiceOrderItemResponse:
+        item = self.db.query(ServiceOrderItem).filter(ServiceOrderItem.id == item_id).first()
+        if not item:
+            raise HTTPException(status_code=404, detail="Item da ordem de serviço não encontrado")
+        ensure_item_deadline_valid(deadline, item.service_order, item.deadline)
+
+        item.deadline = deadline
+        self.db.commit()
+        self.db.refresh(item)
+
+        return ServiceOrderItemResponse.model_validate(item)
+
     def list_service_orders(self) -> list[ServiceOrderResponse]:
         service_orders = (
             self.db.query(ServiceOrder)
             .options(selectinload(ServiceOrder.items), selectinload(ServiceOrder.files))
-            .outerjoin(Quote, ServiceOrder.quote_id == Quote.id)
-            .filter((ServiceOrder.quote_id.is_(None)) | (Quote.status == "approved"))
+            .order_by(ServiceOrder.created_at.desc(), ServiceOrder.id.desc())
             .all()
         )
         return [to_response(service_order) for service_order in service_orders]

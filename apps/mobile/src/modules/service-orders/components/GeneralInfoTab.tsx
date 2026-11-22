@@ -9,9 +9,14 @@ import { StatusBadge } from './StatusBadge';
 import { InfoField } from './InfoField';
 import { FormField } from '../../clients/components/FormField';
 import { DateField } from '../../../shared/components/DateField';
-import { formatDate, formatDateInputValue } from '../utils/format';
+import {
+	formatDate,
+	formatDateInputValue,
+	formatDeadline,
+} from '../utils/format';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function getTodayInputValue() {
 	const today = new Date();
 	const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -25,6 +30,7 @@ type GeneralInfoTabProps = {
 };
 
 export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
+	const themeColors = useThemeColors();
 	const [isEditing, setIsEditing] = useState(false);
 	const canWriteServiceOrders = usePermission('service_orders.write');
 	const [projectName, setProjectName] = useState(serviceOrder.project_name);
@@ -86,7 +92,7 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 	return (
 		<View className="gap-8">
 			<View className="flex-row items-start justify-between">
-				<Text className="font-inter font-semibold text-gray-900 text-sm">
+				<Text className="font-inter font-semibold text-foreground text-sm">
 					Dados do projeto
 				</Text>
 
@@ -97,9 +103,9 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 						activeOpacity={0.7}
 						accessibilityRole="button"
 						accessibilityLabel="Editar dados gerais"
-						className={`h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+						className={`h-8 w-8 items-center justify-center rounded-lg border border-border hover:bg-surface-subtle ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 					>
-						<Settings size={16} color="#6B7280" />
+						<Settings size={16} color={themeColors.foregroundMuted} />
 					</TouchableOpacity>
 				)}
 			</View>
@@ -113,7 +119,9 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 						/>
 
 						<View className="min-w-[180px] flex-1 gap-1">
-							<Text className="font-inter text-gray-400 text-xs">Status</Text>
+							<Text className="font-inter text-foreground-subtle text-xs">
+								Status
+							</Text>
 							<StatusBadge status={serviceOrder.status} />
 						</View>
 
@@ -123,16 +131,16 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 						/>
 						<InfoField
 							label="Prazo"
-							value={formatDate(serviceOrder.deadline)}
+							value={formatDeadline(serviceOrder.deadline)}
 						/>
 						<InfoField
-							label="Itens"
+							label="Documentos"
 							value={String(serviceOrder.items.length)}
 						/>
 					</View>
 
-					<View className="border-t border-gray-100 pt-7">
-						<Text className="mb-4 font-inter font-semibold text-gray-900 text-sm">
+					<View className="border-t border-border-subtle pt-7">
+						<Text className="mb-4 font-inter font-semibold text-foreground text-sm">
 							Propriedades
 						</Text>
 
@@ -148,8 +156,8 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 						</View>
 					</View>
 
-					<View className="border-t border-gray-100 pt-7 gap-4">
-						<Text className="font-inter font-semibold text-gray-900 text-sm">
+					<View className="border-t border-border-subtle pt-7 gap-4">
+						<Text className="font-inter font-semibold text-foreground text-sm">
 							Notas
 						</Text>
 
@@ -180,7 +188,9 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 							/>
 
 							<View className="min-w-[180px] gap-1">
-								<Text className="font-inter text-gray-400 text-xs">Status</Text>
+								<Text className="font-inter text-foreground-subtle text-xs">
+									Status
+								</Text>
 								<StatusBadge status={serviceOrder.status} />
 							</View>
 
@@ -198,31 +208,38 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 								className="min-w-[180px] flex-1 gap-1"
 								style={deadlineCalendarOpen ? { zIndex: 51 } : undefined}
 							>
-								<DateField
-									label="Prazo"
-									value={deadline}
-									minDate={getTodayInputValue()}
-									onOpenChange={setDeadlineCalendarOpen}
-									onChangeText={(value) => {
-										setDeadline(value);
-										setDeadlineError('');
-									}}
-								/>
+								{serviceOrder.quote_id ? (
+									<InfoField
+										label="Prazo final do projeto"
+										value={formatDeadline(serviceOrder.deadline)}
+									/>
+								) : (
+									<DateField
+										label="Prazo"
+										value={deadline}
+										minDate={getTodayInputValue()}
+										onOpenChange={setDeadlineCalendarOpen}
+										onChangeText={(value) => {
+											setDeadline(value);
+											setDeadlineError('');
+										}}
+									/>
+								)}
 								{deadlineError ? (
-									<Text className="font-inter text-red-600 text-xs">
+									<Text className="font-inter text-danger text-xs">
 										{deadlineError}
 									</Text>
 								) : null}
 							</View>
 							<InfoField
-								label="Itens"
+								label="Documentos"
 								value={String(serviceOrder.items.length)}
 							/>
 						</View>
 					</View>
 
-					<View className="border-t border-gray-100 pt-7">
-						<Text className="mb-4 font-inter font-semibold text-gray-900 text-sm">
+					<View className="border-t border-border-subtle pt-7">
+						<Text className="mb-4 font-inter font-semibold text-foreground text-sm">
 							Propriedades
 						</Text>
 
@@ -242,38 +259,38 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 						</View>
 					</View>
 
-					<View className="border-t border-gray-100 pt-7 gap-3">
-						<Text className="font-inter font-semibold text-gray-900 text-sm">
+					<View className="border-t border-border-subtle pt-7 gap-3">
+						<Text className="font-inter font-semibold text-foreground text-sm">
 							Notas
 						</Text>
 
 						<View className="gap-1.5">
-							<Text className="font-inter font-semibold text-gray-800 text-xs">
+							<Text className="font-inter font-semibold text-foreground text-xs">
 								Notas externas
 							</Text>
 							<TextInput
 								value={externalNotes}
 								onChangeText={setExternalNotes}
 								placeholder="Visível para o cliente"
-								placeholderTextColor="#8A8A8A"
+								placeholderTextColor={themeColors.foregroundMuted}
 								multiline
 								numberOfLines={3}
-								className="rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-sm text-gray-900 outline-none min-h-[80px]"
+								className="rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none min-h-[80px]"
 							/>
 						</View>
 
 						<View className="gap-1.5">
-							<Text className="font-inter font-semibold text-gray-800 text-xs">
+							<Text className="font-inter font-semibold text-foreground text-xs">
 								Notas internas
 							</Text>
 							<TextInput
 								value={internalNotes}
 								onChangeText={setInternalNotes}
 								placeholder="Visível apenas para a equipe"
-								placeholderTextColor="#8A8A8A"
+								placeholderTextColor={themeColors.foregroundMuted}
 								multiline
 								numberOfLines={3}
-								className="rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-sm text-gray-900 outline-none min-h-[80px]"
+								className="rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none min-h-[80px]"
 							/>
 						</View>
 					</View>
@@ -285,10 +302,10 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 							activeOpacity={0.7}
 							accessibilityRole="button"
 							accessibilityLabel="Cancelar edição dos dados gerais"
-							className="flex-row items-center gap-1.5 self-start rounded-lg border border-gray-200 px-5 py-2.5"
+							className="flex-row items-center gap-1.5 self-start rounded-lg border border-border px-5 py-2.5"
 						>
-							<X size={14} color="#374151" />
-							<Text className="font-inter font-medium text-gray-700 text-sm">
+							<X size={14} color={themeColors.foregroundSecondary} />
+							<Text className="font-inter font-medium text-foreground-secondary text-sm">
 								Cancelar
 							</Text>
 						</TouchableOpacity>
@@ -299,9 +316,9 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 							activeOpacity={0.85}
 							accessibilityRole="button"
 							accessibilityLabel="Salvar dados gerais"
-							className={`self-start rounded-lg bg-blue-600 px-5 py-2.5 ${isSaving ? 'opacity-60' : ''}`}
+							className={`self-start rounded-lg bg-primary px-5 py-2.5 ${isSaving ? 'opacity-60' : ''}`}
 						>
-							<Text className="font-inter font-semibold text-white text-sm">
+							<Text className="font-inter font-semibold text-primary-foreground text-sm">
 								{isSaving ? 'Salvando…' : 'Salvar'}
 							</Text>
 						</TouchableOpacity>
@@ -309,8 +326,8 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 				</>
 			)}
 
-			<View className="border-t border-gray-100 pt-7">
-				<Text className="mb-4 font-inter font-semibold text-gray-900 text-sm">
+			<View className="border-t border-border-subtle pt-7">
+				<Text className="mb-4 font-inter font-semibold text-foreground text-sm">
 					Registro
 				</Text>
 

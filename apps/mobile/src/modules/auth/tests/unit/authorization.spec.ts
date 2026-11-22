@@ -52,6 +52,33 @@ test.describe('canAccess', () => {
 	test('keeps login and public request pages open', () => {
 		expect(canAccess(null, '/login')).toBe(true);
 		expect(canAccess(null, '/solicitar-servico')).toBe(true);
+		expect(canAccess(null, '/definir-senha')).toBe(true);
+		expect(canAccess(null, '/aprovar-orcamento')).toBe(true);
+	});
+
+	test('guards each settings tab with its own permission', () => {
+		const admin: AuthorizationContext = {
+			user: { id: 'u', email: 'a@b.com' },
+			roles: [{ id: '1', name: 'Administrador' }],
+			permissions: [],
+		};
+		const withPermissions: AuthorizationContext = {
+			user: { id: 'u', email: 'a@b.com' },
+			roles: [{ id: '2', name: 'Projetos' }],
+			permissions: ['roles.read', 'users.read', 'users.write'],
+		};
+
+		expect(canAccess(admin, '/configuracoes/pessoas')).toBe(true);
+		expect(canAccess(withPermissions, '/configuracoes/permissoes')).toBe(true);
+		expect(canAccess(withPermissions, '/configuracoes/pessoas')).toBe(true);
+		expect(canAccess(withPermissions, '/configuracoes/idiomas')).toBe(false);
+		expect(
+			canAccess(context(['languages.read']), '/configuracoes/idiomas'),
+		).toBe(true);
+		expect(canAccess(context(['settings.read']), '/configuracoes/sessao')).toBe(
+			true,
+		);
+		expect(canAccess(null, '/configuracoes/pessoas')).toBe(false);
 	});
 
 	test('blocks unknown paths', () => {

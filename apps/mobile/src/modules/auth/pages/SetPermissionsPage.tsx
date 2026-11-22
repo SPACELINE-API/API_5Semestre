@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import ConfigPermissions from '../components/permissions/ConfigPermissions';
+import { SettingsHeader } from '../components/SettingsHeader';
 import { RoleFormModal } from '../components/permissions/RoleFormModal';
 import SelectRole from '../components/permissions/SelectRole';
 import { usePermission } from '../hooks/usePermission';
@@ -21,32 +22,32 @@ import type {
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const MODULE_LABELS: Record<string, string> = {
-	dashboard: 'Dashboard',
 	requests: 'Requisições',
 	quotes: 'Orçamentos',
 	service_orders: 'Ordens de serviço',
-	assignments: 'Tarefas atribuídas',
+	tasks: 'Tarefas atribuídas',
 	clients: 'Clientes',
 	contacts: 'Contatos',
 	translators: 'Tradutores',
 	documents: 'Documentos',
-	projects: 'Projetos',
 	support: 'Suporte',
-	roles: 'Perfis de acesso',
-	settings: 'Configurações',
+	roles: 'Configuração / Permissões',
+	users: 'Configuração / Pessoas',
+	languages: 'Configuração / Idiomas',
+	settings: 'Configuração / Sessão',
+	proposals: 'Propostas',
 };
 
 const VISIBLE_PERMISSIONS = new Set([
-	'dashboard.read',
 	'requests.read',
 	'requests.write',
 	'quotes.read',
 	'quotes.write',
 	'service_orders.read',
 	'service_orders.write',
-	'assignments.read',
-	'assignments.write',
+	'tasks.read',
 	'clients.read',
 	'clients.write',
 	'contacts.read',
@@ -54,18 +55,26 @@ const VISIBLE_PERMISSIONS = new Set([
 	'translators.read',
 	'translators.write',
 	'documents.write',
-	'projects.read',
 	'support.read',
 	'support.write',
+	'proposals.read',
+	'reports.productivity.read',
+	'settings.read',
 	'settings.write',
+	'users.read',
+	'users.write',
+	'languages.read',
+	'languages.write',
 	'roles.read',
 	'roles.write',
 ]);
 
 const EXTRA_PERMISSION_LABELS: Record<string, string> = {
 	'quotes.approve': 'Aprovação',
-	'assignments.respond': 'Responder convites',
-	'assignments.manage': 'Gerenciar convites',
+	'quotes.reopen': 'Reabrir orçamentos',
+	'proposals.report.generate': 'Gerar relatório',
+	'tasks.write': 'Tarefas atribuídas por mim',
+	'tasks.assigned_to_me.read': 'Tarefas atribuídas a mim',
 };
 
 function buildModules(permissions: Permission[]): PermissionModule[] {
@@ -77,26 +86,51 @@ function buildModules(permissions: Permission[]): PermissionModule[] {
 		const separator = permission.code.lastIndexOf('.');
 		const key = permission.code.slice(0, separator);
 		const action = permission.code.slice(separator + 1);
+		const moduleKey =
+			permission.code === 'reports.productivity.read'
+				? 'reports.productivity'
+				: permission.code === 'proposals.report.generate'
+					? 'proposals'
+					: permission.code === 'tasks.assigned_to_me.read'
+						? 'tasks'
+						: key;
 
-		const module = modules.get(key) ?? {
-			key,
-			label: MODULE_LABELS[key] ?? key,
+		const module = modules.get(moduleKey) ?? {
+			key: moduleKey,
+			label:
+				permission.code === 'reports.productivity.read'
+					? 'Produtividade'
+					: (MODULE_LABELS[moduleKey] ?? MODULE_LABELS[key] ?? key),
 			extras: [],
 		};
 		if (extraLabel) {
 			module.extras.push({ permission, label: extraLabel });
+		} else if (permission.code === 'reports.productivity.read') {
+			module.read = permission;
 		} else if (action === 'read' || action === 'write') {
 			module[action] = permission;
 		}
-		modules.set(key, module);
+		modules.set(moduleKey, module);
 	}
 
-	return [...modules.values()].sort((a, b) =>
-		a.label.localeCompare(b.label, 'pt-BR'),
-	);
+	const moduleList = [...modules.values()];
+	const taskPermissionOrder = new Map([
+		['tasks.write', 0],
+		['tasks.assigned_to_me.read', 1],
+	]);
+	moduleList
+		.find((module) => module.key === 'tasks')
+		?.extras.sort((a, b) => {
+			const aOrder = taskPermissionOrder.get(a.permission.code) ?? 99;
+			const bOrder = taskPermissionOrder.get(b.permission.code) ?? 99;
+			return aOrder - bOrder;
+		});
+
+	return moduleList.sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
 }
 
 export default function SetPermissionsPage() {
+	const themeColors = useThemeColors();
 	const { toast, showToast } = useToast();
 	const canEditRoles = usePermission('roles.write');
 	const {
@@ -129,33 +163,25 @@ export default function SetPermissionsPage() {
 		null;
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
 			>
+				<SettingsHeader active="permissoes" />
 				<View className="gap-6">
-					<View>
-						<Text className="font-inter font-bold text-gray-950 text-2xl">
-							Configurações
-						</Text>
-						<Text className="mt-2 font-inter text-gray-400 text-sm">
-							Usuários → Permissões
-						</Text>
-					</View>
-
 					{isLoading ? (
 						<View className="py-20 items-center">
-							<ActivityIndicator size="large" color="#2563eb" />
+							<ActivityIndicator size="large" color={themeColors.primaryText} />
 						</View>
 					) : error ? (
 						<View className="py-20 items-center">
-							<Text className="font-inter text-red-600 text-sm text-center">
+							<Text className="font-inter text-danger text-sm text-center">
 								{error}
 							</Text>
 						</View>
 					) : (
-						<View className="rounded-2xl border border-gray-200 bg-white p-6 gap-6">
+						<View className="rounded-2xl border border-border bg-surface p-6 gap-6">
 							<View className="flex-row justify-between flex-wrap items-end gap-3">
 								<SelectRole
 									roles={editableRoles}
@@ -166,10 +192,10 @@ export default function SetPermissionsPage() {
 									accessibilityRole="button"
 									onPress={() => setShowRoleModal(true)}
 									disabled={!canEditRoles}
-									className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${!canEditRoles ? 'opacity-40' : ''}`}
+									className={`flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${!canEditRoles ? 'opacity-40' : ''}`}
 								>
-									<Plus size={15} color="#fff" />
-									<Text className="font-inter-medium text-sm text-white">
+									<Plus size={15} color={themeColors.primaryForeground} />
+									<Text className="font-inter-medium text-sm text-primary-foreground">
 										Novo perfil
 									</Text>
 								</TouchableOpacity>
@@ -177,7 +203,7 @@ export default function SetPermissionsPage() {
 
 							{selectedRole && (
 								<View className="gap-4 mt-5">
-									<Text className="font-inter font-semibold text-gray-900 text-sm">
+									<Text className="font-inter font-semibold text-foreground text-sm">
 										{selectedRole.name}
 									</Text>
 									<View className="flex-row justify-between flex-wrap gap-4">
@@ -187,6 +213,16 @@ export default function SetPermissionsPage() {
 												module={module}
 												profile={selectedRole}
 												disabled={!canEditRoles}
+												hideRead={
+													module.key === 'tasks' || module.key === 'support'
+												}
+												writeLabel={
+													module.key === 'requests'
+														? 'Aprovação'
+														: module.key === 'support'
+															? 'Execução'
+															: undefined
+												}
 												onChange={(permissionIds) =>
 													setRolePermissionIds(selectedRole.id, permissionIds)
 												}

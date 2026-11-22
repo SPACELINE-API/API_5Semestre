@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiError } from '../../../shared/services/publicApiClient';
+import {
+	ApiError,
+	FORBIDDEN_ERROR_MESSAGE,
+} from '../../../shared/services/publicApiClient';
 import { getProductivityReport } from '../services/productivityService';
 import type {
 	ProductivityFilters,
@@ -9,7 +12,7 @@ import { isValidPeriod } from '../utils/filters';
 
 export function productivityErrorMessage(cause: unknown): string {
 	if (cause instanceof ApiError && cause.status === 403) {
-		return 'Você não tem permissão para consultar este relatório.';
+		return FORBIDDEN_ERROR_MESSAGE;
 	}
 	if (cause instanceof ApiError && cause.status === 422) {
 		return 'Período inválido. Confira as datas selecionadas.';

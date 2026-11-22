@@ -10,9 +10,10 @@ from app.modules.auth.exceptions.exceptions import (
 from app.modules.auth.models.user import User
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.auth.services.roles_service import (
-    get_effective_permissions,
+    get_user_effective_permissions,
     has_permission,
 )
+from app.modules.auth.services.supabase_admin_client import SupabaseAdminClient
 from app.modules.auth.services.supabase_auth_client import SupabaseAuthClient
 from app.shared.database import get_db
 from app.shared.supabase.client import get_supabase_config
@@ -26,6 +27,15 @@ def get_supabase_auth_client() -> SupabaseAuthClient:
     return SupabaseAuthClient(
         supabase_url=config.url,
         anon_key=config.anon_key,
+    )
+
+
+def get_supabase_admin_client() -> SupabaseAdminClient:
+    config = get_supabase_config()
+
+    return SupabaseAdminClient(
+        supabase_url=config.url,
+        service_role_key=config.service_role_key,
     )
 
 
@@ -55,11 +65,14 @@ def require_permission(permission_code: str, *, allow_full_access: bool = True):
         user = db.scalar(
             select(User).options(selectinload(User.roles)).where(User.email == current_user.email)
         )
-        has_required_permission = (
-            permission_code in get_effective_permissions(user.roles)
-            if user is not None and not allow_full_access
-            else user is not None and has_permission(user.roles, permission_code)
-        )
+        has_required_permission = False
+        if user is not None:
+            permissions = get_user_effective_permissions(user)
+            has_required_permission = permission_code in permissions
+            if allow_full_access:
+                has_required_permission = has_required_permission or has_permission(
+                    user.roles, permission_code
+                )
         if user is None or not user.is_active or not has_required_permission:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

@@ -17,6 +17,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { CircleAlert } from 'lucide-react-native';
+import { usePermission } from '../../auth/hooks/usePermission';
 
 import {
 	fetchRequestById,
@@ -32,7 +33,12 @@ import { QuoteGenerationPanel } from '../components/QuoteGenerationPanel';
 import { RejectedRequestNotice } from '../components/RejectedRequestNotice';
 import { RequestDecisionPanel } from '../components/RequestDecisionPanel';
 import { RequestSummarySections } from '../components/RequestSummarySections';
+import {
+	getGenerationError,
+	getStatusUpdateError,
+} from '../utils/quoteRequestErrors';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type RequiredRequestField = {
 	key: keyof Pick<
 		RequestItem,
@@ -55,40 +61,12 @@ const REQUIRED_FIELDS: RequiredRequestField[] = [
 	{ key: 'customer_need', label: 'Necessidade' },
 ];
 
-function getGenerationError(status: number, detail?: string) {
-	if (status === 400) {
-		return (
-			detail ?? 'A requisição precisa estar aprovada e conter dados válidos.'
-		);
-	}
-	if (status === 404) return 'Esta requisição não foi encontrada.';
-	if (status === 409) return 'Já existe um orçamento para esta requisição.';
-	if (status === 422)
-		return detail ?? 'O identificador da requisição é inválido.';
-	if (status === 0)
-		return 'Falha de conexão. Verifique a conexão e tente novamente.';
-	return detail ?? 'Não foi possível gerar o orçamento. Tente novamente.';
-}
-
-function getStatusUpdateError(status: number, detail?: string) {
-	if (status === 404) return 'Esta requisição não foi encontrada.';
-	if (status === 409) {
-		return (
-			detail ?? 'A situação da requisição foi alterada. Atualize os dados.'
-		);
-	}
-	if (status === 422)
-		return detail ?? 'Informe um motivo válido para reprovar.';
-	if (status === 0)
-		return 'Falha de conexão. Verifique a conexão e tente novamente.';
-	return detail ?? 'Não foi possível atualizar a requisição. Tente novamente.';
-}
-
 function LoadingState() {
+	const themeColors = useThemeColors();
 	return (
-		<View className="bg-white rounded-lg border border-gray-200 p-8 items-center gap-3">
-			<ActivityIndicator color="#2563eb" />
-			<Text className="font-inter text-sm text-gray-500">
+		<View className="bg-surface rounded-lg border border-border p-8 items-center gap-3">
+			<ActivityIndicator color={themeColors.primaryText} />
+			<Text className="font-inter text-sm text-foreground-muted">
 				Carregando dados da requisição...
 			</Text>
 		</View>
@@ -102,18 +80,21 @@ function LoadErrorState({
 	error: string;
 	onRetry: () => void;
 }) {
+	const themeColors = useThemeColors();
 	return (
-		<View className="bg-white rounded-lg border border-gray-200 p-6">
+		<View className="bg-surface rounded-lg border border-border p-6">
 			<View className="flex-row items-start gap-3">
-				<CircleAlert size={20} color="#dc2626" />
-				<Text className="flex-1 font-inter text-sm text-red-800">{error}</Text>
+				<CircleAlert size={20} color={themeColors.danger} />
+				<Text className="flex-1 font-inter text-sm text-danger-text">
+					{error}
+				</Text>
 			</View>
 			<TouchableOpacity
 				accessibilityRole="button"
 				onPress={onRetry}
-				className="self-start mt-5 rounded-lg border border-blue-200 px-4 py-2.5"
+				className="self-start mt-5 rounded-lg border border-primary/30 px-4 py-2.5"
 			>
-				<Text className="font-inter-medium text-sm text-blue-700">
+				<Text className="font-inter-medium text-sm text-primary-text">
 					Tentar novamente
 				</Text>
 			</TouchableOpacity>
@@ -132,6 +113,8 @@ export default function GenerateQuoteFromRequestPage() {
 		? rawRequestId[0]
 		: rawRequestId;
 	const router = useRouter();
+	const canWriteRequests = usePermission('requests.write');
+	const canWriteQuotes = usePermission('quotes.write');
 	const [request, setRequest] = useState<RequestItem | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [loadError, setLoadError] = useState('');
@@ -176,11 +159,15 @@ export default function GenerateQuoteFromRequestPage() {
 	);
 	const isApproved = request?.status === 'approved';
 	const canGenerate = Boolean(
-		request && isApproved && !request.quote_id && missingFields.length === 0,
+		canWriteQuotes &&
+		request &&
+		isApproved &&
+		!request.quote_id &&
+		missingFields.length === 0,
 	);
 
 	async function handleGenerateQuote() {
-		if (!request || !canGenerate || generating) return;
+		if (!request || !canGenerate || generating || !canWriteQuotes) return;
 		setGenerationError('');
 		setGenerating(true);
 		const result = await generateQuoteFromRequest(request.id);
@@ -190,7 +177,7 @@ export default function GenerateQuoteFromRequestPage() {
 	}
 
 	async function handleStatusUpdate(status: 'approved' | 'reproved') {
-		if (!request || statusUpdating) return;
+		if (!request || statusUpdating || !canWriteRequests) return;
 		if (status === 'reproved' && !reprovalReason.trim()) {
 			setStatusError('Informe o motivo da reprovação.');
 			return;
@@ -216,7 +203,7 @@ export default function GenerateQuoteFromRequestPage() {
 
 	return (
 		<KeyboardContainer
-			className="flex-1 bg-gray-50"
+			className="flex-1 bg-surface-subtle"
 			contentContainerClassName="p-4 md:p-8 flex-grow"
 			{...(Platform.OS === 'web'
 				? {}

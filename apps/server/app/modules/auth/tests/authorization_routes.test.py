@@ -126,7 +126,7 @@ def test_user_role_assignment_is_audited_and_exposes_effective_permissions(
         app.dependency_overrides.clear()
 
     assert response.status_code == 200
-    assert response.json()["permissions"] == ["clients.read"]
+    assert response.json()["permissions"] == ["clients.read", "dashboard.read"]
     assert len(history) == 1
     assert history[0].actor_user_id == actor_id
     assert history[0].before == {"roles": []}
@@ -182,6 +182,6 @@ def test_deactivating_role_revokes_its_users_effective_access(
     assert denied_quotes.status_code == 403
     assert access_summary.status_code == 200
     assert access_summary.json()["roles"] == []
-    assert access_summary.json()["permissions"] == []
+    assert access_summary.json()["permissions"] == ["dashboard.read"]
     assert target.roles == [assigned_role]
     assert assigned_role.is_active is False

@@ -1,11 +1,18 @@
 import uuid
+from decimal import Decimal
 from unittest.mock import MagicMock
 
 import pytest
 from fastapi import HTTPException
 
+from app.modules.quotes.models.quote_audit_log import QuoteAuditLog
 from app.modules.quotes.models.request import Request, StatusEnum
-from app.modules.quotes.schemas.quote import QuoteCreate, QuoteUpdate
+from app.modules.quotes.schemas.quote import (
+    QuoteCreate,
+    QuoteReopenRequest,
+    QuoteStatusUpdate,
+    QuoteUpdate,
+)
 from app.modules.quotes.services import quote_service as quote_service_module
 from app.modules.quotes.services.quote_service import QuoteService
 
@@ -19,7 +26,7 @@ def test_create_quote_success(mock_db_session):
     result = service.create_quote(quote_data)
 
     assert result is not None
-    assert result.status == "pending"
+    assert result.status == "draft"
     mock_db_session.add.assert_called_once()
     mock_db_session.commit.assert_called_once()
     mock_db_session.refresh.assert_called_once()
@@ -48,7 +55,7 @@ def test_generate_quote_from_approved_request(mock_db_session):
     result = service.generate_from_approved_request(request.id)
 
     assert result.request_id == request.id
-    assert result.status == "pending"
+    assert result.status == "draft"
     assert result.customer_name == request.customer_name
     mock_db_session.commit.assert_called_once()
 
@@ -135,6 +142,45 @@ def test_generate_quote_reuses_uploaded_request_document_url(mock_db_session):
     assert result.items[0].file_url == request.document_url
 
 
+def test_generate_quote_counts_words_of_request_document(mock_db_session, monkeypatch):
+    request = approved_request()
+    request.document = b"conteudo"
+    request.document_filename = "contrato.txt"
+    monkeypatch.setattr(
+        quote_service_module,
+        "upload_quote_document",
+        lambda filename, file_data, content_type: "https://storage.test/contrato.txt",
+    )
+    monkeypatch.setattr(quote_service_module, "count_document_words", lambda data, name: 42)
+
+    service = QuoteService(mock_db_session)
+    service.request_repository.get_by_id = MagicMock(return_value=request)
+    service.quote_repository.get_by_request_id = MagicMock(return_value=None)
+    mock_db_session.refresh.side_effect = lambda obj: None
+
+    result = service.generate_from_approved_request(request.id)
+
+    assert result.items[0].word_count == 42
+
+
+def test_generate_quote_downloads_request_document_to_count_words(mock_db_session, monkeypatch):
+    request = approved_request()
+    request.document_filename = "contrato.txt"
+    request.document_url = "https://storage.test/requests/contrato.txt"
+    download = MagicMock(return_value=b"um dois tres")
+    monkeypatch.setattr(quote_service_module, "download_document", download)
+
+    service = QuoteService(mock_db_session)
+    service.request_repository.get_by_id = MagicMock(return_value=request)
+    service.quote_repository.get_by_request_id = MagicMock(return_value=None)
+    mock_db_session.refresh.side_effect = lambda obj: None
+
+    result = service.generate_from_approved_request(request.id)
+
+    download.assert_called_once_with(request.document_url)
+    assert result.items[0].word_count == 3
+
+
 def test_generate_quote_without_document_creates_no_item(mock_db_session):
     request = approved_request()
     service = QuoteService(mock_db_session)
@@ -148,7 +194,7 @@ def test_generate_quote_without_document_creates_no_item(mock_db_session):
 
 
 def test_update_quote_changes_provided_fields(mock_db_session):
-    quote = MagicMock(company_id=None, contact_id=None)
+    quote = MagicMock(company_id=None, contact_id=None, status="draft")
     mock_db_session.query.return_value.filter.return_value.first.return_value = quote
     service = QuoteService(mock_db_session)
 
@@ -166,3 +212,333 @@ def test_update_quote_not_found_raises_404(mock_db_session):
         service.update_quote(uuid.uuid4(), QuoteUpdate(customer_name="Novo nome"))
 
     assert error.value.status_code == 404
+
+
+def pending_quote_with_service_order(mock_db_session):
+    quote = MagicMock(
+        id=uuid.uuid4(),
+        status="pending",
+        deadline=None,
+        service_orders=[MagicMock(deadline=None)],
+    )
+    query = mock_db_session.query.return_value.filter.return_value.populate_existing.return_value.with_for_update.return_value
+    query.first.return_value = quote
+    return quote
+
+
+def test_update_status_approved_creates_receipt(mock_db_session, monkeypatch):
+    quote = pending_quote_with_service_order(mock_db_session)
+    receipt_service = MagicMock()
+    monkeypatch.setattr(
+        quote_service_module, "QuoteReceiptService", MagicMock(return_value=receipt_service)
+    )
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    result = QuoteService(mock_db_session).update_status(
+        quote.id, QuoteStatusUpdate(status="approved"), user
+    )
+
+    assert result.status == "approved"
+    receipt_service.create_receipt.assert_called_once_with(quote)
+
+
+def test_update_status_approved_survives_receipt_failure(mock_db_session, monkeypatch):
+    quote = pending_quote_with_service_order(mock_db_session)
+    receipt_service = MagicMock()
+    receipt_service.create_receipt.side_effect = RuntimeError("smtp down")
+    monkeypatch.setattr(
+        quote_service_module, "QuoteReceiptService", MagicMock(return_value=receipt_service)
+    )
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    result = QuoteService(mock_db_session).update_status(
+        quote.id, QuoteStatusUpdate(status="approved"), user
+    )
+
+    assert result.status == "approved"
+    mock_db_session.commit.assert_called_once()
+
+
+def test_update_status_reproved_does_not_create_receipt(mock_db_session, monkeypatch):
+    quote = pending_quote_with_service_order(mock_db_session)
+    receipt_cls = MagicMock()
+    monkeypatch.setattr(quote_service_module, "QuoteReceiptService", receipt_cls)
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    QuoteService(mock_db_session).update_status(
+        quote.id, QuoteStatusUpdate(status="reproved", reproval_reason="Fora do escopo"), user
+    )
+
+    receipt_cls.assert_not_called()
+
+
+def pending_quote_without_service_order(mock_db_session, file_urls):
+    items = [MagicMock(file_url=file_url) for file_url in file_urls]
+    quote = MagicMock(
+        id=uuid.uuid4(),
+        status="pending",
+        service_orders=[],
+        company_id=uuid.uuid4(),
+        items=items,
+    )
+    query = mock_db_session.query.return_value.filter.return_value.populate_existing.return_value.with_for_update.return_value
+    query.first.return_value = quote
+    return quote
+
+
+@pytest.mark.parametrize(
+    "file_urls",
+    [[None], ["   "], ["https://storage.test/contrato.pdf", None]],
+)
+def test_update_status_rejects_approval_with_document_without_file(mock_db_session, file_urls):
+    quote = pending_quote_without_service_order(mock_db_session, file_urls)
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).update_status(
+            quote.id, QuoteStatusUpdate(status="approved"), user
+        )
+
+    assert error.value.status_code == 422
+    assert (
+        error.value.detail == "Anexe o arquivo de todos os documentos antes de aprovar o orçamento."
+    )
+    assert quote.status == "pending"
+    mock_db_session.commit.assert_not_called()
+
+
+def test_update_status_reproval_does_not_require_document_file(mock_db_session, monkeypatch):
+    quote = pending_quote_without_service_order(mock_db_session, [None])
+    monkeypatch.setattr(quote_service_module, "QuoteReceiptService", MagicMock())
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    result = QuoteService(mock_db_session).update_status(
+        quote.id, QuoteStatusUpdate(status="reproved", reproval_reason="Sem arquivo"), user
+    )
+
+    assert result.status == "reproved"
+
+
+def quote_for_update(mock_db_session, status):
+    quote = MagicMock(id=uuid.uuid4(), status=status, service_orders=[])
+    query = mock_db_session.query.return_value.filter.return_value.populate_existing.return_value.with_for_update.return_value
+    query.first.return_value = quote
+    return quote
+
+
+@pytest.mark.parametrize("status", ["pending", "approved", "reproved", "cancelled"])
+def test_update_quote_rejects_locked_status(mock_db_session, status):
+    quote = MagicMock(company_id=None, contact_id=None, status=status, customer_name="Antigo")
+    mock_db_session.query.return_value.filter.return_value.first.return_value = quote
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).update_quote(
+            uuid.uuid4(), QuoteUpdate(customer_name="Novo nome")
+        )
+
+    assert error.value.status_code == 409
+    assert "precisa estar em preparação" in error.value.detail
+    assert quote.customer_name == "Antigo"
+    mock_db_session.commit.assert_not_called()
+
+
+def draft_quote_ready_to_send(mock_db_session, **overrides):
+    quote = quote_for_update(mock_db_session, "draft")
+    quote.company_id = uuid.uuid4()
+    quote.items = [
+        MagicMock(file_url="https://storage.test/contrato.pdf", estimated_value=Decimal("100"))
+    ]
+    quote.contact = MagicMock(email="contato@cliente.com", name="Contato")
+    quote.sent_to_customer_at = None
+    quote.valid_until = None
+    for field, value in overrides.items():
+        setattr(quote, field, value)
+    return quote
+
+
+def test_send_to_customer_moves_draft_to_pending_and_emails_customer(mock_db_session, monkeypatch):
+    quote = draft_quote_ready_to_send(mock_db_session)
+    send_email = MagicMock()
+    monkeypatch.setattr(quote_service_module, "send_quote_sent_email", send_email)
+
+    result = QuoteService(mock_db_session).send_to_customer(quote.id)
+
+    assert result.status == "pending"
+    assert result.sent_to_customer_email == "contato@cliente.com"
+    assert len(result.customer_access_token_hash) == 64
+    kwargs = send_email.call_args.kwargs
+    assert kwargs["to_email"] == "contato@cliente.com"
+    assert "/aprovar-orcamento?token=" in kwargs["approval_url"]
+    assert kwargs["is_update"] is False
+    mock_db_session.commit.assert_called_once()
+
+
+def test_resend_after_reopen_is_marked_as_update(mock_db_session, monkeypatch):
+    quote = draft_quote_ready_to_send(mock_db_session, sent_to_customer_at=MagicMock())
+    send_email = MagicMock()
+    monkeypatch.setattr(quote_service_module, "send_quote_sent_email", send_email)
+
+    QuoteService(mock_db_session).send_to_customer(quote.id)
+
+    assert send_email.call_args.kwargs["is_update"] is True
+
+
+def test_send_to_customer_keeps_draft_when_email_fails(mock_db_session, monkeypatch):
+    quote = draft_quote_ready_to_send(mock_db_session)
+    monkeypatch.setattr(
+        quote_service_module,
+        "send_quote_sent_email",
+        MagicMock(side_effect=RuntimeError("smtp down")),
+    )
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).send_to_customer(quote.id)
+
+    assert error.value.status_code == 502
+    assert quote.status == "draft"
+    mock_db_session.commit.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"company_id": None}, "Vincule uma empresa"),
+        ({"items": []}, "Adicione ao menos um documento"),
+        ({"items": [MagicMock(file_url=None)]}, "Anexe o arquivo"),
+        (
+            {"items": [MagicMock(file_url="https://storage.test/a.pdf", estimated_value=None)]},
+            "Informe o preço",
+        ),
+        (
+            {
+                "items": [
+                    MagicMock(file_url="https://storage.test/a.pdf", estimated_value=Decimal("0"))
+                ]
+            },
+            "Informe o preço",
+        ),
+    ],
+)
+def test_send_to_customer_requires_complete_quote(mock_db_session, monkeypatch, overrides, message):
+    quote = draft_quote_ready_to_send(mock_db_session, **overrides)
+    send_email = MagicMock()
+    monkeypatch.setattr(quote_service_module, "send_quote_sent_email", send_email)
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).send_to_customer(quote.id)
+
+    assert error.value.status_code == 422
+    assert message in error.value.detail
+    send_email.assert_not_called()
+
+
+def test_send_to_customer_requires_an_email(mock_db_session, monkeypatch):
+    quote = draft_quote_ready_to_send(
+        mock_db_session,
+        contact=None,
+        email=None,
+        company=MagicMock(email=None),
+    )
+    monkeypatch.setattr(quote_service_module, "send_quote_sent_email", MagicMock())
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).send_to_customer(quote.id)
+
+    assert error.value.status_code == 422
+    assert "e-mail de contato" in error.value.detail
+
+
+@pytest.mark.parametrize("status", ["pending", "approved", "reproved", "cancelled"])
+def test_send_to_customer_rejects_non_draft(mock_db_session, status):
+    quote = quote_for_update(mock_db_session, status)
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).send_to_customer(quote.id)
+
+    assert error.value.status_code == 409
+    assert quote.status == status
+    mock_db_session.commit.assert_not_called()
+
+
+@pytest.mark.parametrize("status", ["draft", "approved", "reproved", "cancelled"])
+def test_update_status_requires_pending(mock_db_session, status):
+    quote = quote_for_update(mock_db_session, status)
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).update_status(
+            quote.id, QuoteStatusUpdate(status="approved"), user
+        )
+
+    assert error.value.status_code == 409
+    assert "aguardando aprovação" in error.value.detail
+    assert quote.status == status
+
+
+@pytest.mark.parametrize("status", ["pending", "approved", "reproved"])
+def test_reopen_moves_quote_to_draft_and_records_audit(mock_db_session, status):
+    quote = quote_for_update(mock_db_session, status)
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    result = QuoteService(mock_db_session).reopen(
+        quote.id, QuoteReopenRequest(reason="  Cliente enviou novo documento  "), user
+    )
+
+    assert result.status == "draft"
+    audit = mock_db_session.add.call_args.args[0]
+    assert isinstance(audit, QuoteAuditLog)
+    assert audit.action == "reopen"
+    assert audit.previous_status == status
+    assert audit.new_status == "draft"
+    assert audit.reason == "Cliente enviou novo documento"
+    assert audit.actor_user_id == uuid.UUID(user.id)
+    assert audit.actor_email == "admin@teste.com"
+    mock_db_session.commit.assert_called_once()
+
+
+def test_reopen_keeps_existing_service_order(mock_db_session):
+    service_order = MagicMock()
+    quote = quote_for_update(mock_db_session, "approved")
+    quote.service_orders = [service_order]
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    QuoteService(mock_db_session).reopen(quote.id, QuoteReopenRequest(reason="Ajuste"), user)
+
+    assert quote.service_orders == [service_order]
+    mock_db_session.delete.assert_not_called()
+
+
+@pytest.mark.parametrize("status", ["draft", "cancelled"])
+def test_reopen_rejects_draft_and_cancelled(mock_db_session, status):
+    quote = quote_for_update(mock_db_session, status)
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).reopen(quote.id, QuoteReopenRequest(reason="Ajuste"), user)
+
+    assert error.value.status_code == 409
+    assert quote.status == status
+    mock_db_session.add.assert_not_called()
+    mock_db_session.commit.assert_not_called()
+
+
+def test_reopen_not_found_raises_404(mock_db_session):
+    query = mock_db_session.query.return_value.filter.return_value.populate_existing.return_value.with_for_update.return_value
+    query.first.return_value = None
+    user = MagicMock(id=str(uuid.uuid4()), email="admin@teste.com")
+
+    with pytest.raises(HTTPException) as error:
+        QuoteService(mock_db_session).reopen(uuid.uuid4(), QuoteReopenRequest(reason="x"), user)
+
+    assert error.value.status_code == 404
+
+
+@pytest.mark.parametrize("reason", ["", "   "])
+def test_reopen_schema_requires_reason(reason):
+    with pytest.raises(ValueError, match="Informe o motivo da reabertura"):
+        QuoteReopenRequest(reason=reason)
+
+
+def test_reopen_schema_rejects_missing_reason():
+    with pytest.raises(ValueError):
+        QuoteReopenRequest()

@@ -24,6 +24,10 @@ export function listLanguages(): Promise<LanguageResponse[]> {
 	return apiGetAuth<LanguageResponse[]>('/api/support/languages');
 }
 
+export function listManageLanguages(): Promise<LanguageResponse[]> {
+	return apiGetAuth<LanguageResponse[]>('/api/support/languages/manage');
+}
+
 export function listPublicLanguages(): Promise<LanguageResponse[]> {
 	return request<LanguageResponse[]>('/api/support/languages');
 }
@@ -36,6 +40,10 @@ export function createLanguage(
 		'/api/support/languages',
 		{ id, name },
 	);
+}
+
+export function deleteLanguage(id: string): Promise<void> {
+	return apiDeleteAuth(`/api/support/languages/${encodeURIComponent(id)}`);
 }
 
 export function listTranslators(): Promise<Translator[]> {
@@ -68,6 +76,14 @@ export function setTranslatorActive(
 		{
 			is_active: isActive,
 		},
+	);
+}
+
+// REENVIA O LINK DE DEFINICAO DE SENHA ENQUANTO A CONTA DO TRADUTOR NAO FOI ATIVADA
+export function resendTranslatorPasswordLink(id: string): Promise<Translator> {
+	return apiPostAuth<Translator, Record<string, never>>(
+		`${BASE}/${id}/password-setup-link/resend`,
+		{},
 	);
 }
 

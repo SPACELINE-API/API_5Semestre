@@ -1,7 +1,9 @@
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import { Check, Search, SlidersHorizontal } from 'lucide-react-native';
 import type { InviteStatus } from '../types/invite';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export type InviteStatusFilter = InviteStatus | 'all';
 
 const statusOptions: { value: InviteStatusFilter; label: string }[] = [
@@ -27,18 +29,20 @@ export function InviteSearchBar({
 	showFilters,
 	onToggleFilters,
 }: InviteSearchBarProps) {
+	const themeColors = useThemeColors();
 	const filtersActive = showFilters || statusFilter !== 'all';
 
 	return (
 		<View className="mb-4 flex-row items-center gap-3">
-			<View className="h-10 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white px-3">
-				<Search size={17} color="#9CA3AF" />
-				<TextInput
+			<View className="h-10 flex-1 flex-row items-center rounded-lg border border-border bg-surface px-3">
+				<Search size={17} color={themeColors.foregroundSubtle} />
+				<SearchTextInput
 					value={search}
 					onChangeText={onSearchChange}
 					placeholder="Buscar por documento ou idioma"
-					placeholderTextColor="#9CA3AF"
-					className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none h-10"
+					numberOfLines={1}
+					placeholderTextColor={themeColors.foregroundSubtle}
+					className="ml-2 flex-1 border-0 font-inter text-ellipsis text-foreground text-sm outline-none h-10"
 				/>
 			</View>
 
@@ -48,23 +52,27 @@ export function InviteSearchBar({
 				activeOpacity={0.7}
 				className={`h-10 flex-row items-center justify-center gap-2 rounded-lg border px-3 ${
 					filtersActive
-						? 'border-blue-300 bg-blue-50'
-						: 'border-gray-200 bg-white'
+						? 'border-primary/40 bg-primary-soft'
+						: 'border-border bg-surface'
 				}`}
 			>
 				<SlidersHorizontal
 					size={16}
-					color={filtersActive ? '#1C6FB0' : '#6B7280'}
+					color={
+						filtersActive
+							? themeColors.primaryText
+							: themeColors.foregroundMuted
+					}
 				/>
 				<Text
 					className={`font-inter font-medium text-sm ${
-						filtersActive ? 'text-blue-900' : 'text-gray-600'
+						filtersActive ? 'text-primary-strong' : 'text-foreground-secondary'
 					}`}
 				>
 					Filtros
 				</Text>
 				{statusFilter !== 'all' && (
-					<View className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+					<View className="h-1.5 w-1.5 rounded-full bg-primary" />
 				)}
 			</TouchableOpacity>
 		</View>
@@ -80,9 +88,10 @@ export function InviteStatusFilterPanel({
 	statusFilter,
 	onStatusFilterChange,
 }: InviteStatusFilterPanelProps) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="gap-1">
-			<Text className="mb-2 font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
+			<Text className="mb-2 font-inter font-semibold text-foreground-subtle text-xs uppercase tracking-wide">
 				Status
 			</Text>
 			{statusOptions.map((option) => {
@@ -94,17 +103,19 @@ export function InviteStatusFilterPanel({
 						onPress={() => onStatusFilterChange(option.value)}
 						activeOpacity={0.7}
 						className={`flex-row items-center justify-between rounded-lg px-3 py-2.5 ${
-							isSelected ? 'bg-blue-50' : ''
+							isSelected ? 'bg-primary-soft' : ''
 						}`}
 					>
 						<Text
 							className={`font-inter text-sm ${
-								isSelected ? 'font-semibold text-blue-900' : 'text-gray-700'
+								isSelected
+									? 'font-semibold text-primary-strong'
+									: 'text-foreground-secondary'
 							}`}
 						>
 							{option.label}
 						</Text>
-						{isSelected && <Check size={16} color="#1C6FB0" />}
+						{isSelected && <Check size={16} color={themeColors.primary} />}
 					</TouchableOpacity>
 				);
 			})}

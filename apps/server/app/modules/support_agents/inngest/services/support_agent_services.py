@@ -49,7 +49,7 @@ async def validar_entrada(texto: str) -> None:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
                 "Só consigo ajudar com assuntos do suporte: clientes, ordens de serviço, "
-                "tradutores, orçamentos e usuários."
+                "tradutores, orçamentos, produtividade e usuários."
             ),
         ) from exc
     except GuardrailUnavailable as exc:
@@ -130,7 +130,9 @@ async def responder_pergunta_suporte(
 
 
 async def enfileirar_pergunta_chat(
-    payload: SuportePerguntaRequest, user_id: str | None = None
+    payload: SuportePerguntaRequest,
+    user_id: str | None = None,
+    session_id: str | None = None,
 ) -> dict:
     await validar_entrada(payload.texto)
     await validar_permissao_assunto(payload.texto, user_id)
@@ -138,6 +140,8 @@ async def enfileirar_pergunta_chat(
     dados = {"texto": payload.texto}
     if user_id is not None:
         dados["user_id"] = user_id
+    # sempre envia session_id (usado como chave de concorrência no Inngest)
+    dados["session_id"] = session_id or user_id or "chat-support"
     try:
         ids = await inngest_client.send(inngest.Event(name=event_name, data=dados))
     except Exception as exc:

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { CompanyReportModal } from '../components/CompanyReportModal';
 import { ProposalCharts } from '../components/ProposalCharts';
 import { ProposalDetailModal } from '../components/ProposalDetailModal';
 import { ProposalFilters } from '../components/ProposalFilters';
@@ -11,13 +12,17 @@ import {
 	ProposalLoading,
 } from '../components/ProposalStates';
 import { ProposalTable } from '../components/ProposalTable';
+import { Toast } from '../../../shared/components/Toast';
+import { useToast } from '../../../shared/hooks/useToast';
 import { useProposals } from '../hooks/useProposals';
+import { usePermission } from '../../auth/hooks/usePermission';
 import type { Proposal, ProposalFilters as Filters } from '../types/proposal';
 import {
 	listProposalCompanies,
 	PROPOSAL_PAGE_SIZE,
 } from '../services/proposalService';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const INITIAL_FILTERS: Filters = {
 	startDate: '',
 	endDate: '',
@@ -39,13 +44,14 @@ function ProposalPagination({
 	loading: boolean;
 	onPageChange: (page: number) => void;
 }) {
+	const themeColors = useThemeColors();
 	const totalPages = Math.ceil(total / PROPOSAL_PAGE_SIZE);
 	const firstItem = total ? (page - 1) * PROPOSAL_PAGE_SIZE + 1 : 0;
 	const lastItem = Math.min(page * PROPOSAL_PAGE_SIZE, total);
 
 	return (
-		<View className="mb-5 flex-col items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 md:flex-row md:justify-between">
-			<Text className="font-inter text-gray-600 text-sm">
+		<View className="mb-5 flex-col items-center gap-3 rounded-xl border border-border bg-surface p-4 md:flex-row md:justify-between">
+			<Text className="font-inter text-foreground-secondary text-sm">
 				Exibindo {firstItem}–{lastItem} de {total} propostas · página {page} de{' '}
 				{Math.max(totalPages, 1)}
 			</Text>
@@ -54,10 +60,10 @@ function ProposalPagination({
 					accessibilityRole="button"
 					disabled={page <= 1 || loading}
 					onPress={() => onPageChange(Math.max(1, page - 1))}
-					className={`flex-1 flex-row items-center justify-center gap-1 rounded-lg px-3 py-2 md:flex-none ${page <= 1 || loading ? 'opacity-40' : 'hover:bg-gray-100'}`}
+					className={`flex-1 flex-row items-center justify-center gap-1 rounded-lg px-3 py-2 md:flex-none ${page <= 1 || loading ? 'opacity-40' : 'hover:bg-surface-muted'}`}
 				>
-					<ChevronLeft size={17} color="#374151" />
-					<Text className="font-inter font-medium text-gray-700 text-sm">
+					<ChevronLeft size={17} color={themeColors.foregroundSecondary} />
+					<Text className="font-inter font-medium text-foreground-secondary text-sm">
 						Anterior
 					</Text>
 				</TouchableOpacity>
@@ -65,12 +71,12 @@ function ProposalPagination({
 					accessibilityRole="button"
 					disabled={page >= totalPages || loading}
 					onPress={() => onPageChange(Math.min(totalPages, page + 1))}
-					className={`flex-1 flex-row items-center justify-center gap-1 rounded-lg px-3 py-2 md:flex-none ${page >= totalPages || loading ? 'opacity-40' : 'hover:bg-gray-100'}`}
+					className={`flex-1 flex-row items-center justify-center gap-1 rounded-lg px-3 py-2 md:flex-none ${page >= totalPages || loading ? 'opacity-40' : 'hover:bg-surface-muted'}`}
 				>
-					<Text className="font-inter font-medium text-gray-700 text-sm">
+					<Text className="font-inter font-medium text-foreground-secondary text-sm">
 						Próxima
 					</Text>
-					<ChevronRight size={17} color="#374151" />
+					<ChevronRight size={17} color={themeColors.foregroundSecondary} />
 				</TouchableOpacity>
 			</View>
 		</View>
@@ -79,12 +85,15 @@ function ProposalPagination({
 
 export function ProposalsPage() {
 	const router = useRouter();
+	const canGenerateReport = usePermission('proposals.report.generate');
 	const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
 	const [companies, setCompanies] = useState<string[]>([]);
 	const [companiesError, setCompaniesError] = useState<string | null>(null);
 	const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(
 		null,
 	);
+	const [isReportModalVisible, setIsReportModalVisible] = useState(false);
+	const { toast, showToast } = useToast();
 	const { result, isLoading, error, refresh } = useProposals(filters);
 	const hasFocusedBefore = useRef(false);
 	const refreshProposals = useRef(refresh);
@@ -130,18 +139,34 @@ export function ProposalsPage() {
 	}, [filters.page, result]);
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
 			>
-				<View className="mb-7 border-b border-gray-200 pb-6">
-					<Text className="font-inter font-bold text-gray-950 text-2xl">
-						Propostas comerciais
-					</Text>
-					<Text className="mt-2 font-inter text-gray-500 text-sm">
-						Acompanhe propostas por empresa, período, cliente, valor e situação.
-					</Text>
+				<View className="mb-7 flex-row flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
+					<View className="min-w-[220px] flex-1">
+						<Text className="font-inter font-bold text-foreground text-2xl">
+							Propostas comerciais
+						</Text>
+						<Text className="mt-2 font-inter text-foreground-muted text-sm">
+							Acompanhe propostas por empresa, período, cliente, valor e
+							situação.
+						</Text>
+					</View>
+					{canGenerateReport && (
+						<TouchableOpacity
+							onPress={() => setIsReportModalVisible(true)}
+							activeOpacity={0.8}
+							accessibilityRole="button"
+							accessibilityLabel="Gerar relatório"
+							className="shrink-0 rounded-lg bg-primary px-4 py-3"
+						>
+							<Text className="font-inter font-semibold text-sm text-primary-foreground">
+								Gerar relatório
+							</Text>
+						</TouchableOpacity>
+					)}
 				</View>
 
 				<View className="gap-5">
@@ -162,11 +187,11 @@ export function ProposalsPage() {
 					) : proposals.length ? (
 						<>
 							<View className="flex-row flex-wrap gap-3">
-								<View className="min-w-[160px] flex-1 rounded-xl border border-gray-100 bg-white p-4">
-									<Text className="font-inter text-gray-500 text-xs">
+								<View className="min-w-[160px] flex-1 rounded-xl border border-border-subtle bg-surface p-4">
+									<Text className="font-inter text-foreground-muted text-xs">
 										Propostas no período
 									</Text>
-									<Text className="mt-1 font-inter font-bold text-gray-900 text-xl">
+									<Text className="mt-1 font-inter font-bold text-foreground text-xl">
 										{total}
 									</Text>
 								</View>
@@ -175,7 +200,7 @@ export function ProposalsPage() {
 							<ProposalCharts proposals={proposals} />
 
 							<View className="gap-3">
-								<Text className="font-inter font-bold text-gray-900 text-base">
+								<Text className="font-inter font-bold text-foreground text-base">
 									Lista de propostas
 								</Text>
 								<ProposalTable
@@ -208,6 +233,14 @@ export function ProposalsPage() {
 					);
 				}}
 			/>
+			{canGenerateReport && (
+				<CompanyReportModal
+					visible={isReportModalVisible}
+					onClose={() => setIsReportModalVisible(false)}
+					onSuccess={showToast}
+				/>
+			)}
+			<Toast toast={toast} />
 		</View>
 	);
 }

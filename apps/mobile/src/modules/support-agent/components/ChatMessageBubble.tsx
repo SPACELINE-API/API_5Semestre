@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Bot, User } from 'lucide-react-native';
-import { Text, View } from 'react-native';
+import { Linking, Platform, Text, View } from 'react-native';
+import Constants from 'expo-constants';
 import Markdown from 'react-native-markdown-display';
+import { resolveNativeResourceUrl } from '../../../shared/utils/nativeResourceUrl';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
+
+import { type ThemeColors } from '../../../shared/theme/types';
 type ChatMessageBubbleProps = {
 	role: 'user' | 'agent';
 	message: string;
@@ -10,92 +15,132 @@ type ChatMessageBubbleProps = {
 	loading?: boolean;
 };
 
-const markdownStyles = {
-	body: { fontSize: 14, lineHeight: 22, color: '#1a2942' },
-	paragraph: { marginTop: 0, marginBottom: 8 },
-	strong: { fontWeight: '700' as const, color: '#101b35' },
-	em: { fontStyle: 'italic' as const },
-	s: { textDecorationLine: 'line-through' as const, color: '#65758f' },
-	heading1: {
-		fontSize: 20,
-		fontWeight: '800' as const,
-		color: '#101b35',
-		marginTop: 8,
-		marginBottom: 6,
-	},
-	heading2: {
-		fontSize: 17,
-		fontWeight: '700' as const,
-		color: '#101b35',
-		marginTop: 8,
-		marginBottom: 4,
-	},
-	heading3: {
-		fontSize: 15,
-		fontWeight: '700' as const,
-		color: '#12233c',
-		marginTop: 6,
-		marginBottom: 4,
-	},
-	bullet_list: { marginVertical: 4 },
-	ordered_list: { marginVertical: 4 },
-	list_item: { marginVertical: 2, flexDirection: 'row' as const },
-	bullet_list_icon: { marginRight: 6, color: '#2d83cd' },
-	bullet_list_content: { flex: 1 },
-	ordered_list_icon: {
-		marginRight: 6,
-		color: '#2d83cd',
-		fontWeight: '700' as const,
-	},
-	ordered_list_content: { flex: 1 },
-	code_inline: {
-		backgroundColor: '#dce7f2',
-		color: '#12233c',
-		paddingHorizontal: 4,
-		paddingVertical: 1,
-		borderRadius: 4,
-		fontFamily: 'monospace',
-		fontSize: 13,
-	},
-	code_block: {
-		backgroundColor: '#12233c',
-		color: '#e5f1fc',
-		padding: 10,
-		borderRadius: 8,
-		fontFamily: 'monospace',
-		fontSize: 13,
-		marginVertical: 6,
-	},
-	fence: {
-		backgroundColor: '#12233c',
-		color: '#e5f1fc',
-		padding: 10,
-		borderRadius: 8,
-		fontFamily: 'monospace',
-		fontSize: 13,
-		marginVertical: 6,
-	},
-	blockquote: {
-		backgroundColor: '#f0f6fc',
-		borderLeftWidth: 3,
-		borderLeftColor: '#2d83cd',
-		paddingLeft: 10,
-		paddingVertical: 4,
-		marginVertical: 6,
-	},
-	link: { color: '#2478c2', textDecorationLine: 'underline' as const },
-	hr: { backgroundColor: '#dce7f2', height: 1, marginVertical: 10 },
-	table: {
-		borderWidth: 1,
-		borderColor: '#dce7f2',
-		borderRadius: 6,
-		marginVertical: 6,
-	},
-	thead: { backgroundColor: '#e5f1fc' },
-	th: { padding: 6, fontWeight: '700' as const, color: '#101b35' },
-	tr: { borderBottomWidth: 1, borderColor: '#dce7f2' },
-	td: { padding: 6, color: '#1a2942' },
-};
+function buildMarkdownStyles(themeColors: ThemeColors) {
+	return {
+		body: {
+			maxWidth: '100%' as const,
+			flexShrink: 1,
+			fontSize: 15,
+			lineHeight: 23,
+			color: themeColors.foreground,
+		},
+		paragraph: { marginTop: 0, marginBottom: 8 },
+		strong: { fontWeight: '700' as const, color: themeColors.foreground },
+		em: { fontStyle: 'italic' as const },
+		s: {
+			textDecorationLine: 'line-through' as const,
+			color: themeColors.foregroundMuted,
+		},
+		heading1: {
+			fontSize: 20,
+			fontWeight: '800' as const,
+			color: themeColors.foreground,
+			marginTop: 8,
+			marginBottom: 6,
+		},
+		heading2: {
+			fontSize: 17,
+			fontWeight: '700' as const,
+			color: themeColors.foreground,
+			marginTop: 8,
+			marginBottom: 4,
+		},
+		heading3: {
+			fontSize: 15,
+			fontWeight: '700' as const,
+			color: themeColors.foreground,
+			marginTop: 6,
+			marginBottom: 4,
+		},
+		bullet_list: { marginVertical: 4 },
+		ordered_list: { marginVertical: 4 },
+		list_item: { marginVertical: 2, flexDirection: 'row' as const },
+		bullet_list_icon: { marginRight: 6, color: themeColors.primaryText },
+		bullet_list_content: { flex: 1 },
+		ordered_list_icon: {
+			marginRight: 6,
+			color: themeColors.primaryText,
+			fontWeight: '700' as const,
+		},
+		ordered_list_content: { flex: 1 },
+		code_inline: {
+			backgroundColor: themeColors.border,
+			color: themeColors.foreground,
+			paddingHorizontal: 4,
+			paddingVertical: 1,
+			borderRadius: 4,
+			fontFamily: 'monospace',
+			fontSize: 14,
+		},
+		code_block: {
+			backgroundColor: themeColors.foreground,
+			color: themeColors.foregroundInverse,
+			padding: 10,
+			borderRadius: 8,
+			fontFamily: 'monospace',
+			fontSize: 14,
+			marginVertical: 6,
+		},
+		fence: {
+			backgroundColor: themeColors.foreground,
+			color: themeColors.foregroundInverse,
+			padding: 10,
+			borderRadius: 8,
+			fontFamily: 'monospace',
+			fontSize: 14,
+			marginVertical: 6,
+		},
+		blockquote: {
+			backgroundColor: themeColors.surfaceSubtle,
+			borderLeftWidth: 3,
+			borderLeftColor: themeColors.primary,
+			paddingLeft: 10,
+			paddingVertical: 4,
+			marginVertical: 6,
+		},
+		link: {
+			color: themeColors.primaryText,
+			textDecorationLine: 'underline' as const,
+		},
+		hr: { backgroundColor: themeColors.border, height: 1, marginVertical: 10 },
+		table: {
+			borderWidth: 1,
+			borderColor: themeColors.border,
+			borderRadius: 6,
+			marginVertical: 6,
+		},
+		thead: { backgroundColor: themeColors.primarySoft },
+		th: {
+			padding: 6,
+			fontWeight: '700' as const,
+			color: themeColors.foreground,
+		},
+		tr: { borderBottomWidth: 1, borderColor: themeColors.border },
+		td: { padding: 6, color: themeColors.foreground },
+	};
+}
+
+function openChatLink(url: string) {
+	const target = url.startsWith('/')
+		? resolveNativeResourceUrl(url, Constants.expoConfig?.hostUri, Platform.OS)
+		: url;
+
+	if (Platform.OS === 'web') {
+		const isFile = /\.(csv|xlsx)(\?|$)/i.test(target);
+		if (!isFile) {
+			window.open(target, '_blank');
+			return;
+		}
+		const frame = document.createElement('iframe');
+		frame.style.display = 'none';
+		frame.src = target;
+		document.body.appendChild(frame);
+		window.setTimeout(() => frame.remove(), 60_000);
+		return;
+	}
+
+	void Linking.openURL(target);
+}
 
 function TypingIndicator() {
 	const [dotCount, setDotCount] = useState(1);
@@ -108,7 +153,7 @@ function TypingIndicator() {
 	}, []);
 
 	return (
-		<Text className="text-sm leading-6 text-[#1a2942]">
+		<Text className="text-sm leading-6 text-foreground">
 			Elaborando resposta{'.'.repeat(dotCount)}
 		</Text>
 	);
@@ -120,6 +165,11 @@ export function ChatMessageBubble({
 	timestamp,
 	loading = false,
 }: ChatMessageBubbleProps) {
+	const themeColors = useThemeColors();
+	const markdownStyles = useMemo(
+		() => buildMarkdownStyles(themeColors),
+		[themeColors],
+	);
 	const isUser = role === 'user';
 
 	return (
@@ -128,31 +178,47 @@ export function ChatMessageBubble({
 		>
 			<View
 				className={`h-10 w-10 shrink-0 items-center justify-center rounded-full md:h-11 md:w-11 ${
-					isUser ? 'bg-[#65758f]' : 'bg-[#2d83cd]'
+					isUser ? 'bg-foreground-muted' : 'bg-primary'
 				}`}
 			>
 				{isUser ? (
-					<User color="#ffffff" size={18} />
+					<User color={themeColors.primaryForeground} size={18} />
 				) : (
-					<Bot color="#ffffff" size={20} />
+					<Bot color={themeColors.primaryForeground} size={20} />
 				)}
 			</View>
-			<View className={`flex-1 ${isUser ? 'items-end' : 'items-start'}`}>
+			<View
+				className={`min-w-0 flex-1 ${isUser ? 'items-end' : 'items-start'}`}
+			>
 				<View
-					className={`rounded-2xl px-4 py-3 md:max-w-xl md:px-5 md:py-4 ${
-						isUser ? 'rounded-tr-sm bg-[#2d83cd]' : 'rounded-tl-sm bg-[#e5f1fc]'
+					className={`max-w-full rounded-2xl px-4 py-3 md:max-w-xl md:px-5 md:py-4 ${
+						isUser
+							? 'rounded-tr-sm bg-primary'
+							: 'rounded-tl-sm bg-primary-soft'
 					} ${loading ? 'opacity-60' : ''}`}
 				>
 					{loading ? (
 						<TypingIndicator />
 					) : isUser ? (
-						<Text className="text-sm leading-6 text-white">{message}</Text>
+						<Text className="text-sm leading-6 text-primary-foreground">
+							{message}
+						</Text>
 					) : (
-						<Markdown style={markdownStyles}>{message}</Markdown>
+						<Markdown
+							style={markdownStyles}
+							onLinkPress={(url) => {
+								openChatLink(url);
+								return false;
+							}}
+						>
+							{message}
+						</Markdown>
 					)}
 				</View>
 				{timestamp ? (
-					<Text className="mt-1.5 text-xs text-[#8a99b3]">{timestamp}</Text>
+					<Text className="mt-1.5 text-xs text-foreground-subtle">
+						{timestamp}
+					</Text>
 				) : null}
 			</View>
 		</View>

@@ -7,6 +7,10 @@ exclude = "(^|/)tests/"
 module = "pact.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "reportlab.*"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 python_files = ["*.test.py"]

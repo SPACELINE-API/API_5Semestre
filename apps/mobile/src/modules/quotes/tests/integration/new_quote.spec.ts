@@ -9,6 +9,11 @@ test.describe('New Quote Flow', () => {
 		const title = page.getByText('Novo orçamento');
 		await expect(title).toBeVisible();
 
+		await expect(page.getByText('Cliente', { exact: true })).toBeVisible();
+		await expect(page.getByText('Empresa', { exact: true })).toBeVisible();
+		await expect(page.getByText('Projeto', { exact: true })).toBeVisible();
+		await expect(page.getByText('Prazo final de entrega')).toBeVisible();
+
 		const sourceLanguageLabel = page.getByText('Idioma origem', {
 			exact: true,
 		});

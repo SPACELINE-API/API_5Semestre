@@ -1,15 +1,9 @@
 import { useMemo, useState } from 'react';
-import {
-	Modal,
-	Pressable,
-	ScrollView,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	View,
-} from 'react-native';
-import { Check, ChevronDown, Search, X } from 'lucide-react-native';
+import { SearchTextInput } from './SearchTextInput';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Check, ChevronDown, Search } from 'lucide-react-native';
 
+import { useThemeColors } from '../theme/ThemeProvider';
 export type SelectOption = { value: string; label: string };
 
 type SelectFieldProps = {
@@ -33,6 +27,7 @@ export function SelectField({
 	allLabel,
 	searchable = true,
 }: SelectFieldProps) {
+	const themeColors = useThemeColors();
 	const [isOpen, setIsOpen] = useState(false);
 	const [query, setQuery] = useState('');
 	const selected = options.find((option) => option.value === value);
@@ -55,89 +50,76 @@ export function SelectField({
 	}
 
 	return (
-		<View className="gap-1.5">
-			<Text className="font-inter font-semibold text-gray-800 text-xs">
+		<View className="gap-1.5" style={{ zIndex: isOpen ? 50 : 1 }}>
+			<Text className="font-inter font-semibold text-foreground text-xs">
 				{label}
 			</Text>
 			<TouchableOpacity
-				onPress={() => setIsOpen(true)}
+				onPress={() => setIsOpen((current) => !current)}
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityLabel={label}
-				className="h-10 flex-row items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3"
+				className="h-10 flex-row items-center justify-between gap-2 rounded-lg border border-border-strong bg-surface px-3"
 			>
 				<Text
-					className={`flex-1 font-inter text-sm ${selected ? 'text-gray-900' : 'text-gray-500'}`}
+					className={`flex-1 font-inter text-sm ${selected ? 'text-foreground' : 'text-foreground-muted'}`}
 					numberOfLines={1}
 				>
 					{selected?.label ?? allLabel}
 				</Text>
-				<ChevronDown size={16} color="#6B7280" />
+				<ChevronDown size={16} color={themeColors.foregroundMuted} />
 			</TouchableOpacity>
 
-			<Modal
-				visible={isOpen}
-				transparent
-				animationType="fade"
-				onRequestClose={close}
-			>
-				<View className="flex-1 items-center justify-center px-4">
-					<Pressable
-						className="absolute inset-0 bg-black/40"
-						onPress={close}
-						accessibilityLabel={`Fechar ${label}`}
-					/>
-					<View className="max-h-[80%] w-full max-w-[400px] overflow-hidden rounded-xl bg-white pb-2">
-						<View className="flex-row items-center justify-between border-b border-gray-300 p-4">
-							<Text className="font-inter font-bold text-gray-900 text-lg">
-								{label}
-							</Text>
-							<TouchableOpacity onPress={close}>
-								<X size={20} color="#5A5A5A" />
-							</TouchableOpacity>
+			{isOpen && (
+				<View className="overflow-hidden rounded-lg border border-border bg-surface pb-2 shadow-lg">
+					{searchable && (
+						<View className="mx-3 mt-3 flex-row items-center gap-2 rounded-lg border border-border-strong px-3">
+							<Search size={14} color={themeColors.foregroundSubtle} />
+							<SearchTextInput
+								value={query}
+								onChangeText={setQuery}
+								placeholder="Pesquisar"
+								numberOfLines={1}
+								placeholderTextColor={themeColors.foregroundSubtle}
+								accessibilityLabel={`Pesquisar ${label}`}
+								className="h-10 flex-1 font-inter text-ellipsis text-foreground text-sm"
+							/>
 						</View>
-						{searchable && (
-							<View className="mx-4 mt-3 flex-row items-center gap-2 rounded-lg border border-gray-300 px-3">
-								<Search size={14} color="#9CA3AF" />
-								<TextInput
-									value={query}
-									onChangeText={setQuery}
-									placeholder="Pesquisar"
-									placeholderTextColor="#9CA3AF"
-									accessibilityLabel={`Pesquisar ${label}`}
-									className="h-10 flex-1 font-inter text-gray-900 text-sm"
-								/>
-							</View>
+					)}
+					<ScrollView
+						className="px-4"
+						style={{ maxHeight: 300 }}
+						keyboardShouldPersistTaps="handled"
+					>
+						{visibleOptions.length === 0 && (
+							<Text className="py-3 font-inter text-foreground-subtle text-sm">
+								Nenhum resultado.
+							</Text>
 						)}
-						<ScrollView className="px-4" keyboardShouldPersistTaps="handled">
-							{visibleOptions.length === 0 && (
-								<Text className="py-3 font-inter text-gray-400 text-sm">
-									Nenhum resultado.
-								</Text>
-							)}
-							{visibleOptions.map((option) => {
-								const isSelected = option.value === value;
+						{visibleOptions.map((option) => {
+							const isSelected = option.value === value;
 
-								return (
-									<TouchableOpacity
-										key={option.value || 'all'}
-										onPress={() => select(option.value)}
-										activeOpacity={0.7}
-										className="flex-row items-center justify-between border-b border-gray-100 py-3"
+							return (
+								<TouchableOpacity
+									key={option.value || 'all'}
+									onPress={() => select(option.value)}
+									activeOpacity={0.7}
+									className="flex-row items-center justify-between border-b border-border-subtle py-3"
+								>
+									<Text
+										className={`flex-1 font-inter text-sm ${isSelected ? 'font-semibold text-primary-text' : 'text-foreground'}`}
 									>
-										<Text
-											className={`flex-1 font-inter text-sm ${isSelected ? 'font-semibold text-blue-600' : 'text-gray-800'}`}
-										>
-											{option.label}
-										</Text>
-										{isSelected && <Check size={16} color="#1C6FB0" />}
-									</TouchableOpacity>
-								);
-							})}
-						</ScrollView>
-					</View>
+										{option.label}
+									</Text>
+									{isSelected && (
+										<Check size={16} color={themeColors.primary} />
+									)}
+								</TouchableOpacity>
+							);
+						})}
+					</ScrollView>
 				</View>
-			</Modal>
+			)}
 		</View>
 	);
 }

@@ -23,6 +23,7 @@ seed_service_order_email_template = import_module(
 seed_invites = import_module("app.modules.seed.seed_invites").seed_invites
 seed_demo_complement = import_module("app.modules.seed.seed_demo_complement").seed_demo_complement
 seed_demo_operations = import_module("app.modules.seed.seed_demo_operations").seed_demo_operations
+seed_notifications = import_module("app.modules.seed.seed_notifications").seed_notifications
 apply_migrations = import_module("scripts.apply_migrations").apply_migrations
 
 if __name__ == "__main__":
@@ -44,6 +45,7 @@ if __name__ == "__main__":
 
     with get_session_factory()() as db:
         demo_operations = seed_demo_operations(db)
+    notifications = seed_notifications()
     translators = demo_operations["translators"]
     service_orders = demo_operations.get("orders", 0)
     invites = demo_operations["invites"]
@@ -58,4 +60,5 @@ if __name__ == "__main__":
         f"Added {len(demo_commercial)} demo commercial records and "
         f"{sum(demo_operations.values())} demo operational records "
         f"({demo_operations})."
+        f" Seeded {notifications} notifications."
     )

@@ -27,10 +27,13 @@ import {
 } from '../../contacts/services/contactService';
 import { useContactsByCompany } from '../../contacts/hooks/useContactsByCompany';
 import type { Contact } from '../../contacts/types/contact';
+import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyDetailsPageProps = { id: string };
 
 export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const [activeTab, setActiveTab] = useState<CompanyDetailsTab>('info');
 	const [isEditVisible, setIsEditVisible] = useState(false);
@@ -43,9 +46,12 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	const { company, isLoading, error, setCompany } = useCompany(id);
 	const { contacts, refreshContacts } = useContactsByCompany(company?.id);
 	const { toast, showToast } = useToast();
+	const canWriteClients = usePermission('clients.write');
+	const canReadContacts = usePermission('contacts.read');
+	const canWriteContacts = usePermission('contacts.write');
 
 	async function handleDelete() {
-		if (!company) return;
+		if (!canWriteClients || !company) return;
 		setIsDeleting(true);
 		try {
 			await deleteCompany(company.id);
@@ -63,7 +69,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	}
 
 	async function handleDeleteContact() {
-		if (!contactToDelete) return;
+		if (!canWriteContacts || !contactToDelete) return;
 		setIsDeletingContact(true);
 		try {
 			await deleteContact(contactToDelete.id);
@@ -83,12 +89,13 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	}
 
 	function openContactForm(contact: Contact | null = null) {
+		if (!canWriteContacts) return;
 		setEditingContact(contact);
 		setIsContactModalVisible(true);
 	}
 
 	async function saveCompany(data: Parameters<typeof updateCompany>[1]) {
-		if (!company) return;
+		if (!canWriteClients || !company) return;
 		try {
 			const updated = await updateCompany(company.id, data);
 			setCompany(updated);
@@ -106,6 +113,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	}
 
 	async function saveContact(data: Parameters<typeof createContact>[0]) {
+		if (!canWriteContacts) return;
 		try {
 			if (editingContact) {
 				await updateContact(editingContact.id, data);
@@ -129,7 +137,7 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 	}
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-6 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
@@ -139,35 +147,40 @@ export function CompanyDetailsPage({ id }: CompanyDetailsPageProps) {
 					activeOpacity={0.7}
 					className="mb-7 flex-row items-center gap-2"
 				>
-					<ArrowLeft size={16} color="#6B7280" />
-					<Text className="font-inter text-gray-500 text-sm">
+					<ArrowLeft size={16} color={themeColors.foregroundMuted} />
+					<Text className="font-inter text-foreground-muted text-sm">
 						Voltar para clientes
 					</Text>
 				</TouchableOpacity>
 				{isLoading && (
 					<View className="min-h-[500px] items-center justify-center">
-						<ActivityIndicator size="large" color="#6B7280" />
-						<Text className="mt-4 font-inter text-gray-400 text-sm">
+						<ActivityIndicator
+							size="large"
+							color={themeColors.foregroundMuted}
+						/>
+						<Text className="mt-4 font-inter text-foreground-subtle text-sm">
 							Carregando dados da empresa...
 						</Text>
 					</View>
 				)}
 				{!isLoading && error && (
-					<View className="gap-1 border-t border-gray-200 py-8">
+					<View className="gap-1 border-t border-border py-8">
 						<View className="flex-row items-center gap-2">
-							<AlertCircle size={16} color="#DC2626" />
-							<Text className="font-inter font-semibold text-red-600 text-sm">
+							<AlertCircle size={16} color={themeColors.danger} />
+							<Text className="font-inter font-semibold text-danger text-sm">
 								Não foi possível carregar a empresa
 							</Text>
 						</View>
-						<Text className="font-inter text-gray-500 text-sm">{error}</Text>
+						<Text className="font-inter text-foreground-muted text-sm">
+							{error}
+						</Text>
 					</View>
 				)}
 				{!isLoading && !error && company && (
 					<View>
 						<CompanyDetailsHeader
 							company={company}
-							contactCount={contacts.length}
+							contactCount={canReadContacts ? contacts.length : null}
 							onEdit={() => setIsEditVisible(true)}
 							onDelete={() => setIsDeleteConfirmVisible(true)}
 						/>

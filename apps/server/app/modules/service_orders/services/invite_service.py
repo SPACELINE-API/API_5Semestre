@@ -4,6 +4,10 @@ from datetime import UTC, datetime
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
+from app.modules.notifications.services.notification_messages import (
+    translator_invite_received_message,
+)
+from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.service_orders.models.invite import (
     INVITE_STATUS_ACEITO,
     INVITE_STATUS_EXPIRADO,
@@ -27,6 +31,7 @@ from app.modules.service_orders.services.invite_email import (
 )
 from app.modules.translators.models.translator import Translator
 from app.shared.email.smtp_client import send_email
+from app.shared.email.template_renderer import get_inline_logo, wrap_with_base_layout
 from app.shared.EnvProvider import env_provider
 
 
@@ -61,6 +66,12 @@ class InviteService:
                 detail="Este item já possui um tradutor atribuído",
             )
 
+        if item.deadline is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Defina o prazo do documento antes de convidar um tradutor",
+            )
+
         translators = self.db.query(Translator).filter(Translator.id.in_(translator_ids)).all()
         if len(translators) != len(set(translator_ids)):
             raise HTTPException(status_code=422, detail="Um ou mais tradutores não encontrados")
@@ -91,6 +102,20 @@ class InviteService:
             for translator in translators
         ]
         self.db.add_all(invites)
+        self.db.flush()
+
+        notification_service = NotificationService(self.db)
+        message = translator_invite_received_message(item.document_type)
+        for invite, translator in zip(invites, translators, strict=True):
+            notification_service.notify_translator(
+                translator,
+                event_type=message.event_type,
+                title=message.title,
+                message=message.message,
+                related_type="service_order_item_invite",
+                related_id=invite.id,
+                idempotency_key=f"service_order_invite:{invite.id}:sent",
+            )
         self.db.commit()
 
         template = self.db.get(ServiceOrderEmailTemplate, TRANSLATOR_INVITE_EMAIL_TEMPLATE_KEY)
@@ -111,7 +136,13 @@ class InviteService:
                     invite_url=f"{env_provider.get_site_url()}/convites/{invite.id}",
                 ),
             )
-            send_email(to=translator.email, subject=subject, html_body=html_body)
+            html_body = wrap_with_base_layout(html_body, email_title=subject)
+            send_email(
+                to=translator.email,
+                subject=subject,
+                html_body=html_body,
+                inline_images=get_inline_logo(),
+            )
 
         return invites
 

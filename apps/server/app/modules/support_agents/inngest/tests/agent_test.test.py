@@ -97,6 +97,7 @@ def test_criar_pergunta_chat_enfileira_evento_e_retorna_event_id(monkeypatch):
         assert event.data == {
             "texto": "Quais usuários estão cadastrados?",
             "user_id": "teste@exemplo.com",
+            "session_id": "teste@exemplo.com",
         }
         return ["event-chat-123"]
 

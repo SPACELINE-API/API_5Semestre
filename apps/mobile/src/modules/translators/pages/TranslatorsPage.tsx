@@ -1,11 +1,11 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	View,
 	Text,
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator,
-	TextInput,
 	useWindowDimensions,
 } from 'react-native';
 import {
@@ -18,6 +18,9 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslators } from '../hooks/useTranslators';
 import { TranslatorTable } from '../components/TranslatorTable';
+import { PendingAccountsCard } from '../components/PendingAccountsCard';
+import { resendTranslatorPasswordLink } from '../services/translatorService';
+import type { Translator } from '../types/translator';
 import { TranslatorFormModal } from '../components/TranslatorFormModal';
 import {
 	TranslatorFilters,
@@ -27,17 +30,20 @@ import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export function TranslatorsPage() {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const router = useRouter();
 	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
-	const { translators, isLoading, error, create } = useTranslators();
+	const { translators, isLoading, error, create, update } = useTranslators();
 
 	const [search, setSearch] = useState('');
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 	const [isFormVisible, setIsFormVisible] = useState(false);
 	const [showFilters, setShowFilters] = useState(false);
 	const canWriteTranslators = usePermission('translators.write');
+	const [resendingId, setResendingId] = useState<string | null>(null);
 
 	const { toast, showToast } = useToast();
 
@@ -65,36 +71,54 @@ export function TranslatorsPage() {
 			.sort((a, b) => Number(b.is_active) - Number(a.is_active));
 	}, [translators, search, statusFilter]);
 
+	// REENVIA O LINK DE SENHA; OS LINKS ANTERIORES DEIXAM DE FUNCIONAR
+	async function handleResend(translator: Translator) {
+		setResendingId(translator.id);
+		try {
+			update(await resendTranslatorPasswordLink(translator.id));
+			showToast(`Link reenviado para ${translator.email}.`, 'success');
+		} catch (err) {
+			showToast(
+				err instanceof Error && err.message
+					? err.message
+					: 'Não foi possível reenviar o link. Tente novamente.',
+				'error',
+			);
+		} finally {
+			setResendingId(null);
+		}
+	}
+
 	const activeCount = translators.filter((t) => t.is_active).length;
 	const inactiveCount = translators.length - activeCount;
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
 			>
 				<View className="gap-6">
 					{/* CABECALHO */}
-					<View className="border-b border-gray-200 pb-6">
+					<View className="border-b border-border pb-6">
 						<View className="flex-row flex-wrap items-start justify-between gap-4 md:items-center">
 							<View className="flex-1">
-								<Text className="font-inter font-bold text-gray-950 text-2xl">
+								<Text className="font-inter font-bold text-foreground text-2xl">
 									Tradutores
 								</Text>
 								<View className="mt-2 flex-row items-center gap-2">
-									<Text className="font-inter text-gray-500 text-sm">
+									<Text className="font-inter text-foreground-muted text-sm">
 										{translators.length}{' '}
 										{translators.length === 1 ? 'tradutor' : 'tradutores'}
 									</Text>
-									<View className="h-1 w-1 rounded-full bg-gray-300" />
-									<Text className="font-inter text-gray-400 text-sm">
+									<View className="h-1 w-1 rounded-full bg-border-strong" />
+									<Text className="font-inter text-foreground-subtle text-sm">
 										{activeCount} ativos
 									</Text>
 									{inactiveCount > 0 && (
 										<>
-											<View className="h-1 w-1 rounded-full bg-gray-300" />
-											<Text className="font-inter text-gray-400 text-sm">
+											<View className="h-1 w-1 rounded-full bg-border-strong" />
+											<Text className="font-inter text-foreground-subtle text-sm">
 												{inactiveCount} inativos
 											</Text>
 										</>
@@ -108,22 +132,31 @@ export function TranslatorsPage() {
 								activeOpacity={0.8}
 								accessibilityRole="button"
 								accessibilityLabel="Novo tradutor"
-								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteTranslators ? 'opacity-40' : ''}`}
+								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 ${!canWriteTranslators ? 'opacity-40' : ''}`}
 							>
-								<Plus size={18} color="#ffffff" />
-								<Text className="font-inter-medium text-sm text-white">
+								<Plus size={18} color={themeColors.primaryForeground} />
+								<Text className="font-inter-medium text-sm text-primary-foreground">
 									Novo tradutor
 								</Text>
 							</TouchableOpacity>
 						</View>
 					</View>
 
+					{!isLoading && !error && (
+						<PendingAccountsCard
+							translators={translators}
+							busyId={resendingId}
+							canResend={canWriteTranslators}
+							onResend={(translator) => void handleResend(translator)}
+						/>
+					)}
+
 					{/* BARRA DE PESQUISA + FILTROS */}
 					<View className="gap-3">
 						<View className="flex-row items-center gap-2">
-							<View className="h-10 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white px-3">
-								<Search size={17} color="#9CA3AF" />
-								<TextInput
+							<View className="h-10 flex-1 flex-row items-center rounded-lg border border-border bg-surface px-3">
+								<Search size={17} color={themeColors.foregroundSubtle} />
+								<SearchTextInput
 									value={search}
 									onChangeText={setSearch}
 									placeholder={
@@ -131,15 +164,16 @@ export function TranslatorsPage() {
 											? 'Buscar nome ou e-mail'
 											: 'Buscar por nome, email...'
 									}
-									placeholderTextColor="#9CA3AF"
-									className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
+									numberOfLines={1}
+									placeholderTextColor={themeColors.foregroundSubtle}
+									className="ml-2 flex-1 border-0 font-inter text-ellipsis text-foreground text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
 								/>
 								{search.length > 0 && (
 									<TouchableOpacity
 										onPress={() => setSearch('')}
 										activeOpacity={0.7}
 									>
-										<X size={15} color="#9CA3AF" />
+										<X size={15} color={themeColors.foregroundSubtle} />
 									</TouchableOpacity>
 								)}
 							</View>
@@ -149,34 +183,34 @@ export function TranslatorsPage() {
 								activeOpacity={0.7}
 								className={`h-10 flex-row items-center justify-center gap-2 rounded-lg border px-2.5 ${
 									showFilters || statusFilter !== 'all'
-										? 'border-blue-300 bg-blue-50'
-										: 'border-gray-200 bg-white'
+										? 'border-primary/40 bg-primary-soft'
+										: 'border-border bg-surface'
 								}`}
 							>
 								<SlidersHorizontal
 									size={16}
 									color={
 										showFilters || statusFilter !== 'all'
-											? '#1C6FB0'
-											: '#6B7280'
+											? themeColors.primaryText
+											: themeColors.foregroundMuted
 									}
 								/>
 								<Text
 									className={`font-inter font-medium text-sm ${
 										showFilters || statusFilter !== 'all'
-											? 'text-blue-900'
-											: 'text-gray-600'
+											? 'text-primary-strong'
+											: 'text-foreground-secondary'
 									}`}
 								>
 									Filtros
 								</Text>
 								{statusFilter !== 'all' && (
-									<View className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+									<View className="h-1.5 w-1.5 rounded-full bg-primary" />
 								)}
 							</TouchableOpacity>
 						</View>
 
-						<Text className="font-inter text-gray-400 text-xs">
+						<Text className="font-inter text-foreground-subtle text-xs">
 							{filtered.length}{' '}
 							{filtered.length === 1 ? 'resultado' : 'resultados'}
 						</Text>
@@ -184,30 +218,30 @@ export function TranslatorsPage() {
 
 					{/* ESTADOS DE CARREGAMENTO / ERRO / LISTA */}
 					{isLoading && (
-						<View className="items-center justify-center border-t border-gray-100 py-16">
-							<ActivityIndicator color="#6B7280" />
-							<Text className="mt-3 font-inter text-gray-400 text-sm">
+						<View className="items-center justify-center border-t border-border-subtle py-16">
+							<ActivityIndicator color={themeColors.foregroundMuted} />
+							<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 								Carregando tradutores...
 							</Text>
 						</View>
 					)}
 
 					{!isLoading && error && (
-						<View className="border-t border-gray-100 py-8">
+						<View className="border-t border-border-subtle py-8">
 							<View className="flex-row items-center gap-2">
-								<AlertCircle size={16} color="#DC2626" />
-								<Text className="font-inter font-semibold text-red-600 text-sm">
+								<AlertCircle size={16} color={themeColors.danger} />
+								<Text className="font-inter font-semibold text-danger text-sm">
 									Não foi possível carregar os tradutores
 								</Text>
 							</View>
-							<Text className="mt-1 font-inter text-gray-500 text-sm">
+							<Text className="mt-1 font-inter text-foreground-muted text-sm">
 								{error}
 							</Text>
 						</View>
 					)}
 
 					{!isLoading && !error && (
-						<View className="border-t border-gray-200">
+						<View className="border-t border-border">
 							<TranslatorTable
 								translators={filtered}
 								onSelectTranslator={(t) =>
@@ -252,18 +286,18 @@ export function TranslatorsPage() {
 					<TouchableOpacity
 						activeOpacity={1}
 						onPress={() => setShowFilters(false)}
-						className="absolute inset-0 z-10 bg-black/10"
+						className="absolute inset-0 z-10 bg-overlay/10"
 					/>
-					<View className="absolute bottom-0 right-0 top-0 z-20 w-[300px] gap-5 border-l border-gray-200 bg-white p-5 shadow-xl">
+					<View className="absolute bottom-0 right-0 top-0 z-20 w-[300px] gap-5 border-l border-border bg-surface p-5 shadow-xl">
 						<View className="flex-row items-center justify-between">
-							<Text className="font-inter font-bold text-gray-900 text-base">
+							<Text className="font-inter font-bold text-foreground text-base">
 								Filtros
 							</Text>
 							<TouchableOpacity
 								onPress={() => setShowFilters(false)}
 								activeOpacity={0.7}
 							>
-								<X size={18} color="#8A8A8A" />
+								<X size={18} color={themeColors.foregroundMuted} />
 							</TouchableOpacity>
 						</View>
 
@@ -278,7 +312,7 @@ export function TranslatorsPage() {
 								activeOpacity={0.7}
 								className="self-start"
 							>
-								<Text className="font-inter font-semibold text-blue-600 text-sm">
+								<Text className="font-inter font-semibold text-primary-text text-sm">
 									Limpar filtros
 								</Text>
 							</TouchableOpacity>

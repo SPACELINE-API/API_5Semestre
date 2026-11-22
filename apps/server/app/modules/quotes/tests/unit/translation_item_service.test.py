@@ -12,7 +12,7 @@ from app.modules.quotes.services.translation_item_service import TranslationItem
 
 
 def test_create_item_persists_document_type_file_url_and_price(mock_db_session):
-    quote = MagicMock()
+    quote = MagicMock(status="draft")
     mock_db_session.query.return_value.filter.return_value.first.return_value = quote
     mock_db_session.refresh.side_effect = lambda obj: None
     service = TranslationItemService(mock_db_session)
@@ -34,7 +34,7 @@ def test_create_item_persists_document_type_file_url_and_price(mock_db_session):
 
 
 def test_update_item_can_change_languages(mock_db_session):
-    item = MagicMock()
+    item = MagicMock(quote=MagicMock(status="draft"))
     mock_db_session.query.return_value.filter.return_value.first.return_value = item
     service = TranslationItemService(mock_db_session)
 
@@ -49,7 +49,7 @@ def test_update_item_can_change_languages(mock_db_session):
 
 
 def test_delete_item_removes_it(mock_db_session):
-    item = MagicMock()
+    item = MagicMock(quote=MagicMock(status="draft"))
     mock_db_session.query.return_value.filter.return_value.first.return_value = item
     service = TranslationItemService(mock_db_session)
 
@@ -67,3 +67,49 @@ def test_delete_item_not_found_raises_404(mock_db_session):
         service.delete_item(uuid.uuid4(), uuid.uuid4())
 
     assert error.value.status_code == 404
+
+
+LOCKED_STATUSES = ["pending", "approved", "reproved", "cancelled"]
+
+
+@pytest.mark.parametrize("status", LOCKED_STATUSES)
+def test_create_item_rejects_locked_quote(mock_db_session, status):
+    mock_db_session.query.return_value.filter.return_value.first.return_value = MagicMock(
+        status=status
+    )
+
+    with pytest.raises(HTTPException) as error:
+        TranslationItemService(mock_db_session).create_item(
+            uuid.uuid4(),
+            QuoteTranslationItemCreate(source_language="pt-BR", target_language="en-US"),
+        )
+
+    assert error.value.status_code == 409
+    mock_db_session.add.assert_not_called()
+
+
+@pytest.mark.parametrize("status", LOCKED_STATUSES)
+def test_update_item_rejects_locked_quote(mock_db_session, status):
+    item = MagicMock(quote=MagicMock(status=status), source_language="pt-BR")
+    mock_db_session.query.return_value.filter.return_value.first.return_value = item
+
+    with pytest.raises(HTTPException) as error:
+        TranslationItemService(mock_db_session).update_item(
+            uuid.uuid4(), uuid.uuid4(), QuoteTranslationItemUpdate(source_language="es-ES")
+        )
+
+    assert error.value.status_code == 409
+    assert item.source_language == "pt-BR"
+    mock_db_session.commit.assert_not_called()
+
+
+@pytest.mark.parametrize("status", LOCKED_STATUSES)
+def test_delete_item_rejects_locked_quote(mock_db_session, status):
+    item = MagicMock(quote=MagicMock(status=status))
+    mock_db_session.query.return_value.filter.return_value.first.return_value = item
+
+    with pytest.raises(HTTPException) as error:
+        TranslationItemService(mock_db_session).delete_item(uuid.uuid4(), uuid.uuid4())
+
+    assert error.value.status_code == 409
+    mock_db_session.delete.assert_not_called()

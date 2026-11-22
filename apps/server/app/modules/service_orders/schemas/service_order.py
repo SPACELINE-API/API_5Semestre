@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -98,6 +99,10 @@ class UpdateServiceOrderItemRequest(BaseModel):
     deadline: datetime | None = None
 
 
+class SetItemDeadlineRequest(BaseModel):
+    deadline: datetime
+
+
 class ServiceOrderFileResponse(BaseModel):
     id: uuid.UUID
     service_order_id: uuid.UUID
@@ -148,6 +153,18 @@ class ServiceOrderDeliveryRequest(BaseModel):
     body_html_override: str | None = Field(default=None, min_length=1)
 
 
+class ServiceOrderVersionResponse(BaseModel):
+    id: uuid.UUID
+    version: int
+    origin: str
+    reason: str | None = None
+    changes: list[dict[str, Any]]
+    actor_email: str | None = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ServiceOrderResponse(BaseModel):
     id: uuid.UUID
     quote_id: uuid.UUID | None
@@ -159,6 +176,8 @@ class ServiceOrderResponse(BaseModel):
     internal_notes: str | None
     external_notes: str | None
     status: str
+    current_version: int = 1
+    revised_after_reopen: bool = False
     items: list[ServiceOrderItemResponse]
     files: list[ServiceOrderFileResponse]
     created_at: datetime

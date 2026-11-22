@@ -1,3 +1,5 @@
+import type { ProficiencyLevel } from '../../translators/types/translator';
+
 export type ServiceOrderItemStatus =
 	'pendente' | 'em_andamento' | 'em_analise' | 'concluida';
 
@@ -73,10 +75,28 @@ export type ServiceOrder = {
 	internal_notes: string | null;
 	external_notes: string | null;
 	status: ServiceOrderItemStatus;
+	current_version?: number;
+	revised_after_reopen?: boolean;
 	items: ServiceOrderItem[];
 	files: ServiceOrderFile[];
 	created_at: string;
 	updated_at: string;
+};
+
+export type ServiceOrderVersionChange = {
+	action: 'added' | 'updated' | 'removed';
+	item: string;
+	fields: Record<string, { before: unknown; after: unknown }>;
+};
+
+export type ServiceOrderVersion = {
+	id: string;
+	version: number;
+	origin: 'quote_approval' | 'quote_reapproval';
+	reason: string | null;
+	changes: ServiceOrderVersionChange[];
+	actor_email: string | null;
+	created_at: string;
 };
 
 export type GenerateServiceOrderInput = {
@@ -130,6 +150,13 @@ export type ServiceOrderItemInvite = {
 	responded_at: string | null;
 };
 
+export type ServiceOrderTranslatorLanguage = {
+	id: string;
+	language_id: string;
+	language_name: string;
+	proficiency_level: ProficiencyLevel;
+};
+
 export type Translator = {
 	id: string;
 	name: string;
@@ -138,6 +165,7 @@ export type Translator = {
 	is_active: boolean;
 	created_at: string;
 	updated_at: string;
+	languages: ServiceOrderTranslatorLanguage[];
 };
 
 export type Contact = {

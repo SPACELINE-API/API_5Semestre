@@ -8,6 +8,10 @@ from sqlalchemy.orm import Session
 
 from app.modules.clients.models.company import Company
 from app.modules.contacts.models.contact import Contact
+from app.modules.notifications.services.notification_messages import (
+    service_order_completed_message,
+)
+from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.quotes.models.quote import Quote
 from app.modules.service_orders.models.service_order import ServiceOrder
 from app.modules.service_orders.models.service_order_delivery import ServiceOrderDelivery
@@ -30,6 +34,7 @@ from app.modules.service_orders.services.storage import (
     service_order_file_exists,
 )
 from app.shared.email.smtp_client import send_email
+from app.shared.email.template_renderer import get_inline_logo, wrap_with_base_layout
 
 
 def _render_delivery_email(
@@ -43,7 +48,9 @@ def _render_delivery_email(
         request.body_html_override if request and request.body_html_override else template.body_html
     )
     body = body_html.replace("{{nome_cliente}}", safe_customer_name)
-    return subject.replace("{{nome_cliente}}", customer_name), body
+    final_subject = subject.replace("{{nome_cliente}}", customer_name)
+    final_body = wrap_with_base_layout(body, email_title=final_subject)
+    return final_subject, final_body
 
 
 class ServiceOrderDeliveryService:
@@ -150,10 +157,23 @@ class ServiceOrderDeliveryService:
                 return False
 
         completed_at = datetime.now(UTC)
+        completed = False
         for item in items:
             if item.status != STATUS_CONCLUIDA:
                 item.status = STATUS_CONCLUIDA
                 item.completed_at = completed_at
+                completed = True
+
+        if completed:
+            message = service_order_completed_message(service_order.project_name)
+            NotificationService(self.db).notify_administrators(
+                event_type=message.event_type,
+                title=message.title,
+                message=message.message,
+                related_type="service_order",
+                related_id=service_order.id,
+                idempotency_key=f"service-order:{service_order.id}:completed",
+            )
         self.db.commit()
         return True
 
@@ -162,7 +182,7 @@ class ServiceOrderDeliveryService:
         if not service_order.items:
             raise HTTPException(
                 status_code=409,
-                detail="A ordem de serviço não possui itens para concluir.",
+                detail="A ordem de serviço não possui documentos para concluir.",
             )
         if not self._complete_order_if_ready(service_order):
             raise HTTPException(
@@ -293,6 +313,7 @@ class ServiceOrderDeliveryService:
                 subject=subject,
                 html_body=body,
                 attachments=attachments,
+                inline_images=get_inline_logo(),
             )
         except Exception as error:
             detail = error.detail if isinstance(error, HTTPException) else str(error)

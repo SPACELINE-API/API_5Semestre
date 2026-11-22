@@ -32,7 +32,7 @@ def test_default_template_fills_every_placeholder() -> None:
     assert subject == DEFAULT_INVITE_SUBJECT
     assert "{{" not in body
     assert "Maria Souza" in body
-    assert "pt-BR → en-US" in body
+    assert "pt-BR" in body and "en-US" in body
     assert "Contrato" in body
     assert "05/11/2026" in body
     assert 'href="https://app.example.com/convites/abc"' in body

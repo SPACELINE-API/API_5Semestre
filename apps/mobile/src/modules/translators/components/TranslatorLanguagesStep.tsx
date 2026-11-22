@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	Modal,
 	Pressable,
@@ -25,6 +26,7 @@ import {
 import { getLanguageFlag } from '../utils/languageFlag';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function normalizeSearch(value: string) {
 	return value
 		.normalize('NFD')
@@ -62,6 +64,7 @@ export function TranslatorLanguagesStep({
 	createLanguageError,
 	onClearCreateLanguageError,
 }: Props) {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const [langPicker, setLangPicker] = useState<number | null>(null);
 	const [createLanguageVisible, setCreateLanguageVisible] = useState(false);
@@ -71,7 +74,7 @@ export function TranslatorLanguagesStep({
 	const [newLanguageId, setNewLanguageId] = useState('');
 	const [newLanguageName, setNewLanguageName] = useState('');
 	const [creatingLanguage, setCreatingLanguage] = useState(false);
-	const canWriteSettings = usePermission('settings.write');
+	const canWriteSettings = usePermission('languages.write');
 	const [languageSearch, setLanguageSearch] = useState('');
 	const filteredLanguages = useMemo(() => {
 		const query = normalizeSearch(languageSearch.trim());
@@ -109,12 +112,12 @@ export function TranslatorLanguagesStep({
 
 	return (
 		<>
-			<Text className="font-inter text-gray-600 text-[13px]">
+			<Text className="font-inter text-foreground-secondary text-[14px]">
 				Adicione os idiomas que o tradutor fala e informe o nível em cada um.
 			</Text>
 			{error && (
-				<View className="rounded-lg bg-red-50 px-3 py-2.5 mb-2">
-					<Text className="font-inter text-red-900 text-sm">{error}</Text>
+				<View className="rounded-lg bg-danger-soft px-3 py-2.5 mb-2">
+					<Text className="font-inter text-danger-text text-sm">{error}</Text>
 				</View>
 			)}
 			{languages.map((language, index) => {
@@ -124,10 +127,10 @@ export function TranslatorLanguagesStep({
 				return (
 					<View
 						key={index}
-						className="gap-3 rounded-xl border border-gray-200 p-4 mb-2"
+						className="gap-3 rounded-xl border border-border p-4 mb-2"
 					>
 						<View className="flex-row items-center justify-between">
-							<Text className="font-inter font-bold text-gray-800 text-sm">
+							<Text className="font-inter font-bold text-foreground text-sm">
 								Idioma #{index + 1}
 							</Text>
 							{languages.length > 1 && (
@@ -135,13 +138,13 @@ export function TranslatorLanguagesStep({
 									onPress={() => onRemoveLanguage(index)}
 									accessibilityLabel={`Remover idioma ${index + 1}`}
 								>
-									<Trash2 size={16} color="#5A5A5A" />
+									<Trash2 size={16} color={themeColors.foregroundSecondary} />
 								</TouchableOpacity>
 							)}
 						</View>
 
 						<View className="gap-1">
-							<Text className="font-inter font-medium text-gray-700 text-[13px]">
+							<Text className="font-inter font-medium text-foreground-secondary text-[14px]">
 								Idioma
 							</Text>
 							<TouchableOpacity
@@ -149,30 +152,30 @@ export function TranslatorLanguagesStep({
 									setLanguageSearch('');
 									setLangPicker(index);
 								}}
-								className="h-12 flex-row items-center justify-between rounded-lg border border-gray-300 bg-white px-4"
+								className="h-12 flex-row items-center justify-between rounded-lg border border-border-strong bg-surface px-4"
 								accessibilityRole="button"
 								accessibilityLabel="Selecionar idioma"
 							>
 								{selectedLanguage ? (
 									<View className="flex-row items-center gap-2">
-										<Text className="text-base">
+										<Text className="text-base text-foreground-secondary">
 											{getLanguageFlag(selectedLanguage)}
 										</Text>
-										<Text className="text-sm text-gray-900">
+										<Text className="text-sm text-foreground">
 											{selectedLanguage.name}
 										</Text>
 									</View>
 								) : (
-									<Text className="text-sm text-gray-400">
+									<Text className="text-sm text-foreground-subtle">
 										Selecione um idioma
 									</Text>
 								)}
-								<ChevronDown size={16} color="#6B7280" />
+								<ChevronDown size={16} color={themeColors.foregroundMuted} />
 							</TouchableOpacity>
 						</View>
 
 						<View className="gap-1.5">
-							<Text className="font-inter font-medium text-gray-700 text-[13px]">
+							<Text className="font-inter font-medium text-foreground-secondary text-[14px]">
 								Nível de proficiência
 							</Text>
 							<View className="flex-row flex-wrap gap-2">
@@ -189,10 +192,10 @@ export function TranslatorLanguagesStep({
 												)
 											}
 											activeOpacity={0.7}
-											className={`rounded-lg border px-3 py-2 ${selected ? 'border-blue-300 bg-blue-50' : 'border-gray-300 bg-white'}`}
+											className={`rounded-lg border px-3 py-2 ${selected ? 'border-primary/40 bg-primary-soft' : 'border-border-strong bg-surface'}`}
 										>
 											<Text
-												className={`font-inter text-xs ${selected ? 'font-semibold text-blue-900' : 'text-gray-700'}`}
+												className={`font-inter text-xs ${selected ? 'font-semibold text-primary-strong' : 'text-foreground-secondary'}`}
 											>
 												{option.label}
 											</Text>
@@ -208,10 +211,10 @@ export function TranslatorLanguagesStep({
 			<TouchableOpacity
 				onPress={onAddLanguage}
 				activeOpacity={0.7}
-				className="flex-row items-center justify-center gap-2 rounded-xl border border-dashed border-gray-400 bg-gray-50 py-3"
+				className="flex-row items-center justify-center gap-2 rounded-xl border border-dashed border-border-strong bg-surface-subtle py-3"
 			>
-				<Plus size={16} color="#5A5A5A" />
-				<Text className="font-inter font-medium text-gray-700 text-sm">
+				<Plus size={16} color={themeColors.foregroundSecondary} />
+				<Text className="font-inter font-medium text-foreground-secondary text-sm">
 					Adicionar idioma
 				</Text>
 			</TouchableOpacity>
@@ -225,25 +228,25 @@ export function TranslatorLanguagesStep({
 				>
 					<View className="flex-1 justify-center items-center px-4">
 						<Pressable
-							className="absolute inset-0 bg-black/40"
+							className="absolute inset-0 bg-overlay/40"
 							onPress={closeLanguagePicker}
 							accessibilityLabel="Fechar seleção de idioma"
 						/>
-						<View className="w-full max-w-[400px] max-h-[80%] overflow-hidden rounded-xl bg-white pb-4">
-							<View className="flex-row items-center justify-between p-4 border-b border-gray-300">
-								<Text className="font-inter font-bold text-gray-900 text-lg">
+						<View className="w-full max-w-[400px] max-h-[80%] overflow-hidden rounded-xl bg-surface pb-4">
+							<View className="flex-row items-center justify-between p-4 border-b border-border-strong">
+								<Text className="font-inter font-bold text-foreground text-lg">
 									Selecione o idioma
 								</Text>
 								<TouchableOpacity
 									onPress={closeLanguagePicker}
 									accessibilityLabel="Fechar seleção de idioma"
 								>
-									<X size={20} color="#5A5A5A" />
+									<X size={20} color={themeColors.foregroundSecondary} />
 								</TouchableOpacity>
 							</View>
-							<View className="mx-4 mt-4 flex-row items-center gap-2 rounded-lg border border-gray-300 bg-white px-3">
-								<Search size={17} color="#9CA3AF" />
-								<TextInput
+							<View className="mx-4 mt-4 flex-row items-center gap-2 rounded-lg border border-border-strong bg-surface px-3">
+								<Search size={17} color={themeColors.foregroundSubtle} />
+								<SearchTextInput
 									value={languageSearch}
 									onChangeText={setLanguageSearch}
 									placeholder={
@@ -251,11 +254,12 @@ export function TranslatorLanguagesStep({
 											? 'Buscar idioma ou código'
 											: 'Buscar por idioma ou código'
 									}
-									placeholderTextColor="#9CA3AF"
+									numberOfLines={1}
+									placeholderTextColor={themeColors.foregroundSubtle}
 									autoCapitalize="none"
 									autoCorrect={false}
 									accessibilityLabel="Buscar idioma"
-									className="h-11 flex-1 text-sm text-gray-900 outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
+									className="h-11 flex-1 text-sm text-foreground outline-none max-md:min-w-0 max-md:shrink max-md:leading-5"
 								/>
 							</View>
 							<ScrollView className="px-4" keyboardShouldPersistTaps="handled">
@@ -269,28 +273,32 @@ export function TranslatorLanguagesStep({
 												onUpdateLanguage(langPicker, 'language_id', option.id);
 												closeLanguagePicker();
 											}}
-											className="flex-row items-center gap-3 border-b border-gray-100 px-2 py-3"
+											className="flex-row items-center gap-3 border-b border-border-subtle px-2 py-3"
 										>
-											<Text className="text-lg">{getLanguageFlag(option)}</Text>
-											<Text className="flex-1 font-inter font-medium text-gray-800 text-sm">
+											<Text className="text-lg text-foreground-secondary">
+												{getLanguageFlag(option)}
+											</Text>
+											<Text className="flex-1 font-inter font-medium text-foreground text-sm">
 												{option.name}
 											</Text>
-											{selected && <Check size={16} color="#1C6FB0" />}
+											{selected && (
+												<Check size={16} color={themeColors.primary} />
+											)}
 										</TouchableOpacity>
 									);
 								})}
 								{filteredLanguages.length === 0 && (
-									<Text className="px-2 py-6 text-center text-sm text-gray-500">
+									<Text className="px-2 py-6 text-center text-sm text-foreground-muted">
 										Nenhum idioma encontrado.
 									</Text>
 								)}
 								<TouchableOpacity
-									className={`flex-row items-center justify-center border-t border-gray-200 bg-gray-50 px-3 py-3 ${!canWriteSettings ? 'opacity-40' : ''}`}
+									className={`flex-row items-center justify-center border-t border-border bg-surface-subtle px-3 py-3 ${!canWriteSettings ? 'opacity-40' : ''}`}
 									onPress={openCreateLanguage}
 									disabled={!canWriteSettings}
 								>
-									<Plus size={16} color="#1C6FB0" />
-									<Text className="ml-2 font-inter font-medium text-blue-800 text-sm">
+									<Plus size={16} color={themeColors.primary} />
+									<Text className="ml-2 font-inter font-medium text-primary-strong text-sm">
 										Adicionar outro idioma
 									</Text>
 								</TouchableOpacity>
@@ -305,17 +313,18 @@ export function TranslatorLanguagesStep({
 				animationType="fade"
 				onRequestClose={() => setCreateLanguageVisible(false)}
 			>
-				<View className="flex-1 items-center justify-center bg-black/40 px-4">
-					<View className="w-full max-w-[400px] rounded-xl bg-white p-6">
-						<Text className="mb-4 font-inter font-bold text-gray-900 text-lg">
+				<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+					<View className="w-full max-w-[400px] rounded-xl bg-surface p-6">
+						<Text className="mb-4 font-inter font-bold text-foreground text-lg">
 							Adicionar idioma
 						</Text>
-						<Text className="mb-1.5 font-inter font-medium text-gray-700 text-xs">
+						<Text className="mb-1.5 font-inter font-medium text-foreground-secondary text-xs">
 							Sigla
 						</Text>
 						<TextInput
-							className="mb-4 rounded-md border border-gray-200 bg-white p-3 font-inter text-sm text-gray-800"
+							className="mb-4 rounded-md border border-border bg-surface p-3 font-inter text-sm text-foreground"
 							placeholder="pt-BR"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							value={newLanguageId}
 							onChangeText={(value) => {
 								setNewLanguageId(value);
@@ -323,12 +332,13 @@ export function TranslatorLanguagesStep({
 							}}
 							autoCapitalize="none"
 						/>
-						<Text className="mb-1.5 font-inter font-medium text-gray-700 text-xs">
+						<Text className="mb-1.5 font-inter font-medium text-foreground-secondary text-xs">
 							Idioma
 						</Text>
 						<TextInput
-							className="mb-4 rounded-md border border-gray-200 bg-white p-3 font-inter text-sm text-gray-800"
+							className="mb-4 rounded-md border border-border bg-surface p-3 font-inter text-sm text-foreground"
 							placeholder="Português"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							value={newLanguageName}
 							onChangeText={(value) => {
 								setNewLanguageName(value);
@@ -336,26 +346,26 @@ export function TranslatorLanguagesStep({
 							}}
 						/>
 						{createLanguageError ? (
-							<Text className="mb-3 text-sm text-red-600">
+							<Text className="mb-3 text-sm text-danger">
 								{createLanguageError}
 							</Text>
 						) : null}
 						<View className="flex-row justify-end gap-3">
 							<TouchableOpacity
-								className="flex-1 items-center rounded-lg border border-blue-200 px-4 py-2"
+								className="flex-1 items-center rounded-lg border border-primary/30 px-4 py-2"
 								onPress={() => setCreateLanguageVisible(false)}
 								disabled={creatingLanguage}
 							>
-								<Text className="font-inter-medium text-sm text-blue-700">
+								<Text className="font-inter-medium text-sm text-primary-text">
 									Cancelar
 								</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
-								className="flex-1 items-center rounded-lg bg-blue-500 px-4 py-2"
+								className="flex-1 items-center rounded-lg bg-primary px-4 py-2"
 								onPress={saveNewLanguage}
 								disabled={creatingLanguage}
 							>
-								<Text className="font-inter-medium text-sm text-white">
+								<Text className="font-inter-medium text-sm text-primary-foreground">
 									{creatingLanguage ? 'Salvando...' : 'Salvar'}
 								</Text>
 							</TouchableOpacity>

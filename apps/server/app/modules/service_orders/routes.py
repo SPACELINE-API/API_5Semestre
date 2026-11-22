@@ -31,6 +31,8 @@ from app.modules.service_orders.schemas.service_order import (
     ServiceOrderFileReviewRequest,
     ServiceOrderItemResponse,
     ServiceOrderResponse,
+    ServiceOrderVersionResponse,
+    SetItemDeadlineRequest,
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
@@ -173,6 +175,15 @@ def get_service_order(
     return service.get_service_order(service_order_id)
 
 
+@router.get("/{service_order_id}/versions", response_model=list[ServiceOrderVersionResponse])
+def list_service_order_versions(
+    service_order_id: uuid.UUID,
+    _user=Depends(service_orders_read_permission),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderService(db).list_versions(service_order_id)
+
+
 @router.patch("/{service_order_id}", response_model=ServiceOrderResponse)
 def update_service_order(
     service_order_id: uuid.UUID,
@@ -268,6 +279,7 @@ def delete_service_order_item_file(
 def delete_service_order_item(
     service_order_id: uuid.UUID,
     item_id: uuid.UUID,
+    _user=Depends(service_orders_write_permission),
     db: Session = Depends(get_db),
 ):
     ServiceOrderService(db).delete_item(service_order_id, item_id)
@@ -340,6 +352,19 @@ def update_service_order_item(
         file_data=file.file if file else None,
         content_type=(file.content_type or "application/octet-stream") if file else None,
     )
+
+
+@router.patch(
+    "/items/{item_id}/deadline",
+    response_model=ServiceOrderItemResponse,
+)
+def set_service_order_item_deadline(
+    item_id: uuid.UUID,
+    data: SetItemDeadlineRequest,
+    _user=Depends(service_orders_write_permission),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderService(db).set_item_deadline(item_id, data.deadline)
 
 
 @router.post(

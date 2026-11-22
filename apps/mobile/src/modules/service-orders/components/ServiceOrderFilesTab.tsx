@@ -22,6 +22,7 @@ import { approvedDeliveries } from '../utils/fileReview';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const COLLAPSE_THRESHOLD = 3;
 
 export type ServiceOrderFileDeletionTarget =
@@ -89,6 +90,7 @@ function FileGroupList({
 	onDelete: (target: ServiceOrderFileDeletionTarget) => void;
 	deletingId: string | null;
 }) {
+	const themeColors = useThemeColors();
 	const canWriteDocuments = usePermission('documents.write');
 	const [expanded, setExpanded] = useState(files.length <= COLLAPSE_THRESHOLD);
 	const Chevron = expanded ? ChevronUp : ChevronDown;
@@ -101,23 +103,23 @@ function FileGroupList({
 				accessibilityRole="button"
 				accessibilityState={{ expanded }}
 				accessibilityLabel={`${expanded ? 'Recolher' : 'Expandir'} ${title}`}
-				className="flex-row items-center justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2.5"
+				className="flex-row items-center justify-between gap-3 rounded-lg bg-surface-subtle px-3 py-2.5"
 			>
 				<View className="flex-row items-center gap-2">
-					<Text className="font-inter font-semibold text-gray-700 text-xs uppercase tracking-wide">
+					<Text className="font-inter font-semibold text-foreground-secondary text-xs uppercase tracking-wide">
 						{title}
 					</Text>
-					<View className="rounded-full bg-white px-2 py-0.5">
-						<Text className="font-inter font-semibold text-gray-600 text-xs">
+					<View className="rounded-full bg-surface px-2 py-0.5">
+						<Text className="font-inter font-semibold text-foreground-secondary text-xs">
 							{files.length}
 						</Text>
 					</View>
 				</View>
-				<Chevron size={16} color="#6B7280" />
+				<Chevron size={16} color={themeColors.foregroundMuted} />
 			</TouchableOpacity>
 
 			{expanded && files.length === 0 && (
-				<Text className="font-inter text-gray-400 text-sm">
+				<Text className="font-inter text-foreground-subtle text-sm">
 					Nenhum arquivo enviado.
 				</Text>
 			)}
@@ -126,26 +128,26 @@ function FileGroupList({
 				files.map((file) => (
 					<View
 						key={file.id}
-						className="flex-row items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5"
+						className="flex-row items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5"
 					>
 						<TouchableOpacity
 							accessibilityRole="link"
 							onPress={() => openDocument(file.fileUrl)}
 							className="min-w-0 max-w-full flex-row items-center gap-1"
 						>
-							<FileText size={16} color="#1C6FB0" />
+							<FileText size={16} color={themeColors.primary} />
 							<Text
-								className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-xs"
+								className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-xs"
 								numberOfLines={1}
 							>
 								{getTruncatedFileName(file.fileUrl)}
 							</Text>
-							<ExternalLink size={13} color="#1d4ed8" />
+							<ExternalLink size={13} color={themeColors.primaryText} />
 						</TouchableOpacity>
 
 						<View className="flex-row items-center gap-2">
 							{file.uploadedAt && (
-								<Text className="font-inter text-gray-400 text-xs">
+								<Text className="font-inter text-foreground-subtle text-xs">
 									{formatDate(file.uploadedAt)}
 								</Text>
 							)}
@@ -158,7 +160,7 @@ function FileGroupList({
 								accessibilityLabel={`Excluir ${file.label}`}
 								className={`rounded-md p-2 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 							>
-								<Trash2 size={16} color="#B91C1C" />
+								<Trash2 size={16} color={themeColors.danger} />
 							</TouchableOpacity>
 						</View>
 					</View>
@@ -173,6 +175,7 @@ export function ServiceOrderFilesTab({
 	onUpload,
 	onDelete,
 }: ServiceOrderFilesTabProps) {
+	const themeColors = useThemeColors();
 	const [isUploading, setIsUploading] = useState(false);
 	const canWriteDocuments = usePermission('documents.write');
 	const [uploadedDeliveryFiles, setUploadedDeliveryFiles] = useState<
@@ -241,10 +244,10 @@ export function ServiceOrderFilesTab({
 					accessibilityRole="button"
 					accessibilityLabel="Enviar arquivo de chegada"
 					accessibilityState={{ disabled }}
-					className={`flex-row items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 ${disabled ? 'opacity-60' : ''}`}
+					className={`flex-row items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 ${disabled ? 'opacity-60' : ''}`}
 				>
-					<Upload size={14} color="#353535" />
-					<Text className="font-inter font-semibold text-gray-800 text-xs">
+					<Upload size={14} color={themeColors.foreground} />
+					<Text className="font-inter font-semibold text-foreground text-xs">
 						{isUploading ? 'Enviando…' : 'Enviar arquivo'}
 					</Text>
 				</TouchableOpacity>
@@ -290,14 +293,14 @@ export function ServiceOrderFilesTab({
 			{selectionError && (
 				<Text
 					accessibilityRole="alert"
-					className="font-inter text-red-700 text-sm"
+					className="font-inter text-danger text-sm"
 				>
 					{selectionError}
 				</Text>
 			)}
 			<View className="gap-3">
 				<View className="flex-row items-center justify-between">
-					<Text className="font-inter font-semibold text-gray-900 text-sm">
+					<Text className="font-inter font-semibold text-foreground text-sm">
 						Arquivos de partida
 					</Text>
 				</View>
@@ -310,41 +313,39 @@ export function ServiceOrderFilesTab({
 				/>
 			</View>
 
-			<View className="gap-3 border-t border-gray-100 pt-7">
+			<View className="gap-3 border-t border-border-subtle pt-7">
 				<View className="flex-row items-center justify-between">
-					<Text className="font-inter font-semibold text-gray-900 text-sm">
+					<Text className="font-inter font-semibold text-foreground text-sm">
 						Arquivos de chegada
 					</Text>
 					{renderDeliveryUploadButton()}
 				</View>
 
 				{!canUploadDelivery && (
-					<Text className="font-inter text-xs text-amber-700">
+					<Text className="font-inter text-xs text-warning-text">
 						{hasItems
-							? 'Aguardando aceite de tradutor em todos os itens para liberar o envio de arquivos de entrega.'
-							: 'Esta ordem de serviço não possui itens.'}
+							? 'Aguardando aceite de tradutor em todos os documentos para liberar o envio de arquivos de entrega.'
+							: 'Esta ordem de serviço não possui documentos.'}
 					</Text>
 				)}
 
 				{hasItems && (
 					<View className="gap-1.5">
 						<View className="flex-row items-center justify-between">
-							<Text className="font-inter font-medium text-gray-500 text-xs">
+							<Text className="font-inter font-medium text-foreground-muted text-xs">
 								Entregas
 							</Text>
-							<Text className="font-inter font-semibold text-gray-700 text-xs">
-								{deliveredCount} de {items.length} itens entregues
+							<Text className="font-inter font-semibold text-foreground-secondary text-xs">
+								{deliveredCount} de {items.length} documentos entregues
 							</Text>
 						</View>
-						<Text className="font-inter text-gray-400 text-xs">
+						<Text className="font-inter text-foreground-subtle text-xs">
 							Só as entregas aprovadas na aba Revisão entram nesta contagem.
 						</Text>
-						<View className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+						<View className="h-2 w-full overflow-hidden rounded-full bg-surface-muted">
 							<View
 								className={`h-2 rounded-full ${
-									deliveredCount >= items.length
-										? 'bg-green-600'
-										: 'bg-blue-500'
+									deliveredCount >= items.length ? 'bg-success' : 'bg-primary'
 								}`}
 								style={{ width: `${Math.round(deliveryProgress * 100)}%` }}
 							/>

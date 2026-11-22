@@ -1,18 +1,35 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.shared.database import Base
 
+QUOTE_STATUS_DRAFT = "draft"
+QUOTE_STATUS_PENDING = "pending"
+QUOTE_STATUS_APPROVED = "approved"
+QUOTE_STATUS_REPROVED = "reproved"
+QUOTE_STATUS_CANCELLED = "cancelled"
+QUOTE_STATUSES = (
+    QUOTE_STATUS_DRAFT,
+    QUOTE_STATUS_PENDING,
+    QUOTE_STATUS_APPROVED,
+    QUOTE_STATUS_REPROVED,
+    QUOTE_STATUS_CANCELLED,
+)
+QUOTE_EXPIRABLE_STATUSES = (QUOTE_STATUS_DRAFT, QUOTE_STATUS_PENDING)
+QUOTE_VALIDITY_DAYS = 30
+QUOTE_STATUS_PATTERN = f"^({'|'.join(QUOTE_STATUSES)})$"
+
 if TYPE_CHECKING:
     from app.modules.clients.models.company import Company
     from app.modules.contacts.models.contact import Contact
     from app.modules.quotes.models.additional_service import AdditionalService
+    from app.modules.quotes.models.quote_audit_log import QuoteAuditLog
     from app.modules.quotes.models.request import Request
     from app.modules.quotes.models.translation_item import QuoteTranslationItem
     from app.modules.service_orders.models.service_order import ServiceOrder
@@ -35,7 +52,9 @@ class Quote(Base):
     contact_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("contact.id", ondelete="RESTRICT"), nullable=True, index=True
     )
-    status: Mapped[str] = mapped_column(String(50), nullable=False, default="pending")
+    status: Mapped[str] = mapped_column(
+        String(50), nullable=False, default=QUOTE_STATUS_DRAFT, server_default=QUOTE_STATUS_DRAFT
+    )
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     approved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     approved_by_email: Mapped[str | None] = mapped_column(String(255))
@@ -43,13 +62,32 @@ class Quote(Base):
     reproved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     reproved_by_email: Mapped[str | None] = mapped_column(String(255))
     reproval_reason: Mapped[str | None] = mapped_column(String(500))
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     customer_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     enterprise: Mapped[str | None] = mapped_column(String(155), nullable=True)
     email: Mapped[str | None] = mapped_column(String(155), nullable=True)
     original_language: Mapped[str | None] = mapped_column(String(50), nullable=True)
     translation_language: Mapped[str | None] = mapped_column(String(50), nullable=True)
     customer_need: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Comprovante comercial gerado na aprovação
+    receipt_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    receipt_pdf_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    receipt_generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    receipt_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    receipt_error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    customer_access_token_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, unique=True
+    )
+    sent_to_customer_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    sent_to_customer_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    validity_starts_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -79,12 +117,46 @@ class Quote(Base):
     service_orders: Mapped[list["ServiceOrder"]] = relationship(
         "ServiceOrder", back_populates="quote", order_by="ServiceOrder.created_at.desc()"
     )
+    reopen_logs: Mapped[list["QuoteAuditLog"]] = relationship(
+        "QuoteAuditLog",
+        primaryjoin=(
+            "and_(Quote.id == foreign(QuoteAuditLog.quote_id), QuoteAuditLog.action == 'reopen')"
+        ),
+        order_by="QuoteAuditLog.created_at.desc()",
+        viewonly=True,
+    )
 
     @property
     def service_order_id(self) -> uuid.UUID | None:
-        if self.status != "approved" or not self.service_orders:
+        if not self.service_orders:
             return None
         return self.service_orders[0].id
+
+    @property
+    def last_reopen(self) -> "QuoteAuditLog | None":
+        return self.reopen_logs[0] if self.reopen_logs else None
+
+    @property
+    def reopened_at(self) -> datetime | None:
+        return self.last_reopen.created_at if self.last_reopen else None
+
+    @property
+    def reopen_reason(self) -> str | None:
+        return self.last_reopen.reason if self.last_reopen else None
+
+    @property
+    def reopened_by_email(self) -> str | None:
+        return self.last_reopen.actor_email if self.last_reopen else None
+
+    @property
+    def reopen_count(self) -> int:
+        return len(self.reopen_logs)
+
+    @property
+    def valid_until(self) -> datetime | None:
+        if self.validity_starts_at is None:
+            return None
+        return self.validity_starts_at + timedelta(days=QUOTE_VALIDITY_DAYS)
 
     @property
     def total_value(self) -> Decimal:

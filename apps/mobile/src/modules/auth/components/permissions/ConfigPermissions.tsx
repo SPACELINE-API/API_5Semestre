@@ -1,17 +1,13 @@
 import { View, Text, Switch } from 'react-native';
 import type { PermissionModule, Role } from '../../types/roles';
 
-const TOGGLE_COLORS = {
-	trackOff: '#e5e7eb',
-	trackOn: '#93c5fd',
-	thumbOff: '#f9fafb',
-	thumbOn: '#2563eb',
-};
-
+import { useThemeColors } from '../../../../shared/theme/ThemeProvider';
 export interface ConfigPermissionsProps {
 	module: PermissionModule;
 	profile: Role;
 	disabled?: boolean;
+	hideRead?: boolean;
+	writeLabel?: string;
 	onChange: (permissionIds: string[]) => void;
 }
 
@@ -19,6 +15,8 @@ export default function ConfigPermissions({
 	module,
 	profile,
 	disabled = false,
+	hideRead = false,
+	writeLabel = 'Edição',
 	onChange,
 }: ConfigPermissionsProps) {
 	const permissionIds = new Set(profile.permissions.map(({ id }) => id));
@@ -57,13 +55,13 @@ export default function ConfigPermissions({
 	}
 
 	return (
-		<View className="w-full sm:w-[200px] sm:h-[210px] rounded-xl border border-gray-200 bg-white p-4 gap-4">
-			<Text className="font-inter font-medium text-gray-900 text-sm">
+		<View className="w-full sm:w-[200px] sm:h-[210px] rounded-xl border border-border bg-surface p-4 gap-4">
+			<Text className="font-inter font-medium text-foreground text-sm">
 				{module.label}
 			</Text>
 
 			<View className="gap-3">
-				{module.read && (
+				{module.read && !hideRead && (
 					<PermissionToggle
 						label="Visualização"
 						value={canView}
@@ -73,7 +71,7 @@ export default function ConfigPermissions({
 				)}
 				{writePermission && (
 					<PermissionToggle
-						label="Edição"
+						label={writeLabel}
 						value={canEdit}
 						disabled={disabled}
 						onChange={(enabled) =>
@@ -104,14 +102,16 @@ type PermissionToggleProps = {
 	onChange: (enabled: boolean) => void;
 };
 
-const webThumbProps = { activeThumbColor: TOGGLE_COLORS.thumbOn } as object;
-
 function PermissionToggle({
 	label,
 	value,
 	disabled,
 	onChange,
 }: PermissionToggleProps) {
+	const themeColors = useThemeColors();
+	const webThumbProps = {
+		activeThumbColor: themeColors.primaryForeground,
+	} as object;
 	return (
 		<View className="flex-row items-center gap-2">
 			<Switch
@@ -120,14 +120,18 @@ function PermissionToggle({
 				disabled={disabled}
 				onValueChange={onChange}
 				trackColor={{
-					false: TOGGLE_COLORS.trackOff,
-					true: TOGGLE_COLORS.trackOn,
+					false: themeColors.border,
+					true: themeColors.primary,
 				}}
-				thumbColor={value ? TOGGLE_COLORS.thumbOn : TOGGLE_COLORS.thumbOff}
+				thumbColor={
+					value ? themeColors.primaryForeground : themeColors.surfaceSubtle
+				}
 				{...webThumbProps}
 				style={{ transform: [{ scale: 0.7 }] }}
 			/>
-			<Text className="font-inter text-gray-700 text-xs">{label}</Text>
+			<Text className="font-inter text-foreground-secondary text-xs">
+				{label}
+			</Text>
 		</View>
 	);
 }

@@ -6,10 +6,10 @@ const QUOTE = {
 	request_id: null,
 	company_id: 'company-1',
 	contact_id: null,
-	service_order_id: 'order-1',
-	status: 'approved',
-	approved_at: '2026-01-01T00:00:00Z',
-	approved_by_email: 'admin@spaceline.com.br',
+	service_order_id: null,
+	status: 'draft',
+	approved_at: null,
+	approved_by_email: null,
 	reproved_at: null,
 	reproved_by_email: null,
 	reproval_reason: null,
@@ -55,6 +55,22 @@ async function mockQuotesApi(
 	},
 ) {
 	const quoteUpdates: unknown[] = [];
+
+	await page.route('**/api/translators', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: '[]',
+		}),
+	);
+
+	await page.route('**/api/service-orders/order-1', (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ id: 'order-1', items: [], files: [] }),
+		}),
+	);
 
 	await page.route(/\/api\/(quotes|clients)/, async (route) => {
 		const request = route.request();

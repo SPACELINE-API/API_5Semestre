@@ -17,9 +17,10 @@ import {
 	InviteStatusFilterPanel,
 	type InviteStatusFilter,
 } from '../components/InviteFilters';
-import { formatDate } from '../utils/format';
+import { formatDate, formatDeadline } from '../utils/format';
 import { WORKFLOW_STEPS } from '../../service-orders/utils/workflowSteps';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 function stageLabel(status: string) {
 	const index = WORKFLOW_STEPS.findIndex((step) => step.status === status);
 	if (index === -1) return '';
@@ -31,6 +32,7 @@ function normalize(value: string) {
 }
 
 export function MyInvitesPage() {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const { invites, isLoading, error } = useMyInvites();
 	const [search, setSearch] = useState('');
@@ -60,7 +62,7 @@ export function MyInvitesPage() {
 	if (!getSession()) return null;
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="
@@ -74,12 +76,12 @@ export function MyInvitesPage() {
 				"
 			>
 				<View className="gap-6">
-					<View className="border-b border-gray-200 pb-6">
-						<Text className="font-inter font-bold text-gray-950 text-2xl">
+					<View className="border-b border-border pb-6">
+						<Text className="font-inter font-bold text-foreground text-2xl">
 							Meus Convites
 						</Text>
 
-						<Text className="mt-2 font-inter text-gray-500 text-sm">
+						<Text className="mt-2 font-inter text-foreground-muted text-sm">
 							{filteredInvites.length}{' '}
 							{filteredInvites.length === 1 ? 'convite' : 'convites'}
 						</Text>
@@ -87,9 +89,9 @@ export function MyInvitesPage() {
 
 					{isLoading && (
 						<View className="items-center justify-center py-16">
-							<ActivityIndicator color="#6B7280" />
+							<ActivityIndicator color={themeColors.foregroundMuted} />
 
-							<Text className="mt-3 font-inter text-gray-400 text-sm">
+							<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 								Carregando convites...
 							</Text>
 						</View>
@@ -98,14 +100,14 @@ export function MyInvitesPage() {
 					{!isLoading && error && (
 						<View className="py-8">
 							<View className="flex-row items-center gap-2">
-								<AlertCircle size={16} color="#DC2626" />
+								<AlertCircle size={16} color={themeColors.danger} />
 
-								<Text className="font-inter font-semibold text-red-600 text-sm">
+								<Text className="font-inter font-semibold text-danger text-sm">
 									Não foi possível carregar os convites
 								</Text>
 							</View>
 
-							<Text className="mt-1 font-inter text-gray-500 text-sm">
+							<Text className="mt-1 font-inter text-foreground-muted text-sm">
 								{error}
 							</Text>
 						</View>
@@ -135,10 +137,10 @@ export function MyInvitesPage() {
 										activeOpacity={0.7}
 										accessibilityRole="button"
 										accessibilityLabel={`Ver convite ${invite.id}`}
-										className="flex-row items-center justify-between border-b border-gray-100 px-1 py-4"
+										className="flex-row items-center justify-between border-b border-border-subtle px-1 py-4"
 									>
 										<View className="flex-1 gap-1.5">
-											<Text className="font-inter font-semibold text-gray-900 text-sm">
+											<Text className="font-inter font-semibold text-foreground text-sm">
 												{invite.item.source_language} →{' '}
 												{invite.item.target_language}
 												{invite.item.document_type
@@ -146,37 +148,40 @@ export function MyInvitesPage() {
 													: ''}
 											</Text>
 
-											<Text className="font-inter text-gray-500 text-xs">
+											<Text className="font-inter text-foreground-muted text-xs">
 												Recebido em {formatDate(invite.sent_at)} · Prazo{' '}
-												{formatDate(invite.item.deadline)}
+												{formatDeadline(invite.item.deadline)}
 											</Text>
 
 											<View className="flex-row flex-wrap items-center gap-2">
 												<InviteStatusBadge status={invite.status} />
 												{invite.status === 'aceito' && (
-													<Text className="font-inter text-gray-500 text-xs">
+													<Text className="font-inter text-foreground-muted text-xs">
 														{stageLabel(invite.item.status)}
 													</Text>
 												)}
 											</View>
 										</View>
 
-										<ChevronRight size={17} color="#9CA3AF" />
+										<ChevronRight
+											size={17}
+											color={themeColors.foregroundSubtle}
+										/>
 									</TouchableOpacity>
 								)}
 								ListEmptyComponent={
 									<View className="items-center justify-center py-16">
-										<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-											<Mail size={18} color="#9CA3AF" />
+										<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
+											<Mail size={18} color={themeColors.foregroundSubtle} />
 										</View>
 
-										<Text className="font-inter font-medium text-gray-800 text-sm">
+										<Text className="font-inter font-medium text-foreground text-sm">
 											{invites.length === 0
 												? 'Nenhum convite recebido'
 												: 'Nenhum convite encontrado'}
 										</Text>
 
-										<Text className="mt-1 font-inter text-gray-400 text-xs">
+										<Text className="mt-1 font-inter text-foreground-subtle text-xs">
 											{invites.length === 0
 												? 'Convites de tradução aparecerão aqui.'
 												: 'Tente alterar a busca ou o filtro de status.'}
@@ -194,12 +199,12 @@ export function MyInvitesPage() {
 					<TouchableOpacity
 						activeOpacity={1}
 						onPress={() => setShowFilters(false)}
-						className="absolute inset-0 z-10 bg-black/10"
+						className="absolute inset-0 z-10 bg-overlay/10"
 					/>
 
-					<View className="absolute bottom-0 right-0 top-0 z-20 w-[300px] gap-5 border-l border-gray-200 bg-white p-5 shadow-xl">
+					<View className="absolute bottom-0 right-0 top-0 z-20 w-[300px] gap-5 border-l border-border bg-surface p-5 shadow-xl">
 						<View className="flex-row items-center justify-between">
-							<Text className="font-inter font-bold text-gray-900 text-base">
+							<Text className="font-inter font-bold text-foreground text-base">
 								Filtros
 							</Text>
 
@@ -207,7 +212,7 @@ export function MyInvitesPage() {
 								onPress={() => setShowFilters(false)}
 								activeOpacity={0.7}
 							>
-								<X size={18} color="#8A8A8A" />
+								<X size={18} color={themeColors.foregroundMuted} />
 							</TouchableOpacity>
 						</View>
 
@@ -222,7 +227,7 @@ export function MyInvitesPage() {
 								activeOpacity={0.7}
 								className="self-start"
 							>
-								<Text className="font-inter font-semibold text-blue-600 text-sm">
+								<Text className="font-inter font-semibold text-primary-text text-sm">
 									Limpar filtros
 								</Text>
 							</TouchableOpacity>

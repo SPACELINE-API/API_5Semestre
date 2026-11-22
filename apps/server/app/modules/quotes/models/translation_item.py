@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Numeric, String, func
+from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -31,6 +31,7 @@ class QuoteTranslationItem(Base):
     target_language: Mapped[str] = mapped_column(String(10), nullable=False)
     document_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     file_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    word_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     estimated_value: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(

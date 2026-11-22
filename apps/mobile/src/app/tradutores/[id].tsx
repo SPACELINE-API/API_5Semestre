@@ -5,6 +5,7 @@ import {
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator,
+	Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -39,6 +40,7 @@ import { useToast } from '../../shared/hooks/useToast';
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog';
 import { usePermission } from '../../modules/auth/hooks/usePermission';
 
+import { useThemeColors } from '../../shared/theme/ThemeProvider';
 type TranslatorTab = 'info' | 'languages' | 'requests';
 
 function hasTranslatorProfileChanges(
@@ -73,8 +75,9 @@ function hasTranslatorProfileChanges(
 }
 
 export default function TranslatorDetailsScreen() {
+	const themeColors = useThemeColors();
 	const router = useRouter();
-	const { id } = useLocalSearchParams();
+	const { id, tab } = useLocalSearchParams<{ id?: string; tab?: string }>();
 	const [translator, setTranslator] = useState(null as Translator | null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null as string | null);
@@ -83,7 +86,9 @@ export default function TranslatorDetailsScreen() {
 	const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 	const canWriteTranslators = usePermission('translators.write');
 	const { toast, showToast } = useToast();
-	const [activeTab, setActiveTab] = useState<TranslatorTab>('info');
+	const [activeTab, setActiveTab] = useState<TranslatorTab>(
+		tab === 'requests' ? 'requests' : 'info',
+	);
 	const certificates = useTranslatorCertificates(id as string | undefined);
 	const [selectedRequest, setSelectedRequest] =
 		useState<TranslatorCertificate | null>(null);
@@ -106,6 +111,10 @@ export default function TranslatorDetailsScreen() {
 			.catch(() => setError('Nao foi possivel carregar os dados do tradutor.'))
 			.finally(() => setIsLoading(false));
 	}, [id]);
+
+	useEffect(() => {
+		if (tab === 'requests') setActiveTab('requests');
+	}, [tab]);
 
 	async function handleDelete() {
 		if (!translator) return;
@@ -155,9 +164,9 @@ export default function TranslatorDetailsScreen() {
 
 	if (isLoading) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white">
-				<ActivityIndicator color="#6B7280" />
-				<Text className="mt-3 font-inter text-gray-400 text-sm">
+			<View className="flex-1 items-center justify-center bg-surface">
+				<ActivityIndicator color={themeColors.foregroundMuted} />
+				<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 					Carregando...
 				</Text>
 			</View>
@@ -166,23 +175,25 @@ export default function TranslatorDetailsScreen() {
 
 	if (error || !translator) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white px-6">
-				<AlertCircle size={32} color="#DC2626" />
-				<Text className="mt-3 font-inter font-semibold text-gray-800 text-base">
+			<View className="flex-1 items-center justify-center bg-surface px-6">
+				<AlertCircle size={32} color={themeColors.danger} />
+				<Text className="mt-3 font-inter font-semibold text-foreground text-base">
 					{error ?? 'Tradutor nao encontrado'}
 				</Text>
 				<TouchableOpacity
 					onPress={() => router.back()}
-					className="mt-4 rounded-lg border border-gray-300 px-4 py-2"
+					className="mt-4 rounded-lg border border-border-strong px-4 py-2"
 				>
-					<Text className="font-inter text-gray-700 text-sm">Voltar</Text>
+					<Text className="font-inter text-foreground-secondary text-sm">
+						Voltar
+					</Text>
 				</TouchableOpacity>
 			</View>
 		);
 	}
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8"
@@ -192,34 +203,47 @@ export default function TranslatorDetailsScreen() {
 					activeOpacity={0.7}
 					className="mb-6 flex-row items-center gap-2 self-start"
 				>
-					<ArrowLeft size={18} color="#6B7280" />
-					<Text className="font-inter text-gray-500 text-sm">Tradutores</Text>
+					<ArrowLeft size={18} color={themeColors.foregroundMuted} />
+					<Text className="font-inter text-foreground-muted text-sm">
+						Tradutores
+					</Text>
 				</TouchableOpacity>
 
 				<View className="mb-6 flex-row items-center gap-4">
-					<View className="h-16 w-16 items-center justify-center rounded-full bg-blue-50">
-						<UserRound size={28} color="#1C6FB0" />
+					<View className="h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary-soft">
+						{translator.photo_url ? (
+							<Image
+								source={{ uri: translator.photo_url }}
+								resizeMode="cover"
+								accessibilityLabel={`Foto de ${translator.name}`}
+								className="h-16 w-16"
+							/>
+						) : (
+							<UserRound size={28} color={themeColors.primary} />
+						)}
 					</View>
 					<View className="flex-1">
-						<Text className="font-inter font-bold text-gray-900 text-xl">
+						<Text className="font-inter font-bold text-foreground text-xl">
 							{translator.name}
 						</Text>
 						<View
 							className={
 								'mt-1.5 flex-row items-center gap-1.5 self-start rounded-full px-2.5 py-1 ' +
-								(translator.is_active ? 'bg-green-50' : 'bg-gray-100')
+								(translator.is_active ? 'bg-success-soft' : 'bg-surface-muted')
 							}
 						>
 							<View
 								className={
 									'h-1.5 w-1.5 rounded-full ' +
-									(translator.is_active ? 'bg-green-500' : 'bg-gray-400')
+									(translator.is_active ? 'bg-success' : 'bg-foreground-subtle')
 								}
 							/>
 							<Text
 								className={
 									'font-inter font-medium text-xs ' +
-									(translator.is_active ? 'text-green-800' : 'text-gray-500')
+									(translator.is_active
+										? 'text-success-text'
+										: 'text-foreground-muted')
 								}
 							>
 								{translator.is_active ? 'Ativo' : 'Inativo'}
@@ -230,9 +254,9 @@ export default function TranslatorDetailsScreen() {
 						onPress={() => setIsDeleteConfirmVisible(true)}
 						disabled={!canWriteTranslators}
 						activeOpacity={0.7}
-						className={`h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 ${!canWriteTranslators ? 'opacity-40' : ''}`}
+						className={`h-9 w-9 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft ${!canWriteTranslators ? 'opacity-40' : ''}`}
 					>
-						<Trash2 size={16} color="#DC2626" />
+						<Trash2 size={16} color={themeColors.danger} />
 					</TouchableOpacity>
 				</View>
 
@@ -240,10 +264,10 @@ export default function TranslatorDetailsScreen() {
 					onPress={() => setIsEditModalVisible(true)}
 					disabled={!canWriteTranslators}
 					activeOpacity={0.7}
-					className={`mb-6 flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${!canWriteTranslators ? 'opacity-40' : ''}`}
+					className={`mb-6 flex-row items-center gap-1.5 self-start rounded-lg border border-border-strong px-3 py-2 ${!canWriteTranslators ? 'opacity-40' : ''}`}
 				>
-					<Pencil size={14} color="#353535" />
-					<Text className="font-inter font-semibold text-gray-800 text-xs">
+					<Pencil size={14} color={themeColors.foreground} />
+					<Text className="font-inter font-semibold text-foreground text-xs">
 						Editar
 					</Text>
 				</TouchableOpacity>
@@ -253,30 +277,30 @@ export default function TranslatorDetailsScreen() {
 				<View className="gap-4 py-6">
 					{activeTab === 'info' && (
 						<>
-							<View className="gap-3 rounded-xl border border-gray-100 p-4">
-								<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
+							<View className="gap-3 rounded-xl border border-border-subtle p-4">
+								<Text className="font-inter font-semibold text-foreground-subtle text-xs uppercase tracking-wide">
 									Contato
 								</Text>
 								<View className="flex-row items-center gap-3">
-									<Mail size={16} color="#6B7280" />
-									<Text className="font-inter text-gray-700 text-sm">
+									<Mail size={16} color={themeColors.foregroundMuted} />
+									<Text className="font-inter text-foreground-secondary text-sm">
 										{translator.email}
 									</Text>
 								</View>
 								<View className="flex-row items-center gap-3">
-									<Phone size={16} color="#6B7280" />
-									<Text className="font-inter text-gray-700 text-sm">
+									<Phone size={16} color={themeColors.foregroundMuted} />
+									<Text className="font-inter text-foreground-secondary text-sm">
 										{maskPhone(translator.phone)}
 									</Text>
 								</View>
 							</View>
 
-							<View className="gap-3 rounded-xl border border-gray-100 p-4">
-								<Text className="font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
+							<View className="gap-3 rounded-xl border border-border-subtle p-4">
+								<Text className="font-inter font-semibold text-foreground-subtle text-xs uppercase tracking-wide">
 									Qualificacoes Tecnicas
 								</Text>
 								{translator.qualifications.length === 0 ? (
-									<Text className="font-inter text-gray-400 text-sm">
+									<Text className="font-inter text-foreground-subtle text-sm">
 										Nenhuma qualificacao cadastrada.
 									</Text>
 								) : (
@@ -284,9 +308,9 @@ export default function TranslatorDetailsScreen() {
 										{translator.qualifications.map((q) => (
 											<View
 												key={q.id}
-												className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5"
+												className="rounded-full border border-border bg-surface-subtle px-3 py-1.5"
 											>
-												<Text className="font-inter font-medium text-gray-700 text-sm">
+												<Text className="font-inter font-medium text-foreground-secondary text-sm">
 													{q.name}
 												</Text>
 											</View>

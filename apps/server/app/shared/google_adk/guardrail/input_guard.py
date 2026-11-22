@@ -9,7 +9,12 @@ from nemoguardrails import LLMRails, RailsConfig  # type: ignore[import-untyped]
 from app.shared.google_adk.config import ADK_PROVIDER, GEMINI_API_KEY, OLLAMA_BASE_URL
 
 from .errors import GuardrailUnavailable, PromptInjectionBlocked, TopicRestrictionBlocked
-from .llm import get_guardrail_model, setup_llm_env
+from .llm import (
+    get_guardrail_model,
+    is_guardrail_enabled,
+    resolve_guardrail_flag,
+    setup_llm_env,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +22,6 @@ INPUT_GUARD_TIMEOUT_SECONDS = 120
 
 
 def _setup_guardrail_env() -> None:
-    """Configura as variáveis de ambiente necessárias para o endpoint do modelo."""
     setup_llm_env()
 
     if ADK_PROVIDER == "gemini":
@@ -35,7 +39,6 @@ def _setup_guardrail_env() -> None:
 
 @lru_cache(maxsize=1)
 def get_rails() -> LLMRails:
-    """Carrega o config.yml e rules.co com interpolação das variáveis de ambiente."""
     _setup_guardrail_env()
 
     guardrail_dir = Path(__file__).parent
@@ -65,7 +68,29 @@ async def _executar(texto: str) -> None:
         raise TopicRestrictionBlocked()
 
 
+_status_logged = False
+
+
+def log_guardrail_status(force: bool = False) -> bool:
+    global _status_logged
+    enabled = is_guardrail_enabled()
+    if force or not _status_logged:
+        status = "ATIVADO ✅" if enabled else "DESATIVADO ⚠️"
+        raw, source = resolve_guardrail_flag()
+        print(
+            f"[guardrails] Guardrail de entrada: {status} "
+            f"(GUARDRAIL_ENABLED={raw!r}, origem: {source})",
+            flush=True,
+        )
+        _status_logged = True
+    return enabled
+
+
 async def acheck_input(texto: str) -> None:
+    if not log_guardrail_status():
+        logger.debug("Guardrails de entrada desativados (GUARDRAIL_ENABLED=false)")
+        return
+
     try:
         await asyncio.wait_for(_executar(texto), timeout=INPUT_GUARD_TIMEOUT_SECONDS)
     except (PromptInjectionBlocked, TopicRestrictionBlocked):

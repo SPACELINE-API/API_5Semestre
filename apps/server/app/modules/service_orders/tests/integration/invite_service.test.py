@@ -1,13 +1,17 @@
 import random
 import uuid
+from collections.abc import Sequence
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.modules.auth.models.user import User
 from app.modules.clients.models.company import Company
 from app.modules.clients.schemas.company import calculate_cnpj_check_digit
+from app.modules.notifications.models.notification import Notification
 from app.modules.quotes.models.quote import Quote
 from app.modules.quotes.models.translation_item import QuoteTranslationItem
 from app.modules.service_orders.models.invite import (
@@ -57,8 +61,22 @@ def db_session(isolated_db_session):
 def sent_emails(monkeypatch):
     emails: list[dict] = []
 
-    def fake_send_email(to: str, subject: str, html_body: str) -> None:
-        emails.append({"to": to, "subject": subject, "html_body": html_body})
+    def fake_send_email(
+        to: str,
+        subject: str,
+        html_body: str,
+        attachments: Sequence[tuple[str, bytes, str]] = (),
+        inline_images: Sequence[tuple[str, bytes, str]] = (),
+    ) -> None:
+        emails.append(
+            {
+                "to": to,
+                "subject": subject,
+                "html_body": html_body,
+                "attachments": attachments,
+                "inline_images": inline_images,
+            }
+        )
 
     monkeypatch.setattr(invite_service_module, "send_email", fake_send_email)
     return emails
@@ -99,7 +117,7 @@ def make_company(db_session: Session) -> Company:
     return company
 
 
-def make_item(db_session: Session) -> ServiceOrderItem:
+def make_item(db_session: Session, with_deadline: bool = True) -> ServiceOrderItem:
     company = make_company(db_session)
     quote = Quote(status="approved")
     translation_item = QuoteTranslationItem(
@@ -118,6 +136,7 @@ def make_item(db_session: Session) -> ServiceOrderItem:
         source_language="pt-BR",
         target_language="en-US",
         status=STATUS_PENDENTE,
+        deadline=datetime.now(UTC) + timedelta(days=30) if with_deadline else None,
     )
     service_order.items.append(item)
     db_session.add(service_order)
@@ -139,6 +158,32 @@ def test_send_invites_creates_pending_invites_and_sends_email(
     assert invites[0].status == INVITE_STATUS_PENDENTE
     assert len(sent_emails) == 1
     assert sent_emails[0]["to"] == translator.email
+
+
+def test_send_invites_notifies_only_the_invited_translator(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session)
+    translator = make_translator(db_session)
+    account = User(
+        email=translator.email,
+        password_hash="hashed",
+        is_active=True,
+        role="tradutor",
+    )
+    db_session.add(account)
+    db_session.commit()
+
+    [invite] = InviteService(db_session).send_invites(item.id, [translator.id])
+
+    notifications = db_session.query(Notification).all()
+    assert len(notifications) == 1
+    assert notifications[0].recipient_user_id == account.id
+    assert notifications[0].event_type == "translator_invite_received"
+    assert notifications[0].title == "Novo convite recebido"
+    assert notifications[0].related_type == "service_order_item_invite"
+    assert notifications[0].related_id == invite.id
+    assert notifications[0].idempotency_key == f"service_order_invite:{invite.id}:sent"
 
 
 def test_send_invites_rejects_inactive_translator_without_persisting_or_email(
@@ -174,7 +219,7 @@ def test_send_invites_uses_default_email_when_no_template_is_saved(
     email = sent_emails[0]
     assert email["subject"] == DEFAULT_INVITE_SUBJECT
     assert translator.name in email["html_body"]
-    assert "pt-BR → en-US" in email["html_body"]
+    assert "pt-BR" in email["html_body"] and "en-US" in email["html_body"]
     assert f"/convites/{invites[0].id}" in email["html_body"]
     assert "{{" not in email["html_body"]
 
@@ -197,7 +242,7 @@ def test_send_invites_uses_the_saved_translator_invite_template(
 
     email = sent_emails[0]
     assert email["subject"] == f"Convite para {translator.name}"
-    assert email["html_body"].startswith("<p>pt-BR para en-US: ")
+    assert "<p>pt-BR para en-US: " in email["html_body"]
     assert f"/convites/{invites[0].id}" in email["html_body"]
 
 
@@ -407,3 +452,35 @@ def test_list_my_invites_returns_only_own_invites_with_item_summary(
         "deadline",
         "status",
     }
+
+
+def test_send_invites_requires_a_deadline_on_the_item(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session, with_deadline=False)
+    translator = make_translator(db_session)
+
+    with pytest.raises(HTTPException) as exc_info:
+        InviteService(db_session).send_invites(item.id, [translator.id])
+
+    assert exc_info.value.status_code == 422
+    assert "Defina o prazo do documento" in exc_info.value.detail
+    assert sent_emails == []
+    assert db_session.query(ServiceOrderItemInvite).count() == 0
+
+
+def test_send_invites_works_once_the_deadline_is_defined(
+    db_session: Session, sent_emails: list[dict]
+) -> None:
+    item = make_item(db_session, with_deadline=False)
+    translator = make_translator(db_session)
+    service = InviteService(db_session)
+    with pytest.raises(HTTPException):
+        service.send_invites(item.id, [translator.id])
+
+    item.deadline = datetime.now(UTC) + timedelta(days=10)
+    db_session.commit()
+    invites = service.send_invites(item.id, [translator.id])
+
+    assert len(invites) == 1
+    assert len(sent_emails) == 1

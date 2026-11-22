@@ -51,6 +51,16 @@ const SERVICE_ORDER = {
 
 test.describe('Service orders list', () => {
 	test.beforeEach(async ({ page }) => {
+		await page.route('**/api/support/languages', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([
+					{ id: 'pt-BR', name: 'Português (Brasil)' },
+					{ id: 'en-US', name: 'Inglês (Estados Unidos)' },
+				]),
+			});
+		});
 		await page.route('**/api/contacts', async (route) => {
 			await route.fulfill({
 				status: 200,
@@ -162,12 +172,12 @@ test.describe('Service orders list', () => {
 			.fill('Tradução de contratos comerciais');
 		await page.getByText('Selecione um idioma').first().click();
 		await page.getByText('Português (Brasil)').click();
-		await page.getByText('Selecione um idioma').nth(1).click();
+		await page.getByText('Selecione um idioma').last().click();
 		await page.getByText('Inglês (Estados Unidos)').click();
 		await page.getByText('Gerar ordem', { exact: true }).click();
 
 		await expect(
-			page.getByText('Ordem de serviço gerada com sucesso!'),
+			page.getByText('Ordem de serviço gerada com sucesso!').last(),
 		).toBeVisible();
 		expect(requestBody).toMatchObject({
 			company_id: 'company-1',

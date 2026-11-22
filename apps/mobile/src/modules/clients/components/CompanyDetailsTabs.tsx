@@ -36,17 +36,23 @@ export function CompanyDetailsTabs({
 	const canReadProjects = Boolean(
 		getAuthorizationContext()?.permissions.includes('projects.read'),
 	);
-	const visibleTabs = canReadProjects
-		? TABS
-		: TABS.filter((tab) => tab.key !== 'projects');
+	const canReadContacts = Boolean(
+		getAuthorizationContext()?.permissions.includes('contacts.read'),
+	);
+	const visibleTabs = (
+		canReadProjects ? TABS : TABS.filter((tab) => tab.key !== 'projects')
+	).filter((tab) => tab.key !== 'clients' || canReadContacts);
 	const visibleActiveTab =
-		activeTab === 'projects' && !canReadProjects ? 'info' : activeTab;
+		(activeTab === 'projects' && !canReadProjects) ||
+		(activeTab === 'clients' && !canReadContacts)
+			? 'info'
+			: activeTab;
 	return (
 		<>
 			<ScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
-				className="border-b border-gray-200"
+				className="border-b border-border"
 				contentContainerClassName="flex-row gap-7"
 			>
 				{visibleTabs.map((tab) => {
@@ -58,14 +64,14 @@ export function CompanyDetailsTabs({
 							onPress={() => onTabChange(tab.key)}
 							activeOpacity={0.7}
 							className={`border-b-2 py-3 ${
-								isSelected ? 'border-blue-600' : 'border-transparent'
+								isSelected ? 'border-primary' : 'border-transparent'
 							}`}
 						>
 							<Text
 								className={`font-inter text-sm ${
 									isSelected
-										? 'font-semibold text-blue-600'
-										: 'font-medium text-gray-400'
+										? 'font-semibold text-primary-text'
+										: 'font-medium text-foreground-subtle'
 								}`}
 							>
 								{tab.label}
@@ -79,7 +85,7 @@ export function CompanyDetailsTabs({
 				{visibleActiveTab === 'info' && (
 					<CompanyDetailsInfoTab company={company} />
 				)}
-				{visibleActiveTab === 'clients' && (
+				{visibleActiveTab === 'clients' && canReadContacts && (
 					<CompanyDetailsContactsTab
 						contacts={contacts}
 						onAdd={onAddContact}

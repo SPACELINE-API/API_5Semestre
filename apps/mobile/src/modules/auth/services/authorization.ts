@@ -6,9 +6,10 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/meus-itens': 'assignments.read',
 	'/meu-perfil': 'assignments.read',
 	'/visualizar-requisicoes': 'requests.read',
+	'/orcamento/novo-orcamento': 'quotes.write',
+	'/orcamento/gerar': 'requests.read',
 	'/orcamento': 'quotes.read',
 	'/propostas': 'proposals.read',
-	'/orcamento/gerar': 'requests.read',
 	'/ordens-de-servico': 'service_orders.read',
 	'/clientes': 'clients.read',
 	'/tradutores': 'translators.read',
@@ -16,8 +17,14 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/support-agent': 'support.read',
 	'/administracao': 'roles.read',
 	'/usuarios': 'users.read',
-	'/configuracoes': 'roles.read',
+	'/configuracoes/permissoes': 'roles.read',
+	'/configuracoes/pessoas': 'users.read',
+	'/configuracoes/idiomas': 'languages.read',
+	'/configuracoes/sessao': 'settings.read',
 	'/projetos': 'projects.read',
+	'/tarefas': 'tasks.read',
+	'/tarefas/minhas': 'tasks.assigned_to_me.read',
+	'/tarefas/atribuidas': 'tasks.write',
 };
 
 const FULL_ROUTE_ACCESS_ROLES = new Set(['administrador', 'admin']);
@@ -48,17 +55,35 @@ export function hasPermission(
 	);
 }
 
-const TRANSLATOR_ROLE = 'recursos externos';
+// MESMOS NOMES QUE O BACKEND TRATA COMO PERFIL EXTERNO (TRADUTOR)
+const TRANSLATOR_ROLES = new Set([
+	'recursos externos',
+	'tradutor',
+	'tradutora',
+]);
 
 export function isTranslatorProfile(context: AuthorizationContext | null) {
 	return (
 		!hasFullRouteAccess(context) &&
 		Boolean(
-			context?.roles.some(
-				(role) => normalizeRoleName(role.name) === TRANSLATOR_ROLE,
+			context?.roles.some((role) =>
+				TRANSLATOR_ROLES.has(normalizeRoleName(role.name)),
 			),
 		)
 	);
+}
+
+// TELAS INTERNAS DE TAREFAS COM PERMISSOES PROPRIAS
+const INTERNAL_USER_PATHS = ['/tarefas'];
+
+export function isInternalUserPath(pathname: string) {
+	return INTERNAL_USER_PATHS.some(
+		(path) => pathname === path || pathname.startsWith(`${path}/`),
+	);
+}
+
+export function isInternalUser(context: AuthorizationContext | null) {
+	return Boolean(context) && !isTranslatorProfile(context);
 }
 
 export function requiredPermission(pathname: string) {
@@ -71,20 +96,51 @@ export function requiredPermission(pathname: string) {
 	return route ? ROUTE_PERMISSIONS[route] : null;
 }
 
+const PUBLIC_PATHS = [
+	'/login',
+	'/solicitar-servico',
+	'/definir-senha',
+	'/aprovar-orcamento',
+];
+
+export function isPublicPath(pathname: string) {
+	return PUBLIC_PATHS.includes(pathname);
+}
+
 export function canAccess(
 	context: AuthorizationContext | null,
 	pathname: string,
 ) {
-	if (pathname === '/login' || pathname === '/solicitar-servico') return true;
+	if (isPublicPath(pathname)) return true;
+	if (isInternalUserPath(pathname)) {
+		const permission = requiredPermission(pathname);
+		const hasTaskView =
+			hasPermission(context, 'tasks.write') ||
+			hasPermission(context, 'tasks.assigned_to_me.read');
+		return (
+			permission !== null &&
+			isInternalUser(context) &&
+			hasPermission(context, 'tasks.read') &&
+			hasTaskView &&
+			hasPermission(context, permission)
+		);
+	}
+	if (
+		pathname === '/configuracoes/sessao' ||
+		pathname.startsWith('/configuracoes/sessao/')
+	) {
+		return (
+			hasPermission(context, 'settings.read') ||
+			hasPermission(context, 'settings.write')
+		);
+	}
 	const permission = requiredPermission(pathname);
-	return Boolean(
-		permission &&
-		(hasFullRouteAccess(context) || context?.permissions.includes(permission)),
-	);
+	return permission ? hasPermission(context, permission) : false;
 }
 
 export const LANDING_ROUTES = new Set([
 	'/dashboard',
+	'/tarefas',
 	'/convites',
 	'/meus-itens',
 	'/meu-perfil',
@@ -96,14 +152,17 @@ export const LANDING_ROUTES = new Set([
 	'/tradutores',
 	'/produtividade',
 	'/support-agent',
+	'/configuracoes/permissoes',
+	'/configuracoes/pessoas',
+	'/configuracoes/idiomas',
+	'/configuracoes/sessao',
 ]);
 
 export function firstAllowedRoute(context: AuthorizationContext | null) {
 	if (hasFullRouteAccess(context)) return '/dashboard';
 	return (
 		Object.entries(ROUTE_PERMISSIONS).find(
-			([route, permission]) =>
-				LANDING_ROUTES.has(route) && context?.permissions.includes(permission),
+			([route]) => LANDING_ROUTES.has(route) && canAccess(context, route),
 		)?.[0] ?? '/login'
 	);
 }

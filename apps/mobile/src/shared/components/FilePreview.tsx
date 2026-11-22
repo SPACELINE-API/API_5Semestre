@@ -12,6 +12,7 @@ import {
 	getDownloadUrl,
 } from '../utils/fileDownload';
 
+import { useThemeColors } from '../theme/ThemeProvider';
 type FilePreviewProps = {
 	fileUrl: string;
 	height?: number;
@@ -19,7 +20,7 @@ type FilePreviewProps = {
 	compact?: boolean;
 };
 
-function getNativeDocumentUrl(fileUrl: string) {
+export function getNativeDocumentUrl(fileUrl: string) {
 	return resolveNativeResourceUrl(
 		getPreviewDocumentUrl(fileUrl),
 		Constants.expoConfig?.hostUri,
@@ -160,6 +161,7 @@ export function FilePreview({
 	openInNewPage = false,
 	compact = false,
 }: FilePreviewProps) {
+	const themeColors = useThemeColors();
 	if (Platform.OS !== 'web') {
 		return (
 			<TouchableOpacity
@@ -171,10 +173,10 @@ export function FilePreview({
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityLabel="Abrir documento"
-				className={`flex-row items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 ${compact ? 'border-0 bg-transparent px-0 py-1' : ''}`}
+				className={`flex-row items-center gap-2 rounded-lg border border-border bg-surface-subtle px-3 py-3 ${compact ? 'border-0 bg-transparent px-0 py-1' : ''}`}
 			>
-				<FileText size={16} color="#1C6FB0" />
-				<Text className="font-inter font-medium text-blue-600 text-sm">
+				<FileText size={16} color={themeColors.primary} />
+				<Text className="font-inter font-medium text-primary-text text-sm">
 					{compact ? 'Abrir' : 'Toque para abrir o documento'}
 				</Text>
 			</TouchableOpacity>
@@ -188,10 +190,10 @@ export function FilePreview({
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityLabel="Abrir documento"
-				className={`flex-row items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 ${compact ? 'border-0 bg-transparent px-0 py-1' : ''}`}
+				className={`flex-row items-center gap-2 rounded-lg border border-border bg-surface-subtle px-3 py-3 ${compact ? 'border-0 bg-transparent px-0 py-1' : ''}`}
 			>
-				<FileText size={16} color="#1C6FB0" />
-				<Text className="font-inter font-medium text-blue-600 text-sm">
+				<FileText size={16} color={themeColors.primary} />
+				<Text className="font-inter font-medium text-primary-text text-sm">
 					{compact ? 'Abrir' : 'Abrir documento'}
 				</Text>
 			</TouchableOpacity>
@@ -200,7 +202,7 @@ export function FilePreview({
 
 	return (
 		<View
-			className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+			className="overflow-hidden rounded-lg border border-border bg-surface-subtle"
 			style={{ height }}
 		>
 			<iframe

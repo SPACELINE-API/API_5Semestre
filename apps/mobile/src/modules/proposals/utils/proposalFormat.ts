@@ -1,15 +1,19 @@
 import type { Proposal, ProposalStatus } from '../types/proposal';
 
 export const PROPOSAL_STATUS_LABELS: Record<ProposalStatus, string> = {
-	pending: 'Pendente',
+	draft: 'Em preparação',
+	pending: 'Aguardando aprovação',
 	approved: 'Aprovada',
 	reproved: 'Reprovada',
+	cancelled: 'Cancelada',
 };
 
 export const PROPOSAL_STATUS_COLORS: Record<ProposalStatus, string> = {
+	draft: '#1D4ED8',
 	pending: '#D97706',
 	approved: '#15803D',
 	reproved: '#B91C1C',
+	cancelled: '#4B5563',
 };
 
 export function formatProposalValue(value: number | string) {

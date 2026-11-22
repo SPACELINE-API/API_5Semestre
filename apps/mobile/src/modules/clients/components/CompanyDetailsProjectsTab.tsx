@@ -41,7 +41,7 @@ function TableHeaderCell({
 }) {
 	return (
 		<View style={{ flex }} className={hideOnMobile ? 'hidden md:flex' : ''}>
-			<Text className="font-inter text-gray-400 text-xs">{label}</Text>
+			<Text className="font-inter text-foreground-subtle text-xs">{label}</Text>
 		</View>
 	);
 }
@@ -54,18 +54,18 @@ function ProjectRow({
 	isFirst: boolean;
 }) {
 	const isCompleted = project.status === 'Concluído';
-	const statusBackground = isCompleted ? 'bg-green-50' : 'bg-blue-50';
-	const statusText = isCompleted ? 'text-green-900' : 'text-blue-900';
+	const statusBackground = isCompleted ? 'bg-success-soft' : 'bg-primary-soft';
+	const statusText = isCompleted ? 'text-success-text' : 'text-primary-strong';
 
 	return (
 		<View
 			className={`flex-row items-center py-3.5 ${
-				isFirst ? '' : 'border-t border-gray-100'
+				isFirst ? '' : 'border-t border-border-subtle'
 			}`}
 		>
 			<Text
 				style={{ flex: 3 }}
-				className="font-inter font-medium text-gray-800 text-sm"
+				className="font-inter font-medium text-foreground text-sm"
 				numberOfLines={1}
 			>
 				{project.name}
@@ -79,7 +79,7 @@ function ProjectRow({
 			</View>
 			<Text
 				style={{ flex: 2 }}
-				className="hidden font-inter text-gray-500 text-sm md:flex"
+				className="hidden font-inter text-foreground-muted text-sm md:flex"
 			>
 				{project.updatedAt}
 			</Text>
@@ -90,7 +90,7 @@ function ProjectRow({
 export function CompanyDetailsProjectsTab() {
 	return (
 		<View>
-			<View className="flex-row items-center border-b border-gray-100 pb-3">
+			<View className="flex-row items-center border-b border-border-subtle pb-3">
 				<TableHeaderCell label="Projeto" flex={3} />
 				<TableHeaderCell label="Status" flex={2} />
 				<TableHeaderCell label="Atualizado em" flex={2} hideOnMobile />

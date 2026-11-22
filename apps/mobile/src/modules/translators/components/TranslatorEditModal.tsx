@@ -17,6 +17,7 @@ import { FormField } from '../../clients/components/FormField';
 import { TranslatorLanguagesStep } from './TranslatorLanguagesStep';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type TranslatorEditModalProps = {
 	visible: boolean;
 	translator: Translator | null;
@@ -106,6 +107,7 @@ export function TranslatorEditModal({
 	onSubmit,
 	toast,
 }: TranslatorEditModalProps) {
+	const themeColors = useThemeColors();
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
 	const [phone, setPhone] = useState('');
@@ -299,23 +301,23 @@ export function TranslatorEditModal({
 			animationType="none"
 			onRequestClose={handleClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="max-h-[85%] w-full max-w-[520px] overflow-hidden rounded-xl bg-white">
-					<View className="flex-row items-center justify-between border-b border-gray-300 px-6 py-4">
-						<Text className="font-inter font-bold text-gray-900 text-lg">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+				<View className="max-h-[85%] w-full max-w-[520px] overflow-hidden rounded-xl bg-surface">
+					<View className="flex-row items-center justify-between border-b border-border-strong px-6 py-4">
+						<Text className="font-inter font-bold text-foreground text-lg">
 							Editar tradutor
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
-					<View className="flex-row items-center justify-between border-b border-gray-100 px-6 py-4">
+					<View className="flex-row items-center justify-between border-b border-border-subtle px-6 py-4">
 						<View className="gap-0.5">
-							<Text className="font-inter font-semibold text-gray-800 text-sm">
+							<Text className="font-inter font-semibold text-foreground text-sm">
 								Status do tradutor
 							</Text>
-							<Text className="font-inter text-gray-400 text-xs">
+							<Text className="font-inter text-foreground-subtle text-xs">
 								{isActive ? 'Ativo' : 'Inativo'}
 							</Text>
 						</View>
@@ -327,11 +329,11 @@ export function TranslatorEditModal({
 							accessibilityLabel="Status do tradutor"
 							accessibilityState={{ checked: isActive }}
 							className={`h-5 w-9 justify-center rounded-full px-0.5 ${
-								isActive ? 'bg-blue-500' : 'bg-gray-300'
+								isActive ? 'bg-primary' : 'bg-border-strong'
 							}`}
 						>
 							<View
-								className={`h-4 w-4 rounded-full bg-white ${
+								className={`h-4 w-4 rounded-full bg-surface ${
 									isActive ? 'ml-4' : 'ml-0'
 								}`}
 							/>
@@ -343,7 +345,7 @@ export function TranslatorEditModal({
 						contentContainerClassName="gap-4 pb-6"
 						keyboardShouldPersistTaps="handled"
 					>
-						<Text className="font-inter font-bold text-gray-900 text-sm">
+						<Text className="font-inter font-bold text-foreground text-sm">
 							Dados
 						</Text>
 						<FormField
@@ -381,7 +383,7 @@ export function TranslatorEditModal({
 							error={fieldErrors.phone}
 						/>
 
-						<Text className="mt-2 font-inter font-bold text-gray-900 text-sm">
+						<Text className="mt-2 font-inter font-bold text-foreground text-sm">
 							Idiomas
 						</Text>
 						<TranslatorLanguagesStep
@@ -398,7 +400,7 @@ export function TranslatorEditModal({
 							}
 						/>
 
-						<Text className="mt-2 font-inter font-bold text-gray-900 text-sm">
+						<Text className="mt-2 font-inter font-bold text-foreground text-sm">
 							Qualificações
 						</Text>
 						<View className="gap-3">
@@ -413,29 +415,29 @@ export function TranslatorEditModal({
 										activeOpacity={0.7}
 										className={`flex-row items-start gap-3 rounded-xl border p-3.5 ${
 											isChecked
-												? 'border-blue-300 bg-blue-50'
-												: 'border-gray-300 bg-white'
+												? 'border-primary/40 bg-primary-soft'
+												: 'border-border-strong bg-surface'
 										}`}
 									>
 										<View
 											className={`mt-0.5 h-4 w-4 items-center justify-center rounded border ${
 												isChecked
-													? 'border-blue-600 bg-blue-600'
-													: 'border-gray-300 bg-white'
+													? 'border-primary bg-primary'
+													: 'border-border-strong bg-surface'
 											}`}
 										>
 											{isChecked && (
-												<Text className="text-[10px] font-bold text-white">
+												<Text className="text-[11px] font-bold text-primary-foreground">
 													✓
 												</Text>
 											)}
 										</View>
 										<View className="flex-1">
-											<Text className="font-inter font-semibold text-gray-900 text-sm">
+											<Text className="font-inter font-semibold text-foreground text-sm">
 												{qualification.name}
 											</Text>
 											{qualification.description && (
-												<Text className="mt-0.5 font-inter text-gray-500 text-xs">
+												<Text className="mt-0.5 font-inter text-foreground-muted text-xs">
 													{qualification.description}
 												</Text>
 											)}
@@ -446,13 +448,13 @@ export function TranslatorEditModal({
 						</View>
 					</ScrollView>
 
-					<View className="border-t border-gray-300 px-6 py-4">
+					<View className="border-t border-border-strong px-6 py-4">
 						{submitError && (
 							<View
 								accessibilityRole="alert"
-								className="mb-3 rounded-lg bg-red-50 px-3 py-2.5"
+								className="mb-3 rounded-lg bg-danger-soft px-3 py-2.5"
 							>
-								<Text className="font-inter text-red-900 text-sm">
+								<Text className="font-inter text-danger-text text-sm">
 									{submitError}
 								</Text>
 							</View>
@@ -460,9 +462,9 @@ export function TranslatorEditModal({
 						<View className="flex-row items-center justify-between">
 							<TouchableOpacity
 								onPress={handleClose}
-								className="rounded-lg border border-gray-300 px-5 py-2.5"
+								className="rounded-lg border border-border-strong px-5 py-2.5"
 							>
-								<Text className="font-inter font-medium text-gray-800 text-sm">
+								<Text className="font-inter font-medium text-foreground text-sm">
 									Cancelar
 								</Text>
 							</TouchableOpacity>
@@ -470,9 +472,9 @@ export function TranslatorEditModal({
 							<TouchableOpacity
 								onPress={handleSubmit}
 								disabled={isSubmitting}
-								className={`rounded-lg bg-blue-600 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+								className={`rounded-lg bg-primary px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 							>
-								<Text className="font-inter-medium text-sm text-white">
+								<Text className="font-inter-medium text-sm text-primary-foreground">
 									{isSubmitting ? 'Salvando…' : 'Salvar alterações'}
 								</Text>
 							</TouchableOpacity>

@@ -1,0 +1,63 @@
+@serverUrl = http://localhost:3333
+@adminEmail = admin@spaceline.com.br
+@operatorEmail = operador@spaceline.com.br
+@seedPassword = 123456
+@isolationUserEmail = admin@spaceline.com.br
+@isolationUserPassword = 123456
+
+### 1. Login do tradutor do seed (operador)
+# @name loginTranslator
+POST {{serverUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{operatorEmail}}",
+  "password": "{{seedPassword}}"
+}
+
+### 2. Confirmar identidade do tradutor
+# @name translatorIdentity
+GET {{serverUrl}}/api/auth/me
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+
+### 3. Contador de não lidas do tradutor
+# @name translatorUnreadCountBefore
+GET {{serverUrl}}/api/notifications/unread-count
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+
+### 4. Listar notificações do tradutor (primeira página)
+# @name translatorNotifications
+GET {{serverUrl}}/api/notifications?page=1&page_size=20
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+
+### 5. Filtrar notificações não lidas
+# @name translatorUnreadNotifications
+GET {{serverUrl}}/api/notifications?read=false&page=1&page_size=20
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+
+### 6. Filtrar notificações lidas
+# @name translatorReadNotifications
+GET {{serverUrl}}/api/notifications?read=true&page=1&page_size=20
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+
+### 7. Filtrar por tipo de evento (ajuste para um event_type retornado na listagem)
+# @name translatorEventTypeFilter
+GET {{serverUrl}}/api/notifications?event_type=certificate_approved&page=1&page_size=20
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+
+### 8. Marcar a primeira notificação retornada como lida
+### Se a listagem estiver vazia, esta chamada não pode ser executada; gere uma notificação
+### por um fluxo de negócio existente e autenticado, depois retome a partir desta requisição.
+# @name markTranslatorNotificationRead
+PATCH {{serverUrl}}/api/notifications/{{translatorNotifications.response.body.$.items[0].id}}/read
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+
+### 9. Confirmar contador após marcar como lida
+# @name translatorUnreadCountAfter
+GET {{serverUrl}}/api/notifications/unread-count
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}
+
+### 10. Confirmar persistência no filtro de lidas
+# @name translatorReadNotificationsAfter
+GET {{serverUrl}}/api/notifications?read=true&page=1&page_size=20
+Authorization: Bearer {{loginTranslator.response.body.$.access_token}}

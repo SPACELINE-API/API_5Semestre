@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import { SearchTextInput } from '../../../shared/components/SearchTextInput';
 import {
 	View,
 	Text,
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator,
-	TextInput,
 	useWindowDimensions,
 } from 'react-native';
 import {
@@ -30,7 +30,9 @@ import { deleteServiceOrder } from '../services/serviceOrderService';
 import { exportServiceOrdersAsJson } from '../utils/export';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export function ServiceOrdersPage() {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const router = useRouter();
 	const { deleted } = useLocalSearchParams<{ deleted?: string }>();
@@ -130,6 +132,7 @@ export function ServiceOrdersPage() {
 	}
 
 	async function handleBulkDelete() {
+		if (!canWriteServiceOrders || selectedServiceOrders.length === 0) return;
 		setIsBulkDeleting(true);
 
 		try {
@@ -155,7 +158,7 @@ export function ServiceOrdersPage() {
 	}
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="
@@ -172,11 +175,11 @@ export function ServiceOrdersPage() {
 					<View>
 						<View className="flex-row flex-wrap items-start justify-between gap-4 md:items-center">
 							<View className="flex-1">
-								<Text className="font-inter font-bold text-gray-950 text-2xl">
+								<Text className="font-inter font-bold text-foreground text-2xl">
 									Ordens de Serviço
 								</Text>
 
-								<Text className="mt-2 font-inter text-gray-500 text-sm">
+								<Text className="mt-2 font-inter text-foreground-muted text-sm">
 									{serviceOrders.length}{' '}
 									{serviceOrders.length === 1 ? 'ordem' : 'ordens'}
 								</Text>
@@ -188,10 +191,10 @@ export function ServiceOrdersPage() {
 								activeOpacity={0.8}
 								accessibilityRole="button"
 								accessibilityLabel="Gerar ordem de serviço manual"
-								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
+								className={`shrink-0 flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 							>
-								<Plus size={18} color="#ffffff" />
-								<Text className="font-inter-medium text-sm text-white">
+								<Plus size={18} color={themeColors.primaryForeground} />
+								<Text className="font-inter-medium text-sm text-primary-foreground">
 									Gerar ordem de serviço
 								</Text>
 							</TouchableOpacity>
@@ -199,10 +202,10 @@ export function ServiceOrdersPage() {
 					</View>
 
 					<View className="gap-3">
-						<View className="h-10 flex-row items-center rounded-lg border border-gray-200 bg-white px-3">
-							<Search size={17} color="#9CA3AF" />
+						<View className="h-10 flex-row items-center rounded-lg border border-border bg-surface px-3">
+							<Search size={17} color={themeColors.foregroundSubtle} />
 
-							<TextInput
+							<SearchTextInput
 								value={search}
 								onChangeText={setSearch}
 								placeholder={
@@ -210,8 +213,9 @@ export function ServiceOrdersPage() {
 										? 'Buscar projeto ou empresa'
 										: 'Buscar por projeto, empresa...'
 								}
-								placeholderTextColor="#9CA3AF"
-								className="ml-2 flex-1 border-0 font-inter text-gray-800 text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
+								numberOfLines={1}
+								placeholderTextColor={themeColors.foregroundSubtle}
+								className="ml-2 flex-1 border-0 font-inter text-ellipsis text-foreground text-sm outline-none max-md:min-w-0 max-md:shrink h-10"
 							/>
 
 							{search.length > 0 && (
@@ -219,13 +223,13 @@ export function ServiceOrdersPage() {
 									onPress={() => setSearch('')}
 									activeOpacity={0.7}
 								>
-									<X size={15} color="#9CA3AF" />
+									<X size={15} color={themeColors.foregroundSubtle} />
 								</TouchableOpacity>
 							)}
 						</View>
 
 						<View className="flex-row items-center justify-between">
-							<Text className="font-inter text-gray-400 text-xs">
+							<Text className="font-inter text-foreground-subtle text-xs">
 								{filteredServiceOrders.length}{' '}
 								{filteredServiceOrders.length === 1
 									? 'resultado'
@@ -233,8 +237,8 @@ export function ServiceOrdersPage() {
 							</Text>
 
 							{selectedIds.size > 0 && (
-								<View className="flex-row items-center gap-3 rounded-lg bg-blue-50 px-3 py-2">
-									<Text className="font-inter font-semibold text-blue-900 text-xs">
+								<View className="flex-row items-center gap-3 rounded-lg bg-primary-soft px-3 py-2">
+									<Text className="font-inter font-semibold text-primary-strong text-xs">
 										{selectedIds.size}{' '}
 										{selectedIds.size === 1 ? 'selecionada' : 'selecionadas'}
 									</Text>
@@ -244,8 +248,8 @@ export function ServiceOrdersPage() {
 										activeOpacity={0.7}
 										className="flex-row items-center gap-1.5"
 									>
-										<Download size={14} color="#1C6FB0" />
-										<Text className="font-inter font-semibold text-blue-600 text-xs">
+										<Download size={14} color={themeColors.primary} />
+										<Text className="font-inter font-semibold text-primary-text text-xs">
 											Exportar JSON
 										</Text>
 									</TouchableOpacity>
@@ -256,8 +260,8 @@ export function ServiceOrdersPage() {
 										activeOpacity={0.7}
 										className={`flex-row items-center gap-1.5 ${!canWriteServiceOrders ? 'opacity-40' : ''}`}
 									>
-										<Trash2 size={14} color="#791F1F" />
-										<Text className="font-inter font-semibold text-red-900 text-xs">
+										<Trash2 size={14} color={themeColors.dangerText} />
+										<Text className="font-inter font-semibold text-danger-text text-xs">
 											Excluir
 										</Text>
 									</TouchableOpacity>
@@ -266,7 +270,7 @@ export function ServiceOrdersPage() {
 										onPress={() => setSelectedIds(new Set())}
 										activeOpacity={0.7}
 									>
-										<X size={14} color="#6B7280" />
+										<X size={14} color={themeColors.foregroundMuted} />
 									</TouchableOpacity>
 								</View>
 							)}
@@ -274,33 +278,33 @@ export function ServiceOrdersPage() {
 					</View>
 
 					{isLoading && (
-						<View className="items-center justify-center border-t border-gray-100 py-16">
-							<ActivityIndicator color="#6B7280" />
+						<View className="items-center justify-center border-t border-border-subtle py-16">
+							<ActivityIndicator color={themeColors.foregroundMuted} />
 
-							<Text className="mt-3 font-inter text-gray-400 text-sm">
+							<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 								Carregando ordens de serviço...
 							</Text>
 						</View>
 					)}
 
 					{!isLoading && error && (
-						<View className="border-t border-gray-100 py-8">
+						<View className="border-t border-border-subtle py-8">
 							<View className="flex-row items-center gap-2">
-								<AlertCircle size={16} color="#DC2626" />
+								<AlertCircle size={16} color={themeColors.danger} />
 
-								<Text className="font-inter font-semibold text-red-600 text-sm">
+								<Text className="font-inter font-semibold text-danger text-sm">
 									Não foi possível carregar as ordens de serviço
 								</Text>
 							</View>
 
-							<Text className="mt-1 font-inter text-gray-500 text-sm">
+							<Text className="mt-1 font-inter text-foreground-muted text-sm">
 								{error}
 							</Text>
 						</View>
 					)}
 
 					{!isLoading && !error && (
-						<View className="border-t border-gray-200">
+						<View className="border-t border-border">
 							<ServiceOrderTable
 								serviceOrders={filteredServiceOrders}
 								companiesById={companiesById}

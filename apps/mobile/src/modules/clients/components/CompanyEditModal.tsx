@@ -24,6 +24,7 @@ import { isValidCnpj, isValidEmail, isValidPhone } from '../utils/validation';
 import { maskCnpj, maskPhone } from '../utils/mask';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type CompanyEditModalProps = {
 	visible: boolean;
 	company: Company | null;
@@ -108,6 +109,7 @@ export function CompanyEditModal({
 	onSubmit,
 	toast,
 }: CompanyEditModalProps) {
+	const themeColors = useThemeColors();
 	const KeyboardContainer = (
 		Platform.OS === 'web' ? ScrollView : KeyboardAwareScrollView
 	) as ComponentType<ComponentProps<typeof KeyboardAwareScrollView>>;
@@ -256,23 +258,23 @@ export function CompanyEditModal({
 			animationType="none"
 			onRequestClose={handleClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="w-full max-w-[560px] max-h-[85%] rounded-xl bg-white overflow-hidden">
-					<View className="flex-row items-center justify-between border-b border-gray-300 px-6 py-4">
-						<Text className="font-inter font-bold text-gray-900 text-lg">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+				<View className="w-full max-w-[560px] max-h-[85%] rounded-xl bg-surface overflow-hidden">
+					<View className="flex-row items-center justify-between border-b border-border-strong px-6 py-4">
+						<Text className="font-inter font-bold text-foreground text-lg">
 							Editar empresa
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
-					<View className="flex-row items-center justify-between border-b border-gray-100 px-6 py-4">
+					<View className="flex-row items-center justify-between border-b border-border-subtle px-6 py-4">
 						<View className="gap-0.5">
-							<Text className="font-inter font-semibold text-gray-800 text-sm">
+							<Text className="font-inter font-semibold text-foreground text-sm">
 								Status da empresa
 							</Text>
-							<Text className="font-inter text-gray-400 text-xs">
+							<Text className="font-inter text-foreground-subtle text-xs">
 								{form.is_active ? 'Ativa' : 'Inativa'}
 							</Text>
 						</View>
@@ -281,11 +283,11 @@ export function CompanyEditModal({
 							onPress={() => setField('is_active', !form.is_active)}
 							activeOpacity={0.8}
 							className={`h-5 w-9 justify-center rounded-full px-0.5 ${
-								form.is_active ? 'bg-blue-500' : 'bg-gray-300'
+								form.is_active ? 'bg-primary' : 'bg-border-strong'
 							}`}
 						>
 							<View
-								className={`h-4 w-4 rounded-full bg-white ${
+								className={`h-4 w-4 rounded-full bg-surface ${
 									form.is_active ? 'ml-4' : 'ml-0'
 								}`}
 							/>
@@ -302,7 +304,7 @@ export function CompanyEditModal({
 									keyboardShouldPersistTaps: 'handled' as const,
 								})}
 					>
-						<Text className="font-inter font-bold text-gray-900 text-sm">
+						<Text className="font-inter font-bold text-foreground text-sm">
 							Identificação
 						</Text>
 						<FormField
@@ -337,7 +339,7 @@ export function CompanyEditModal({
 							error={fieldErrors.industry}
 						/>
 
-						<Text className="mt-2 font-inter font-bold text-gray-900 text-sm">
+						<Text className="mt-2 font-inter font-bold text-foreground text-sm">
 							Contato
 						</Text>
 						<View className="flex-row gap-4">
@@ -358,7 +360,7 @@ export function CompanyEditModal({
 							/>
 						</View>
 
-						<Text className="mt-2 font-inter font-bold text-gray-900 text-sm">
+						<Text className="mt-2 font-inter font-bold text-foreground text-sm">
 							Endereço
 						</Text>
 						<View className="flex-row gap-4">
@@ -420,18 +422,20 @@ export function CompanyEditModal({
 						</View>
 
 						{error && (
-							<View className="rounded-lg bg-red-50 px-3 py-2.5">
-								<Text className="font-inter text-red-900 text-sm">{error}</Text>
+							<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+								<Text className="font-inter text-danger-text text-sm">
+									{error}
+								</Text>
 							</View>
 						)}
 					</KeyboardContainer>
 
-					<View className="flex-row items-center justify-between border-t border-gray-300 px-6 py-4">
+					<View className="flex-row items-center justify-between border-t border-border-strong px-6 py-4">
 						<TouchableOpacity
 							onPress={handleClose}
-							className="rounded-lg border border-gray-300 px-5 py-2.5"
+							className="rounded-lg border border-border-strong px-5 py-2.5"
 						>
-							<Text className="font-inter font-medium text-gray-800 text-sm">
+							<Text className="font-inter font-medium text-foreground text-sm">
 								Cancelar
 							</Text>
 						</TouchableOpacity>
@@ -439,9 +443,9 @@ export function CompanyEditModal({
 						<TouchableOpacity
 							onPress={handleSubmit}
 							disabled={isSubmitting}
-							className={`rounded-lg bg-blue-300 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+							className={`rounded-lg bg-primary px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 						>
-							<Text className="font-inter font-semibold text-blue-900 text-sm">
+							<Text className="font-inter font-semibold text-primary-foreground text-sm">
 								{isSubmitting ? 'Salvando…' : 'Salvar alterações'}
 							</Text>
 						</TouchableOpacity>
