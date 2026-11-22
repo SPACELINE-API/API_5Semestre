@@ -23,6 +23,7 @@ function makeQuote(overrides: Record<string, unknown> = {}) {
 		original_language: 'pt-BR',
 		translation_language: 'en-US',
 		customer_need: 'Contrato',
+		deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
 		created_at: '2026-10-25T12:00:00Z',
 		updated_at: '2026-10-25T12:00:00Z',
 		items: [
