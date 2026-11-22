@@ -32,8 +32,10 @@ const MODULE_LABELS: Record<string, string> = {
 	translators: 'Tradutores',
 	documents: 'Documentos',
 	support: 'Suporte',
-	roles: 'Perfis de acesso',
-	settings: 'Configurações',
+	roles: 'Configuração / Permissões',
+	users: 'Configuração / Pessoas',
+	languages: 'Configuração / Idiomas',
+	settings: 'Configuração / Sessão',
 	proposals: 'Propostas',
 };
 
@@ -58,6 +60,10 @@ const VISIBLE_PERMISSIONS = new Set([
 	'reports.productivity.read',
 	'settings.read',
 	'settings.write',
+	'users.read',
+	'users.write',
+	'languages.read',
+	'languages.write',
 	'roles.read',
 	'roles.write',
 ]);

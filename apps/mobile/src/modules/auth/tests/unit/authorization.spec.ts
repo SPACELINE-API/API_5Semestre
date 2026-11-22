@@ -56,7 +56,7 @@ test.describe('canAccess', () => {
 		expect(canAccess(null, '/aprovar-orcamento')).toBe(true);
 	});
 
-	test('restricts the people settings tab to administrators', () => {
+	test('guards each settings tab with its own permission', () => {
 		const admin: AuthorizationContext = {
 			user: { id: 'u', email: 'a@b.com' },
 			roles: [{ id: '1', name: 'Administrador' }],
@@ -70,7 +70,14 @@ test.describe('canAccess', () => {
 
 		expect(canAccess(admin, '/configuracoes/pessoas')).toBe(true);
 		expect(canAccess(withPermissions, '/configuracoes/permissoes')).toBe(true);
-		expect(canAccess(withPermissions, '/configuracoes/pessoas')).toBe(false);
+		expect(canAccess(withPermissions, '/configuracoes/pessoas')).toBe(true);
+		expect(canAccess(withPermissions, '/configuracoes/idiomas')).toBe(false);
+		expect(canAccess(context(['languages.read']), '/configuracoes/idiomas')).toBe(
+			true,
+		);
+		expect(canAccess(context(['settings.read']), '/configuracoes/sessao')).toBe(
+			true,
+		);
 		expect(canAccess(null, '/configuracoes/pessoas')).toBe(false);
 	});
 

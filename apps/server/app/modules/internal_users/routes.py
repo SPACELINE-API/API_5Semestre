@@ -2,12 +2,15 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session, selectinload
 
 from app.modules.auth.dependencies.dependencies import (
     get_supabase_admin_client,
-    require_administrator,
+    require_permission,
 )
+from app.modules.auth.models.roles import Role
+from app.modules.auth.schemas.roles import RoleResponse
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.auth.services.supabase_admin_client import SupabaseAdminClient
 from app.modules.internal_users.schemas.internal_user import (
@@ -18,6 +21,7 @@ from app.modules.internal_users.schemas.internal_user import (
     PasswordSetupLinkInfo,
     PasswordSetupRequest,
 )
+from app.modules.internal_users.services.identity_rules import EXTERNAL_ROLE_NAMES
 from app.modules.internal_users.services.internal_user_service import InternalUserService
 from app.modules.internal_users.services.password_setup_service import PasswordSetupService
 from app.shared.database import get_db
@@ -27,7 +31,8 @@ password_setup_router = APIRouter(prefix="/auth/password-setup", tags=["auth"])
 
 DbSession = Annotated[Session, Depends(get_db)]
 AdminClient = Annotated[SupabaseAdminClient, Depends(get_supabase_admin_client)]
-Administrator = Annotated[SupabaseAuthenticatedUser, Depends(require_administrator)]
+UserReader = Annotated[SupabaseAuthenticatedUser, Depends(require_permission("users.read"))]
+UserWriter = Annotated[SupabaseAuthenticatedUser, Depends(require_permission("users.write"))]
 
 
 @router.post("", response_model=InternalUserResponse, status_code=status.HTTP_201_CREATED)
@@ -35,16 +40,34 @@ def create_internal_user(
     data: InternalUserCreate,
     db: DbSession,
     admin_client: AdminClient,
-    actor: Administrator,
+    actor: UserWriter,
 ) -> InternalUserResponse:
     return InternalUserService(db, admin_client).create(data, actor)
+
+
+@router.get("/assignable-roles", response_model=list[RoleResponse])
+def list_assignable_roles(
+    db: DbSession,
+    _actor: UserWriter,
+) -> list[Role]:
+    return list(
+        db.scalars(
+            select(Role)
+            .options(selectinload(Role.permissions))
+            .where(
+                Role.is_active.is_(True),
+                func.lower(func.trim(Role.name)).not_in(EXTERNAL_ROLE_NAMES),
+            )
+            .order_by(Role.name)
+        ).all()
+    )
 
 
 @router.get("", response_model=list[InternalUserResponse])
 def list_internal_users(
     db: DbSession,
     admin_client: AdminClient,
-    _actor: Administrator,
+    _actor: UserReader,
     is_active: bool | None = None,
     search: Annotated[str | None, Query(max_length=255)] = None,
     role_id: uuid.UUID | None = None,
@@ -59,7 +82,7 @@ def get_internal_user(
     user_id: uuid.UUID,
     db: DbSession,
     admin_client: AdminClient,
-    _actor: Administrator,
+    _actor: UserReader,
 ) -> InternalUserResponse:
     return InternalUserService(db, admin_client).get(user_id)
 
@@ -70,7 +93,7 @@ def update_internal_user(
     data: InternalUserUpdate,
     db: DbSession,
     admin_client: AdminClient,
-    actor: Administrator,
+    actor: UserWriter,
 ) -> InternalUserResponse:
     return InternalUserService(db, admin_client).update(user_id, data, actor)
 
@@ -80,7 +103,7 @@ def deactivate_internal_user(
     user_id: uuid.UUID,
     db: DbSession,
     admin_client: AdminClient,
-    actor: Administrator,
+    actor: UserWriter,
 ) -> InternalUserResponse:
     return InternalUserService(db, admin_client).deactivate(user_id, actor)
 
@@ -95,7 +118,7 @@ def add_internal_user_role(
     data: InternalUserRoleAdd,
     db: DbSession,
     admin_client: AdminClient,
-    actor: Administrator,
+    actor: UserWriter,
 ) -> InternalUserResponse:
     return InternalUserService(db, admin_client).add_role(user_id, data.role_id, actor)
 
@@ -106,7 +129,7 @@ def remove_internal_user_role(
     role_id: uuid.UUID,
     db: DbSession,
     admin_client: AdminClient,
-    actor: Administrator,
+    actor: UserWriter,
 ) -> InternalUserResponse:
     return InternalUserService(db, admin_client).remove_role(user_id, role_id, actor)
 
@@ -116,7 +139,7 @@ def send_password_setup_link(
     user_id: uuid.UUID,
     db: DbSession,
     admin_client: AdminClient,
-    actor: Administrator,
+    actor: UserWriter,
 ) -> InternalUserResponse:
     return PasswordSetupService(db, admin_client).send_initial(user_id, actor)
 
@@ -126,7 +149,7 @@ def resend_password_setup_link(
     user_id: uuid.UUID,
     db: DbSession,
     admin_client: AdminClient,
-    actor: Administrator,
+    actor: UserWriter,
 ) -> InternalUserResponse:
     return PasswordSetupService(db, admin_client).resend(user_id, actor)
 

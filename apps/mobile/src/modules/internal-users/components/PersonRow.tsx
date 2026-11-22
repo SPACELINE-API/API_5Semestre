@@ -14,6 +14,7 @@ type PersonRowProps = {
 	person: InternalUser;
 	isSelf: boolean;
 	isBusy: boolean;
+	canEdit: boolean;
 	onEdit: (person: InternalUser) => void;
 	onSendLink: (person: InternalUser) => void;
 	onDeactivate: (person: InternalUser) => void;
@@ -23,6 +24,7 @@ export function PersonRow({
 	person,
 	isSelf,
 	isBusy,
+	canEdit,
 	onEdit,
 	onSendLink,
 	onDeactivate,
@@ -79,7 +81,7 @@ export function PersonRow({
 				{person.latest_link && <LinkBadge status={person.latest_link.status} />}
 			</View>
 
-			<View className="flex-row flex-wrap items-center gap-2 md:justify-end">
+			{canEdit && <View className="flex-row flex-wrap items-center gap-2 md:justify-end">
 				{(showSend || showResend) && (
 					<TouchableOpacity
 						onPress={() => onSendLink(person)}
@@ -126,7 +128,7 @@ export function PersonRow({
 						</Text>
 					</TouchableOpacity>
 				)}
-			</View>
+			</View>}
 		</View>
 	);
 }

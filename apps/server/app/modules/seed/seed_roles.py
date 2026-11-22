@@ -47,6 +47,8 @@ ADMIN_PERMISSIONS = (
     "support.write",
     "settings.read",
     "settings.write",
+    "languages.read",
+    "languages.write",
     "finance.read",
     "finance.write",
 )

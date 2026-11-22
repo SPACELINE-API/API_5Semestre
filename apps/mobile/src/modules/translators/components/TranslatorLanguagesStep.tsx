@@ -71,7 +71,7 @@ export function TranslatorLanguagesStep({
 	const [newLanguageId, setNewLanguageId] = useState('');
 	const [newLanguageName, setNewLanguageName] = useState('');
 	const [creatingLanguage, setCreatingLanguage] = useState(false);
-	const canWriteSettings = usePermission('settings.write');
+	const canWriteSettings = usePermission('languages.write');
 	const [languageSearch, setLanguageSearch] = useState('');
 	const filteredLanguages = useMemo(() => {
 		const query = normalizeSearch(languageSearch.trim());

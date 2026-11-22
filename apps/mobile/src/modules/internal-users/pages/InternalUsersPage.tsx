@@ -12,6 +12,7 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { getAuthorizationContext } from '../../auth/services/auth';
+import { usePermission } from '../../auth/hooks/usePermission';
 import { SettingsHeader } from '../../auth/components/SettingsHeader';
 import { DepartmentSection } from '../components/DepartmentSection';
 import { PendingInvitesCard } from '../components/PendingInvitesCard';
@@ -49,7 +50,9 @@ function errorText(cause: unknown, fallback: string) {
 }
 
 export function InternalUsersPage() {
-	const { people, roles, isLoading, error, reload } = useInternalUsers();
+	const canEditUsers = usePermission('users.write');
+	const { people, roles, isLoading, error, reload } =
+		useInternalUsers(canEditUsers);
 	const { toast, showToast } = useToast();
 	const [search, setSearch] = useState('');
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -178,7 +181,7 @@ export function InternalUsersPage() {
 						<Text className="min-w-0 flex-1 font-inter font-semibold text-gray-900 text-base">
 							Pessoas internas
 						</Text>
-						<TouchableOpacity
+						{canEditUsers && <TouchableOpacity
 							onPress={openCreate}
 							accessibilityRole="button"
 							accessibilityLabel="Convidar pessoa"
@@ -188,7 +191,7 @@ export function InternalUsersPage() {
 							<Text className="font-inter font-semibold text-sm text-white">
 								Convidar pessoa
 							</Text>
-						</TouchableOpacity>
+						</TouchableOpacity>}
 					</View>
 					<Text className="font-inter text-gray-500 text-sm">
 						Convide e gerencie quem trabalha na plataforma, separado por
@@ -196,11 +199,13 @@ export function InternalUsersPage() {
 					</Text>
 				</View>
 
-				<PendingInvitesCard
-					people={people}
-					busyId={busyId}
-					onResend={(person) => void handleSendLink(person)}
-				/>
+				{canEditUsers && (
+					<PendingInvitesCard
+						people={people}
+						busyId={busyId}
+						onResend={(person) => void handleSendLink(person)}
+					/>
+				)}
 
 				<View className="mb-5 flex-col gap-3 md:flex-row md:items-center md:justify-between">
 					<View className="h-11 w-full flex-row items-center gap-2 rounded-lg border border-gray-300 px-3 md:w-auto md:max-w-[420px] md:flex-1">
@@ -291,7 +296,7 @@ export function InternalUsersPage() {
 							Cadastre quem vai trabalhar na plataforma. A pessoa recebe um
 							e-mail para criar a própria senha.
 						</Text>
-						<TouchableOpacity
+						{canEditUsers && <TouchableOpacity
 							onPress={openCreate}
 							accessibilityRole="button"
 							className="mt-1 rounded-lg bg-blue-600 px-4 py-2.5"
@@ -299,7 +304,7 @@ export function InternalUsersPage() {
 							<Text className="font-inter font-semibold text-sm text-white">
 								Convidar pessoa
 							</Text>
-						</TouchableOpacity>
+						</TouchableOpacity>}
 					</View>
 				) : departments.length === 0 ? (
 					<View className="items-center gap-2 rounded-xl border border-dashed border-gray-300 px-6 py-12">
@@ -316,6 +321,7 @@ export function InternalUsersPage() {
 								department={department}
 								currentUserEmail={currentUserEmail}
 								busyId={busyId}
+								canEdit={canEditUsers}
 								onEdit={openEdit}
 								onSendLink={(person) => void handleSendLink(person)}
 								onDeactivate={setDeactivating}
@@ -325,14 +331,14 @@ export function InternalUsersPage() {
 				)}
 			</ScrollView>
 
-			<PersonFormModal
+			{canEditUsers && <PersonFormModal
 				visible={formOpen}
 				person={editing}
 				roles={roles}
 				onClose={() => setFormOpen(false)}
 				onSubmit={handleSubmit}
-			/>
-			<ConfirmDialog
+			/>}
+			{canEditUsers && <ConfirmDialog
 				visible={deactivating !== null}
 				title="Desativar conta?"
 				message={`${deactivating ? displayName(deactivating) : ''} perde o acesso à plataforma. Os dados e o histórico são mantidos.`}
@@ -341,7 +347,7 @@ export function InternalUsersPage() {
 				isLoading={isDeactivating}
 				onConfirm={() => void confirmDeactivate()}
 				onCancel={() => setDeactivating(null)}
-			/>
+			/>}
 			<Toast toast={toast} />
 		</View>
 	);

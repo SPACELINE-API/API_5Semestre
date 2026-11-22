@@ -3,7 +3,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.modules.auth.dependencies.dependencies import (
-    get_current_user,
     require_permission,
 )
 from app.modules.system_parameters.models.language import Language
@@ -20,6 +19,8 @@ from app.shared.database import get_db
 router = APIRouter(prefix="/support", tags=["support"])
 settings_read_permission = require_permission("settings.read")
 settings_write_permission = require_permission("settings.write")
+languages_write_permission = require_permission("languages.write")
+languages_read_permission = require_permission("languages.read")
 
 
 @router.get("/languages", response_model=list[LanguageResponse])
@@ -28,11 +29,19 @@ def get_languages(db: Session = Depends(get_db)):
     return languages
 
 
+@router.get("/languages/manage", response_model=list[LanguageResponse])
+def get_languages_for_management(
+    db: Session = Depends(get_db),
+    _user=Depends(languages_read_permission),
+):
+    return db.query(Language).order_by(Language.name).all()
+
+
 @router.post("/languages", response_model=LanguageResponse, status_code=status.HTTP_201_CREATED)
 def create_language(
     payload: LanguageCreate,
     db: Session = Depends(get_db),
-    _user=Depends(settings_write_permission),
+    _user=Depends(languages_write_permission),
 ):
     existing = db.query(Language).filter(Language.id == payload.id).first()
     if existing:
@@ -49,7 +58,7 @@ def create_language(
 def delete_language(
     language_id: str,
     db: Session = Depends(get_db),
-    _user=Depends(settings_write_permission),
+    _user=Depends(languages_write_permission),
 ):
     language = db.query(Language).filter(Language.id == language_id).first()
     if language is None:
@@ -85,7 +94,7 @@ def delete_language(
 @router.get("/inactivity-timeout", response_model=InactivityTimeoutResponse)
 def get_inactivity_timeout(
     db: Session = Depends(get_db),
-    _user=Depends(get_current_user),
+    _user=Depends(settings_read_permission),
 ):
     return InactivityTimeoutService(db).get_inactivity_timeout()
 

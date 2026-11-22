@@ -12,10 +12,11 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 import { SettingsHeader } from '../components/SettingsHeader';
+import { usePermission } from '../hooks/usePermission';
 import {
 	createLanguage,
 	deleteLanguage,
-	listLanguages,
+	listManageLanguages,
 } from '../../translators/services/translatorService';
 import type { LanguageResponse } from '../../translators/types/translator';
 
@@ -35,6 +36,7 @@ function languageError(error: unknown) {
 
 export default function LanguageSettingsPage() {
 	const { toast, showToast } = useToast();
+	const canEdit = usePermission('languages.write');
 	const [languages, setLanguages] = useState<LanguageResponse[]>([]);
 	const [name, setName] = useState('');
 	const [code, setCode] = useState('');
@@ -50,7 +52,7 @@ export default function LanguageSettingsPage() {
 		setIsLoading(true);
 		setError(null);
 		try {
-			setLanguages(sortLanguages(await listLanguages()));
+			setLanguages(sortLanguages(await listManageLanguages()));
 		} catch (loadError) {
 			setError(languageError(loadError));
 		} finally {
@@ -178,7 +180,7 @@ export default function LanguageSettingsPage() {
 								{fieldError}
 							</Text>
 						)}
-						<TouchableOpacity
+						{canEdit && <TouchableOpacity
 							onPress={() => void handleCreate()}
 							disabled={isSaving}
 							accessibilityRole="button"
@@ -192,7 +194,7 @@ export default function LanguageSettingsPage() {
 							<Text className="font-inter font-semibold text-sm text-white">
 								{isSaving ? 'Salvando...' : 'Cadastrar idioma'}
 							</Text>
-						</TouchableOpacity>
+						</TouchableOpacity>}
 					</View>
 
 					<View className="rounded-xl border border-gray-200 p-5 md:p-6">
@@ -246,14 +248,14 @@ export default function LanguageSettingsPage() {
 											<Text className="rounded-md bg-gray-50 px-2.5 py-1 font-inter text-gray-500 text-xs">
 												{language.id}
 											</Text>
-											<TouchableOpacity
+											{canEdit && <TouchableOpacity
 												onPress={() => setLanguageToDelete(language)}
 												accessibilityRole="button"
 												accessibilityLabel={`Remover idioma ${language.name}`}
 												className="rounded-md p-2"
 											>
 												<Trash2 size={17} color="#b91c1c" />
-											</TouchableOpacity>
+											</TouchableOpacity>}
 										</View>
 									</View>
 								))}

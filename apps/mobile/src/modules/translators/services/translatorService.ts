@@ -24,6 +24,10 @@ export function listLanguages(): Promise<LanguageResponse[]> {
 	return apiGetAuth<LanguageResponse[]>('/api/support/languages');
 }
 
+export function listManageLanguages(): Promise<LanguageResponse[]> {
+	return apiGetAuth<LanguageResponse[]>('/api/support/languages/manage');
+}
+
 export function listPublicLanguages(): Promise<LanguageResponse[]> {
 	return request<LanguageResponse[]>('/api/support/languages');
 }

@@ -371,6 +371,8 @@ export function SideBar({
 							active={pathname.startsWith('/configuracoes')}
 							disabled={
 								!can('roles.read') &&
+								!can('users.read') &&
+								!can('languages.read') &&
 								!can('settings.read') &&
 								!can('settings.write')
 							}
@@ -378,7 +380,11 @@ export function SideBar({
 								navigate(
 									can('roles.read')
 										? '/configuracoes/permissoes'
-										: '/configuracoes/sessao',
+										: can('users.read')
+											? '/configuracoes/pessoas'
+											: can('languages.read')
+												? '/configuracoes/idiomas'
+												: '/configuracoes/sessao',
 								)
 							}
 						/>

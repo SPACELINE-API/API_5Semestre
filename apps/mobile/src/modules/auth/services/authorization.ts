@@ -19,6 +19,7 @@ export const ROUTE_PERMISSIONS: Record<string, string> = {
 	'/usuarios': 'users.read',
 	'/configuracoes/permissoes': 'roles.read',
 	'/configuracoes/pessoas': 'users.read',
+	'/configuracoes/idiomas': 'languages.read',
 	'/configuracoes/sessao': 'settings.read',
 	'/projetos': 'projects.read',
 	'/tarefas': 'tasks.read',
@@ -106,23 +107,11 @@ export function isPublicPath(pathname: string) {
 	return PUBLIC_PATHS.includes(pathname);
 }
 
-const ADMINISTRATOR_ONLY_PREFIXES = [
-	'/configuracoes/pessoas',
-	'/configuracoes/idiomas',
-];
-
-function isAdministratorOnlyPath(pathname: string) {
-	return ADMINISTRATOR_ONLY_PREFIXES.some(
-		(prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-	);
-}
-
 export function canAccess(
 	context: AuthorizationContext | null,
 	pathname: string,
 ) {
 	if (isPublicPath(pathname)) return true;
-	if (isAdministratorOnlyPath(pathname)) return hasFullRouteAccess(context);
 	if (isInternalUserPath(pathname)) {
 		const permission = requiredPermission(pathname);
 		const hasTaskView =
@@ -164,6 +153,8 @@ export const LANDING_ROUTES = new Set([
 	'/produtividade',
 	'/support-agent',
 	'/configuracoes/permissoes',
+	'/configuracoes/pessoas',
+	'/configuracoes/idiomas',
 	'/configuracoes/sessao',
 ]);
 
