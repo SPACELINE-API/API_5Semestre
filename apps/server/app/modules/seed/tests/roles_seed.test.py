@@ -18,6 +18,8 @@ def test_proposals_read_is_seeded_only_for_authorized_roles() -> None:
 
     assert "proposals.read" in permissions_by_role["Administrador"]
     assert "proposals.read" in permissions_by_role["Projetos"]
+    assert "proposals.report.generate" in permissions_by_role["Administrador"]
+    assert "proposals.report.generate" in permissions_by_role["Projetos"]
     assert all(
         "proposals.read" not in permissions
         for role_name, permissions in permissions_by_role.items()

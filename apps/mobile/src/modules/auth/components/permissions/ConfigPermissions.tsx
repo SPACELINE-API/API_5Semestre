@@ -13,6 +13,7 @@ export interface ConfigPermissionsProps {
 	profile: Role;
 	disabled?: boolean;
 	hideRead?: boolean;
+	writeLabel?: string;
 	onChange: (permissionIds: string[]) => void;
 }
 
@@ -21,6 +22,7 @@ export default function ConfigPermissions({
 	profile,
 	disabled = false,
 	hideRead = false,
+	writeLabel = 'Edição',
 	onChange,
 }: ConfigPermissionsProps) {
 	const permissionIds = new Set(profile.permissions.map(({ id }) => id));
@@ -75,7 +77,7 @@ export default function ConfigPermissions({
 				)}
 				{writePermission && (
 					<PermissionToggle
-						label="Edição"
+						label={writeLabel}
 						value={canEdit}
 						disabled={disabled}
 						onChange={(enabled) =>

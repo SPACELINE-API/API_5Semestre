@@ -47,7 +47,7 @@ test.describe('modal de relatório de propostas', () => {
 				body: JSON.stringify({
 					user: { id: 'company-report-user', email: 'admin@example.com' },
 					roles: [{ id: 'admin', name: 'Administrador' }],
-					permissions: ['proposals.read'],
+					permissions: ['proposals.read', 'proposals.report.generate'],
 				}),
 			}),
 		);

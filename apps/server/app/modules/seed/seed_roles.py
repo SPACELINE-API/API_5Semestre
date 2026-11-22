@@ -51,6 +51,7 @@ ADMIN_PERMISSIONS = (
     "languages.write",
     "finance.read",
     "finance.write",
+    "proposals.report.generate",
 )
 
 
@@ -100,6 +101,7 @@ SEED_ROLES = (
             "dashboard.read",
             "documents.write",
             "proposals.read",
+            "proposals.report.generate",
         ),
     ),
     SeedRole(

@@ -71,6 +71,7 @@ const VISIBLE_PERMISSIONS = new Set([
 const EXTRA_PERMISSION_LABELS: Record<string, string> = {
 	'quotes.approve': 'Aprovação',
 	'quotes.reopen': 'Reabrir orçamentos',
+	'proposals.report.generate': 'Gerar relatório',
 	'tasks.write': 'Tarefas atribuídas por mim',
 	'tasks.assigned_to_me.read': 'Tarefas atribuídas a mim',
 };
@@ -87,9 +88,11 @@ function buildModules(permissions: Permission[]): PermissionModule[] {
 		const moduleKey =
 			permission.code === 'reports.productivity.read'
 				? 'reports.productivity'
-				: permission.code === 'tasks.assigned_to_me.read'
-					? 'tasks'
-					: key;
+				: permission.code === 'proposals.report.generate'
+					? 'proposals'
+					: permission.code === 'tasks.assigned_to_me.read'
+						? 'tasks'
+						: key;
 
 		const module = modules.get(moduleKey) ?? {
 			key: moduleKey,
@@ -208,7 +211,16 @@ export default function SetPermissionsPage() {
 												module={module}
 												profile={selectedRole}
 												disabled={!canEditRoles}
-												hideRead={module.key === 'tasks'}
+												hideRead={
+												module.key === 'tasks' || module.key === 'support'
+											}
+												writeLabel={
+													module.key === 'requests'
+														? 'Aprovação'
+														: module.key === 'support'
+															? 'Execução'
+															: undefined
+												}
 												onChange={(permissionIds) =>
 													setRolePermissionIds(selectedRole.id, permissionIds)
 												}
