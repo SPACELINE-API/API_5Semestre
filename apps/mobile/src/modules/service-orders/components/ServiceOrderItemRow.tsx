@@ -4,7 +4,8 @@ import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { InviteStatusBadge } from './InviteStatusBadge';
 import { openDocument } from '../../../shared/components/FilePreview';
 import { getTruncatedFileName } from '../../../shared/utils/file';
-import { formatPrice, formatDeadline } from '../utils/format';
+import { formatPrice } from '../utils/format';
+import { ItemDeadline } from './ItemDeadline';
 import { useItemInvites } from '../hooks/useItemInvites';
 import { usePermission } from '../../auth/hooks/usePermission';
 
@@ -13,6 +14,7 @@ type ServiceOrderItemRowProps = {
 	item: ServiceOrderItem;
 	translatorsById: Map<string, Translator>;
 	onInviteTranslators: (item: ServiceOrderItem) => void;
+	onEditDeadline?: (item: ServiceOrderItem) => void;
 	refreshToken: number;
 };
 
@@ -20,6 +22,7 @@ export function ServiceOrderItemRow({
 	item,
 	translatorsById,
 	onInviteTranslators,
+	onEditDeadline,
 	refreshToken,
 }: ServiceOrderItemRowProps) {
 	const themeColors = useThemeColors();
@@ -58,9 +61,11 @@ export function ServiceOrderItemRow({
 					<Text className="font-inter text-foreground-subtle text-xs">
 						Prazo
 					</Text>
-					<Text className="font-inter font-medium text-foreground text-sm">
-						{formatDeadline(item.deadline)}
-					</Text>
+					<ItemDeadline
+						item={item}
+						onEdit={onEditDeadline}
+						textClassName="font-inter font-medium text-foreground text-sm"
+					/>
 				</View>
 
 				<View className="gap-0.5">

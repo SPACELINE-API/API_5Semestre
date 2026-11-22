@@ -13,6 +13,7 @@ type DateFieldProps = {
 	onChangeText: (value: string) => void;
 	placeholder?: string;
 	minDate?: string;
+	maxDate?: string;
 	isOpen?: boolean;
 	onOpenChange?: (open: boolean) => void;
 };
@@ -60,6 +61,7 @@ function getCalendarDays(month: Date) {
 function CalendarPopover({
 	value,
 	minDate,
+	maxDate,
 	onSelect,
 	onClear,
 	onClose,
@@ -67,6 +69,7 @@ function CalendarPopover({
 }: {
 	value: string;
 	minDate?: string;
+	maxDate?: string;
 	onSelect: (value: string) => void;
 	onClear: () => void;
 	onClose: () => void;
@@ -94,7 +97,18 @@ function CalendarPopover({
 	const previousMonthDisabled = Boolean(
 		minimum && getMonthIndex(previousMonth) < getMonthIndex(minimum),
 	);
-	const todayDisabled = Boolean(minDate && todayValue < minDate);
+	const maximum = maxDate ? parseDateValue(maxDate) : undefined;
+	const nextMonth = new Date(
+		visibleMonth.getFullYear(),
+		visibleMonth.getMonth() + 1,
+		1,
+	);
+	const nextMonthDisabled = Boolean(
+		maximum && getMonthIndex(nextMonth) > getMonthIndex(maximum),
+	);
+	const todayDisabled = Boolean(
+		(minDate && todayValue < minDate) || (maxDate && todayValue > maxDate),
+	);
 
 	return (
 		<div
@@ -133,16 +147,9 @@ function CalendarPopover({
 					<button
 						type="button"
 						aria-label="Próximo mês"
-						onClick={() =>
-							setVisibleMonth(
-								new Date(
-									visibleMonth.getFullYear(),
-									visibleMonth.getMonth() + 1,
-									1,
-								),
-							)
-						}
-						className="flex h-5 w-7 items-center justify-center rounded-lg text-foreground-secondary transition-colors hover:bg-primary-soft hover:text-primary-text"
+						disabled={nextMonthDisabled}
+						onClick={() => setVisibleMonth(nextMonth)}
+						className={`flex h-5 w-7 items-center justify-center rounded-lg text-foreground-secondary transition-colors hover:bg-primary-soft hover:text-primary-text ${nextMonthDisabled ? 'cursor-not-allowed opacity-35 hover:bg-transparent hover:text-foreground-secondary' : ''}`}
 					>
 						<ChevronRight size={17} />
 					</button>
@@ -161,7 +168,9 @@ function CalendarPopover({
 				{days.map((day) => {
 					const dayValue = toDateInputValue(day);
 					const isCurrentMonth = day.getMonth() === visibleMonth.getMonth();
-					const isDisabled = Boolean(minDate && dayValue < minDate);
+					const isDisabled = Boolean(
+						(minDate && dayValue < minDate) || (maxDate && dayValue > maxDate),
+					);
 					const isSelected = value === dayValue;
 					const isToday = todayValue === dayValue;
 					const dayClasses = isDisabled
@@ -221,6 +230,7 @@ export function DateField({
 	onChangeText,
 	placeholder,
 	minDate,
+	maxDate,
 	isOpen,
 	onOpenChange,
 }: DateFieldProps) {
@@ -230,6 +240,7 @@ export function DateField({
 	const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0 });
 	const isPickerVisible = isOpen ?? internalPickerVisible;
 	const minimumDate = minDate ? parseDateValue(minDate) : undefined;
+	const maximumDate = maxDate ? parseDateValue(maxDate) : undefined;
 
 	function updatePickerVisibility(visible: boolean) {
 		if (isOpen === undefined) setInternalPickerVisible(visible);
@@ -309,6 +320,7 @@ export function DateField({
 							<CalendarPopover
 								value={value}
 								minDate={minDate}
+								maxDate={maxDate}
 								position={calendarPosition}
 								onSelect={(selectedValue) => {
 									onChangeText(selectedValue);
@@ -336,6 +348,7 @@ export function DateField({
 		if (selectedDate) {
 			const selectedValue = toDateInputValue(selectedDate);
 			if (minDate && selectedValue < minDate) return;
+			if (maxDate && selectedValue > maxDate) return;
 			onChangeText(selectedValue);
 		}
 	}
@@ -369,6 +382,7 @@ export function DateField({
 					mode="date"
 					display={Platform.OS === 'ios' ? 'spinner' : 'default'}
 					minimumDate={minimumDate}
+					maximumDate={maximumDate}
 					onChange={handleChange}
 				/>
 			)}

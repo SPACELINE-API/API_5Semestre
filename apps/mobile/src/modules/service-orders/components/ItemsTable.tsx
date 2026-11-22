@@ -11,7 +11,8 @@ import { StatusBadge } from './StatusBadge';
 import { openDocument } from '../../../shared/components/FilePreview';
 import { getTruncatedFileName } from '../../../shared/utils/file';
 import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
-import { formatPrice, formatDeadline } from '../utils/format';
+import { formatPrice } from '../utils/format';
+import { ItemDeadline } from './ItemDeadline';
 import { usePermission } from '../../auth/hooks/usePermission';
 
 import { useThemeColors } from '../../../shared/theme/ThemeProvider';
@@ -21,6 +22,7 @@ type ItemsTableProps = {
 	onAddItem?: () => void;
 	onEditItem?: (item: ServiceOrderItem) => void;
 	onDeleteItem?: (item: ServiceOrderItem) => void;
+	onEditDeadline?: (item: ServiceOrderItem) => void;
 	isInServiceOrder?: boolean;
 	layout?: 'table' | 'cards';
 };
@@ -84,12 +86,14 @@ function ItemCard({
 	translatorName,
 	onEdit,
 	onDelete,
+	onEditDeadline,
 	isInServiceOrder = false,
 }: {
 	item: ServiceOrderItem;
 	translatorName: string;
 	onEdit: () => void;
 	onDelete: () => void;
+	onEditDeadline?: (item: ServiceOrderItem) => void;
 	isInServiceOrder?: boolean;
 }) {
 	const themeColors = useThemeColors();
@@ -128,9 +132,11 @@ function ItemCard({
 						<Text className="font-inter text-foreground-subtle text-xs">
 							Prazo
 						</Text>
-						<Text className="font-inter text-foreground-secondary text-sm">
-							{formatDeadline(item.deadline)}
-						</Text>
+						<ItemDeadline
+							item={item}
+							onEdit={onEditDeadline}
+							textClassName="font-inter text-foreground-secondary text-sm"
+						/>
 					</View>
 					<View className="min-w-0 flex-1 gap-1">
 						<Text className="font-inter text-foreground-subtle text-xs">
@@ -207,6 +213,7 @@ export function ItemsTable({
 	onAddItem,
 	onEditItem,
 	onDeleteItem,
+	onEditDeadline,
 	isInServiceOrder = false,
 	layout = 'table',
 }: ItemsTableProps) {
@@ -261,6 +268,7 @@ export function ItemsTable({
 							translatorName={translator?.name ?? 'Não atribuído'}
 							onEdit={() => onEditItem!(item)}
 							onDelete={() => onDeleteItem!(item)}
+							onEditDeadline={onEditDeadline}
 							isInServiceOrder={isInServiceOrder}
 						/>
 					);
@@ -318,9 +326,11 @@ export function ItemsTable({
 							</View>
 
 							<View className="md:w-[10%]">
-								<Text className="font-inter text-foreground-secondary text-sm">
-									{formatDeadline(item.deadline)}
-								</Text>
+								<ItemDeadline
+									item={item}
+									onEdit={onEditDeadline}
+									textClassName="font-inter text-foreground-secondary text-sm"
+								/>
 							</View>
 
 							<View className="md:w-[12%]">
