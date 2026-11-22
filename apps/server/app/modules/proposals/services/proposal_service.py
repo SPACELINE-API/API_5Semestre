@@ -108,7 +108,16 @@ class ProposalService:
                 .distinct()
             )
         )
-        return sorted({value for value in (*company_names, *legacy_enterprises) if value})
+        enterprises_by_normalized_name: dict[str, str] = {}
+        for value in (*company_names, *legacy_enterprises):
+            if not value:
+                continue
+            normalized_value = " ".join(value.split())
+            normalized_key = normalized_value.casefold()
+            if normalized_key:
+                enterprises_by_normalized_name.setdefault(normalized_key, normalized_value)
+
+        return sorted(enterprises_by_normalized_name.values(), key=str.casefold)
 
     @staticmethod
     def _build_translation_service(quote: Quote) -> str | None:
