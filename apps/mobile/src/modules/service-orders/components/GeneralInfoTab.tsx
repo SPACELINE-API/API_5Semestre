@@ -9,7 +9,11 @@ import { StatusBadge } from './StatusBadge';
 import { InfoField } from './InfoField';
 import { FormField } from '../../clients/components/FormField';
 import { DateField } from '../../../shared/components/DateField';
-import { formatDate, formatDateInputValue } from '../utils/format';
+import {
+	formatDate,
+	formatDateInputValue,
+	formatDeadline,
+} from '../utils/format';
 import { usePermission } from '../../auth/hooks/usePermission';
 
 function getTodayInputValue() {
@@ -123,7 +127,7 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 						/>
 						<InfoField
 							label="Prazo"
-							value={formatDate(serviceOrder.deadline)}
+							value={formatDeadline(serviceOrder.deadline)}
 						/>
 						<InfoField
 							label="Itens"

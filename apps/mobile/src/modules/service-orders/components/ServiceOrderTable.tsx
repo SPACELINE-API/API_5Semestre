@@ -3,7 +3,7 @@ import { ChevronRight, ClipboardList, Check } from 'lucide-react-native';
 import type { Company } from '../../clients/types/company';
 import type { ServiceOrder } from '../types/serviceOrder';
 import { StatusBadge } from './StatusBadge';
-import { formatDate } from '../utils/format';
+import { formatDeadline } from '../utils/format';
 
 type ServiceOrderTableProps = {
 	serviceOrders: ServiceOrder[];
@@ -143,7 +143,7 @@ export function ServiceOrderTable({
 
 								<View className="hidden w-[14%] min-w-0 flex-none pr-3 md:flex">
 									<Text className="font-inter text-gray-600 text-sm">
-										{formatDate(serviceOrder.deadline)}
+										{formatDeadline(serviceOrder.deadline)}
 									</Text>
 								</View>
 

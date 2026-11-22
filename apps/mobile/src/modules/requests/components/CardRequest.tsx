@@ -2,6 +2,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { usePermission } from '@/modules/auth/hooks/usePermission';
 
+import { formatDateOnly } from '../../../shared/utils/dateOnly';
 export interface CardRequestProps {
 	id: number | string;
 	customer_name: string;
@@ -15,18 +16,7 @@ export interface CardRequestProps {
 }
 
 function formatRequestDate(request_date: string): string {
-	const date = new Date(request_date);
-
-	if (Number.isNaN(date.getTime())) {
-		return request_date;
-	}
-
-	const formatted = date.toLocaleDateString('pt-BR', {
-		day: '2-digit',
-		month: 'long',
-		year: 'numeric',
-	});
-
+	const formatted = formatDateOnly(request_date, 'long');
 	return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 

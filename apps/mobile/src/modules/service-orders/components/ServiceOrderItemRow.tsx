@@ -4,7 +4,7 @@ import type { ServiceOrderItem, Translator } from '../types/serviceOrder';
 import { InviteStatusBadge } from './InviteStatusBadge';
 import { openDocument } from '../../../shared/components/FilePreview';
 import { getTruncatedFileName } from '../../../shared/utils/file';
-import { formatDate, formatPrice } from '../utils/format';
+import { formatPrice, formatDeadline } from '../utils/format';
 import { useItemInvites } from '../hooks/useItemInvites';
 import { usePermission } from '../../auth/hooks/usePermission';
 
@@ -53,7 +53,7 @@ export function ServiceOrderItemRow({
 				<View className="gap-0.5">
 					<Text className="font-inter text-gray-400 text-xs">Prazo</Text>
 					<Text className="font-inter font-medium text-gray-800 text-sm">
-						{formatDate(item.deadline)}
+						{formatDeadline(item.deadline)}
 					</Text>
 				</View>
 

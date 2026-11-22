@@ -13,7 +13,7 @@ import { useInviteDetails } from '../hooks/useInviteDetails';
 import { InviteStatusBadge } from '../components/InviteStatusBadge';
 import { InviteItemProgress } from '../components/InviteItemProgress';
 import { FilePreview } from '../../../shared/components/FilePreview';
-import { formatDate, formatPrice } from '../utils/format';
+import { formatDeadline, formatPrice } from '../utils/format';
 import { acceptInvite, declineInvite } from '../services/inviteService';
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
@@ -169,7 +169,7 @@ export function InviteDetailsPage({ id }: InviteDetailsPageProps) {
 											Prazo
 										</Text>
 										<Text className="font-inter font-medium text-gray-800 text-sm">
-											{formatDate(item.deadline)}
+											{formatDeadline(item.deadline)}
 										</Text>
 									</View>
 

@@ -5,6 +5,7 @@ import { FileText } from 'lucide-react-native';
 import type { RequestItem } from '../../requests/services/requests';
 import { openRequestDocument } from '../../requests/services/requests';
 
+import { formatDateOnly } from '../../../shared/utils/dateOnly';
 function formatDate(value?: string) {
 	if (!value) return '—';
 	const date = new Date(value);
@@ -95,7 +96,7 @@ export function RequestSummarySections({ request }: { request: RequestItem }) {
 					<InfoField label="E-mail" value={request.email} />
 					<InfoField
 						label="Data da solicitação"
-						value={formatDate(request.request_date)}
+						value={formatDateOnly(request.request_date, 'long') || '—'}
 					/>
 					{request.approved_at && (
 						<InfoField

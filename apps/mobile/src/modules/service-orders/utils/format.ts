@@ -1,3 +1,5 @@
+import { formatDateOnly } from '../../../shared/utils/dateOnly';
+
 export function formatDate(value: string | null): string {
 	if (!value) return 'Não definido';
 
@@ -6,6 +8,11 @@ export function formatDate(value: string | null): string {
 		month: '2-digit',
 		year: 'numeric',
 	});
+}
+
+export function formatDeadline(value: string | null): string {
+	if (!value) return 'Não definido';
+	return formatDateOnly(value);
 }
 
 export function formatDateInputValue(value: string | null): string {

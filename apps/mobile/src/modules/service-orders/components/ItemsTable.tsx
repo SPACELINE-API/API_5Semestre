@@ -11,7 +11,7 @@ import { StatusBadge } from './StatusBadge';
 import { openDocument } from '../../../shared/components/FilePreview';
 import { getTruncatedFileName } from '../../../shared/utils/file';
 import { useIsDesktop } from '../../../shared/hooks/useIsDesktop';
-import { formatDate, formatPrice } from '../utils/format';
+import { formatPrice, formatDeadline } from '../utils/format';
 import { usePermission } from '../../auth/hooks/usePermission';
 
 type ItemsTableProps = {
@@ -120,7 +120,7 @@ function ItemCard({
 					<View className="min-w-0 flex-1 gap-1">
 						<Text className="font-inter text-gray-400 text-xs">Prazo</Text>
 						<Text className="font-inter text-gray-700 text-sm">
-							{formatDate(item.deadline)}
+							{formatDeadline(item.deadline)}
 						</Text>
 					</View>
 					<View className="min-w-0 flex-1 gap-1">
@@ -307,7 +307,7 @@ export function ItemsTable({
 
 							<View className="md:w-[10%]">
 								<Text className="font-inter text-gray-600 text-sm">
-									{formatDate(item.deadline)}
+									{formatDeadline(item.deadline)}
 								</Text>
 							</View>
 

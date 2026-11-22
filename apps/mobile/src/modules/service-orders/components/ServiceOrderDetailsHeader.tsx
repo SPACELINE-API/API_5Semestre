@@ -7,7 +7,7 @@ import {
 	View,
 } from 'react-native';
 import { StatusBadge } from './StatusBadge';
-import { formatDate } from '../utils/format';
+import { formatDeadline } from '../utils/format';
 import type { ServiceOrder } from '../types/serviceOrder';
 import { usePermission } from '../../auth/hooks/usePermission';
 
@@ -61,7 +61,7 @@ export function ServiceOrderDetailsHeader({
 					<View className="gap-0.5">
 						<Text className="font-inter text-gray-400 text-xs">Prazo</Text>
 						<Text className="font-inter font-medium text-gray-800 text-sm">
-							{formatDate(serviceOrder.deadline)}
+							{formatDeadline(serviceOrder.deadline)}
 						</Text>
 					</View>
 					<View className="gap-0.5">
