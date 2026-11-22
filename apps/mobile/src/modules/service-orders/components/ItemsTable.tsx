@@ -290,10 +290,10 @@ export function ItemsTable({
 				<HeaderCell label="Idiomas" width="16%" />
 				<HeaderCell label="Documento" width="14%" />
 				<HeaderCell label="Preço" width="10%" />
-				<HeaderCell label="Prazo" width="10%" />
+				<HeaderCell label="Prazo" width="14%" />
 				<HeaderCell label="Status" width="12%" />
 				<HeaderCell label="Tradutor" width="14%" />
-				<HeaderCell label="Arquivo" width="14%" />
+				<HeaderCell label="Arquivo" width="10%" />
 				{!isInServiceOrder && <HeaderCell label="Ações" width="10%" />}
 			</View>
 
@@ -325,7 +325,7 @@ export function ItemsTable({
 								</Text>
 							</View>
 
-							<View className="md:w-[10%]">
+							<View className="md:w-[14%]">
 								<ItemDeadline
 									item={item}
 									onEdit={onEditDeadline}
@@ -343,7 +343,7 @@ export function ItemsTable({
 								</Text>
 							</View>
 
-							<View className="min-w-0 md:w-[14%]">
+							<View className="min-w-0 md:w-[10%]">
 								{item.file_url ? (
 									<TouchableOpacity
 										accessibilityRole="link"

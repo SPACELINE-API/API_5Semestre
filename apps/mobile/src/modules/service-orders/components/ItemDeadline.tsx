@@ -29,10 +29,13 @@ export function ItemDeadline({
 				accessibilityLabel={`Definir prazo do documento ${label}`}
 				onPress={() => onEdit?.(item)}
 				activeOpacity={0.7}
-				className="flex-row items-center gap-1.5 self-start rounded-lg border border-primary/30 bg-primary-soft px-2.5 py-1.5"
+				className="shrink-0 flex-row items-center gap-1.5 self-start rounded-lg border border-primary/30 bg-primary-soft px-2.5 py-1.5"
 			>
 				<CalendarPlus size={13} color={themeColors.primaryText} />
-				<Text className="font-inter font-medium text-primary-text text-xs">
+				<Text
+					numberOfLines={1}
+					className="font-inter font-medium text-primary-text text-xs"
+				>
 					Definir prazo
 				</Text>
 			</TouchableOpacity>
