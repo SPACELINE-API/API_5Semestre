@@ -39,8 +39,8 @@ export function SendQuoteDialog({
 
 					<View className="gap-2">
 						<Text className="font-inter text-sm leading-5 text-foreground-secondary">
-							O cliente vai receber um e-mail com os itens, os valores e um link
-							para aprovar ou reprovar
+							O cliente vai receber um e-mail com os documentos, os valores e um
+							link para aprovar ou reprovar
 							{validUntil ? ` até ${validUntil}` : ''}.
 						</Text>
 						{isResend ? (

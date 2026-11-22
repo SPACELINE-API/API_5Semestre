@@ -55,7 +55,7 @@ export function QuoteGenerationPanel({
 						Revisão do orçamento
 					</Text>
 					<Text className="mt-1 font-inter text-sm text-foreground-muted">
-						Os dados aprovados serão usados para criar o orçamento. Itens e
+						Os dados aprovados serão usados para criar o orçamento. Documentos e
 						documentos poderão ser incluídos depois.
 					</Text>
 				</View>

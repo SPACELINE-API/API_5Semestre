@@ -134,7 +134,7 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 							value={formatDeadline(serviceOrder.deadline)}
 						/>
 						<InfoField
-							label="Itens"
+							label="Documentos"
 							value={String(serviceOrder.items.length)}
 						/>
 					</View>
@@ -225,7 +225,7 @@ export function GeneralInfoTab({ serviceOrder, onSave }: GeneralInfoTabProps) {
 								) : null}
 							</View>
 							<InfoField
-								label="Itens"
+								label="Documentos"
 								value={String(serviceOrder.items.length)}
 							/>
 						</View>

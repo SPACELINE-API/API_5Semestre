@@ -235,7 +235,7 @@ export function ServiceOrderDetailsPage({
 
 											{serviceOrder.items.length === 0 && (
 												<Text className="font-inter text-foreground-subtle text-sm">
-													Esta ordem de serviço não possui itens.
+													Esta ordem de serviço não possui documentos.
 												</Text>
 											)}
 										</View>
@@ -451,7 +451,7 @@ export function ServiceOrderDetailsPage({
 
 								{serviceOrder.items.length === 0 && (
 									<Text className="font-inter text-foreground-subtle text-sm">
-										Esta ordem de serviço não possui itens.
+										Esta ordem de serviço não possui documentos.
 									</Text>
 								)}
 							</View>

@@ -57,7 +57,7 @@ CSV_HEADERS = (
     "Total de propostas",
     "Propostas por status",
     "Valor estimado",
-    "Valor dos itens de tradução",
+    "Valor dos documentos de tradução",
     "Valor dos serviços adicionais",
     "Datas de criação das propostas",
     "Datas de aprovação das propostas",

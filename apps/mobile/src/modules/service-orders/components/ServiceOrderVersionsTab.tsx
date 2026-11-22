@@ -186,7 +186,7 @@ export function ServiceOrderVersionsTab({
 						</View>
 					) : version.origin === 'quote_reapproval' ? (
 						<Text className="font-inter text-xs text-foreground-muted">
-							Nenhum item foi alterado nesta versão.
+							Nenhum documento foi alterado nesta versão.
 						</Text>
 					) : null}
 				</View>

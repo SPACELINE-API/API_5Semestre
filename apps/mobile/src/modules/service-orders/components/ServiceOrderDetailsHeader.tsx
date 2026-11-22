@@ -160,7 +160,7 @@ const detailTabOptions: { key: ServiceOrderDetailTab; label: string }[] = [
 	{ key: 'equipe', label: 'Equipe' },
 	{ key: 'tradutores', label: 'Tradutores' },
 	{ key: 'cliente', label: 'Cliente' },
-	{ key: 'itens', label: 'Itens' },
+	{ key: 'itens', label: 'Documentos' },
 	{ key: 'adicionais', label: 'Serviços adicionais' },
 	{ key: 'revisao', label: 'Revisão' },
 	{ key: 'arquivos', label: 'Arquivos' },

@@ -121,7 +121,7 @@ class ServiceOrderService:
         if not quote.items:
             raise HTTPException(
                 status_code=422,
-                detail="Orçamento não possui itens de tradução",
+                detail="Orçamento não possui documentos para tradução",
             )
 
         company = self.db.query(Company).filter(Company.id == data.company_id).first()
@@ -224,14 +224,14 @@ class ServiceOrderService:
             if not service_order.items:
                 raise HTTPException(
                     status_code=409,
-                    detail="Esta ordem de serviço não possui itens.",
+                    detail="Esta ordem de serviço não possui documentos.",
                 )
             if any(item.translator_id is None for item in service_order.items):
                 raise HTTPException(
                     status_code=409,
                     detail=(
                         "Só é possível enviar arquivos de entrega quando todos os "
-                        "itens tiverem um tradutor com convite aceito."
+                        "documentos tiverem um tradutor com convite aceito."
                     ),
                 )
 

@@ -211,7 +211,7 @@ export function TranslatorsInviteTab({
 	if (items.length === 0) {
 		return (
 			<Text className="font-inter text-foreground-subtle text-sm">
-				Esta ordem de serviço não possui itens.
+				Esta ordem de serviço não possui documentos.
 			</Text>
 		);
 	}

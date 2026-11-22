@@ -209,7 +209,7 @@ export function NewQuoteModal({
 						<View>
 							<View className="mb-4 flex-row items-center justify-between">
 								<Text className="font-inter-bold text-sm text-foreground">
-									Itens do orçamento
+									Documentos do orçamento
 								</Text>
 								<TouchableOpacity
 									accessibilityRole="button"
@@ -217,7 +217,7 @@ export function NewQuoteModal({
 									className="items-center rounded-full border border-primary/30 bg-surface px-4 py-2"
 								>
 									<Text className="font-inter-medium text-xs text-primary-text">
-										+ Adicionar item
+										+ Adicionar documento
 									</Text>
 								</TouchableOpacity>
 							</View>
@@ -231,7 +231,7 @@ export function NewQuoteModal({
 									>
 										{items.length > 1 && (
 											<Text className="font-inter-medium text-xs text-foreground-muted">
-												Item {index + 1}
+												Documento {index + 1}
 											</Text>
 										)}
 										{items.length > 1 && (
@@ -412,7 +412,7 @@ export function NewQuoteModal({
 								))}
 							</View>
 							<Text className="mt-4 font-inter text-xs text-foreground-subtle">
-								Informe o valor manualmente para cada item do orçamento.
+								Informe o valor manualmente para cada documento do orçamento.
 							</Text>
 						</View>
 					</ScrollView>

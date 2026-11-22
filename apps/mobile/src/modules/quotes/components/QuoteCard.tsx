@@ -679,7 +679,7 @@ export function QuoteCard({
 			.catch(() => {
 				if (active)
 					setServiceOrderItemsError(
-						'Não foi possível carregar os itens do orçamento.',
+						'Não foi possível carregar os documentos do orçamento.',
 					);
 			})
 			.finally(() => {
@@ -943,7 +943,7 @@ export function QuoteCard({
 			const failedItem = itemResults.find((result) => !result.success);
 			if (failedItem && !failedItem.success) {
 				setSaveError(
-					failedItem.detail ?? 'Não foi possível salvar um dos itens.',
+					failedItem.detail ?? 'Não foi possível salvar um dos documentos.',
 				);
 				return;
 			}
@@ -1550,7 +1550,7 @@ export function QuoteCard({
 								>
 									<Plus size={15} color={themeColors.foregroundSecondary} />
 									<Text className="font-inter-medium text-sm text-foreground-secondary">
-										Adicionar item
+										Adicionar documento
 									</Text>
 								</TouchableOpacity>
 							</View>
@@ -1728,11 +1728,11 @@ export function QuoteCard({
 					{quote.service_order_id ? (
 						<View>
 							<SectionTitle>
-								Itens da ordem de serviço ({serviceOrderItems.length})
+								Documentos da ordem de serviço ({serviceOrderItems.length})
 							</SectionTitle>
 							{serviceOrderItemsLoading ? (
 								<Text className="font-inter text-sm text-foreground-muted">
-									Carregando itens da ordem de serviço...
+									Carregando documentos da ordem de serviço...
 								</Text>
 							) : serviceOrderItemsError ? (
 								<Text className="font-inter text-sm text-danger">

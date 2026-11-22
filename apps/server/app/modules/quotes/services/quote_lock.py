@@ -25,8 +25,8 @@ QUOTE_LOCK_REASONS = {
 }
 
 SERVICE_ORDER_ITEMS_LOCKED_MESSAGE = (
-    "Os itens desta ordem de serviço vêm do orçamento vinculado e não podem ser alterados "
-    "por aqui. Reabra o orçamento para alterar os itens."
+    "Os documentos desta ordem de serviço vêm do orçamento vinculado e não podem ser alterados "
+    "por aqui. Reabra o orçamento para alterar os documentos."
 )
 
 

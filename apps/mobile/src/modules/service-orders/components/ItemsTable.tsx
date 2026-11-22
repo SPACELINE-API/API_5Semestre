@@ -218,7 +218,7 @@ export function ItemsTable({
 		return (
 			<View className="gap-3">
 				<Text className="font-inter text-sm text-foreground-muted">
-					Este orçamento ainda não possui itens.
+					Este orçamento ainda não possui documentos.
 				</Text>
 				{!isInServiceOrder && (
 					<AddItemButton onPress={onAddItem!} layout={layout} />

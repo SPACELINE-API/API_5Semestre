@@ -182,7 +182,7 @@ class ServiceOrderDeliveryService:
         if not service_order.items:
             raise HTTPException(
                 status_code=409,
-                detail="A ordem de serviço não possui itens para concluir.",
+                detail="A ordem de serviço não possui documentos para concluir.",
             )
         if not self._complete_order_if_ready(service_order):
             raise HTTPException(

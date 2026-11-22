@@ -415,7 +415,7 @@ function QuoteReceiptModal({
 							</View>
 						</ReceiptSection>
 
-						<ReceiptSection title={`Itens (${quote.items.length})`}>
+						<ReceiptSection title={`Documentos (${quote.items.length})`}>
 							{quote.items.length ? (
 								quote.items.map((item) => (
 									<View
@@ -448,7 +448,7 @@ function QuoteReceiptModal({
 								))
 							) : (
 								<Text className="font-inter text-sm text-foreground-muted">
-									Nenhum item registrado.
+									Nenhum documento registrado.
 								</Text>
 							)}
 						</ReceiptSection>
@@ -480,7 +480,7 @@ function QuoteReceiptModal({
 						<ReceiptSection title="Valores">
 							<View className="gap-2 rounded-lg bg-surface-subtle p-3">
 								<TotalRow
-									label={`Subtotal de itens (${quote.items.length})`}
+									label={`Subtotal de documentos (${quote.items.length})`}
 									value={formatPrice(itemsTotal)}
 								/>
 								<TotalRow
