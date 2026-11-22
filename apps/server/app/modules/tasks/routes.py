@@ -9,8 +9,8 @@ from app.modules.auth.services.roles_service import has_permission
 from app.modules.tasks.dependencies import (
     require_assigned_to_me_viewer,
     require_task_reviewer,
-    require_task_writer,
     require_task_viewer,
+    require_task_writer,
 )
 from app.modules.tasks.models.task import TaskStatus
 from app.modules.tasks.schemas.task import (
