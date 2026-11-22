@@ -18,7 +18,7 @@ type ChatMessageBubbleProps = {
 function buildMarkdownStyles(themeColors: ThemeColors) {
 	return {
 		body: {
-			maxWidth: '100%',
+			maxWidth: '100%' as const,
 			flexShrink: 1,
 			fontSize: 15,
 			lineHeight: 23,
