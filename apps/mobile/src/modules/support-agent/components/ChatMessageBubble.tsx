@@ -17,7 +17,13 @@ type ChatMessageBubbleProps = {
 
 function buildMarkdownStyles(themeColors: ThemeColors) {
 	return {
-		body: { fontSize: 15, lineHeight: 23, color: themeColors.foreground },
+		body: {
+			maxWidth: '100%' as const,
+			flexShrink: 1,
+			fontSize: 15,
+			lineHeight: 23,
+			color: themeColors.foreground,
+		},
 		paragraph: { marginTop: 0, marginBottom: 8 },
 		strong: { fontWeight: '700' as const, color: themeColors.foreground },
 		em: { fontStyle: 'italic' as const },
@@ -181,9 +187,11 @@ export function ChatMessageBubble({
 					<Bot color={themeColors.primaryForeground} size={20} />
 				)}
 			</View>
-			<View className={`flex-1 ${isUser ? 'items-end' : 'items-start'}`}>
+			<View
+				className={`min-w-0 flex-1 ${isUser ? 'items-end' : 'items-start'}`}
+			>
 				<View
-					className={`rounded-2xl px-4 py-3 md:max-w-xl md:px-5 md:py-4 ${
+					className={`max-w-full rounded-2xl px-4 py-3 md:max-w-xl md:px-5 md:py-4 ${
 						isUser
 							? 'rounded-tr-sm bg-primary'
 							: 'rounded-tl-sm bg-primary-soft'

@@ -41,6 +41,7 @@ function translator(
 		name,
 		email: `${id}@example.com`,
 		phone: '11988887777',
+		photo_url: null,
 		is_active: true,
 		created_at: '2026-11-10T13:00:00Z',
 		updated_at: '2026-11-10T13:00:00Z',

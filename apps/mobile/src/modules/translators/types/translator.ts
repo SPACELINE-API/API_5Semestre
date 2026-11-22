@@ -44,6 +44,7 @@ export type Translator = {
 	name: string;
 	email: string;
 	phone: string;
+	photo_url: string | null;
 	is_active: boolean;
 	created_at: string;
 	updated_at: string;

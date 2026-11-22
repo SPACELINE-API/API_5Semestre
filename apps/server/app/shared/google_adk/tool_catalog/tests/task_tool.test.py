@@ -7,7 +7,7 @@ from app.modules.auth.models.user import User
 from app.modules.tasks.models.task import Task
 from app.modules.tasks.models.task_proposal import TaskProposal, TaskProposalStatus
 from app.shared.google_adk.tool_catalog import Executor
-from app.shared.google_adk.tool_catalog.catalogo_tarefas import criar_catalogo_tarefas
+from app.shared.google_adk.tool_catalog.registry import Catalogo
 from app.shared.google_adk.tool_catalog.tools import tarefas as toolset
 
 
@@ -17,6 +17,12 @@ async def approve_guardrail(*_args):
 
 def run(executor, params, user):
     return asyncio.run(executor.executar("criar_tarefa", params, user))
+
+
+def translator_task_executor():
+    catalog = Catalogo()
+    catalog.registrar(toolset.criar_tarefa_spec())
+    return Executor(catalog, approve_guardrail)
 
 
 def add_user(db, role="admin"):
@@ -66,7 +72,7 @@ def test_task_tool_returns_persisted_proposal_without_creating_task(
     monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
 
     result = run(
-        Executor(criar_catalogo_tarefas(), approve_guardrail),
+        translator_task_executor(),
         {
             "description": "Traduzir contrato",
             "translator_ids": [str(translator.id)],
@@ -92,7 +98,7 @@ def test_task_tool_creates_only_with_matching_proposal_token(isolated_db_session
     translator = add_translator(db)
     db.flush()
     monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
-    executor = Executor(criar_catalogo_tarefas(), approve_guardrail)
+    executor = translator_task_executor()
     payload = {
         "description": "Traduzir contrato",
         "translator_ids": [str(translator.id)],
@@ -124,7 +130,7 @@ def test_task_tool_rejects_boolean_confirmation_without_creating_task(
     monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
 
     result = run(
-        Executor(criar_catalogo_tarefas(), approve_guardrail),
+        translator_task_executor(),
         {
             "description": "Traduzir contrato",
             "translator_ids": [str(translator.id)],
@@ -149,7 +155,7 @@ def test_task_tool_changed_payload_and_wrong_user_token_do_not_create_task(
     translator = add_translator(db)
     db.flush()
     monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
-    executor = Executor(criar_catalogo_tarefas(), approve_guardrail)
+    executor = translator_task_executor()
     payload = {
         "description": "Traduzir contrato",
         "translator_ids": [str(translator.id)],
@@ -182,7 +188,7 @@ def test_task_tool_consumed_token_cannot_create_task_again(isolated_db_session, 
     translator = add_translator(db)
     db.flush()
     monkeypatch.setattr(toolset, "get_session_factory", lambda: lambda: db)
-    executor = Executor(criar_catalogo_tarefas(), approve_guardrail)
+    executor = translator_task_executor()
     payload = {
         "description": "Traduzir contrato",
         "translator_ids": [str(translator.id)],
