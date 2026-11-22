@@ -8,12 +8,12 @@ export function SearchTextInput({
 }: TextInputProps & { className?: string }) {
 	const showPlaceholder = Boolean(placeholder) && !value;
 	return (
-		<View className={className}>
+		<View className={`justify-center ${className ?? ''}`}>
 			<TextInput
 				{...props}
 				value={value}
 				numberOfLines={1}
-				className="h-full border-0 p-0 font-inter text-foreground text-sm outline-none"
+				className="border-0 px-0 py-2 font-inter text-foreground text-sm outline-none"
 			/>
 			{showPlaceholder ? (
 				<View
