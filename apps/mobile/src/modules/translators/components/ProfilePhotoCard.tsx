@@ -19,6 +19,7 @@ import {
 	validateProfileFile,
 } from '../utils/profileFiles';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ProfilePhotoCardProps = {
 	profile: TranslatorProfile;
 	onChange: (profile: TranslatorProfile) => void;
@@ -39,6 +40,7 @@ export function ProfilePhotoCard({
 	onChange,
 	onSuccess,
 }: ProfilePhotoCardProps) {
+	const themeColors = useThemeColors();
 	const [isUploading, setIsUploading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const photoUrl = profile.photo_url
@@ -77,9 +79,9 @@ export function ProfilePhotoCard({
 	}
 
 	return (
-		<View className="gap-4 rounded-xl border border-gray-100 p-5">
+		<View className="gap-4 rounded-xl border border-border-subtle p-5">
 			<View className="flex-row items-center gap-4">
-				<View className="h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-blue-50">
+				<View className="h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-primary-soft">
 					{photoUrl ? (
 						<Image
 							source={{ uri: photoUrl }}
@@ -87,17 +89,17 @@ export function ProfilePhotoCard({
 							className="h-20 w-20"
 						/>
 					) : (
-						<Text className="font-inter font-bold text-blue-700 text-xl">
+						<Text className="font-inter font-bold text-primary-text text-xl">
 							{initialsOf(profile.name)}
 						</Text>
 					)}
 				</View>
 
 				<View className="flex-1 gap-2">
-					<Text className="font-inter font-semibold text-gray-900 text-sm">
+					<Text className="font-inter font-semibold text-foreground text-sm">
 						Foto do perfil
 					</Text>
-					<Text className="font-inter text-gray-500 text-xs">
+					<Text className="font-inter text-foreground-muted text-xs">
 						{PHOTO_FILE_RULES.formatsLabel}, até{' '}
 						{formatFileSize(PHOTO_FILE_RULES.maxBytes)}.
 					</Text>
@@ -106,14 +108,14 @@ export function ProfilePhotoCard({
 						disabled={isUploading}
 						activeOpacity={0.7}
 						accessibilityRole="button"
-						className={`flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${isUploading ? 'opacity-60' : ''}`}
+						className={`flex-row items-center gap-1.5 self-start rounded-lg border border-border-strong px-3 py-2 ${isUploading ? 'opacity-60' : ''}`}
 					>
 						{isUploading ? (
-							<ActivityIndicator size="small" color="#353535" />
+							<ActivityIndicator size="small" color={themeColors.foreground} />
 						) : (
-							<Camera size={14} color="#353535" />
+							<Camera size={14} color={themeColors.foreground} />
 						)}
-						<Text className="font-inter font-semibold text-gray-800 text-xs">
+						<Text className="font-inter font-semibold text-foreground text-xs">
 							{isUploading
 								? 'Enviando…'
 								: profile.photo_url
@@ -125,8 +127,8 @@ export function ProfilePhotoCard({
 			</View>
 
 			{error && (
-				<View className="rounded-lg bg-red-50 px-3 py-2.5">
-					<Text className="font-inter text-red-900 text-sm">{error}</Text>
+				<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+					<Text className="font-inter text-danger-text text-sm">{error}</Text>
 				</View>
 			)}
 		</View>

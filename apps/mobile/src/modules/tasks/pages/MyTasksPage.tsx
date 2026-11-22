@@ -23,7 +23,7 @@ export function MyTasksPage() {
 	const selected = tasks.find((task) => task.id === selectedId) ?? null;
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
@@ -31,7 +31,7 @@ export function MyTasksPage() {
 				<TasksHeader active="minhas" />
 
 				<View className="mb-6 gap-4">
-					<Text className="font-inter text-gray-500 text-sm">
+					<Text className="font-inter text-foreground-muted text-sm">
 						{tasks.length} {tasks.length === 1 ? 'tarefa' : 'tarefas'}{' '}
 						atribuídas a você
 					</Text>

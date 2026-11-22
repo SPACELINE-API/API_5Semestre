@@ -4,6 +4,7 @@ import type { Task } from '../types/task';
 import { formatDueDate, personName } from '../utils/format';
 import { TaskStatusBadge } from './TaskStatusBadge';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type TaskCardProps = {
 	task: Task;
 	showAssignee?: boolean;
@@ -15,6 +16,7 @@ export function TaskCard({
 	showAssignee = false,
 	onPress,
 }: TaskCardProps) {
+	const themeColors = useThemeColors();
 	const attachments = task.attachments.length;
 
 	return (
@@ -23,36 +25,36 @@ export function TaskCard({
 			activeOpacity={0.7}
 			accessibilityRole="button"
 			accessibilityLabel={`Abrir tarefa ${task.description}`}
-			className="flex-row items-center justify-between gap-3 rounded-xl border border-gray-200 p-4"
+			className="flex-row items-center justify-between gap-3 rounded-xl border border-border p-4"
 		>
 			<View className="flex-1 gap-2">
 				<Text
-					className="font-inter font-semibold text-gray-900 text-sm"
+					className="font-inter font-semibold text-foreground text-sm"
 					numberOfLines={2}
 				>
 					{task.description}
 				</Text>
 				{showAssignee && (
-					<Text className="font-inter text-gray-600 text-xs">
+					<Text className="font-inter text-foreground-secondary text-xs">
 						Responsável: {personName(task.assignee)}
 					</Text>
 				)}
 				<View className="flex-row flex-wrap items-center gap-x-3 gap-y-1.5">
 					<TaskStatusBadge status={task.status} />
-					<Text className="font-inter text-gray-500 text-xs">
+					<Text className="font-inter text-foreground-muted text-xs">
 						Prazo: {formatDueDate(task.due_date)}
 					</Text>
 					{attachments > 0 && (
 						<View className="flex-row items-center gap-1">
-							<Paperclip size={12} color="#6B7280" />
-							<Text className="font-inter text-gray-500 text-xs">
+							<Paperclip size={12} color={themeColors.foregroundMuted} />
+							<Text className="font-inter text-foreground-muted text-xs">
 								{attachments} {attachments === 1 ? 'anexo' : 'anexos'}
 							</Text>
 						</View>
 					)}
 				</View>
 			</View>
-			<ChevronRight size={17} color="#9CA3AF" />
+			<ChevronRight size={17} color={themeColors.foregroundSubtle} />
 		</TouchableOpacity>
 	);
 }

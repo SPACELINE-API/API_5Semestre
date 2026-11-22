@@ -7,6 +7,7 @@ import {
 } from 'react-native-safe-area-context';
 import { Menu } from 'lucide-react-native';
 import { Redirect, Slot, usePathname } from 'expo-router';
+import Head from 'expo-router/head';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { SideBar } from '../components/SideBar';
@@ -24,6 +25,8 @@ import {
 } from '@expo-google-fonts/poppins';
 
 import '../shared/styles/global.css';
+import { ThemeProvider } from '../shared/theme/ThemeProvider';
+import { ThemeToggle } from '../shared/theme/ThemeToggle';
 import {
 	getSession,
 	loadAuthorizationContext,
@@ -41,9 +44,23 @@ import {
 } from '../modules/auth/services/authorization';
 import { useInactivityLogout } from '../modules/auth/hooks/useInactivityLogout';
 
+import { useThemeColors } from '../shared/theme/ThemeProvider';
 SplashScreen.preventAutoHideAsync();
 
 export default function AppLayout() {
+	return (
+		<>
+			<Head>
+				<title>SpaceLang</title>
+			</Head>
+			<ThemeProvider>
+				<AppLayoutContent />
+			</ThemeProvider>
+		</>
+	);
+}
+
+function AppLayoutContent() {
 	const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 	const [fontsLoaded, error] = useFonts({
 		Inter: Inter_400Regular,
@@ -171,6 +188,7 @@ export default function AppLayout() {
 }
 
 function AuthorizationUnavailable() {
+	const themeColors = useThemeColors();
 	return (
 		<View
 			style={{
@@ -180,7 +198,13 @@ function AuthorizationUnavailable() {
 				padding: 24,
 			}}
 		>
-			<Text style={{ fontSize: 16, textAlign: 'center', color: '#374151' }}>
+			<Text
+				style={{
+					fontSize: 16,
+					textAlign: 'center',
+					color: themeColors.foregroundSecondary,
+				}}
+			>
 				Não foi possível carregar suas permissões. Faça login novamente ou tente
 				mais tarde.
 			</Text>
@@ -205,13 +229,18 @@ function AppShell({
 	onCloseMobileNav,
 	onOpenMobileNav,
 }: AppShellProps) {
+	const themeColors = useThemeColors();
 	const insets = useSafeAreaInsets();
 	const registerActivity = useInactivityLogout(showNavigation);
 
 	return (
 		<View
 			onTouchStart={registerActivity}
-			style={{ flex: 1, flexDirection: 'row', backgroundColor: '#f9fafb' }}
+			style={{
+				flex: 1,
+				flexDirection: 'row',
+				backgroundColor: themeColors.background,
+			}}
 		>
 			{showNavigation ? (
 				<SideBar
@@ -225,22 +254,37 @@ function AppShell({
 				{showNavigation ? (
 					<View
 						style={{ paddingTop: insets.top }}
-						className="flex-row items-center border-b border-gray-100 bg-white px-4 py-3 pr-16 md:hidden"
+						className="flex-row items-center border-b border-border-subtle bg-surface px-4 py-3 pr-16 md:hidden"
 					>
 						<TouchableOpacity
 							onPress={onOpenMobileNav}
 							activeOpacity={0.7}
 							accessibilityRole="button"
 							accessibilityLabel="Abrir menu"
-							className="h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50 md:invisible"
+							className="h-9 w-9 items-center justify-center rounded-lg hover:bg-surface-subtle md:invisible"
 						>
-							<Menu size={22} color="#1f2937" strokeWidth={2} />
+							<Menu size={22} color={themeColors.foreground} strokeWidth={2} />
 						</TouchableOpacity>
+					</View>
+				) : null}
+				{showNavigation ? (
+					<View
+						style={{ paddingTop: insets.top, minHeight: 56 + insets.top }}
+						className="hidden flex-row items-center justify-end border-b border-border-subtle bg-surface pr-[76px] md:flex"
+					>
+						<ThemeToggle />
 					</View>
 				) : null}
 				{showNavigation ? (
 					<View pointerEvents="box-none" className="absolute inset-0 z-50">
 						<NotificationCenter topOffset={insets.top - 4} />
+						<View
+							pointerEvents="box-none"
+							className="absolute z-50 md:hidden"
+							style={{ top: insets.top + 3, right: 60 }}
+						>
+							<ThemeToggle />
+						</View>
 					</View>
 				) : null}
 

@@ -19,6 +19,7 @@ import { usePermission } from '../../auth/hooks/usePermission';
 import { getLanguageDropdownLayout } from '../utils/languageDropdownLayout';
 import { getLanguageFlag } from '../../translators/utils/languageFlag';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 interface LanguageSelectProps {
 	value?: string;
 	onChange: (languageId: string) => void;
@@ -30,6 +31,7 @@ export function LanguageSelect({
 	onChange,
 	placeholder = 'Selecione um idioma',
 }: LanguageSelectProps) {
+	const themeColors = useThemeColors();
 	const viewport = useWindowDimensions();
 	const [languages, setLanguages] = useState<Language[]>([]);
 	const [isOpen, setIsOpen] = useState(false);
@@ -90,27 +92,27 @@ export function LanguageSelect({
 				ref={triggerRef}
 				accessibilityRole="button"
 				accessibilityLabel={selectedLanguage?.name ?? placeholder}
-				className="flex-row items-center justify-between gap-2 rounded-md border border-gray-200 bg-white p-3"
+				className="flex-row items-center justify-between gap-2 rounded-md border border-border bg-surface p-3"
 				onPress={openDropdown}
 			>
 				{selectedLanguage ? (
 					<View className="min-w-0 flex-1 flex-row items-center gap-2">
-						<Text className="text-base">
+						<Text className="text-base text-foreground-secondary">
 							{getLanguageFlag(selectedLanguage)}
 						</Text>
 						<Text
-							className="min-w-0 flex-1 font-inter text-sm text-gray-900"
+							className="min-w-0 flex-1 font-inter text-sm text-foreground"
 							numberOfLines={1}
 						>
 							{selectedLanguage.name} ({selectedLanguage.id})
 						</Text>
 					</View>
 				) : (
-					<Text className="min-w-0 flex-1 font-inter text-sm text-gray-400">
+					<Text className="min-w-0 flex-1 font-inter text-sm text-foreground-subtle">
 						{placeholder}
 					</Text>
 				)}
-				<ChevronDown size={16} color="#9ca3af" />
+				<ChevronDown size={16} color={themeColors.foregroundSubtle} />
 			</TouchableOpacity>
 
 			<Modal
@@ -126,10 +128,10 @@ export function LanguageSelect({
 
 				{anchor && dropdownLayout && (
 					<View
-						className="absolute bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+						className="absolute bg-surface border border-border rounded-lg shadow-sm overflow-hidden"
 						style={{
 							...dropdownLayout,
-							backgroundColor: 'white',
+							backgroundColor: themeColors.surface,
 						}}
 					>
 						<ScrollView nestedScrollEnabled>
@@ -138,15 +140,17 @@ export function LanguageSelect({
 									key={item.id}
 									accessibilityRole="button"
 									accessibilityLabel={item.name}
-									className={`flex-row items-center gap-2 py-2 px-3 border-b border-gray-50 ${value === item.id ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`}
+									className={`flex-row items-center gap-2 py-2 px-3 border-b border-border-subtle ${value === item.id ? 'bg-primary-soft' : 'bg-surface hover:bg-surface-subtle'}`}
 									onPress={() => {
 										onChange(item.id);
 										setIsOpen(false);
 									}}
 								>
-									<Text className="text-base">{getLanguageFlag(item)}</Text>
+									<Text className="text-base text-foreground-secondary">
+										{getLanguageFlag(item)}
+									</Text>
 									<Text
-										className={`font-inter text-sm ${value === item.id ? 'text-blue-700 font-inter-medium' : 'text-gray-700'}`}
+										className={`font-inter text-sm ${value === item.id ? 'text-primary-text font-inter-medium' : 'text-foreground-secondary'}`}
 										numberOfLines={1}
 									>
 										{item.name} ({item.id})
@@ -154,14 +158,14 @@ export function LanguageSelect({
 								</TouchableOpacity>
 							))}
 							<TouchableOpacity
-								className={`py-2 px-3 bg-gray-50 border-t border-gray-100 ${!canWriteSettings ? 'opacity-40' : ''}`}
+								className={`py-2 px-3 bg-surface-subtle border-t border-border-subtle ${!canWriteSettings ? 'opacity-40' : ''}`}
 								onPress={() => {
 									setIsOpen(false);
 									setIsModalVisible(true);
 								}}
 								disabled={!canWriteSettings}
 							>
-								<Text className="font-inter-medium text-xs text-gray-900">
+								<Text className="font-inter-medium text-xs text-foreground">
 									+ Adicionar outro idioma
 								</Text>
 							</TouchableOpacity>
@@ -171,31 +175,33 @@ export function LanguageSelect({
 			</Modal>
 
 			<Modal visible={isModalVisible} transparent animationType="fade">
-				<View className="flex-1 bg-black/50 justify-center items-center p-4">
-					<View className="bg-white rounded-xl w-full max-w-sm p-6 shadow-lg">
-						<Text className="text-lg font-inter-bold text-gray-900 mb-4">
+				<View className="flex-1 bg-overlay/50 justify-center items-center p-4">
+					<View className="bg-surface rounded-xl w-full max-w-sm p-6 shadow-lg">
+						<Text className="text-lg font-inter-bold text-foreground mb-4">
 							Adicionar Idioma
 						</Text>
 
 						<View className="mb-4">
-							<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">
+							<Text className="text-xs font-inter-medium text-foreground-secondary mb-1.5">
 								Sigla
 							</Text>
 							<TextInput
-								className="border border-gray-200 rounded-md p-3 text-sm text-gray-800 font-inter bg-white"
+								className="border border-border rounded-md p-3 text-sm text-foreground font-inter bg-surface"
 								placeholder="pt-BR"
+								placeholderTextColor={themeColors.foregroundSubtle}
 								value={newLangId}
 								onChangeText={setNewLangId}
 							/>
 						</View>
 
 						<View className="mb-6">
-							<Text className="text-xs font-inter-medium text-gray-700 mb-1.5">
+							<Text className="text-xs font-inter-medium text-foreground-secondary mb-1.5">
 								Idioma
 							</Text>
 							<TextInput
-								className="border border-gray-200 rounded-md p-3 text-sm text-gray-800 font-inter bg-white"
+								className="border border-border rounded-md p-3 text-sm text-foreground font-inter bg-surface"
 								placeholder="Português"
+								placeholderTextColor={themeColors.foregroundSubtle}
 								value={newLangName}
 								onChangeText={setNewLangName}
 							/>
@@ -203,19 +209,19 @@ export function LanguageSelect({
 
 						<View className="flex-row gap-3 justify-end">
 							<TouchableOpacity
-								className="bg-white border border-blue-200 hover:bg-blue-50 px-4 py-2 rounded-lg items-center transition-colors flex-1"
+								className="bg-surface border border-primary/30 hover:bg-primary-soft px-4 py-2 rounded-lg items-center transition-colors flex-1"
 								onPress={() => setIsModalVisible(false)}
 							>
-								<Text className="text-blue-600 font-inter-medium text-sm">
+								<Text className="text-primary-text font-inter-medium text-sm">
 									Cancelar
 								</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
-								className="bg-blue-400 hover:bg-blue-500 px-4 py-2 rounded-lg items-center transition-colors flex-1"
+								className="bg-primary hover:bg-primary px-4 py-2 rounded-lg items-center transition-colors flex-1"
 								onPress={handleCreateLanguage}
 								disabled={isSubmitting}
 							>
-								<Text className="text-white font-inter-medium text-sm">
+								<Text className="text-primary-foreground font-inter-medium text-sm">
 									{isSubmitting ? 'Salvando...' : 'Salvar'}
 								</Text>
 							</TouchableOpacity>

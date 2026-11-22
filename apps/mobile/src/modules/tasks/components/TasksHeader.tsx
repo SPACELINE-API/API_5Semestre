@@ -25,10 +25,10 @@ export function TasksHeader({ active }: { active: TasksTab }) {
 	return (
 		<View className="mb-6 gap-4">
 			<View>
-				<Text className="font-inter font-bold text-gray-950 text-2xl">
+				<Text className="font-inter font-bold text-foreground text-2xl">
 					Tarefas
 				</Text>
-				<Text className="mt-2 font-inter text-gray-500 text-sm">
+				<Text className="mt-2 font-inter text-foreground-muted text-sm">
 					{canAssign
 						? 'Crie e acompanhe as tarefas que você atribuiu e execute as que foram atribuídas a você.'
 						: 'Execute as tarefas que foram atribuídas a você.'}

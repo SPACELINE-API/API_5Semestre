@@ -7,14 +7,14 @@ type ModulePageProps = {
 
 export function ModulePage({ module }: ModulePageProps) {
 	return (
-		<View className="flex-1 p-6 bg-white">
-			<Text className="text-xs font-poppins-bold text-blue-600 uppercase tracking-wider mb-1">
+		<View className="flex-1 p-6 bg-surface">
+			<Text className="text-xs font-poppins-bold text-primary-text uppercase tracking-wider mb-1">
 				{module.eyebrow}
 			</Text>
-			<Text className="text-2xl font-poppins-bold text-gray-900 mb-2">
+			<Text className="text-2xl font-poppins-bold text-foreground mb-2">
 				{module.title}
 			</Text>
-			<Text className="text-base font-inter text-gray-500 mb-6 leading-relaxed">
+			<Text className="text-base font-inter text-foreground-muted mb-6 leading-relaxed">
 				{module.description}
 			</Text>
 			<View
@@ -22,8 +22,8 @@ export function ModulePage({ module }: ModulePageProps) {
 				accessibilityLabel="Referências do backlog"
 			>
 				{module.backlogRefs.map((ref) => (
-					<View key={ref} className="bg-gray-100 px-3 py-1.5 rounded-md">
-						<Text className="text-xs font-inter-medium text-gray-800">
+					<View key={ref} className="bg-surface-muted px-3 py-1.5 rounded-md">
+						<Text className="text-xs font-inter-medium text-foreground">
 							{ref}
 						</Text>
 					</View>
@@ -33,12 +33,12 @@ export function ModulePage({ module }: ModulePageProps) {
 				{module.actions.map((action) => (
 					<View
 						key={action.label}
-						className="bg-gray-50 p-4 rounded-xl border border-gray-100"
+						className="bg-surface-subtle p-4 rounded-xl border border-border-subtle"
 					>
-						<Text className="text-lg font-poppins-medium text-gray-900 mb-1">
+						<Text className="text-lg font-poppins-medium text-foreground mb-1">
 							{action.label}
 						</Text>
-						<Text className="text-sm font-inter text-gray-500">
+						<Text className="text-sm font-inter text-foreground-muted">
 							{action.description}
 						</Text>
 					</View>

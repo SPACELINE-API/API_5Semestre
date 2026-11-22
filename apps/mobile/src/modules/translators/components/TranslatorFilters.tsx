@@ -1,6 +1,7 @@
 ﻿import { View, Text, TouchableOpacity } from 'react-native';
 import { Check } from 'lucide-react-native';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export type StatusFilter = 'all' | 'active' | 'inactive';
 
 type Props = {
@@ -18,9 +19,10 @@ export function TranslatorFilters({
 	statusFilter,
 	onStatusFilterChange,
 }: Props) {
+	const themeColors = useThemeColors();
 	return (
 		<View className="gap-1">
-			<Text className="mb-2 font-inter font-semibold text-gray-400 text-xs uppercase tracking-wide">
+			<Text className="mb-2 font-inter font-semibold text-foreground-subtle text-xs uppercase tracking-wide">
 				Status
 			</Text>
 			{OPTIONS.map((option) => {
@@ -31,17 +33,19 @@ export function TranslatorFilters({
 						onPress={() => onStatusFilterChange(option.value)}
 						activeOpacity={0.7}
 						className={`flex-row items-center justify-between rounded-lg px-3 py-2.5 ${
-							isSelected ? 'bg-blue-50' : ''
+							isSelected ? 'bg-primary-soft' : ''
 						}`}
 					>
 						<Text
 							className={`font-inter text-sm ${
-								isSelected ? 'font-semibold text-blue-900' : 'text-gray-700'
+								isSelected
+									? 'font-semibold text-primary-strong'
+									: 'text-foreground-secondary'
 							}`}
 						>
 							{option.label}
 						</Text>
-						{isSelected && <Check size={16} color="#1C6FB0" />}
+						{isSelected && <Check size={16} color={themeColors.primary} />}
 					</TouchableOpacity>
 				);
 			})}

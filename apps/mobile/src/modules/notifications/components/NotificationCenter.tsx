@@ -20,6 +20,7 @@ import type { Notification } from '../types/notification';
 import { NotificationCard } from './NotificationCard';
 import { getNotificationListMode } from './notificationPresentation';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type NotificationCenterProps = { topOffset: number };
 
 type NotificationPanelProps = {
@@ -47,6 +48,7 @@ function NotificationPanel({
 	onOpen,
 	onMarkAsRead,
 }: NotificationPanelProps) {
+	const themeColors = useThemeColors();
 	const mode = getNotificationListMode(isNative ? 'native' : 'web');
 	const width = Math.min(
 		isMobile ? 330 : 360,
@@ -55,16 +57,16 @@ function NotificationPanel({
 	const status = (
 		<>
 			{(isLoading || isLoadingAll) && !hasLoadedPreview && (
-				<ActivityIndicator color="#2563EB" />
+				<ActivityIndicator color={themeColors.primaryText} />
 			)}
 			{!isLoading && !isLoadingAll && error && (
-				<Text className="font-inter text-red-700 text-sm">{error}</Text>
+				<Text className="font-inter text-danger text-sm">{error}</Text>
 			)}
 		</>
 	);
 	const empty =
 		!isLoading && !isLoadingAll && !error && notifications.length === 0 ? (
-			<Text className="font-inter text-center text-gray-500 text-sm">
+			<Text className="font-inter text-center text-foreground-muted text-sm">
 				Você não possui notificações.
 			</Text>
 		) : null;
@@ -80,10 +82,10 @@ function NotificationPanel({
 	return (
 		<View
 			style={{ width, height: isMobile ? 500 : undefined }}
-			className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
+			className="overflow-hidden rounded-xl border border-border bg-surface shadow-xl"
 		>
-			<View className="flex-row items-center border-b border-gray-100 px-4 py-3">
-				<Text className="font-inter font-bold text-gray-900 text-base">
+			<View className="flex-row items-center border-b border-border-subtle px-4 py-3">
+				<Text className="font-inter font-bold text-foreground text-base">
 					Notificações
 				</Text>
 			</View>
@@ -129,13 +131,12 @@ const styles = StyleSheet.create({
 });
 
 export function NotificationCenter({ topOffset }: NotificationCenterProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const pathname = usePathname();
 	const { width: windowWidth } = useWindowDimensions();
 	const isMobile = windowWidth < 768;
 	const isNative = Platform.OS !== 'web';
-	const isDesktopWeb = !isNative && !isMobile;
-	const isWideDesktopWeb = isDesktopWeb && windowWidth >= 1440;
 	const [previewOpen, setPreviewOpen] = useState(false);
 	const {
 		notifications,
@@ -215,8 +216,8 @@ export function NotificationCenter({ topOffset }: NotificationCenterProps) {
 			)}
 			<View
 				style={{
-					top: topOffset + (isWideDesktopWeb ? 36 : 0),
-					right: isWideDesktopWeb ? 72 : isDesktopWeb ? -8 : 12,
+					top: topOffset + (isMobile ? 0 : 8),
+					right: isMobile ? 12 : 16,
 				}}
 				className="absolute z-50"
 			>
@@ -226,13 +227,16 @@ export function NotificationCenter({ topOffset }: NotificationCenterProps) {
 					accessibilityLabel={`Notificações${unreadCount ? `, ${unreadCount} não lidas` : ''}`}
 					className="relative h-12 w-12 items-center justify-center"
 				>
-					<Bell size={isMobile ? 21 : 27} color="#374151" />
+					<Bell
+						size={isMobile ? 21 : 27}
+						color={themeColors.foregroundSecondary}
+					/>
 					{unreadCount > 0 && (
 						<View
-							className={`absolute items-center justify-center rounded-full bg-red-600 ${isMobile ? 'left-[1px] top-[5px] h-4 w-4' : 'left-[-1px] top-[3px] h-[18px] w-[18px]'}`}
+							className={`absolute items-center justify-center rounded-full bg-danger ${isMobile ? 'left-[1px] top-[5px] h-4 w-4' : 'left-[-1px] top-[3px] h-[18px] w-[18px]'}`}
 						>
 							<Text
-								className={`font-inter font-bold text-white ${isMobile ? 'text-[8px]' : 'text-[9px]'}`}
+								className={`font-inter font-bold text-primary-foreground ${isMobile ? 'text-[9px]' : 'text-[10px]'}`}
 							>
 								{unreadCount > 9 ? '9+' : unreadCount}
 							</Text>

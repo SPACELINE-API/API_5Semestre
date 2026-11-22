@@ -7,6 +7,7 @@ import {
 	getWorkflowCurrentIndex,
 } from '../utils/workflowSteps';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type WorkflowPipelineProps = {
 	status: ServiceOrderItemStatus;
 	assignedTranslatorName?: string | null;
@@ -16,6 +17,7 @@ export function WorkflowPipeline({
 	status,
 	assignedTranslatorName,
 }: WorkflowPipelineProps) {
+	const themeColors = useThemeColors();
 	const currentIndex = getWorkflowCurrentIndex(status);
 
 	return (
@@ -27,10 +29,10 @@ export function WorkflowPipeline({
 				const isLast = index === WORKFLOW_STEPS.length - 1;
 
 				const dotClassName = isCompleted
-					? 'bg-green-600'
+					? 'bg-success'
 					: isCurrent
 						? WORKFLOW_CURRENT_BAND_CLASS[step.status]
-						: 'bg-gray-200';
+						: 'bg-border';
 
 				return (
 					<View key={step.status} className="flex-row gap-3">
@@ -41,14 +43,18 @@ export function WorkflowPipeline({
 								className={`h-6 w-6 items-center justify-center rounded-full ${dotClassName}`}
 							>
 								{isCompleted && (
-									<Check size={12} color="#FFFFFF" strokeWidth={3} />
+									<Check
+										size={12}
+										color={themeColors.primaryForeground}
+										strokeWidth={3}
+									/>
 								)}
 							</View>
 
 							{!isLast && (
 								<View
 									className={`w-0.5 flex-1 ${
-										isCompleted ? 'bg-green-600' : 'bg-gray-200'
+										isCompleted ? 'bg-success' : 'bg-border'
 									}`}
 								/>
 							)}
@@ -57,13 +63,13 @@ export function WorkflowPipeline({
 						<View className={`flex-1 gap-0.5 ${isLast ? '' : 'pb-4'}`}>
 							<Text
 								className={`font-inter font-bold text-xs ${
-									isUpcoming ? 'text-gray-400' : 'text-gray-900'
+									isUpcoming ? 'text-foreground-subtle' : 'text-foreground'
 								}`}
 							>
 								{step.title}
 							</Text>
 
-							<Text className="font-inter text-gray-400 text-[11px]">
+							<Text className="font-inter text-foreground-subtle text-[12px]">
 								{isCurrent
 									? (assignedTranslatorName ?? 'Sem tradutor')
 									: isCompleted

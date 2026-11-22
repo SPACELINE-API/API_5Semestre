@@ -37,17 +37,22 @@ import {
 	getPreviewDocumentUrl,
 } from '../../../shared/components/FilePreview';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const receiptStatusStyles: Record<
 	QuoteReceiptStatus,
 	{ label: string; badge: string; text: string }
 > = {
 	available: {
 		label: 'Disponível',
-		badge: 'bg-blue-50',
-		text: 'text-blue-700',
+		badge: 'bg-primary-soft',
+		text: 'text-primary-text',
 	},
-	sent: { label: 'Enviado', badge: 'bg-emerald-50', text: 'text-emerald-700' },
-	error: { label: 'Erro', badge: 'bg-red-50', text: 'text-red-700' },
+	sent: {
+		label: 'Enviado',
+		badge: 'bg-success-soft',
+		text: 'text-success-text',
+	},
+	error: { label: 'Erro', badge: 'bg-danger-soft', text: 'text-danger' },
 };
 
 function formatDate(value: string | null | undefined) {
@@ -145,14 +150,18 @@ function Notice({
 	tone: 'info' | 'error';
 	children: ReactNode;
 }) {
+	const themeColors = useThemeColors();
 	const isError = tone === 'error';
 	return (
 		<View
-			className={`flex-row items-start gap-2 rounded-lg border p-3 ${isError ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'}`}
+			className={`flex-row items-start gap-2 rounded-lg border p-3 ${isError ? 'border-danger/30 bg-danger-soft' : 'border-border bg-surface-subtle'}`}
 		>
-			<CircleAlert size={16} color={isError ? '#b91c1c' : '#6b7280'} />
+			<CircleAlert
+				size={16}
+				color={isError ? themeColors.danger : themeColors.foregroundMuted}
+			/>
 			<Text
-				className={`flex-1 font-inter text-sm ${isError ? 'text-red-800' : 'text-gray-700'}`}
+				className={`flex-1 font-inter text-sm ${isError ? 'text-danger-text' : 'text-foreground-secondary'}`}
 			>
 				{children}
 			</Text>
@@ -163,8 +172,10 @@ function Notice({
 function ReceiptField({ label, value }: { label: string; value: string }) {
 	return (
 		<View className="w-full gap-1 md:w-[47%]">
-			<Text className="font-inter-medium text-xs text-gray-500">{label}</Text>
-			<Text selectable className="font-inter text-sm leading-5 text-gray-900">
+			<Text className="font-inter-medium text-xs text-foreground-muted">
+				{label}
+			</Text>
+			<Text selectable className="font-inter text-sm leading-5 text-foreground">
 				{value}
 			</Text>
 		</View>
@@ -179,8 +190,10 @@ function ReceiptSection({
 	children: ReactNode;
 }) {
 	return (
-		<View className="gap-3 border-t border-gray-100 pt-4">
-			<Text className="font-inter-semibold text-sm text-gray-900">{title}</Text>
+		<View className="gap-3 border-t border-border-subtle pt-4">
+			<Text className="font-inter-semibold text-sm text-foreground">
+				{title}
+			</Text>
 			{children}
 		</View>
 	);
@@ -198,12 +211,12 @@ function TotalRow({
 	return (
 		<View className="flex-row items-center justify-between gap-3">
 			<Text
-				className={`flex-1 text-sm ${strong ? 'font-inter-semibold text-gray-900' : 'font-inter text-gray-600'}`}
+				className={`flex-1 text-sm ${strong ? 'font-inter-semibold text-foreground' : 'font-inter text-foreground-secondary'}`}
 			>
 				{label}
 			</Text>
 			<Text
-				className={`text-sm ${strong ? 'font-inter-bold text-gray-900' : 'font-inter-medium text-gray-800'}`}
+				className={`text-sm ${strong ? 'font-inter-bold text-foreground' : 'font-inter-medium text-foreground'}`}
 			>
 				{value}
 			</Text>
@@ -226,6 +239,7 @@ function QuoteReceiptModal({
 	company: Company | undefined;
 	additionalServices: AdditionalService[];
 }) {
+	const themeColors = useThemeColors();
 	const [languages, setLanguages] = useState<Language[]>([]);
 	const [opening, setOpening] = useState(false);
 	const [openError, setOpenError] = useState('');
@@ -280,14 +294,14 @@ function QuoteReceiptModal({
 			animationType="none"
 			onRequestClose={onClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="max-h-[90%] w-full max-w-[640px] overflow-hidden rounded-xl bg-white">
-					<View className="flex-row items-center justify-between gap-3 border-b border-gray-300 px-5 py-4 md:px-6">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+				<View className="max-h-[90%] w-full max-w-[640px] overflow-hidden rounded-xl bg-surface">
+					<View className="flex-row items-center justify-between gap-3 border-b border-border-strong px-5 py-4 md:px-6">
 						<View className="min-w-0 flex-1 gap-0.5">
-							<Text className="font-inter font-bold text-lg text-gray-900">
+							<Text className="font-inter font-bold text-lg text-foreground">
 								Comprovante comercial
 							</Text>
-							<Text className="font-inter text-xs text-gray-500">
+							<Text className="font-inter text-xs text-foreground-muted">
 								Orçamento #{quoteCode}
 							</Text>
 						</View>
@@ -296,7 +310,7 @@ function QuoteReceiptModal({
 							accessibilityLabel="Fechar comprovante"
 							onPress={onClose}
 						>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
@@ -306,11 +320,11 @@ function QuoteReceiptModal({
 					>
 						<View className="flex-row flex-wrap items-center gap-x-3 gap-y-2">
 							<ReceiptStatusBadge status={receipt.status} />
-							<Text className="font-inter text-xs text-gray-500">
+							<Text className="font-inter text-xs text-foreground-muted">
 								Gerado em {formatDate(receipt.generated_at)}
 							</Text>
 							{receipt.sent_at ? (
-								<Text className="font-inter text-xs text-gray-500">
+								<Text className="font-inter text-xs text-foreground-muted">
 									Enviado em {formatDate(receipt.sent_at)}
 								</Text>
 							) : null}
@@ -328,19 +342,19 @@ function QuoteReceiptModal({
 							accessibilityLabel={`Abrir PDF do comprovante ${quoteCode} em nova aba`}
 							disabled={!canOpenPdf || opening}
 							onPress={() => void handleOpenPdf()}
-							className={`flex-row items-center gap-3 rounded-xl border border-gray-200 p-4 ${canOpenPdf ? 'hover:bg-gray-50' : 'opacity-50'}`}
+							className={`flex-row items-center gap-3 rounded-xl border border-border p-4 ${canOpenPdf ? 'hover:bg-surface-subtle' : 'opacity-50'}`}
 						>
-							<View className="h-10 w-10 items-center justify-center rounded-lg bg-red-50">
+							<View className="h-10 w-10 items-center justify-center rounded-lg bg-danger-soft">
 								<FileText size={20} color="#d71920" />
 							</View>
 							<View className="min-w-0 flex-1">
 								<Text
-									className="font-inter-semibold text-sm text-gray-900"
+									className="font-inter-semibold text-sm text-foreground"
 									numberOfLines={1}
 								>
 									Comprovante_{quoteCode}.pdf
 								</Text>
-								<Text className="mt-0.5 font-inter text-xs text-gray-500">
+								<Text className="mt-0.5 font-inter text-xs text-foreground-muted">
 									{opening
 										? 'Abrindo PDF...'
 										: canOpenPdf
@@ -348,7 +362,9 @@ function QuoteReceiptModal({
 											: 'PDF indisponível'}
 								</Text>
 							</View>
-							{canOpenPdf ? <ExternalLink size={16} color="#1d4ed8" /> : null}
+							{canOpenPdf ? (
+								<ExternalLink size={16} color={themeColors.primaryText} />
+							) : null}
 						</TouchableOpacity>
 
 						{openError ? <Notice tone="error">{openError}</Notice> : null}
@@ -404,26 +420,26 @@ function QuoteReceiptModal({
 								quote.items.map((item) => (
 									<View
 										key={item.id}
-										className="gap-2 rounded-lg border border-gray-200 p-3"
+										className="gap-2 rounded-lg border border-border p-3"
 									>
 										<View className="flex-row items-start justify-between gap-3">
-											<Text className="flex-1 font-inter-semibold text-sm text-gray-900">
+											<Text className="flex-1 font-inter-semibold text-sm text-foreground">
 												{display(item.document_type)}
 											</Text>
-											<Text className="font-inter-semibold text-sm text-gray-900">
+											<Text className="font-inter-semibold text-sm text-foreground">
 												{formatPrice(item.estimated_value)}
 											</Text>
 										</View>
 										<View className="flex-row flex-wrap gap-x-5 gap-y-1">
-											<Text className="font-inter text-xs text-gray-600">
+											<Text className="font-inter text-xs text-foreground-secondary">
 												Origem:{' '}
-												<Text className="font-inter-medium text-gray-900">
+												<Text className="font-inter-medium text-foreground">
 													{languageName(item.source_language)}
 												</Text>
 											</Text>
-											<Text className="font-inter text-xs text-gray-600">
+											<Text className="font-inter text-xs text-foreground-secondary">
 												Destino:{' '}
-												<Text className="font-inter-medium text-gray-900">
+												<Text className="font-inter-medium text-foreground">
 													{languageName(item.target_language)}
 												</Text>
 											</Text>
@@ -431,7 +447,7 @@ function QuoteReceiptModal({
 									</View>
 								))
 							) : (
-								<Text className="font-inter text-sm text-gray-500">
+								<Text className="font-inter text-sm text-foreground-muted">
 									Nenhum item registrado.
 								</Text>
 							)}
@@ -444,25 +460,25 @@ function QuoteReceiptModal({
 								additionalServices.map((service) => (
 									<View
 										key={service.id}
-										className="flex-row items-start justify-between gap-3 rounded-lg border border-gray-200 p-3"
+										className="flex-row items-start justify-between gap-3 rounded-lg border border-border p-3"
 									>
-										<Text className="flex-1 font-inter text-sm text-gray-900">
+										<Text className="flex-1 font-inter text-sm text-foreground">
 											{service.description}
 										</Text>
-										<Text className="font-inter-semibold text-sm text-gray-900">
+										<Text className="font-inter-semibold text-sm text-foreground">
 											{formatPrice(service.price)}
 										</Text>
 									</View>
 								))
 							) : (
-								<Text className="font-inter text-sm text-gray-500">
+								<Text className="font-inter text-sm text-foreground-muted">
 									Nenhum serviço adicional.
 								</Text>
 							)}
 						</ReceiptSection>
 
 						<ReceiptSection title="Valores">
-							<View className="gap-2 rounded-lg bg-gray-50 p-3">
+							<View className="gap-2 rounded-lg bg-surface-subtle p-3">
 								<TotalRow
 									label={`Subtotal de itens (${quote.items.length})`}
 									value={formatPrice(itemsTotal)}
@@ -471,7 +487,7 @@ function QuoteReceiptModal({
 									label={`Subtotal de serviços adicionais (${additionalServices.length})`}
 									value={formatPrice(servicesTotal)}
 								/>
-								<View className="border-t border-gray-200 pt-2">
+								<View className="border-t border-border pt-2">
 									<TotalRow
 										label="Valor total"
 										value={formatPrice(itemsTotal + servicesTotal)}
@@ -496,6 +512,7 @@ export function QuoteReceiptSection({
 	company: Company | undefined;
 	additionalServices: AdditionalService[];
 }) {
+	const themeColors = useThemeColors();
 	const [receipt, setReceipt] = useState<QuoteReceipt | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
@@ -545,18 +562,18 @@ export function QuoteReceiptSection({
 	}, [quote.id, quote.approved_at, reloadKey]);
 
 	return (
-		<View className="gap-3 rounded-xl border border-gray-200 p-4">
+		<View className="gap-3 rounded-xl border border-border p-4">
 			<View className="flex-row flex-wrap items-center justify-between gap-3">
 				<View className="flex-row items-center gap-3">
-					<View className="h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
-						<FileCheck size={18} color="#047857" />
+					<View className="h-9 w-9 items-center justify-center rounded-lg bg-success-soft">
+						<FileCheck size={18} color={themeColors.successText} />
 					</View>
 					<View className="gap-1">
-						<Text className="font-inter-semibold text-sm text-gray-900">
+						<Text className="font-inter-semibold text-sm text-foreground">
 							Comprovante comercial
 						</Text>
 						{receipt ? (
-							<Text className="font-inter text-xs text-gray-500">
+							<Text className="font-inter text-xs text-foreground-muted">
 								Gerado em {formatDate(receipt.generated_at)}
 							</Text>
 						) : null}
@@ -566,7 +583,7 @@ export function QuoteReceiptSection({
 			</View>
 
 			{loading ? (
-				<Text className="font-inter text-sm text-gray-500">
+				<Text className="font-inter text-sm text-foreground-muted">
 					Carregando comprovante...
 				</Text>
 			) : error ? (
@@ -577,7 +594,7 @@ export function QuoteReceiptSection({
 						onPress={() => setReloadKey((key) => key + 1)}
 						className="self-start"
 					>
-						<Text className="font-inter-medium text-sm text-blue-700">
+						<Text className="font-inter-medium text-sm text-primary-text">
 							Tentar novamente
 						</Text>
 					</TouchableOpacity>
@@ -598,10 +615,10 @@ export function QuoteReceiptSection({
 						accessibilityRole="button"
 						accessibilityLabel={`Ver comprovante do orçamento ${shortId(quote.id)}`}
 						onPress={() => setModalOpen(true)}
-						className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-blue-200 px-3 py-2"
+						className="flex-row items-center justify-center gap-2 self-start rounded-lg border border-primary/30 px-3 py-2"
 					>
-						<FileText size={16} color="#1d4ed8" />
-						<Text className="font-inter-medium text-sm text-blue-700">
+						<FileText size={16} color={themeColors.primaryText} />
+						<Text className="font-inter-medium text-sm text-primary-text">
 							Ver comprovante
 						</Text>
 					</TouchableOpacity>
@@ -617,8 +634,8 @@ export function QuoteReceiptSection({
 			)}
 
 			{versions.length > 1 ? (
-				<View className="gap-2 border-t border-gray-100 pt-3">
-					<Text className="font-inter-medium text-xs text-gray-500">
+				<View className="gap-2 border-t border-border-subtle pt-3">
+					<Text className="font-inter-medium text-xs text-foreground-muted">
 						Versões do comprovante
 					</Text>
 					{versions.map((version, index) => (
@@ -626,7 +643,7 @@ export function QuoteReceiptSection({
 							key={version.id}
 							className="flex-row flex-wrap items-center justify-between gap-2"
 						>
-							<Text className="font-inter text-sm text-gray-800">
+							<Text className="font-inter text-sm text-foreground">
 								Versão {version.version}
 								{index === 0 ? ' (atual)' : ''} · gerada em{' '}
 								{formatDate(version.generated_at)}
@@ -640,8 +657,8 @@ export function QuoteReceiptSection({
 										onPress={() => void openVersion(version.pdf_url!)}
 										className="flex-row items-center gap-1"
 									>
-										<ExternalLink size={14} color="#1d4ed8" />
-										<Text className="font-inter-medium text-sm text-blue-700">
+										<ExternalLink size={14} color={themeColors.primaryText} />
+										<Text className="font-inter-medium text-sm text-primary-text">
 											PDF
 										</Text>
 									</TouchableOpacity>

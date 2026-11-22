@@ -22,6 +22,7 @@ import { QuickReplyButton } from '../components/QuickReplyButton';
 import { useSupportChat } from '../hooks/useSupportChat';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const WELCOME_MESSAGE =
 	'Olá! Eu sou o assistente virtual da nossa equipe de suporte. Posso te ajudar com dúvidas sobre serviços, prazos, configurações e muito mais.\n\nComo posso te ajudar hoje?';
 
@@ -33,12 +34,13 @@ const QUICK_REPLIES = [
 ];
 
 const SCROLL_CLASSNAME =
-	'flex-1 [scroll-behavior:smooth] [scrollbar-width:thin] [scrollbar-color:#bcdcf5_transparent] ' +
+	'flex-1 [scroll-behavior:smooth] [scrollbar-width:thin] [scrollbar-color:rgb(var(--color-border-strong))_transparent] ' +
 	'[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent ' +
-	'[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#bcdcf5] ' +
-	'hover:[&::-webkit-scrollbar-thumb]:bg-[#2d83cd]';
+	'[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary-soft ' +
+	'hover:[&::-webkit-scrollbar-thumb]:bg-primary';
 
 export function SupportPage() {
+	const themeColors = useThemeColors();
 	const { width } = useWindowDimensions();
 	const isMobileLayout = width < 768;
 	const [webViewportHeight, setWebViewportHeight] = useState<number | null>(
@@ -155,24 +157,24 @@ export function SupportPage() {
 		<View
 			nativeID="support-agent-page"
 			style={pageStyle}
-			className="flex-1 min-h-0 bg-[#eef6fd] px-3 py-2 md:px-8 md:py-8"
+			className="flex-1 min-h-0 bg-surface-subtle px-3 py-2 md:px-8 md:py-8"
 		>
 			<View className="mb-2 flex-row items-center gap-3 md:mb-6 md:gap-4">
-				<View className="h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#d9ecfb] md:h-14 md:w-14">
-					<Headphones color="#2478c2" size={22} />
+				<View className="h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-soft md:h-14 md:w-14">
+					<Headphones color={themeColors.primaryText} size={22} />
 				</View>
 				<View className="flex-1">
-					<Text className="text-2xl font-extrabold tracking-[-0.5px] text-[#101b35] md:text-3xl">
+					<Text className="text-2xl font-extrabold tracking-[-0.5px] text-foreground md:text-3xl">
 						Suporte
 					</Text>
-					<Text className="mt-0.5 text-xs text-[#65758f] md:mt-1 md:text-sm">
+					<Text className="mt-0.5 text-xs text-foreground-muted md:mt-1 md:text-sm">
 						Tire suas dúvidas e resolva suas questões com nosso assistente
 						virtual.
 					</Text>
 				</View>
 			</View>
 
-			<View className="min-h-0 flex-1 rounded-3xl bg-white p-3 shadow-xl shadow-[#173a68]/10 md:p-6">
+			<View className="min-h-0 flex-1 rounded-3xl bg-surface p-3 shadow-xl shadow-overlay/10 md:p-6">
 				<ScrollView
 					ref={scrollRef}
 					className={SCROLL_CLASSNAME}
@@ -208,12 +210,12 @@ export function SupportPage() {
 					) : null}
 
 					{status === 'error' ? (
-						<View className="mt-4 flex-row items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
-							<AlertCircle color="#dc2626" size={18} />
+						<View className="mt-4 flex-row items-start gap-2 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3">
+							<AlertCircle color={themeColors.danger} size={18} />
 							<View className="flex-1">
-								<Text className="text-sm text-red-700">{errorMessage}</Text>
+								<Text className="text-sm text-danger">{errorMessage}</Text>
 								<Text
-									className="mt-1.5 text-sm font-semibold text-red-700 underline"
+									className="mt-1.5 text-sm font-semibold text-danger underline"
 									onPress={retryLastQuestion}
 								>
 									Tentar novamente
@@ -248,11 +250,11 @@ export function SupportPage() {
 						maxLength={maxLength}
 					/>
 					{isOverLimit ? (
-						<Text className="mt-1.5 text-xs text-red-600">
+						<Text className="mt-1.5 text-xs text-danger">
 							Sua pergunta ultrapassa o limite de {maxLength} caracteres.
 						</Text>
 					) : (
-						<Text className="mt-1.5 text-xs text-[#94a3b8]">
+						<Text className="mt-1.5 text-xs text-foreground-subtle">
 							{draft.length}/{maxLength}
 						</Text>
 					)}

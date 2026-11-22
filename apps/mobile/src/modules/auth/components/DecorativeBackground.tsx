@@ -9,6 +9,7 @@ import Svg, {
 	Stop,
 } from 'react-native-svg';
 
+import { useTheme } from '../../../shared/theme/ThemeProvider';
 function wavePath(
 	width: number,
 	height: number,
@@ -29,7 +30,36 @@ function wavePath(
 	].join(' ');
 }
 
+const PALETTES = {
+	light: {
+		circleA: '#ffffff',
+		circleB: '#f8fbff',
+		circleC: '#b8dafa',
+		circleD: '#c2e1fa',
+		skyTop: '#eef6ff',
+		skyBottom: '#d3e8fc',
+		farA: '#5ba3e6',
+		farB: '#3f8fdc',
+		nearA: '#2f7fd1',
+		nearB: '#2569b8',
+	},
+	dark: {
+		circleA: '#1b2a3d',
+		circleB: '#16243a',
+		circleC: '#1f4a7a',
+		circleD: '#1b3d66',
+		skyTop: '#0d1722',
+		skyBottom: '#101f31',
+		farA: '#1d4f86',
+		farB: '#18416f',
+		nearA: '#143a63',
+		nearB: '#0f2f50',
+	},
+};
+
 export function DecorativeBackground() {
+	const { isDark } = useTheme();
+	const palette = PALETTES[isDark ? 'dark' : 'light'];
 	const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 	const width = Math.max(windowWidth, 1);
 	const height = Math.max(windowHeight, 1);
@@ -45,33 +75,33 @@ export function DecorativeBackground() {
 					cx: width * 0.08,
 					cy: height * 0.18,
 					r: reference * 0.42,
-					fill: '#ffffff',
+					fill: palette.circleA,
 					opacity: 0.55,
 				},
 				{
 					cx: width * 0.94,
 					cy: height * 0.12,
 					r: reference * 0.34,
-					fill: '#f8fbff',
+					fill: palette.circleB,
 					opacity: 0.75,
 				},
 				{
 					cx: width * 0.9,
 					cy: height * 0.55,
 					r: reference * 0.46,
-					fill: '#b8dafa',
+					fill: palette.circleC,
 					opacity: 0.32,
 				},
 				{
 					cx: width * 0.02,
 					cy: height * 0.62,
 					r: reference * 0.3,
-					fill: '#c2e1fa',
+					fill: palette.circleD,
 					opacity: 0.45,
 				},
 			],
 		}),
-		[width, height, reference, isPortrait],
+		[width, height, reference, isPortrait, palette],
 	);
 
 	const containerStyle =
@@ -88,22 +118,22 @@ export function DecorativeBackground() {
 	return (
 		<View
 			pointerEvents="none"
-			className="absolute inset-0 overflow-hidden bg-[#dceeff]"
+			className="absolute inset-0 overflow-hidden bg-primary-soft"
 			style={containerStyle}
 		>
 			<Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
 				<Defs>
 					<LinearGradient id="loginSky" x1="0" y1="0" x2="0" y2="1">
-						<Stop offset="0" stopColor="#eef6ff" />
-						<Stop offset="1" stopColor="#d3e8fc" />
+						<Stop offset="0" stopColor={palette.skyTop} />
+						<Stop offset="1" stopColor={palette.skyBottom} />
 					</LinearGradient>
 					<LinearGradient id="loginWaveFar" x1="0" y1="0" x2="1" y2="0">
-						<Stop offset="0" stopColor="#5ba3e6" />
-						<Stop offset="1" stopColor="#3f8fdc" />
+						<Stop offset="0" stopColor={palette.farA} />
+						<Stop offset="1" stopColor={palette.farB} />
 					</LinearGradient>
 					<LinearGradient id="loginWaveNear" x1="0" y1="0" x2="1" y2="0">
-						<Stop offset="0" stopColor="#2f7fd1" />
-						<Stop offset="1" stopColor="#2569b8" />
+						<Stop offset="0" stopColor={palette.nearA} />
+						<Stop offset="1" stopColor={palette.nearB} />
 					</LinearGradient>
 				</Defs>
 				<Rect width={width} height={height} fill="url(#loginSky)" />

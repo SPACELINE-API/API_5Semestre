@@ -9,6 +9,7 @@ import type {
 	ProposalStatus,
 } from '../types/proposal';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const SORT_OPTIONS: { value: ProposalSortField; label: string }[] = [
 	{ value: 'created_at', label: 'Data de criação' },
 	{ value: 'customer_name', label: 'Cliente' },
@@ -37,6 +38,7 @@ export function ProposalFilters({
 	onChange: (filters: Filters) => void;
 	onRetryCompanies: () => void;
 }) {
+	const themeColors = useThemeColors();
 	const [openDate, setOpenDate] = useState<'start' | 'end' | null>(null);
 	const hasFilters = Boolean(
 		filters.startDate ||
@@ -64,7 +66,7 @@ export function ProposalFilters({
 
 	return (
 		<View
-			className="gap-4 rounded-xl border border-gray-100 bg-white p-4 md:p-5"
+			className="gap-4 rounded-xl border border-border-subtle bg-surface p-4 md:p-5"
 			style={openDate ? { position: 'relative', zIndex: 50 } : undefined}
 		>
 			<View
@@ -133,14 +135,14 @@ export function ProposalFilters({
 					/>
 					{companiesError && (
 						<View className="mt-2 flex-row flex-wrap items-center gap-2">
-							<Text className="font-inter text-red-600 text-xs">
+							<Text className="font-inter text-danger text-xs">
 								{companiesError}
 							</Text>
 							<TouchableOpacity
 								onPress={onRetryCompanies}
 								accessibilityRole="button"
 							>
-								<Text className="font-inter font-semibold text-blue-600 text-xs">
+								<Text className="font-inter font-semibold text-primary-text text-xs">
 									Tentar novamente
 								</Text>
 							</TouchableOpacity>
@@ -188,8 +190,8 @@ export function ProposalFilters({
 					className="flex-row items-center gap-1.5 self-start"
 					style={openDate ? { position: 'relative', zIndex: 1 } : undefined}
 				>
-					<FilterX size={14} color="#1C6FB0" />
-					<Text className="font-inter font-semibold text-blue-600 text-sm">
+					<FilterX size={14} color={themeColors.primary} />
+					<Text className="font-inter font-semibold text-primary-text text-sm">
 						Limpar filtros
 					</Text>
 				</TouchableOpacity>

@@ -12,7 +12,6 @@ import { ChartCard } from './ChartCard';
 
 const METRICS: ChartMetric[] = ['documents', 'words', 'value'];
 const ACTIVE_TOGGLE_STYLE = {
-	backgroundColor: '#FFFFFF',
 	shadowColor: '#000000',
 	shadowOffset: { width: 0, height: 1 },
 	shadowOpacity: 0.08,
@@ -33,7 +32,7 @@ type MetricToggleProps = {
 
 function MetricToggle({ metric, onChange }: MetricToggleProps) {
 	return (
-		<View className="flex-row gap-1 rounded-lg bg-gray-50 p-1">
+		<View className="flex-row gap-1 rounded-lg bg-surface-subtle p-1">
 			{METRICS.map((item) => {
 				const isActive = item === metric;
 
@@ -44,11 +43,11 @@ function MetricToggle({ metric, onChange }: MetricToggleProps) {
 						activeOpacity={0.7}
 						accessibilityRole="button"
 						accessibilityState={{ selected: isActive }}
-						className="rounded-md px-3 py-1.5"
+						className={`rounded-md px-3 py-1.5 ${isActive ? 'bg-surface' : ''}`}
 						style={isActive ? ACTIVE_TOGGLE_STYLE : undefined}
 					>
 						<Text
-							className={`font-inter text-xs ${isActive ? 'font-semibold text-blue-600' : 'text-gray-500'}`}
+							className={`font-inter text-xs ${isActive ? 'font-semibold text-primary-text' : 'text-foreground-muted'}`}
 						>
 							{METRIC_LABELS[item]}
 						</Text>
@@ -105,7 +104,7 @@ export function ProductivityCharts({ report }: ProductivityChartsProps) {
 							/>
 						) : (
 							<View className="items-center justify-center py-10">
-								<Text className="text-center font-inter text-gray-400 text-xs">
+								<Text className="text-center font-inter text-foreground-subtle text-xs">
 									Nenhum documento com prazo definido neste período.
 								</Text>
 							</View>

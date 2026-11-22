@@ -11,9 +11,9 @@ export const DELIVERY_REVIEW_STYLES: Record<
 	DeliveredFileReviewStatus,
 	{ background: string; text: string }
 > = {
-	pending: { background: 'bg-amber-50', text: 'text-amber-900' },
-	approved: { background: 'bg-green-50', text: 'text-green-900' },
-	changes_requested: { background: 'bg-red-50', text: 'text-red-900' },
+	pending: { background: 'bg-warning-soft', text: 'text-warning-text' },
+	approved: { background: 'bg-success-soft', text: 'text-success-text' },
+	changes_requested: { background: 'bg-danger-soft', text: 'text-danger-text' },
 };
 
 export function canSendDelivery(deliveredFiles: DeliveredFile[]): boolean {

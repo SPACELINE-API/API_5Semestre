@@ -22,6 +22,7 @@ import type {
 import { Toast } from '../../../shared/components/Toast';
 import { useToast } from '../../../shared/hooks/useToast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const MODULE_LABELS: Record<string, string> = {
 	requests: 'Requisições',
 	quotes: 'Orçamentos',
@@ -110,6 +111,7 @@ function buildModules(permissions: Permission[]): PermissionModule[] {
 }
 
 export default function SetPermissionsPage() {
+	const themeColors = useThemeColors();
 	const { toast, showToast } = useToast();
 	const canEditRoles = usePermission('roles.write');
 	const {
@@ -142,7 +144,7 @@ export default function SetPermissionsPage() {
 		null;
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
@@ -151,16 +153,16 @@ export default function SetPermissionsPage() {
 				<View className="gap-6">
 					{isLoading ? (
 						<View className="py-20 items-center">
-							<ActivityIndicator size="large" color="#2563eb" />
+							<ActivityIndicator size="large" color={themeColors.primaryText} />
 						</View>
 					) : error ? (
 						<View className="py-20 items-center">
-							<Text className="font-inter text-red-600 text-sm text-center">
+							<Text className="font-inter text-danger text-sm text-center">
 								{error}
 							</Text>
 						</View>
 					) : (
-						<View className="rounded-2xl border border-gray-200 bg-white p-6 gap-6">
+						<View className="rounded-2xl border border-border bg-surface p-6 gap-6">
 							<View className="flex-row justify-between flex-wrap items-end gap-3">
 								<SelectRole
 									roles={editableRoles}
@@ -171,10 +173,10 @@ export default function SetPermissionsPage() {
 									accessibilityRole="button"
 									onPress={() => setShowRoleModal(true)}
 									disabled={!canEditRoles}
-									className={`flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${!canEditRoles ? 'opacity-40' : ''}`}
+									className={`flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${!canEditRoles ? 'opacity-40' : ''}`}
 								>
-									<Plus size={15} color="#fff" />
-									<Text className="font-inter-medium text-sm text-white">
+									<Plus size={15} color={themeColors.primaryForeground} />
+									<Text className="font-inter-medium text-sm text-primary-foreground">
 										Novo perfil
 									</Text>
 								</TouchableOpacity>
@@ -182,7 +184,7 @@ export default function SetPermissionsPage() {
 
 							{selectedRole && (
 								<View className="gap-4 mt-5">
-									<Text className="font-inter font-semibold text-gray-900 text-sm">
+									<Text className="font-inter font-semibold text-foreground text-sm">
 										{selectedRole.name}
 									</Text>
 									<View className="flex-row justify-between flex-wrap gap-4">

@@ -38,6 +38,7 @@ import {
 	syncRoles,
 } from '../utils/departments';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const FILTERS: { key: StatusFilter; label: string }[] = [
 	{ key: 'all', label: 'Todas' },
 	{ key: 'ativa', label: 'Ativas' },
@@ -49,6 +50,7 @@ function errorText(cause: unknown, fallback: string) {
 }
 
 export function InternalUsersPage() {
+	const themeColors = useThemeColors();
 	const { people, roles, isLoading, error, reload } = useInternalUsers();
 	const { toast, showToast } = useToast();
 	const [search, setSearch] = useState('');
@@ -165,7 +167,7 @@ export function InternalUsersPage() {
 	}
 
 	return (
-		<View className="flex-1 bg-white">
+		<View className="flex-1 bg-surface">
 			<ScrollView
 				className="flex-1"
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
@@ -175,22 +177,22 @@ export function InternalUsersPage() {
 
 				<View className="mb-5 gap-2">
 					<View className="flex-row items-center justify-between gap-3">
-						<Text className="min-w-0 flex-1 font-inter font-semibold text-gray-900 text-base">
+						<Text className="min-w-0 flex-1 font-inter font-semibold text-foreground text-base">
 							Pessoas internas
 						</Text>
 						<TouchableOpacity
 							onPress={openCreate}
 							accessibilityRole="button"
 							accessibilityLabel="Convidar pessoa"
-							className="shrink-0 flex-row items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2.5 md:gap-2 md:px-4 md:py-3"
+							className="shrink-0 flex-row items-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 md:gap-2 md:px-4 md:py-3"
 						>
-							<Plus size={16} color="#FFFFFF" />
-							<Text className="font-inter font-semibold text-sm text-white">
+							<Plus size={16} color={themeColors.primaryForeground} />
+							<Text className="font-inter font-semibold text-sm text-primary-foreground">
 								Convidar pessoa
 							</Text>
 						</TouchableOpacity>
 					</View>
-					<Text className="font-inter text-gray-500 text-sm">
+					<Text className="font-inter text-foreground-muted text-sm">
 						Convide e gerencie quem trabalha na plataforma, separado por
 						departamento. As permissões de cada perfil ficam na aba Permissões.
 					</Text>
@@ -203,15 +205,15 @@ export function InternalUsersPage() {
 				/>
 
 				<View className="mb-5 flex-col gap-3 md:flex-row md:items-center md:justify-between">
-					<View className="h-11 w-full flex-row items-center gap-2 rounded-lg border border-gray-300 px-3 md:w-auto md:max-w-[420px] md:flex-1">
-						<Search size={16} color="#9CA3AF" />
+					<View className="h-11 w-full flex-row items-center gap-2 rounded-lg border border-border-strong px-3 md:w-auto md:max-w-[420px] md:flex-1">
+						<Search size={16} color={themeColors.foregroundSubtle} />
 						<TextInput
 							value={search}
 							onChangeText={setSearch}
 							placeholder="Buscar por nome ou e-mail"
-							placeholderTextColor="#9CA3AF"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							accessibilityLabel="Buscar pessoa"
-							className="h-full flex-1 font-inter text-gray-900 text-sm outline-none"
+							className="h-full flex-1 font-inter text-foreground text-sm outline-none"
 						/>
 					</View>
 					<View className="flex-row flex-wrap gap-2">
@@ -225,25 +227,29 @@ export function InternalUsersPage() {
 									accessibilityState={{ selected: active }}
 									className={`flex-row items-center gap-2 rounded-full border px-3.5 py-1.5 ${
 										active
-											? 'border-blue-600 bg-blue-600'
-											: 'border-gray-200 bg-white'
+											? 'border-primary bg-primary'
+											: 'border-border bg-surface'
 									}`}
 								>
 									<Text
 										className={`font-inter font-medium text-xs ${
-											active ? 'text-white' : 'text-gray-700'
+											active
+												? 'text-primary-foreground'
+												: 'text-foreground-secondary'
 										}`}
 									>
 										{item.label}
 									</Text>
 									<View
 										className={`min-w-[20px] items-center rounded-full px-1.5 py-0.5 ${
-											active ? 'bg-white/20' : 'bg-gray-100'
+											active ? 'bg-white/20' : 'bg-surface-muted'
 										}`}
 									>
 										<Text
-											className={`font-inter font-semibold text-[11px] ${
-												active ? 'text-white' : 'text-gray-600'
+											className={`font-inter font-semibold text-[12px] ${
+												active
+													? 'text-primary-foreground'
+													: 'text-foreground-secondary'
 											}`}
 										>
 											{counts[item.key]}
@@ -257,16 +263,16 @@ export function InternalUsersPage() {
 
 				{isLoading && people.length === 0 ? (
 					<View className="items-center py-16">
-						<ActivityIndicator color="#6B7280" />
-						<Text className="mt-2 font-inter text-gray-400 text-sm">
+						<ActivityIndicator color={themeColors.foregroundMuted} />
+						<Text className="mt-2 font-inter text-foreground-subtle text-sm">
 							Carregando pessoas...
 						</Text>
 					</View>
 				) : error ? (
-					<View className="flex-row items-center justify-between gap-3 rounded-lg bg-red-50 px-4 py-3">
+					<View className="flex-row items-center justify-between gap-3 rounded-lg bg-danger-soft px-4 py-3">
 						<View className="flex-1 flex-row items-center gap-2">
-							<CircleAlert size={16} color="#B91C1C" />
-							<Text className="flex-1 font-inter text-red-900 text-sm">
+							<CircleAlert size={16} color={themeColors.danger} />
+							<Text className="flex-1 font-inter text-danger-text text-sm">
 								{error}
 							</Text>
 						</View>
@@ -274,37 +280,37 @@ export function InternalUsersPage() {
 							onPress={() => void reload()}
 							accessibilityRole="button"
 						>
-							<Text className="font-inter font-semibold text-red-900 text-sm">
+							<Text className="font-inter font-semibold text-danger-text text-sm">
 								Tentar novamente
 							</Text>
 						</TouchableOpacity>
 					</View>
 				) : people.length === 0 ? (
-					<View className="items-center gap-3 rounded-xl border border-dashed border-gray-300 px-6 py-14">
-						<View className="h-12 w-12 items-center justify-center rounded-full bg-blue-50">
-							<UserPlus size={22} color="#2563EB" />
+					<View className="items-center gap-3 rounded-xl border border-dashed border-border-strong px-6 py-14">
+						<View className="h-12 w-12 items-center justify-center rounded-full bg-primary-soft">
+							<UserPlus size={22} color={themeColors.primaryText} />
 						</View>
-						<Text className="text-center font-inter font-semibold text-gray-800 text-base">
+						<Text className="text-center font-inter font-semibold text-foreground text-base">
 							Convide a primeira pessoa
 						</Text>
-						<Text className="max-w-[360px] text-center font-inter text-gray-500 text-sm">
+						<Text className="max-w-[360px] text-center font-inter text-foreground-muted text-sm">
 							Cadastre quem vai trabalhar na plataforma. A pessoa recebe um
 							e-mail para criar a própria senha.
 						</Text>
 						<TouchableOpacity
 							onPress={openCreate}
 							accessibilityRole="button"
-							className="mt-1 rounded-lg bg-blue-600 px-4 py-2.5"
+							className="mt-1 rounded-lg bg-primary px-4 py-2.5"
 						>
-							<Text className="font-inter font-semibold text-sm text-white">
+							<Text className="font-inter font-semibold text-sm text-primary-foreground">
 								Convidar pessoa
 							</Text>
 						</TouchableOpacity>
 					</View>
 				) : departments.length === 0 ? (
-					<View className="items-center gap-2 rounded-xl border border-dashed border-gray-300 px-6 py-12">
-						<Search size={24} color="#9CA3AF" />
-						<Text className="text-center font-inter text-gray-500 text-sm">
+					<View className="items-center gap-2 rounded-xl border border-dashed border-border-strong px-6 py-12">
+						<Search size={24} color={themeColors.foregroundSubtle} />
+						<Text className="text-center font-inter text-foreground-muted text-sm">
 							Nenhuma pessoa encontrada para esse filtro.
 						</Text>
 					</View>

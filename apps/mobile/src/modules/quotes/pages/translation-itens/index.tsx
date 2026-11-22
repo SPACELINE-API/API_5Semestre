@@ -35,6 +35,7 @@ import {
 	wordCountInputValue,
 } from '../../utils/wordCount';
 
+import { useThemeColors } from '../../../../shared/theme/ThemeProvider';
 const { width } = Dimensions.get('window');
 const isDesktop = Platform.OS === 'web' && width > 768;
 
@@ -71,6 +72,7 @@ export function NewQuoteModal({
 	onClose: () => void;
 	onCreated: () => void;
 }) {
+	const themeColors = useThemeColors();
 	const [items, setItems] = useState<QuoteItem[]>([createEmptyItem()]);
 	const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -171,14 +173,14 @@ export function NewQuoteModal({
 			animationType="none"
 			onRequestClose={resetAndClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="w-full max-w-[520px] max-h-[85%] rounded-xl bg-white overflow-hidden">
-					<View className="flex-row items-center justify-between border-b border-gray-300 px-6 py-4">
-						<Text className="font-inter font-bold text-gray-900 text-lg">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+				<View className="w-full max-w-[520px] max-h-[85%] rounded-xl bg-surface overflow-hidden">
+					<View className="flex-row items-center justify-between border-b border-border-strong px-6 py-4">
+						<Text className="font-inter font-bold text-foreground text-lg">
 							Novo orçamento
 						</Text>
 						<TouchableOpacity onPress={resetAndClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
@@ -188,9 +190,9 @@ export function NewQuoteModal({
 						keyboardShouldPersistTaps="handled"
 					>
 						{submitError ? (
-							<View className="flex-row items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-								<CircleAlert size={19} color="#dc2626" />
-								<Text className="flex-1 font-inter text-sm text-red-800">
+							<View className="flex-row items-start gap-3 rounded-lg border border-danger/30 bg-danger-soft p-4">
+								<CircleAlert size={19} color={themeColors.danger} />
+								<Text className="flex-1 font-inter text-sm text-danger-text">
 									{submitError}
 								</Text>
 							</View>
@@ -198,15 +200,15 @@ export function NewQuoteModal({
 
 						<View>
 							<View className="mb-4 flex-row items-center justify-between">
-								<Text className="font-inter-bold text-sm text-gray-900">
+								<Text className="font-inter-bold text-sm text-foreground">
 									Itens do orçamento
 								</Text>
 								<TouchableOpacity
 									accessibilityRole="button"
 									onPress={handleAddItem}
-									className="items-center rounded-full border border-blue-200 bg-white px-4 py-2"
+									className="items-center rounded-full border border-primary/30 bg-surface px-4 py-2"
 								>
-									<Text className="font-inter-medium text-xs text-blue-600">
+									<Text className="font-inter-medium text-xs text-primary-text">
 										+ Adicionar item
 									</Text>
 								</TouchableOpacity>
@@ -216,11 +218,11 @@ export function NewQuoteModal({
 								{items.map((item, index) => (
 									<View
 										key={item.id}
-										className="relative gap-4 rounded-lg border border-gray-200 p-4"
+										className="relative gap-4 rounded-lg border border-border p-4"
 										style={{ zIndex: 100 - index }}
 									>
 										{items.length > 1 && (
-											<Text className="font-inter-medium text-xs text-gray-500">
+											<Text className="font-inter-medium text-xs text-foreground-muted">
 												Item {index + 1}
 											</Text>
 										)}
@@ -229,9 +231,9 @@ export function NewQuoteModal({
 												accessibilityRole="button"
 												accessibilityLabel="Remover item"
 												onPress={() => handleRemoveItem(item.id)}
-												className="absolute right-3 top-3 h-7 w-7 items-center justify-center rounded-lg border border-red-100 bg-red-50"
+												className="absolute right-3 top-3 h-7 w-7 items-center justify-center rounded-lg border border-danger/25 bg-danger-soft"
 											>
-												<Trash2 size={13} color="#b91c1c" />
+												<Trash2 size={13} color={themeColors.danger} />
 											</TouchableOpacity>
 										)}
 										<View
@@ -243,7 +245,7 @@ export function NewQuoteModal({
 												className={isDesktop ? 'w-[48%]' : 'w-full'}
 												style={{ zIndex: 50 }}
 											>
-												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
+												<Text className="mb-1.5 font-inter-medium text-xs text-foreground-secondary">
 													Idioma origem
 												</Text>
 												<LanguageSelect
@@ -257,7 +259,7 @@ export function NewQuoteModal({
 												className={isDesktop ? 'w-[48%]' : 'w-full'}
 												style={{ zIndex: 40 }}
 											>
-												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
+												<Text className="mb-1.5 font-inter-medium text-xs text-foreground-secondary">
 													Idioma destino
 												</Text>
 												<LanguageSelect
@@ -271,13 +273,13 @@ export function NewQuoteModal({
 												className={isDesktop ? 'w-[48%]' : 'w-full'}
 												style={{ zIndex: 30 }}
 											>
-												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
+												<Text className="mb-1.5 font-inter-medium text-xs text-foreground-secondary">
 													Tipo de documento
 												</Text>
 												<TextInput
-													className="rounded-md border border-gray-200 bg-white p-3 font-inter text-sm text-gray-800"
+													className="rounded-md border border-border bg-surface p-3 font-inter text-sm text-foreground"
 													placeholder="Ex: Contrato Social"
-													placeholderTextColor="#9CA3AF"
+													placeholderTextColor={themeColors.foregroundSubtle}
 													value={item.docType}
 													onChangeText={(val) =>
 														updateItem(item.id, { docType: val })
@@ -288,7 +290,7 @@ export function NewQuoteModal({
 												className={isDesktop ? 'w-[48%]' : 'w-full'}
 												style={{ zIndex: 20 }}
 											>
-												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
+												<Text className="mb-1.5 font-inter-medium text-xs text-foreground-secondary">
 													Arquivo
 												</Text>
 												<View className="h-[46px] flex-row gap-2">
@@ -297,10 +299,10 @@ export function NewQuoteModal({
 															accessibilityRole="link"
 															accessibilityLabel={`Visualizar arquivo ${item.fileName}`}
 															onPress={() => void openDocument(item.fileUrl!)}
-															className="min-w-0 flex-1 flex-row items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3"
+															className="min-w-0 flex-1 flex-row items-center gap-2 rounded-md border border-primary/30 bg-primary-soft px-3"
 														>
 															<Text
-																className="min-w-0 flex-1 font-inter text-xs text-blue-700"
+																className="min-w-0 flex-1 font-inter text-xs text-primary-text"
 																numberOfLines={1}
 																ellipsizeMode="tail"
 															>
@@ -316,11 +318,14 @@ export function NewQuoteModal({
 																uploadingItemId === item.id ||
 																!canWriteDocuments
 															}
-															className={`flex-1 flex-row items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white p-3 ${!canWriteDocuments ? 'opacity-40' : ''}`}
+															className={`flex-1 flex-row items-center justify-center gap-2 rounded-md border border-dashed border-border-strong bg-surface p-3 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 															onPress={() => void handlePickFile(item.id)}
 														>
-															<Paperclip size={14} color="#6b7280" />
-															<Text className="font-inter text-xs text-gray-500">
+															<Paperclip
+																size={14}
+																color={themeColors.foregroundMuted}
+															/>
+															<Text className="font-inter text-xs text-foreground-muted">
 																{uploadingItemId === item.id
 																	? 'Enviando...'
 																	: 'Anexar arquivo'}
@@ -333,15 +338,15 @@ export function NewQuoteModal({
 												className={isDesktop ? 'w-[48%]' : 'w-full'}
 												style={{ zIndex: 15 }}
 											>
-												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
+												<Text className="mb-1.5 font-inter-medium text-xs text-foreground-secondary">
 													Quantidade de palavras
 												</Text>
 												<TextInput
 													accessibilityLabel="Quantidade de palavras"
 													testID="new-quote-item-word-count-input"
-													className="h-[46px] rounded-md border border-gray-200 bg-white p-3 font-inter text-sm text-gray-800"
+													className="h-[46px] rounded-md border border-border bg-surface p-3 font-inter text-sm text-foreground"
 													placeholder="Preenchida ao anexar o arquivo"
-													placeholderTextColor="#9CA3AF"
+													placeholderTextColor={themeColors.foregroundSubtle}
 													keyboardType="number-pad"
 													inputMode="numeric"
 													maxLength={WORD_COUNT_MAX_DIGITS}
@@ -353,7 +358,7 @@ export function NewQuoteModal({
 													}
 												/>
 												{item.fileUrl && item.wordCount == null ? (
-													<Text className="mt-1 font-inter text-xs text-gray-500">
+													<Text className="mt-1 font-inter text-xs text-foreground-muted">
 														Não foi possível contar as palavras do arquivo.
 														Informe a quantidade manualmente.
 													</Text>
@@ -363,13 +368,13 @@ export function NewQuoteModal({
 												className={isDesktop ? 'w-[32%]' : 'w-full'}
 												style={{ zIndex: 10 }}
 											>
-												<Text className="mb-1.5 font-inter-medium text-xs text-gray-700">
+												<Text className="mb-1.5 font-inter-medium text-xs text-foreground-secondary">
 													Valor
 												</Text>
 												<TextInput
-													className="h-[46px] rounded-md border border-gray-200 bg-white p-3 font-inter-bold text-sm text-gray-800"
+													className="h-[46px] rounded-md border border-border bg-surface p-3 font-inter-bold text-sm text-foreground"
 													placeholder="R$ 0,00"
-													placeholderTextColor="#9CA3AF"
+													placeholderTextColor={themeColors.foregroundSubtle}
 													keyboardType="numeric"
 													value={
 														item.price ? decimalStringToBRL(item.price) : ''
@@ -385,7 +390,7 @@ export function NewQuoteModal({
 									</View>
 								))}
 							</View>
-							<Text className="mt-4 font-inter text-xs text-gray-400">
+							<Text className="mt-4 font-inter text-xs text-foreground-subtle">
 								Informe o valor manualmente para cada item do orçamento.
 							</Text>
 						</View>
@@ -394,15 +399,15 @@ export function NewQuoteModal({
 					<View
 						className={
 							isDesktop
-								? 'flex-row items-center justify-between border-t border-gray-300 px-6 py-4'
-								: 'flex-col gap-4 border-t border-gray-300 px-6 py-4'
+								? 'flex-row items-center justify-between border-t border-border-strong px-6 py-4'
+								: 'flex-col gap-4 border-t border-border-strong px-6 py-4'
 						}
 					>
 						<View className={isDesktop ? 'w-auto' : 'w-full'}>
-							<Text className="mb-1 font-inter text-xs text-gray-500">
+							<Text className="mb-1 font-inter text-xs text-foreground-muted">
 								Total do orçamento
 							</Text>
-							<Text className="font-inter-bold text-2xl text-gray-900">
+							<Text className="font-inter-bold text-2xl text-foreground">
 								{decimalStringToBRL(String(total))}
 							</Text>
 						</View>
@@ -414,11 +419,11 @@ export function NewQuoteModal({
 								onPress={resetAndClose}
 								className={
 									isDesktop
-										? 'rounded-lg border border-gray-300 px-5 py-2.5'
-										: 'w-full min-h-[44px] items-center justify-center rounded-lg border border-gray-300 px-5 py-2.5'
+										? 'rounded-lg border border-border-strong px-5 py-2.5'
+										: 'w-full min-h-[44px] items-center justify-center rounded-lg border border-border-strong px-5 py-2.5'
 								}
 							>
-								<Text className="font-inter font-medium text-gray-800 text-sm">
+								<Text className="font-inter font-medium text-foreground text-sm">
 									Cancelar
 								</Text>
 							</TouchableOpacity>
@@ -431,11 +436,11 @@ export function NewQuoteModal({
 								onPress={() => void handleSubmitQuote()}
 								className={`${isDesktop ? 'rounded-lg px-5 py-2.5' : 'w-full min-h-[44px] items-center justify-center rounded-lg px-5 py-2.5'} ${
 									isSubmitting || !canWriteQuotes
-										? 'bg-gray-300 opacity-60'
-										: 'bg-blue-600'
+										? 'bg-border-strong opacity-60'
+										: 'bg-primary'
 								}`}
 							>
-								<Text className="font-inter font-semibold text-white text-sm">
+								<Text className="font-inter font-semibold text-primary-foreground text-sm">
 									{isSubmitting ? 'Criando…' : 'Criar orçamento'}
 								</Text>
 							</TouchableOpacity>
@@ -444,11 +449,11 @@ export function NewQuoteModal({
 
 					{bannerMessage && (
 						<View
-							className="absolute bottom-4 right-4 z-50 flex-row items-center gap-2 rounded-lg border border-green-600 bg-green-50 px-4 py-3 shadow-lg"
+							className="absolute bottom-4 right-4 z-50 flex-row items-center gap-2 rounded-lg border border-success bg-success-soft px-4 py-3 shadow-lg"
 							style={{ zIndex: 9999 }}
 						>
-							<CircleCheck size={18} color="#16a34a" />
-							<Text className="font-inter-medium text-sm text-green-800">
+							<CircleCheck size={18} color={themeColors.success} />
+							<Text className="font-inter-medium text-sm text-success-text">
 								{bannerMessage}
 							</Text>
 						</View>

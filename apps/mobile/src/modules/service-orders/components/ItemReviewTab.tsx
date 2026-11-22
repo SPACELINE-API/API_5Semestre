@@ -22,6 +22,7 @@ import {
 import { RequestChangesModal } from './RequestChangesModal';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ItemReviewTabProps = {
 	items: ServiceOrderItem[];
 	files: ServiceOrderFile[];
@@ -44,6 +45,7 @@ export function ItemReviewTab({
 	onApprove,
 	onRequestChanges,
 }: ItemReviewTabProps) {
+	const themeColors = useThemeColors();
 	const canWriteDocuments = usePermission('documents.write');
 	const [busyFileId, setBusyFileId] = useState<string | null>(null);
 	const [changesTarget, setChangesTarget] = useState<ServiceOrderFile | null>(
@@ -88,26 +90,26 @@ export function ItemReviewTab({
 		<View className="gap-8">
 			<View className="gap-3">
 				<View className="flex-row items-center gap-2">
-					<ClipboardCheck size={16} color="#1C6FB0" />
-					<Text className="font-inter font-bold text-gray-900 text-base">
+					<ClipboardCheck size={16} color={themeColors.primary} />
+					<Text className="font-inter font-bold text-foreground text-base">
 						Aguardando revisão
 					</Text>
-					<View className="rounded-full bg-amber-50 px-2 py-0.5">
-						<Text className="font-inter font-semibold text-amber-900 text-xs">
+					<View className="rounded-full bg-warning-soft px-2 py-0.5">
+						<Text className="font-inter font-semibold text-warning-text text-xs">
 							{pending.length}
 						</Text>
 					</View>
 				</View>
 
 				{pending.length === 0 ? (
-					<View className="items-center justify-center rounded-xl border border-gray-100 py-10">
-						<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-							<CheckCircle2 size={18} color="#9CA3AF" />
+					<View className="items-center justify-center rounded-xl border border-border-subtle py-10">
+						<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
+							<CheckCircle2 size={18} color={themeColors.foregroundSubtle} />
 						</View>
-						<Text className="font-inter font-medium text-gray-800 text-sm">
+						<Text className="font-inter font-medium text-foreground text-sm">
 							Nenhuma entrega aguardando revisão
 						</Text>
-						<Text className="mt-1 text-center font-inter text-gray-400 text-xs">
+						<Text className="mt-1 text-center font-inter text-foreground-subtle text-xs">
 							Quando um tradutor enviar uma tradução, ela aparece aqui.
 						</Text>
 					</View>
@@ -121,13 +123,13 @@ export function ItemReviewTab({
 						return (
 							<View
 								key={file.id}
-								className="gap-4 rounded-xl border border-gray-200 p-4"
+								className="gap-4 rounded-xl border border-border p-4"
 							>
 								<View className="gap-0.5">
-									<Text className="font-inter font-semibold text-gray-900 text-sm">
+									<Text className="font-inter font-semibold text-foreground text-sm">
 										{itemLabel(item)}
 									</Text>
-									<Text className="font-inter text-gray-500 text-xs">
+									<Text className="font-inter text-foreground-muted text-xs">
 										Enviado por {deliveredBy(file)} em{' '}
 										{formatDate(file.uploaded_at)}
 									</Text>
@@ -140,14 +142,14 @@ export function ItemReviewTab({
 									accessibilityLabel={`Abrir tradução ${file.filename}`}
 									className="min-w-0 flex-row items-center gap-2 self-start"
 								>
-									<FileText size={15} color="#1C6FB0" />
+									<FileText size={15} color={themeColors.primary} />
 									<Text
-										className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-sm"
+										className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-sm"
 										numberOfLines={1}
 									>
 										{file.filename}
 									</Text>
-									<ExternalLink size={12} color="#1d4ed8" />
+									<ExternalLink size={12} color={themeColors.primaryText} />
 								</TouchableOpacity>
 
 								<View className="flex-row flex-wrap justify-end gap-3">
@@ -159,9 +161,9 @@ export function ItemReviewTab({
 										activeOpacity={0.7}
 										accessibilityRole="button"
 										accessibilityLabel="Pedir ajustes"
-										className={`rounded-lg border border-gray-300 px-4 py-2.5 ${!canWriteDocuments ? 'opacity-40' : ''}`}
+										className={`rounded-lg border border-border-strong px-4 py-2.5 ${!canWriteDocuments ? 'opacity-40' : ''}`}
 									>
-										<Text className="font-inter font-medium text-gray-700 text-sm">
+										<Text className="font-inter font-medium text-foreground-secondary text-sm">
 											Pedir ajustes
 										</Text>
 									</TouchableOpacity>
@@ -171,10 +173,15 @@ export function ItemReviewTab({
 										activeOpacity={0.7}
 										accessibilityRole="button"
 										accessibilityLabel="Aprovar entrega"
-										className={`flex-row items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${isBusy ? 'opacity-60' : ''} ${!canWriteDocuments ? 'opacity-40' : ''}`}
+										className={`flex-row items-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${isBusy ? 'opacity-60' : ''} ${!canWriteDocuments ? 'opacity-40' : ''}`}
 									>
-										{isBusy && <ActivityIndicator size="small" color="#fff" />}
-										<Text className="font-inter-medium text-sm text-white">
+										{isBusy && (
+											<ActivityIndicator
+												size="small"
+												color={themeColors.primaryForeground}
+											/>
+										)}
+										<Text className="font-inter-medium text-sm text-primary-foreground">
 											Aprovar
 										</Text>
 									</TouchableOpacity>
@@ -187,7 +194,7 @@ export function ItemReviewTab({
 
 			{history.length > 0 && (
 				<View className="gap-3">
-					<Text className="font-inter font-bold text-gray-900 text-base">
+					<Text className="font-inter font-bold text-foreground text-base">
 						Histórico de revisões
 					</Text>
 					{history.map((file) => {
@@ -199,14 +206,14 @@ export function ItemReviewTab({
 						return (
 							<View
 								key={file.id}
-								className="gap-2 rounded-xl border border-gray-100 p-4"
+								className="gap-2 rounded-xl border border-border-subtle p-4"
 							>
 								<View className="flex-row flex-wrap items-start justify-between gap-2">
 									<View className="min-w-0 flex-1 gap-0.5">
-										<Text className="font-inter font-semibold text-gray-900 text-sm">
+										<Text className="font-inter font-semibold text-foreground text-sm">
 											{itemLabel(item)}
 										</Text>
-										<Text className="font-inter text-gray-500 text-xs">
+										<Text className="font-inter text-foreground-muted text-xs">
 											{deliveredBy(file)} · revisado em{' '}
 											{formatDate(file.reviewed_at)}
 										</Text>
@@ -222,7 +229,7 @@ export function ItemReviewTab({
 									</View>
 								</View>
 								{file.review_note && (
-									<Text className="font-inter text-gray-600 text-sm">
+									<Text className="font-inter text-foreground-secondary text-sm">
 										{file.review_note}
 									</Text>
 								)}
@@ -232,9 +239,9 @@ export function ItemReviewTab({
 									accessibilityRole="link"
 									className="min-w-0 flex-row items-center gap-2 self-start"
 								>
-									<FileText size={14} color="#1C6FB0" />
+									<FileText size={14} color={themeColors.primary} />
 									<Text
-										className="min-w-0 flex-shrink font-inter font-medium text-blue-600 text-xs"
+										className="min-w-0 flex-shrink font-inter font-medium text-primary-text text-xs"
 										numberOfLines={1}
 									>
 										{file.filename}

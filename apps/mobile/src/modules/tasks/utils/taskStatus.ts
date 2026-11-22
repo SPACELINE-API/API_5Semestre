@@ -18,41 +18,41 @@ export const TASK_STATUS_PRESENTATION: Record<TaskStatus, StatusPresentation> =
 		pending: {
 			label: 'Pendente',
 			badge: {
-				background: 'bg-gray-100',
-				text: 'text-gray-700',
-				dot: 'bg-gray-400',
+				background: 'bg-surface-muted',
+				text: 'text-foreground-secondary',
+				dot: 'bg-foreground-subtle',
 			},
 		},
 		in_progress: {
 			label: 'Em andamento',
 			badge: {
-				background: 'bg-blue-50',
-				text: 'text-blue-700',
-				dot: 'bg-blue-500',
+				background: 'bg-primary-soft',
+				text: 'text-primary-text',
+				dot: 'bg-primary',
 			},
 		},
 		in_review: {
 			label: 'Em análise',
 			badge: {
-				background: 'bg-amber-50',
-				text: 'text-amber-800',
-				dot: 'bg-amber-500',
+				background: 'bg-warning-soft',
+				text: 'text-warning-text',
+				dot: 'bg-warning',
 			},
 		},
 		completed: {
 			label: 'Concluído',
 			badge: {
-				background: 'bg-green-50',
-				text: 'text-green-800',
-				dot: 'bg-green-500',
+				background: 'bg-success-soft',
+				text: 'text-success-text',
+				dot: 'bg-success',
 			},
 		},
 		rejected: {
 			label: 'Reprovado',
 			badge: {
-				background: 'bg-red-50',
-				text: 'text-red-800',
-				dot: 'bg-red-500',
+				background: 'bg-danger-soft',
+				text: 'text-danger-text',
+				dot: 'bg-danger',
 			},
 		},
 	};

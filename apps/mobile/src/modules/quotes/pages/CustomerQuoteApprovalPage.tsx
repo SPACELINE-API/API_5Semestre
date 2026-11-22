@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
 	ActivityIndicator,
-	Image,
 	Linking,
 	Pressable,
 	Text,
@@ -18,7 +17,7 @@ import {
 	Link2Off,
 	XCircle,
 } from 'lucide-react-native';
-import logoAlianca from '../../../shared/assets/logo-alianca.png';
+import { BrandLogo } from '../../../shared/components/BrandLogo';
 import { ApiError } from '../../../shared/services/publicApiClient';
 import { LoginScroll } from '../../auth/components/LoginScroll';
 import {
@@ -28,6 +27,7 @@ import {
 	type CustomerQuote,
 } from '../services/customerQuoteService';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type LoadState =
 	| { kind: 'loading' }
 	| { kind: 'ready'; quote: CustomerQuote }
@@ -54,11 +54,12 @@ function formatDay(value: string | null) {
 }
 
 function StatusNotice({ quote }: { quote: CustomerQuote }) {
+	const themeColors = useThemeColors();
 	if (quote.status === 'approved') {
 		return (
-			<View className="flex-row items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-				<CheckCircle2 size={20} color="#047857" />
-				<Text className="flex-1 font-inter text-sm leading-5 text-emerald-800">
+			<View className="flex-row items-start gap-3 rounded-xl border border-success/30 bg-success-soft p-4">
+				<CheckCircle2 size={20} color={themeColors.successText} />
+				<Text className="flex-1 font-inter text-sm leading-5 text-success-text">
 					Orçamento aprovado em {formatDay(quote.approved_at)}. Você receberá o
 					comprovante comercial por e-mail.
 				</Text>
@@ -67,9 +68,9 @@ function StatusNotice({ quote }: { quote: CustomerQuote }) {
 	}
 	if (quote.status === 'reproved') {
 		return (
-			<View className="flex-row items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
-				<XCircle size={20} color="#b91c1c" />
-				<Text className="flex-1 font-inter text-sm leading-5 text-red-800">
+			<View className="flex-row items-start gap-3 rounded-xl border border-danger/30 bg-danger-soft p-4">
+				<XCircle size={20} color={themeColors.danger} />
+				<Text className="flex-1 font-inter text-sm leading-5 text-danger-text">
 					Orçamento reprovado em {formatDay(quote.reproved_at)}.
 					{quote.reproval_reason ? ` Motivo: ${quote.reproval_reason}` : ''}
 				</Text>
@@ -78,9 +79,9 @@ function StatusNotice({ quote }: { quote: CustomerQuote }) {
 	}
 	if (quote.status === 'cancelled') {
 		return (
-			<View className="flex-row items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
-				<Clock3 size={20} color="#4b5563" />
-				<Text className="flex-1 font-inter text-sm leading-5 text-gray-700">
+			<View className="flex-row items-start gap-3 rounded-xl border border-border bg-surface-subtle p-4">
+				<Clock3 size={20} color={themeColors.foregroundSecondary} />
+				<Text className="flex-1 font-inter text-sm leading-5 text-foreground-secondary">
 					O prazo de validade deste orçamento expirou e ele foi cancelado. Entre
 					em contato com a Aliança Traduções para receber um novo orçamento.
 				</Text>
@@ -91,6 +92,7 @@ function StatusNotice({ quote }: { quote: CustomerQuote }) {
 }
 
 export function CustomerQuoteApprovalPage() {
+	const themeColors = useThemeColors();
 	const { token } = useLocalSearchParams<{ token?: string }>();
 	const [state, setState] = useState<LoadState>({ kind: 'loading' });
 	const [mode, setMode] = useState<'choose' | 'approve' | 'reprove'>('choose');
@@ -171,21 +173,16 @@ export function CustomerQuoteApprovalPage() {
 
 	return (
 		<LoginScroll>
-			<View className="flex-1 items-center bg-[#f4f6fa] px-4 py-10">
-				<View className="w-full max-w-[640px] gap-6 rounded-2xl bg-white p-6 md:p-8">
-					<View className="items-center border-b border-gray-100 pb-5">
-						<Image
-							source={logoAlianca}
-							style={{ width: 180, height: 60 }}
-							resizeMode="contain"
-							accessibilityLabel="Aliança Traduções"
-						/>
+			<View className="flex-1 items-center bg-background px-4 py-10">
+				<View className="w-full max-w-[640px] gap-6 rounded-2xl bg-surface p-6 md:p-8">
+					<View className="items-center border-b border-border-subtle pb-5">
+						<BrandLogo width={180} height={60} />
 					</View>
 
 					{state.kind === 'loading' ? (
 						<View className="items-center gap-3 py-10">
 							<ActivityIndicator color="#d71920" />
-							<Text className="font-inter text-sm text-gray-500">
+							<Text className="font-inter text-sm text-foreground-muted">
 								Carregando orçamento...
 							</Text>
 						</View>
@@ -193,11 +190,11 @@ export function CustomerQuoteApprovalPage() {
 
 					{state.kind === 'invalid' ? (
 						<View className="items-center gap-3 py-6">
-							<Link2Off size={32} color="#6b7280" />
-							<Text className="font-inter-bold text-lg text-gray-900">
+							<Link2Off size={32} color={themeColors.foregroundMuted} />
+							<Text className="font-inter-bold text-lg text-foreground">
 								Link inválido
 							</Text>
-							<Text className="text-center font-inter text-sm leading-5 text-gray-600">
+							<Text className="text-center font-inter text-sm leading-5 text-foreground-secondary">
 								Este link não é mais válido. Se o orçamento foi atualizado, use
 								o link do e-mail mais recente.
 							</Text>
@@ -206,15 +203,15 @@ export function CustomerQuoteApprovalPage() {
 
 					{state.kind === 'error' ? (
 						<View className="items-center gap-4 py-6">
-							<Text className="text-center font-inter text-sm text-red-700">
+							<Text className="text-center font-inter text-sm text-danger">
 								{state.message}
 							</Text>
 							<TouchableOpacity
 								accessibilityRole="button"
 								onPress={() => setReloadKey((current) => current + 1)}
-								className="rounded-lg border border-gray-300 px-4 py-2.5"
+								className="rounded-lg border border-border-strong px-4 py-2.5"
 							>
-								<Text className="font-inter-medium text-sm text-gray-700">
+								<Text className="font-inter-medium text-sm text-foreground-secondary">
 									Tentar novamente
 								</Text>
 							</TouchableOpacity>
@@ -226,19 +223,19 @@ export function CustomerQuoteApprovalPage() {
 							<View className="gap-1">
 								<View className="flex-row items-center gap-2">
 									<FileText size={18} color="#d71920" />
-									<Text className="font-inter-bold text-xl text-gray-900">
+									<Text className="font-inter-bold text-xl text-foreground">
 										Orçamento #{state.quote.code}
 									</Text>
 								</View>
 								{state.quote.company_name ? (
-									<Text className="font-inter text-sm text-gray-600">
+									<Text className="font-inter text-sm text-foreground-secondary">
 										{state.quote.company_name}
 									</Text>
 								) : null}
 							</View>
 
 							{state.quote.status === 'pending' ? (
-								<Text className="font-inter text-sm leading-5 text-gray-700">
+								<Text className="font-inter text-sm leading-5 text-foreground-secondary">
 									{state.quote.customer_name
 										? `Olá, ${state.quote.customer_name}. `
 										: ''}
@@ -253,17 +250,17 @@ export function CustomerQuoteApprovalPage() {
 								{state.quote.items.map((item, index) => (
 									<View
 										key={`item-${index}`}
-										className="flex-row items-start justify-between gap-3 border-b border-gray-100 pb-2"
+										className="flex-row items-start justify-between gap-3 border-b border-border-subtle pb-2"
 									>
 										<View className="flex-1">
-											<Text className="font-inter-medium text-sm text-gray-900">
+											<Text className="font-inter-medium text-sm text-foreground">
 												{item.document_type || 'Tradução de documento'}
 											</Text>
-											<Text className="font-inter text-xs text-gray-500">
+											<Text className="font-inter text-xs text-foreground-muted">
 												{item.source_language} → {item.target_language}
 											</Text>
 										</View>
-										<Text className="font-inter-medium text-sm text-gray-900">
+										<Text className="font-inter-medium text-sm text-foreground">
 											{formatBRL(item.estimated_value)}
 										</Text>
 									</View>
@@ -271,26 +268,26 @@ export function CustomerQuoteApprovalPage() {
 								{state.quote.additional_services.map((service, index) => (
 									<View
 										key={`service-${index}`}
-										className="flex-row items-start justify-between gap-3 border-b border-gray-100 pb-2"
+										className="flex-row items-start justify-between gap-3 border-b border-border-subtle pb-2"
 									>
 										<View className="flex-1">
-											<Text className="font-inter-medium text-sm text-gray-900">
+											<Text className="font-inter-medium text-sm text-foreground">
 												{service.description}
 											</Text>
-											<Text className="font-inter text-xs text-gray-500">
+											<Text className="font-inter text-xs text-foreground-muted">
 												Serviço adicional
 											</Text>
 										</View>
-										<Text className="font-inter-medium text-sm text-gray-900">
+										<Text className="font-inter-medium text-sm text-foreground">
 											{formatBRL(service.price)}
 										</Text>
 									</View>
 								))}
 								<View className="flex-row items-center justify-between pt-1">
-									<Text className="font-inter-bold text-base text-gray-900">
+									<Text className="font-inter-bold text-base text-foreground">
 										Valor total
 									</Text>
-									<Text className="font-inter-bold text-base text-gray-900">
+									<Text className="font-inter-bold text-base text-foreground">
 										{formatBRL(state.quote.total_value)}
 									</Text>
 								</View>
@@ -298,8 +295,8 @@ export function CustomerQuoteApprovalPage() {
 
 							{state.quote.status === 'pending' ? (
 								<>
-									<View className="rounded-lg bg-amber-50 p-3">
-										<Text className="font-inter-medium text-sm text-amber-800">
+									<View className="rounded-lg bg-warning-soft p-3">
+										<Text className="font-inter-medium text-sm text-warning-text">
 											Válido até {formatDay(state.quote.valid_until)}. Depois
 											dessa data, o orçamento é cancelado automaticamente.
 										</Text>
@@ -318,16 +315,17 @@ export function CustomerQuoteApprovalPage() {
 												multiline
 												textAlignVertical="top"
 												placeholder="Conte o motivo da reprovação"
-												className="min-h-24 rounded-lg border border-gray-300 bg-white px-3 py-2 font-inter text-sm text-gray-900"
+												placeholderTextColor={themeColors.foregroundSubtle}
+												className="min-h-24 rounded-lg border border-border-strong bg-surface px-3 py-2 font-inter text-sm text-foreground"
 											/>
 											<View className="flex-row flex-wrap gap-3">
 												<TouchableOpacity
 													accessibilityRole="button"
 													disabled={submitting}
 													onPress={() => void decide(false)}
-													className={`rounded-lg px-4 py-3 ${submitting ? 'bg-gray-300' : 'bg-red-600'}`}
+													className={`rounded-lg px-4 py-3 ${submitting ? 'bg-border-strong' : 'bg-danger'}`}
 												>
-													<Text className="font-inter-medium text-sm text-white">
+													<Text className="font-inter-medium text-sm text-primary-foreground">
 														{submitting
 															? 'Enviando...'
 															: 'Confirmar reprovação'}
@@ -337,17 +335,17 @@ export function CustomerQuoteApprovalPage() {
 													accessibilityRole="button"
 													disabled={submitting}
 													onPress={() => setMode('choose')}
-													className="rounded-lg border border-gray-300 px-4 py-3"
+													className="rounded-lg border border-border-strong px-4 py-3"
 												>
-													<Text className="font-inter-medium text-sm text-gray-700">
+													<Text className="font-inter-medium text-sm text-foreground-secondary">
 														Voltar
 													</Text>
 												</TouchableOpacity>
 											</View>
 										</View>
 									) : mode === 'approve' ? (
-										<View className="gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-											<Text className="font-inter-medium text-sm leading-5 text-emerald-900">
+										<View className="gap-3 rounded-lg border border-success/30 bg-success-soft p-4">
+											<Text className="font-inter-medium text-sm leading-5 text-success-text">
 												Confirma a aprovação do orçamento #{state.quote.code} no
 												valor de {formatBRL(state.quote.total_value)}? Depois de
 												aprovado, iniciamos o serviço e enviamos o comprovante
@@ -362,18 +360,22 @@ export function CustomerQuoteApprovalPage() {
 													testID="customer-quote-terms-checkbox"
 													hitSlop={6}
 													onPress={toggleTerms}
-													className={`mt-0.5 h-[20px] w-[20px] items-center justify-center rounded border-[1.5px] ${termsAccepted ? 'border-emerald-600 bg-emerald-600' : 'border-gray-400 bg-white'}`}
+													className={`mt-0.5 h-[20px] w-[20px] items-center justify-center rounded border-[1.5px] ${termsAccepted ? 'border-success bg-success' : 'border-border-strong bg-surface'}`}
 												>
 													{termsAccepted ? (
-														<Check color="#ffffff" size={13} strokeWidth={3} />
+														<Check
+															color={themeColors.primaryForeground}
+															size={13}
+															strokeWidth={3}
+														/>
 													) : null}
 												</Pressable>
-												<Text className="flex-1 font-inter text-sm leading-5 text-gray-800">
+												<Text className="flex-1 font-inter text-sm leading-5 text-foreground">
 													<Text onPress={toggleTerms}>Li e aceito os </Text>
 													<Text
 														accessibilityRole="link"
 														onPress={openTerms}
-														className="font-inter-medium text-blue-600 underline"
+														className="font-inter-medium text-primary-text underline"
 													>
 														termos e condições
 													</Text>
@@ -388,9 +390,9 @@ export function CustomerQuoteApprovalPage() {
 													}}
 													disabled={submitting || !termsAccepted}
 													onPress={() => void decide(true)}
-													className={`rounded-lg px-4 py-3 ${submitting || !termsAccepted ? 'bg-gray-300' : 'bg-emerald-600'}`}
+													className={`rounded-lg px-4 py-3 ${submitting || !termsAccepted ? 'bg-border-strong' : 'bg-success'}`}
 												>
-													<Text className="font-inter-medium text-sm text-white">
+													<Text className="font-inter-medium text-sm text-primary-foreground">
 														{submitting ? 'Enviando...' : 'Confirmar aprovação'}
 													</Text>
 												</TouchableOpacity>
@@ -398,9 +400,9 @@ export function CustomerQuoteApprovalPage() {
 													accessibilityRole="button"
 													disabled={submitting}
 													onPress={() => setMode('choose')}
-													className="rounded-lg border border-gray-300 bg-white px-4 py-3"
+													className="rounded-lg border border-border-strong bg-surface px-4 py-3"
 												>
-													<Text className="font-inter-medium text-sm text-gray-700">
+													<Text className="font-inter-medium text-sm text-foreground-secondary">
 														Voltar
 													</Text>
 												</TouchableOpacity>
@@ -415,9 +417,9 @@ export function CustomerQuoteApprovalPage() {
 													setTermsAccepted(false);
 													setMode('approve');
 												}}
-												className="min-w-[160px] flex-1 items-center rounded-lg bg-emerald-600 px-4 py-3"
+												className="min-w-[160px] flex-1 items-center rounded-lg bg-success px-4 py-3"
 											>
-												<Text className="font-inter-medium text-sm text-white">
+												<Text className="font-inter-medium text-sm text-primary-foreground">
 													Aprovar orçamento
 												</Text>
 											</TouchableOpacity>
@@ -427,9 +429,9 @@ export function CustomerQuoteApprovalPage() {
 													setActionError('');
 													setMode('reprove');
 												}}
-												className="min-w-[160px] flex-1 items-center rounded-lg border border-red-200 px-4 py-3"
+												className="min-w-[160px] flex-1 items-center rounded-lg border border-danger/30 px-4 py-3"
 											>
-												<Text className="font-inter-medium text-sm text-red-700">
+												<Text className="font-inter-medium text-sm text-danger">
 													Reprovar orçamento
 												</Text>
 											</TouchableOpacity>
@@ -439,7 +441,7 @@ export function CustomerQuoteApprovalPage() {
 							) : null}
 
 							{actionError ? (
-								<Text className="font-inter text-sm text-red-700">
+								<Text className="font-inter text-sm text-danger">
 									{actionError}
 								</Text>
 							) : null}

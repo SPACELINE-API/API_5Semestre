@@ -16,6 +16,7 @@ import { FormField } from '../../clients/components/FormField';
 import { TranslatorLanguagesStep } from './TranslatorLanguagesStep';
 import { ToastMessage, type ToastData } from '../../../shared/components/Toast';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type Props = {
 	visible: boolean;
 	onClose: () => void;
@@ -64,6 +65,7 @@ export function TranslatorFormModal({
 	onSubmit,
 	toast,
 }: Props) {
+	const themeColors = useThemeColors();
 	const [step, setStep] = useState(0);
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
@@ -265,14 +267,14 @@ export function TranslatorFormModal({
 			animationType="none"
 			onRequestClose={handleClose}
 		>
-			<View className="flex-1 items-center justify-center bg-black/40 px-4">
-				<View className="w-full max-w-[520px] max-h-[85%] rounded-xl bg-white overflow-hidden">
-					<View className="flex-row items-center justify-between border-b border-gray-300 px-6 py-4">
-						<Text className="font-inter font-bold text-gray-900 text-lg">
+			<View className="flex-1 items-center justify-center bg-overlay/40 px-4">
+				<View className="w-full max-w-[520px] max-h-[85%] rounded-xl bg-surface overflow-hidden">
+					<View className="flex-row items-center justify-between border-b border-border-strong px-6 py-4">
+						<Text className="font-inter font-bold text-foreground text-lg">
 							Novo tradutor
 						</Text>
 						<TouchableOpacity onPress={handleClose}>
-							<X size={20} color="#5A5A5A" />
+							<X size={20} color={themeColors.foregroundSecondary} />
 						</TouchableOpacity>
 					</View>
 
@@ -286,7 +288,9 @@ export function TranslatorFormModal({
 									<View
 										key={s.title}
 										className={`h-1.5 flex-1 rounded-full ${
-											isActive || isCompleted ? 'bg-blue-300' : 'bg-gray-100'
+											isActive || isCompleted
+												? 'bg-primary'
+												: 'bg-surface-muted'
 										}`}
 									/>
 								);
@@ -300,10 +304,10 @@ export function TranslatorFormModal({
 								return (
 									<Text
 										key={s.title}
-										className={`flex-1 text-center font-inter text-[11px] ${
+										className={`flex-1 text-center font-inter text-[12px] ${
 											isActive || isCompleted
-												? 'font-semibold text-blue-900'
-												: 'text-gray-400'
+												? 'font-semibold text-primary-strong'
+												: 'text-foreground-subtle'
 										}`}
 									>
 										{s.title}
@@ -377,7 +381,7 @@ export function TranslatorFormModal({
 
 						{step === 2 && (
 							<View className="gap-3">
-								<Text className="font-inter text-gray-600 text-[13px]">
+								<Text className="font-inter text-foreground-secondary text-[14px]">
 									Selecione as especialidades técnicas deste tradutor
 									(opcional):
 								</Text>
@@ -391,28 +395,28 @@ export function TranslatorFormModal({
 											activeOpacity={0.7}
 											className={`flex-row items-start gap-3 rounded-xl border p-3.5 transition-all ${
 												isChecked
-													? 'border-blue-300 bg-blue-50'
-													: 'border-gray-300 bg-white'
+													? 'border-primary/40 bg-primary-soft'
+													: 'border-border-strong bg-surface'
 											}`}
 										>
 											<View
 												className={`mt-0.5 h-4 w-4 rounded items-center justify-center border ${
 													isChecked
-														? 'border-blue-600 bg-blue-600'
-														: 'border-gray-300 bg-white'
+														? 'border-primary bg-primary'
+														: 'border-border-strong bg-surface'
 												}`}
 											>
 												{isChecked && (
-													<Text className="text-white text-[10px] font-bold">
+													<Text className="text-primary-foreground text-[11px] font-bold">
 														✓
 													</Text>
 												)}
 											</View>
 											<View className="flex-1">
-												<Text className="font-inter font-semibold text-gray-900 text-sm">
+												<Text className="font-inter font-semibold text-foreground text-sm">
 													{qual.name}
 												</Text>
-												<Text className="font-inter text-gray-500 text-xs mt-0.5">
+												<Text className="font-inter text-foreground-muted text-xs mt-0.5">
 													{qual.description}
 												</Text>
 											</View>
@@ -421,8 +425,8 @@ export function TranslatorFormModal({
 								})}
 
 								{submitError && (
-									<View className="rounded-lg bg-red-50 px-3 py-2.5 mt-2">
-										<Text className="font-inter text-red-900 text-sm">
+									<View className="rounded-lg bg-danger-soft px-3 py-2.5 mt-2">
+										<Text className="font-inter text-danger-text text-sm">
 											{submitError}
 										</Text>
 									</View>
@@ -431,12 +435,12 @@ export function TranslatorFormModal({
 						)}
 					</ScrollView>
 
-					<View className="flex-row items-center justify-between border-t border-gray-300 px-6 py-4">
+					<View className="flex-row items-center justify-between border-t border-border-strong px-6 py-4">
 						<TouchableOpacity
 							onPress={step === 0 ? handleClose : handleBack}
-							className="rounded-lg border border-gray-300 px-5 py-2.5"
+							className="rounded-lg border border-border-strong px-5 py-2.5"
 						>
-							<Text className="font-inter font-medium text-gray-800 text-sm">
+							<Text className="font-inter font-medium text-foreground text-sm">
 								{step === 0 ? 'Cancelar' : 'Voltar'}
 							</Text>
 						</TouchableOpacity>
@@ -445,18 +449,18 @@ export function TranslatorFormModal({
 							<TouchableOpacity
 								onPress={handleSubmit}
 								disabled={isSubmitting}
-								className={`rounded-lg bg-blue-300 px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
+								className={`rounded-lg bg-primary px-5 py-2.5 ${isSubmitting ? 'opacity-60' : ''}`}
 							>
-								<Text className="font-inter font-semibold text-blue-900 text-sm">
+								<Text className="font-inter font-semibold text-primary-strong text-sm">
 									{isSubmitting ? 'Salvando…' : 'Salvar'}
 								</Text>
 							</TouchableOpacity>
 						) : (
 							<TouchableOpacity
 								onPress={handleNext}
-								className="rounded-lg bg-blue-300 px-5 py-2.5"
+								className="rounded-lg bg-primary px-5 py-2.5"
 							>
-								<Text className="font-inter font-semibold text-blue-900 text-sm">
+								<Text className="font-inter font-semibold text-primary-strong text-sm">
 									Avançar
 								</Text>
 							</TouchableOpacity>
