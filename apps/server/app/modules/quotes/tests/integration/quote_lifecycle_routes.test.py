@@ -1033,7 +1033,7 @@ def test_reapproval_notifies_administrators_again(
     keys = sorted(
         key
         for (key,) in isolated_db_session.query(Notification.idempotency_key).filter_by(
-            recipient_user_id=admin.id, related_id=quote.id
+            recipient_user_id=admin.id, related_id=quote.id, event_type="quote_approved"
         )
     )
     assert keys == [f"quote:{quote.id}:approved:v1", f"quote:{quote.id}:approved:v2"]
@@ -1147,3 +1147,119 @@ def test_terms_pdf_requires_a_valid_link(db_client: TestClient):
     response = db_client.get("/api/public/quotes/token-inexistente/terms")
 
     assert response.status_code == 404
+
+
+def future_deadline(days: int) -> datetime:
+    target = datetime.now(UTC) + timedelta(days=days)
+    return target.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def test_approval_copies_deadline_to_service_order(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    deadline = future_deadline(10)
+    quote.items[0].deadline = deadline
+    isolated_db_session.commit()
+
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+
+    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
+    assert os_item.deadline == deadline
+
+
+def test_reapproval_updates_deadline_in_service_order(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    first = future_deadline(10)
+    second = future_deadline(20)
+    quote.items[0].deadline = first
+    isolated_db_session.commit()
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+
+    assert (
+        db_client.patch(
+            f"/api/quotes/{quote.id}/translation-items/{quote.items[0].id}",
+            json={"deadline": second.isoformat()},
+        )
+    ).status_code == 200
+    reapprove(db_client, quote)
+
+    isolated_db_session.expire_all()
+    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
+    assert os_item.deadline == second
+    version = (
+        isolated_db_session.query(ServiceOrderVersion)
+        .filter_by(service_order_id=order.id, version=2)
+        .one()
+    )
+    assert version.changes[0]["fields"]["deadline"] == {
+        "before": first.date().isoformat(),
+        "after": second.date().isoformat(),
+    }
+
+
+def test_reopen_notifies_service_order_managers(
+    db_client: TestClient, isolated_db_session: Session
+):
+    manager = make_user(isolated_db_session, ("service_orders.write",))
+    make_user(isolated_db_session, ("service_orders.read",))
+    quote = make_quote(isolated_db_session, "draft")
+
+    approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+
+    notifications = isolated_db_session.query(Notification).filter_by(event_type="quote_reopened")
+    notification = notifications.one()
+    assert notification.recipient_user_id == manager.id
+    assert notification.related_type == "quote"
+    assert notification.related_id == quote.id
+    assert "Ajuste do cliente" in notification.message
+
+
+def test_reopen_without_service_order_does_not_notify_managers(
+    db_client: TestClient, isolated_db_session: Session
+):
+    make_user(isolated_db_session, ("service_orders.write",))
+    quote = make_quote(isolated_db_session, "pending")
+
+    response = db_client.post(f"/api/quotes/{quote.id}/reopen", json={"reason": "Revisar valores"})
+
+    assert response.status_code == 200
+    assert isolated_db_session.query(Notification).filter_by(event_type="quote_reopened").count() == 0
+
+
+def test_reapproval_notifies_managers_with_the_changes(
+    db_client: TestClient, isolated_db_session: Session
+):
+    manager = make_user(isolated_db_session, ("service_orders.write",))
+    quote = make_quote(isolated_db_session, "draft")
+    quote.items[0].word_count = 1200
+    isolated_db_session.commit()
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+    assert (
+        db_client.patch(
+            f"/api/quotes/{quote.id}/translation-items/{quote.items[0].id}",
+            json={"word_count": 1500},
+        )
+    ).status_code == 200
+
+    reapprove(db_client, quote)
+
+    notification = isolated_db_session.query(Notification).filter_by(event_type="quote_updated").one()
+    assert notification.recipient_user_id == manager.id
+    assert notification.related_type == "service_order"
+    assert notification.related_id == order.id
+    assert "palavras 1200 → 1500" in notification.message
+
+
+def test_reapproval_without_changes_does_not_notify_managers(
+    db_client: TestClient, isolated_db_session: Session
+):
+    make_user(isolated_db_session, ("service_orders.write",))
+    quote = make_quote(isolated_db_session, "draft")
+    approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+
+    reapprove(db_client, quote)
+
+    assert isolated_db_session.query(Notification).filter_by(event_type="quote_updated").count() == 0

@@ -11,7 +11,11 @@ from sqlalchemy.orm import Session
 from app.modules.auth.schemas.supabase import SupabaseAuthenticatedUser
 from app.modules.clients.models.company import Company
 from app.modules.contacts.models.contact import Contact
-from app.modules.notifications.services.notification_messages import quote_approved_message
+from app.modules.notifications.services.notification_messages import (
+    quote_approved_message,
+    quote_changes_message,
+    quote_reopened_message,
+)
 from app.modules.notifications.services.notification_service import NotificationService
 from app.modules.quotes.models.quote import (
     QUOTE_STATUS_APPROVED,
@@ -51,6 +55,8 @@ from app.modules.service_orders.services.quote_sync_service import (
 )
 
 logger = logging.getLogger(__name__)
+
+SERVICE_ORDER_MANAGER_PERMISSION = "service_orders.write"
 
 REOPENABLE_STATUSES = (QUOTE_STATUS_PENDING, QUOTE_STATUS_APPROVED, QUOTE_STATUS_REPROVED)
 
@@ -209,11 +215,13 @@ class QuoteService:
                 ),
             )
 
+        reapproved_order: ServiceOrder | None = None
         if data.status == "approved":
             self._ensure_ready_for_approval(quote)
             if quote.service_orders:
+                reapproved_order = quote.service_orders[0]
                 version = sync_service_order_with_quote(
-                    self.db, quote, quote.service_orders[0], actor_email
+                    self.db, quote, reapproved_order, actor_email
                 )
             else:
                 service_order = self._build_service_order(quote)
@@ -242,6 +250,19 @@ class QuoteService:
                 related_id=quote.id,
                 idempotency_key=f"quote:{quote.id}:approved:v{version.version}",
             )
+            if reapproved_order is not None and version.changes:
+                changes_message = quote_changes_message(
+                    quote.company_name, reapproved_order.project_name, version.changes
+                )
+                NotificationService(self.db).notify_users_with_permission(
+                    SERVICE_ORDER_MANAGER_PERMISSION,
+                    event_type=changes_message.event_type,
+                    title=changes_message.title,
+                    message=changes_message.message,
+                    related_type="service_order",
+                    related_id=reapproved_order.id,
+                    idempotency_key=f"quote:{quote.id}:changes:v{version.version}",
+                )
         try:
             self.db.commit()
         except Exception:
@@ -303,6 +324,7 @@ class QuoteService:
                     file_url=translation_item.file_url,
                     word_count=translation_item.word_count,
                     price=translation_item.estimated_value,
+                    deadline=translation_item.deadline,
                 )
             )
         return service_order
@@ -426,17 +448,28 @@ class QuoteService:
         quote.validity_starts_at = datetime.now(UTC)
         quote.customer_access_token_hash = None
         quote.terms_accepted_at = None
-        self.db.add(
-            QuoteAuditLog(
-                quote_id=quote.id,
-                action=QUOTE_AUDIT_ACTION_REOPEN,
-                previous_status=previous_status,
-                new_status=QUOTE_STATUS_DRAFT,
-                reason=data.reason,
-                actor_user_id=uuid.UUID(current_user.id),
-                actor_email=current_user.email,
-            )
+        audit = QuoteAuditLog(
+            quote_id=quote.id,
+            action=QUOTE_AUDIT_ACTION_REOPEN,
+            previous_status=previous_status,
+            new_status=QUOTE_STATUS_DRAFT,
+            reason=data.reason,
+            actor_user_id=uuid.UUID(current_user.id),
+            actor_email=current_user.email,
         )
+        self.db.add(audit)
+        if quote.service_orders:
+            self.db.flush()
+            reopened_message = quote_reopened_message(quote.company_name, data.reason)
+            NotificationService(self.db).notify_users_with_permission(
+                SERVICE_ORDER_MANAGER_PERMISSION,
+                event_type=reopened_message.event_type,
+                title=reopened_message.title,
+                message=reopened_message.message,
+                related_type="quote",
+                related_id=quote.id,
+                idempotency_key=f"quote:{quote.id}:reopened:{audit.id}",
+            )
         try:
             self.db.commit()
         except Exception:
