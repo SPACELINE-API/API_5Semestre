@@ -17,6 +17,7 @@ from app.modules.translators.schemas.translator import (
     TranslatorStatusUpdate,
     TranslatorUpdate,
 )
+from app.modules.translators.services import storage
 from app.modules.translators.services.certificate_service import TranslatorCertificateService
 from app.modules.translators.services.translator_account_service import (
     EMAIL_ALREADY_REGISTERED,
@@ -102,7 +103,14 @@ class TranslatorService:
         self.db.commit()
         return [
             TranslatorResponse.model_validate(translator).model_copy(
-                update={"account": accounts.get(translator.email.lower())}
+                update={
+                    "account": accounts.get(translator.email.lower()),
+                    "photo_url": (
+                        storage.get_public_url(storage.PHOTO_BUCKET, translator.photo_path)
+                        if translator.photo_path
+                        else None
+                    ),
+                }
             )
             for translator in translators
         ]

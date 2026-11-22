@@ -5,6 +5,7 @@ import {
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator,
+	Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -209,8 +210,17 @@ export default function TranslatorDetailsScreen() {
 				</TouchableOpacity>
 
 				<View className="mb-6 flex-row items-center gap-4">
-					<View className="h-16 w-16 items-center justify-center rounded-full bg-primary-soft">
-						<UserRound size={28} color={themeColors.primary} />
+					<View className="h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary-soft">
+						{translator.photo_url ? (
+							<Image
+								source={{ uri: translator.photo_url }}
+								resizeMode="cover"
+								accessibilityLabel={`Foto de ${translator.name}`}
+								className="h-16 w-16"
+							/>
+						) : (
+							<UserRound size={28} color={themeColors.primary} />
+						)}
 					</View>
 					<View className="flex-1">
 						<Text className="font-inter font-bold text-foreground text-xl">
