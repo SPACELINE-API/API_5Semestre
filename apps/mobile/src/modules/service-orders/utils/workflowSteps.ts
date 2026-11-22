@@ -48,10 +48,10 @@ export const WORKFLOW_CURRENT_BAND_CLASS: Record<
 	ServiceOrderItemStatus,
 	string
 > = {
-	pendente: 'bg-gray-500',
-	em_andamento: 'bg-orange-500',
+	pendente: 'bg-foreground-muted',
+	em_andamento: 'bg-warning',
 	em_analise: 'bg-purple-500',
-	concluida: 'bg-green-600',
+	concluida: 'bg-success',
 };
 
 export function getWorkflowCurrentIndex(

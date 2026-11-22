@@ -8,6 +8,7 @@ import { formatPrice, formatDeadline } from '../utils/format';
 import { useItemInvites } from '../hooks/useItemInvites';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type ServiceOrderItemRowProps = {
 	item: ServiceOrderItem;
 	translatorsById: Map<string, Translator>;
@@ -21,6 +22,7 @@ export function ServiceOrderItemRow({
 	onInviteTranslators,
 	refreshToken,
 }: ServiceOrderItemRowProps) {
+	const themeColors = useThemeColors();
 	const canWriteAssignments = usePermission('assignments.write');
 	const { invites, isLoading: isLoadingInvites } = useItemInvites(
 		item.id,
@@ -32,40 +34,48 @@ export function ServiceOrderItemRow({
 		: null;
 
 	return (
-		<View className="gap-4 border-b border-gray-100 py-5">
+		<View className="gap-4 border-b border-border-subtle py-5">
 			<View className="min-w-[220px] gap-1">
-				<Text className="font-inter font-semibold text-gray-900 text-sm">
+				<Text className="font-inter font-semibold text-foreground text-sm">
 					{item.source_language} → {item.target_language}
 				</Text>
-				<Text className="font-inter text-gray-400 text-xs">
+				<Text className="font-inter text-foreground-subtle text-xs">
 					{item.document_type ?? 'Tipo de documento não informado'}
 				</Text>
 			</View>
 
 			<View className="flex-row flex-wrap gap-x-8 gap-y-2">
 				<View className="gap-0.5">
-					<Text className="font-inter text-gray-400 text-xs">Preço</Text>
-					<Text className="font-inter font-medium text-gray-800 text-sm">
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Preço
+					</Text>
+					<Text className="font-inter font-medium text-foreground text-sm">
 						{formatPrice(item.price)}
 					</Text>
 				</View>
 
 				<View className="gap-0.5">
-					<Text className="font-inter text-gray-400 text-xs">Prazo</Text>
-					<Text className="font-inter font-medium text-gray-800 text-sm">
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Prazo
+					</Text>
+					<Text className="font-inter font-medium text-foreground text-sm">
 						{formatDeadline(item.deadline)}
 					</Text>
 				</View>
 
 				<View className="gap-0.5">
-					<Text className="font-inter text-gray-400 text-xs">Tradutor</Text>
-					<Text className="font-inter font-medium text-gray-800 text-sm">
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Tradutor
+					</Text>
+					<Text className="font-inter font-medium text-foreground text-sm">
 						{assignedTranslator?.name ?? 'Não atribuído'}
 					</Text>
 				</View>
 
 				<View className="gap-0.5">
-					<Text className="font-inter text-gray-400 text-xs">Documento</Text>
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Documento
+					</Text>
 					{item.file_url ? (
 						<TouchableOpacity
 							accessibilityRole="link"
@@ -73,15 +83,15 @@ export function ServiceOrderItemRow({
 							className="min-w-0 max-w-full flex-row items-center gap-1 self-start"
 						>
 							<Text
-								className="min-w-0 flex-shrink font-inter-medium text-blue-700 text-xs"
+								className="min-w-0 flex-shrink font-inter-medium text-primary-text text-xs"
 								numberOfLines={1}
 							>
 								{getTruncatedFileName(item.file_url)}
 							</Text>
-							<ExternalLink size={13} color="#1d4ed8" />
+							<ExternalLink size={13} color={themeColors.primaryText} />
 						</TouchableOpacity>
 					) : (
-						<Text className="font-inter font-medium text-gray-400 text-sm">
+						<Text className="font-inter font-medium text-foreground-subtle text-sm">
 							Nenhum documento anexado
 						</Text>
 					)}
@@ -95,10 +105,10 @@ export function ServiceOrderItemRow({
 					activeOpacity={0.7}
 					accessibilityRole="button"
 					accessibilityLabel={`Convidar tradutores para ${item.source_language} para ${item.target_language}`}
-					className={`flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${!canWriteAssignments ? 'opacity-40' : ''}`}
+					className={`flex-row items-center gap-1.5 self-start rounded-lg border border-border-strong px-3 py-2 ${!canWriteAssignments ? 'opacity-40' : ''}`}
 				>
-					<UserPlus size={14} color="#353535" />
-					<Text className="font-inter font-semibold text-gray-800 text-xs">
+					<UserPlus size={14} color={themeColors.foreground} />
+					<Text className="font-inter font-semibold text-foreground text-xs">
 						Convidar tradutores
 					</Text>
 				</TouchableOpacity>
@@ -106,7 +116,7 @@ export function ServiceOrderItemRow({
 
 			{!isLoadingInvites && invites.length > 0 && (
 				<View className="gap-1.5">
-					<Text className="font-inter font-semibold text-gray-700 text-xs">
+					<Text className="font-inter font-semibold text-foreground-secondary text-xs">
 						Convites enviados
 					</Text>
 
@@ -118,7 +128,7 @@ export function ServiceOrderItemRow({
 								key={invite.id}
 								className="flex-row items-center justify-between gap-2"
 							>
-								<Text className="font-inter text-gray-600 text-xs">
+								<Text className="font-inter text-foreground-secondary text-xs">
 									{translator?.name ?? invite.translator_id}
 								</Text>
 								<InviteStatusBadge status={invite.status} />

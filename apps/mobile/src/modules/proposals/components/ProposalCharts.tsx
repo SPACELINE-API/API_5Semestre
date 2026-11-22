@@ -151,7 +151,7 @@ export function ProposalCharts({ proposals }: ProposalChartsProps) {
 function EmptyChart() {
 	return (
 		<View className="items-center justify-center py-10">
-			<Text className="text-center font-inter text-gray-400 text-xs">
+			<Text className="text-center font-inter text-foreground-subtle text-xs">
 				Nenhuma proposta nesta página.
 			</Text>
 		</View>

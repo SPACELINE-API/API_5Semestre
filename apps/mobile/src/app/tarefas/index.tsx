@@ -8,8 +8,8 @@ export default function TasksScreen() {
 
 	if (!canAssignByMe && !canViewAssignedToMe) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white px-6">
-				<Text className="font-inter text-center text-sm text-gray-500">
+			<View className="flex-1 items-center justify-center bg-surface px-6">
+				<Text className="font-inter text-center text-sm text-foreground-muted">
 					Nenhuma lista de tarefas foi liberada para este perfil.
 				</Text>
 			</View>

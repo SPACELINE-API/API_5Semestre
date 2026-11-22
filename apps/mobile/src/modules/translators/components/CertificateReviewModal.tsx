@@ -35,6 +35,8 @@ import {
 import { PROFICIENCY_LABELS } from '../types/translator';
 import { formatFileSize } from '../utils/profileFiles';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
+import { type ThemeColors } from '../../../shared/theme/types';
 type CertificateReviewModalProps = {
 	translatorId: string;
 	certificate: TranslatorCertificate | null;
@@ -48,7 +50,7 @@ const BANNERS: Record<
 	CertificateStatus,
 	{
 		icon: typeof Clock;
-		color: string;
+		color: keyof ThemeColors;
 		background: string;
 		border: string;
 		title: string;
@@ -57,27 +59,27 @@ const BANNERS: Record<
 > = {
 	pending: {
 		icon: Clock,
-		color: '#B45309',
-		background: 'bg-amber-50',
-		border: 'border-amber-200',
+		color: 'warningText',
+		background: 'bg-warning-soft',
+		border: 'border-warning/40',
 		title: 'Aguardando avaliação',
 		message:
 			'Confira o documento e avalie. Ao aprovar, o idioma entra no perfil do tradutor.',
 	},
 	approved: {
 		icon: CheckCircle2,
-		color: '#15803D',
-		background: 'bg-green-50',
-		border: 'border-green-200',
+		color: 'successText',
+		background: 'bg-success-soft',
+		border: 'border-success/30',
 		title: 'Certificado aprovado',
 		message:
 			'O idioma já faz parte do perfil do tradutor. O documento fica disponível apenas para visualização.',
 	},
 	rejected: {
 		icon: XCircle,
-		color: '#B91C1C',
-		background: 'bg-red-50',
-		border: 'border-red-200',
+		color: 'danger',
+		background: 'bg-danger-soft',
+		border: 'border-danger/30',
 		title: 'Certificado recusado',
 		message: 'O tradutor pode enviar um novo arquivo para nova avaliação.',
 	},
@@ -97,8 +99,8 @@ function formatDateTime(value: string) {
 function InfoItem({ label, value }: { label: string; value: string }) {
 	return (
 		<View className="min-w-[140px] flex-1 gap-0.5">
-			<Text className="font-inter text-gray-400 text-xs">{label}</Text>
-			<Text className="font-inter font-medium text-gray-800 text-sm">
+			<Text className="font-inter text-foreground-subtle text-xs">{label}</Text>
+			<Text className="font-inter font-medium text-foreground text-sm">
 				{value}
 			</Text>
 		</View>
@@ -111,6 +113,7 @@ export function CertificateReviewModal({
 	onClose,
 	onReviewed,
 }: CertificateReviewModalProps) {
+	const themeColors = useThemeColors();
 	const canReview = usePermission('translators.write');
 	const [step, setStep] = useState<Step>('details');
 	const [reviewNote, setReviewNote] = useState('');
@@ -213,7 +216,7 @@ export function CertificateReviewModal({
 				onClose={() => setStep('details')}
 			>
 				<View className="gap-1.5">
-					<Text className="font-inter font-medium text-gray-700 text-[13px]">
+					<Text className="font-inter font-medium text-foreground-secondary text-[13px]">
 						Motivo da recusa
 					</Text>
 					<TextInput
@@ -222,12 +225,12 @@ export function CertificateReviewModal({
 						multiline
 						maxLength={REVIEW_NOTE_MAX}
 						placeholder="Ex.: documento ilegível ou fora da validade"
-						placeholderTextColor="#9CA3AF"
+						placeholderTextColor={themeColors.foregroundSubtle}
 						accessibilityLabel="Motivo da recusa"
 						textAlignVertical="top"
-						className="min-h-[96px] rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-sm text-gray-900 outline-none"
+						className="min-h-[96px] rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none"
 					/>
-					<Text className="self-end font-inter text-gray-400 text-xs">
+					<Text className="self-end font-inter text-foreground-subtle text-xs">
 						{reviewNote.length}/{REVIEW_NOTE_MAX}
 					</Text>
 				</View>
@@ -246,10 +249,10 @@ export function CertificateReviewModal({
 				accessibilityRole="button"
 				accessibilityLabel="Recusar certificado"
 				disabled={!canReview}
-				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-red-300 px-4 py-2.5"
+				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-danger/40 px-4 py-2.5"
 			>
-				<X size={16} color="#B91C1C" />
-				<Text className="font-inter font-semibold text-red-700 text-sm">
+				<X size={16} color={themeColors.danger} />
+				<Text className="font-inter font-semibold text-danger text-sm">
 					Recusar
 				</Text>
 			</TouchableOpacity>
@@ -258,10 +261,10 @@ export function CertificateReviewModal({
 				accessibilityRole="button"
 				accessibilityLabel="Aprovar certificado"
 				disabled={!canReview}
-				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5"
+				className="flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5"
 			>
-				<Check size={16} color="#FFFFFF" />
-				<Text className="font-inter font-semibold text-sm text-white">
+				<Check size={16} color={themeColors.primaryForeground} />
+				<Text className="font-inter font-semibold text-sm text-primary-foreground">
 					Aprovar
 				</Text>
 			</TouchableOpacity>
@@ -270,9 +273,9 @@ export function CertificateReviewModal({
 		<TouchableOpacity
 			onPress={close}
 			accessibilityRole="button"
-			className="flex-1 items-center rounded-lg bg-blue-600 px-4 py-2.5"
+			className="flex-1 items-center rounded-lg bg-primary px-4 py-2.5"
 		>
-			<Text className="font-inter font-semibold text-sm text-white">
+			<Text className="font-inter font-semibold text-sm text-primary-foreground">
 				Fechar
 			</Text>
 		</TouchableOpacity>
@@ -292,18 +295,18 @@ export function CertificateReviewModal({
 				<View
 					className={`flex-row items-start gap-3 rounded-xl border px-4 py-3 ${banner.background} ${banner.border}`}
 				>
-					<BannerIcon size={18} color={banner.color} />
+					<BannerIcon size={18} color={themeColors[banner.color]} />
 					<View className="flex-1 gap-0.5">
-						<Text className="font-inter font-semibold text-gray-900 text-sm">
+						<Text className="font-inter font-semibold text-foreground text-sm">
 							{banner.title}
 						</Text>
-						<Text className="font-inter text-gray-600 text-xs">
+						<Text className="font-inter text-foreground-secondary text-xs">
 							{banner.message}
 						</Text>
 					</View>
 				</View>
 
-				<View className="flex-row flex-wrap gap-x-4 gap-y-3 rounded-xl border border-gray-200 p-4">
+				<View className="flex-row flex-wrap gap-x-4 gap-y-3 rounded-xl border border-border p-4">
 					<InfoItem label="Idioma" value={certificate.language_name} />
 					<InfoItem
 						label="Nível declarado"
@@ -330,8 +333,8 @@ export function CertificateReviewModal({
 				</View>
 
 				{certificate.status === 'rejected' && certificate.review_note && (
-					<View className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-						<Text className="font-inter text-red-900 text-sm">
+					<View className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3">
+						<Text className="font-inter text-danger-text text-sm">
 							<Text className="font-semibold">Motivo da recusa: </Text>
 							{certificate.review_note}
 						</Text>
@@ -346,8 +349,8 @@ export function CertificateReviewModal({
 							accessibilityRole="link"
 							className="flex-row items-center gap-1.5 self-start"
 						>
-							<ExternalLink size={13} color="#1C6FB0" />
-							<Text className="font-inter font-medium text-blue-600 text-xs">
+							<ExternalLink size={13} color={themeColors.primary} />
+							<Text className="font-inter font-medium text-primary-text text-xs">
 								Abrir em nova aba
 							</Text>
 						</TouchableOpacity>
@@ -357,24 +360,27 @@ export function CertificateReviewModal({
 						onPress={() => void handleView()}
 						disabled={isOpening}
 						accessibilityRole="button"
-						className={`flex-row items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 py-2.5 ${
+						className={`flex-row items-center justify-center gap-2 rounded-lg border border-border-strong px-3 py-2.5 ${
 							isOpening ? 'opacity-60' : ''
 						}`}
 					>
 						{isOpening ? (
-							<ActivityIndicator size="small" color="#374151" />
+							<ActivityIndicator
+								size="small"
+								color={themeColors.foregroundSecondary}
+							/>
 						) : (
-							<Eye size={16} color="#374151" />
+							<Eye size={16} color={themeColors.foregroundSecondary} />
 						)}
-						<Text className="font-inter font-semibold text-gray-800 text-sm">
+						<Text className="font-inter font-semibold text-foreground text-sm">
 							Visualizar documento
 						</Text>
 					</TouchableOpacity>
 				)}
 
 				{actionError && (
-					<View className="rounded-lg bg-red-50 px-3 py-2.5">
-						<Text className="font-inter text-red-900 text-sm">
+					<View className="rounded-lg bg-danger-soft px-3 py-2.5">
+						<Text className="font-inter text-danger-text text-sm">
 							{actionError}
 						</Text>
 					</View>

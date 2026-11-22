@@ -6,6 +6,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react-native';
 
+import { useThemeColors } from '../theme/ThemeProvider';
 type DateFieldProps = {
 	label: string;
 	value: string;
@@ -71,6 +72,7 @@ function CalendarPopover({
 	onClose: () => void;
 	position: { top: number; left: number };
 }) {
+	const themeColors = useThemeColors();
 	const todayValue = toDateInputValue(new Date());
 	const minimum = minDate ? parseDateValue(minDate) : undefined;
 	const today = new Date();
@@ -96,15 +98,15 @@ function CalendarPopover({
 
 	return (
 		<div
-			className="w-[280px] border border-gray-200 bg-white p-2 shadow-xl shadow-slate-900/15"
+			className="w-[280px] border border-border bg-surface p-2 shadow-xl shadow-slate-900/15"
 			data-calendar-popover
 			style={{
 				position: 'fixed',
 				top: position.top,
 				left: position.left,
 				zIndex: 10000,
-				backgroundColor: '#fff',
-				border: '1px solid #e5e7eb',
+				backgroundColor: themeColors.surface,
+				border: `1px solid ${themeColors.border}`,
 				borderRadius: 12,
 				boxShadow: '0 16px 32px rgba(15, 23, 42, 0.18)',
 			}}
@@ -115,7 +117,7 @@ function CalendarPopover({
 			}}
 		>
 			<div className="mb-2 flex items-center justify-between">
-				<p className="font-inter font-semibold text-sm text-gray-900">
+				<p className="font-inter font-semibold text-sm text-foreground">
 					{formattedMonthLabel}
 				</p>
 				<div className="flex items-center gap-1">
@@ -124,7 +126,7 @@ function CalendarPopover({
 						aria-label="Mês anterior"
 						disabled={previousMonthDisabled}
 						onClick={() => setVisibleMonth(previousMonth)}
-						className={`flex h-5 w-7 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-700 ${previousMonthDisabled ? 'cursor-not-allowed opacity-35 hover:bg-transparent hover:text-gray-600' : ''}`}
+						className={`flex h-5 w-7 items-center justify-center rounded-lg text-foreground-secondary transition-colors hover:bg-primary-soft hover:text-primary-text ${previousMonthDisabled ? 'cursor-not-allowed opacity-35 hover:bg-transparent hover:text-foreground-secondary' : ''}`}
 					>
 						<ChevronLeft size={17} />
 					</button>
@@ -140,7 +142,7 @@ function CalendarPopover({
 								),
 							)
 						}
-						className="flex h-5 w-7 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-700"
+						className="flex h-5 w-7 items-center justify-center rounded-lg text-foreground-secondary transition-colors hover:bg-primary-soft hover:text-primary-text"
 					>
 						<ChevronRight size={17} />
 					</button>
@@ -151,7 +153,7 @@ function CalendarPopover({
 				{weekdayLabels.map((weekday, index) => (
 					<span
 						key={`${weekday}-${index}`}
-						className="flex h-5 items-center justify-center font-inter-medium text-[10px] text-gray-400"
+						className="flex h-5 items-center justify-center font-inter-medium text-[11px] text-foreground-subtle"
 					>
 						{weekday}
 					</span>
@@ -163,14 +165,14 @@ function CalendarPopover({
 					const isSelected = value === dayValue;
 					const isToday = todayValue === dayValue;
 					const dayClasses = isDisabled
-						? 'cursor-not-allowed text-gray-300'
+						? 'cursor-not-allowed text-foreground-subtle'
 						: isSelected
-							? 'bg-blue-600 font-semibold text-white shadow-sm'
+							? 'bg-primary font-semibold text-primary-foreground shadow-sm'
 							: isToday
-								? 'border border-blue-300 font-semibold text-blue-700 hover:bg-blue-50'
+								? 'border border-primary/40 font-semibold text-primary-text hover:bg-primary-soft'
 								: isCurrentMonth
-									? 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-									: 'text-gray-400 hover:bg-blue-50 hover:text-blue-700';
+									? 'text-foreground-secondary hover:bg-primary-soft hover:text-primary-text'
+									: 'text-foreground-subtle hover:bg-primary-soft hover:text-primary-text';
 
 					return (
 						<button
@@ -184,7 +186,7 @@ function CalendarPopover({
 							aria-pressed={isSelected}
 							disabled={isDisabled}
 							onClick={() => onSelect(dayValue)}
-							className={`mx-auto flex h-5 w-7 items-center justify-center rounded-lg font-inter text-[11px] transition-colors ${dayClasses}`}
+							className={`mx-auto flex h-5 w-7 items-center justify-center rounded-lg font-inter text-[12px] transition-colors ${dayClasses}`}
 						>
 							{day.getDate()}
 						</button>
@@ -192,11 +194,11 @@ function CalendarPopover({
 				})}
 			</div>
 
-			<div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-1">
+			<div className="mt-2 flex items-center justify-between border-t border-border-subtle pt-1">
 				<button
 					type="button"
 					onClick={onClear}
-					className="rounded-md px-2 py-1.5 font-inter-medium text-xs text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+					className="rounded-md px-2 py-1.5 font-inter-medium text-xs text-foreground-muted transition-colors hover:bg-surface-muted hover:text-foreground"
 				>
 					Limpar
 				</button>
@@ -204,7 +206,7 @@ function CalendarPopover({
 					type="button"
 					disabled={todayDisabled}
 					onClick={() => onSelect(todayValue)}
-					className={`rounded-md px-2 py-1.5 font-inter-semibold text-xs text-blue-700 transition-colors hover:bg-blue-50 ${todayDisabled ? 'cursor-not-allowed opacity-40 hover:bg-transparent' : ''}`}
+					className={`rounded-md px-2 py-1.5 font-inter-semibold text-xs text-primary-text transition-colors hover:bg-primary-soft ${todayDisabled ? 'cursor-not-allowed opacity-40 hover:bg-transparent' : ''}`}
 				>
 					Hoje
 				</button>
@@ -222,6 +224,7 @@ export function DateField({
 	isOpen,
 	onOpenChange,
 }: DateFieldProps) {
+	const themeColors = useThemeColors();
 	const [internalPickerVisible, setInternalPickerVisible] = useState(false);
 	const triggerRef = useRef<HTMLButtonElement | null>(null);
 	const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0 });
@@ -283,7 +286,7 @@ export function DateField({
 					zIndex: isPickerVisible ? 1000 : undefined,
 				}}
 			>
-				<label className="font-inter font-semibold text-xs text-gray-800">
+				<label className="font-inter font-semibold text-xs text-foreground">
 					{label}
 				</label>
 				<button
@@ -292,12 +295,14 @@ export function DateField({
 					aria-label={`Selecionar data: ${label}`}
 					aria-expanded={isPickerVisible}
 					onClick={openCalendar}
-					className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 text-left font-inter text-sm text-gray-900 outline-none transition-colors hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+					className="flex h-11 w-full items-center justify-between rounded-lg border border-border-strong bg-surface px-3 text-left font-inter text-sm text-foreground outline-none transition-colors hover:border-primary/40 focus:border-primary focus:ring-2 focus:ring-primary/30"
 				>
-					<span className={value ? 'text-gray-900' : 'text-gray-400'}>
+					<span
+						className={value ? 'text-foreground' : 'text-foreground-subtle'}
+					>
 						{value ? formatDisplayValue(value) : (placeholder ?? 'dd/mm/aaaa')}
 					</span>
-					<Calendar size={16} color="#6b7280" />
+					<Calendar size={16} color={themeColors.foregroundMuted} />
 				</button>
 				{isPickerVisible
 					? createPortal(
@@ -337,7 +342,7 @@ export function DateField({
 
 	return (
 		<View className="flex-1 gap-1.5">
-			<Text className="font-inter font-semibold text-gray-800 text-xs">
+			<Text className="font-inter font-semibold text-foreground text-xs">
 				{label}
 			</Text>
 
@@ -346,16 +351,16 @@ export function DateField({
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityLabel={`Selecionar data: ${label}`}
-				className="flex-row items-center justify-between rounded-lg border border-gray-300 px-3 py-2.5"
+				className="flex-row items-center justify-between rounded-lg border border-border-strong px-3 py-2.5"
 			>
 				<Text
-					className={`font-inter text-sm ${value ? 'text-gray-900' : 'text-gray-400'}`}
+					className={`font-inter text-sm ${value ? 'text-foreground' : 'text-foreground-subtle'}`}
 				>
 					{value
 						? formatDisplayValue(value)
 						: (placeholder ?? 'Selecionar data')}
 				</Text>
-				<Calendar size={16} color="#8A8A8A" />
+				<Calendar size={16} color={themeColors.foregroundMuted} />
 			</TouchableOpacity>
 
 			{isPickerVisible && (
@@ -372,9 +377,9 @@ export function DateField({
 				<TouchableOpacity
 					onPress={closeCalendar}
 					activeOpacity={0.7}
-					className="self-end rounded-lg bg-gray-100 px-3 py-1.5"
+					className="self-end rounded-lg bg-surface-muted px-3 py-1.5"
 				>
-					<Text className="font-inter font-semibold text-gray-700 text-xs">
+					<Text className="font-inter font-semibold text-foreground-secondary text-xs">
 						Concluir
 					</Text>
 				</TouchableOpacity>

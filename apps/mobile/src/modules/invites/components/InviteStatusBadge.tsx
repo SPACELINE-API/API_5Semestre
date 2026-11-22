@@ -10,10 +10,10 @@ const INVITE_STATUS_LABEL: Record<InviteStatus, string> = {
 
 const INVITE_STATUS_STYLE: Record<InviteStatus, { bg: string; text: string }> =
 	{
-		pendente: { bg: 'bg-gray-100', text: 'text-gray-700' },
-		aceito: { bg: 'bg-green-50', text: 'text-green-900' },
-		recusado: { bg: 'bg-red-50', text: 'text-red-900' },
-		expirado: { bg: 'bg-gray-100', text: 'text-gray-400' },
+		pendente: { bg: 'bg-surface-muted', text: 'text-foreground-secondary' },
+		aceito: { bg: 'bg-success-soft', text: 'text-success-text' },
+		recusado: { bg: 'bg-danger-soft', text: 'text-danger-text' },
+		expirado: { bg: 'bg-surface-muted', text: 'text-foreground-subtle' },
 	};
 
 type InviteStatusBadgeProps = {

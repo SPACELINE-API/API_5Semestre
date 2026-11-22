@@ -19,6 +19,7 @@ import { employeeActionsFor } from '../utils/taskStatus';
 import { TaskAttachments } from './TaskAttachments';
 import { TaskInfo } from './TaskInfo';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const EXECUTION_MAX = 5000;
 
 type TaskDetailsModalProps = {
@@ -34,6 +35,7 @@ export function TaskDetailsModal({
 	onClose,
 	onChanged,
 }: TaskDetailsModalProps) {
+	const themeColors = useThemeColors();
 	const [draft, setDraft] = useState('');
 	const [pending, setPending] = useState<PendingAction | null>(null);
 	const [error, setError] = useState<string | null>(null);
@@ -95,12 +97,17 @@ export function TaskDetailsModal({
 				accessibilityRole="button"
 				accessibilityLabel={label}
 				accessibilityState={{ disabled: isBusy || disabled, busy: isLoading }}
-				className={`flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 ${
+				className={`flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 ${
 					isBusy || disabled ? 'opacity-50' : ''
 				}`}
 			>
-				{isLoading && <ActivityIndicator size="small" color="#FFFFFF" />}
-				<Text className="text-center font-inter font-semibold text-sm text-white">
+				{isLoading && (
+					<ActivityIndicator
+						size="small"
+						color={themeColors.primaryForeground}
+					/>
+				)}
+				<Text className="text-center font-inter font-semibold text-sm text-primary-foreground">
 					{isLoading ? 'Aguarde…' : label}
 				</Text>
 			</TouchableOpacity>
@@ -113,9 +120,9 @@ export function TaskDetailsModal({
 				onPress={onClose}
 				disabled={isBusy}
 				accessibilityRole="button"
-				className="flex-1 items-center justify-center rounded-lg border border-gray-300 px-4 py-2.5"
+				className="flex-1 items-center justify-center rounded-lg border border-border-strong px-4 py-2.5"
 			>
-				<Text className="font-inter font-medium text-gray-800 text-sm">
+				<Text className="font-inter font-medium text-foreground text-sm">
 					Fechar
 				</Text>
 			</TouchableOpacity>
@@ -162,10 +169,10 @@ export function TaskDetailsModal({
 			{notice && (
 				<View
 					accessibilityRole="alert"
-					className="flex-row items-center gap-2 rounded-lg bg-green-50 px-3 py-2"
+					className="flex-row items-center gap-2 rounded-lg bg-success-soft px-3 py-2"
 				>
-					<CheckCircle2 size={16} color="#15803D" />
-					<Text className="flex-1 font-inter font-medium text-green-800 text-sm">
+					<CheckCircle2 size={16} color={themeColors.successText} />
+					<Text className="flex-1 font-inter font-medium text-success-text text-sm">
 						{notice}
 					</Text>
 				</View>
@@ -186,7 +193,7 @@ export function TaskDetailsModal({
 			<TaskInfo task={task} />
 
 			<View className="gap-2">
-				<Text className="font-inter font-semibold text-gray-800 text-sm">
+				<Text className="font-inter font-semibold text-foreground text-sm">
 					Descrição da execução
 				</Text>
 				{actions.canEditExecution ? (
@@ -198,13 +205,13 @@ export function TaskDetailsModal({
 							maxLength={EXECUTION_MAX}
 							editable={!isBusy}
 							placeholder="Descreva o que foi feito nesta tarefa"
-							placeholderTextColor="#9CA3AF"
+							placeholderTextColor={themeColors.foregroundSubtle}
 							accessibilityLabel="Descrição da execução"
 							textAlignVertical="top"
-							className="min-h-[96px] rounded-lg border border-gray-300 px-3 py-2.5 font-inter text-sm text-gray-900 outline-none"
+							className="min-h-[96px] rounded-lg border border-border-strong px-3 py-2.5 font-inter text-sm text-foreground outline-none"
 						/>
 						<View className="flex-row items-center justify-between gap-2">
-							<Text className="font-inter text-gray-400 text-xs">
+							<Text className="font-inter text-foreground-subtle text-xs">
 								{draft.length}/{EXECUTION_MAX}
 							</Text>
 							<TouchableOpacity
@@ -218,34 +225,37 @@ export function TaskDetailsModal({
 								disabled={isBusy || !trimmedDraft || !hasUnsavedChanges}
 								accessibilityRole="button"
 								accessibilityLabel="Salvar descrição"
-								className={`flex-row items-center gap-2 rounded-lg border border-blue-600 px-3 py-2 ${
+								className={`flex-row items-center gap-2 rounded-lg border border-primary px-3 py-2 ${
 									isBusy || !trimmedDraft || !hasUnsavedChanges
 										? 'opacity-50'
 										: ''
 								}`}
 							>
 								{pending === 'save' && (
-									<ActivityIndicator size="small" color="#1D4ED8" />
+									<ActivityIndicator
+										size="small"
+										color={themeColors.primaryText}
+									/>
 								)}
-								<Text className="font-inter font-semibold text-blue-700 text-sm">
+								<Text className="font-inter font-semibold text-primary-text text-sm">
 									Salvar descrição
 								</Text>
 							</TouchableOpacity>
 						</View>
 						{!actions.canSubmit && (
-							<Text className="font-inter text-gray-500 text-xs">
+							<Text className="font-inter text-foreground-muted text-xs">
 								Salve a descrição da execução para poder enviar a tarefa para
 								análise.
 							</Text>
 						)}
 						{actions.canSubmit && hasUnsavedChanges && (
-							<Text className="font-inter text-amber-700 text-xs">
+							<Text className="font-inter text-warning-text text-xs">
 								Há alterações não salvas na descrição.
 							</Text>
 						)}
 					</>
 				) : (
-					<Text className="font-inter text-gray-700 text-sm">
+					<Text className="font-inter text-foreground-secondary text-sm">
 						{savedDescription ||
 							(task.status === 'pending'
 								? 'Inicie a tarefa para registrar a execução.'
@@ -263,7 +273,7 @@ export function TaskDetailsModal({
 			{error && (
 				<Text
 					accessibilityRole="alert"
-					className="font-inter text-red-700 text-sm"
+					className="font-inter text-danger text-sm"
 				>
 					{error}
 				</Text>

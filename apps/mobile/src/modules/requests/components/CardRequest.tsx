@@ -11,6 +11,7 @@ import { usePermission } from '@/modules/auth/hooks/usePermission';
 
 import { formatDateOnly } from '../../../shared/utils/dateOnly';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 export interface CardRequestProps {
 	id: number | string;
 	customer_name: string;
@@ -32,8 +33,8 @@ function formatRequestDate(request_date: string): string {
 function DetailField({ label, value }: { label: string; value: string }) {
 	return (
 		<View className="min-w-[180px] flex-1 gap-1">
-			<Text className="font-inter text-xs text-gray-400">{label}</Text>
-			<Text className="font-inter-medium text-sm text-gray-800">{value}</Text>
+			<Text className="font-inter text-xs text-foreground-subtle">{label}</Text>
+			<Text className="font-inter-medium text-sm text-foreground">{value}</Text>
 		</View>
 	);
 }
@@ -50,6 +51,7 @@ export default function CardRequest({
 	request_date,
 	quote_id,
 }: CardRequestProps) {
+	const themeColors = useThemeColors();
 	const router = useRouter();
 	const [expanded, setExpanded] = useState(false);
 	const canReadRequests = usePermission('requests.read');
@@ -69,10 +71,10 @@ export default function CardRequest({
 				: 'Pendente';
 	const statusStyle =
 		status === 'approved'
-			? { container: 'bg-green-50', text: 'text-green-800' }
+			? { container: 'bg-success-soft', text: 'text-success-text' }
 			: status === 'reproved'
-				? { container: 'bg-red-50', text: 'text-red-800' }
-				: { container: 'bg-orange-100', text: 'text-orange-800' };
+				? { container: 'bg-danger-soft', text: 'text-danger-text' }
+				: { container: 'bg-warning-soft', text: 'text-warning-text' };
 	const actionLabel =
 		status === 'approved'
 			? 'Revisar e gerar orçamento'
@@ -83,28 +85,28 @@ export default function CardRequest({
 	const shouldShowAction = !(status === 'approved' && quote_id);
 
 	return (
-		<View className="mb-5 rounded-2xl border border-gray-200 bg-white">
+		<View className="mb-5 rounded-2xl border border-border bg-surface">
 			<TouchableOpacity
 				activeOpacity={0.7}
 				accessibilityRole="button"
 				accessibilityState={{ expanded }}
 				accessibilityLabel={`${expanded ? 'Recolher' : 'Expandir'} solicitação de ${customer_name}`}
 				onPress={() => setExpanded((current) => !current)}
-				className={`flex-row flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-6 ${expanded ? 'border-b border-gray-100' : ''}`}
+				className={`flex-row flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-6 ${expanded ? 'border-b border-border-subtle' : ''}`}
 			>
 				<View className="max-w-full flex-row items-center gap-3">
-					<View className="h-11 w-11 items-center justify-center rounded-xl bg-blue-50">
-						<Inbox size={21} color="#2563eb" />
+					<View className="h-11 w-11 items-center justify-center rounded-xl bg-primary-soft">
+						<Inbox size={21} color={themeColors.primaryText} />
 					</View>
 					<View className="min-w-0 shrink gap-1">
 						<Text
-							className="font-inter-bold text-base text-gray-900"
+							className="font-inter-bold text-base text-foreground"
 							numberOfLines={1}
 						>
 							{customer_name}
 						</Text>
 						<Text
-							className="font-inter-medium text-sm text-gray-700"
+							className="font-inter-medium text-sm text-foreground-secondary"
 							numberOfLines={1}
 						>
 							{enterprise}
@@ -119,10 +121,10 @@ export default function CardRequest({
 									{statusLabel}
 								</Text>
 							</View>
-							<Text className="font-inter text-xs text-gray-500">
+							<Text className="font-inter text-xs text-foreground-muted">
 								{customer_need}
 							</Text>
-							<Text className="font-inter text-xs text-gray-500">
+							<Text className="font-inter text-xs text-foreground-muted">
 								{original_language} → {translation_language}
 							</Text>
 						</View>
@@ -130,15 +132,15 @@ export default function CardRequest({
 				</View>
 				<View className="flex-row flex-wrap items-center gap-3">
 					<View className="flex-row items-center gap-2">
-						<CalendarDays size={15} color="#6b7280" />
-						<Text className="font-inter text-xs text-gray-500">
+						<CalendarDays size={15} color={themeColors.foregroundMuted} />
+						<Text className="font-inter text-xs text-foreground-muted">
 							Solicitado em {formatDateOnly(request_date)}
 						</Text>
 					</View>
 					{expanded ? (
-						<ChevronUp size={18} color="#6b7280" />
+						<ChevronUp size={18} color={themeColors.foregroundMuted} />
 					) : (
-						<ChevronDown size={18} color="#6b7280" />
+						<ChevronDown size={18} color={themeColors.foregroundMuted} />
 					)}
 				</View>
 			</TouchableOpacity>
@@ -167,10 +169,10 @@ export default function CardRequest({
 							onPress={() => router.push(`/orcamento/gerar/${id}` as never)}
 							disabled={!canOpen}
 							className={`items-center self-start rounded-lg px-4 py-2.5 ${
-								status === 'reproved' ? 'bg-gray-500' : 'bg-blue-600'
+								status === 'reproved' ? 'bg-foreground-muted' : 'bg-primary'
 							} ${!canOpen ? 'opacity-40' : ''}`}
 						>
-							<Text className="font-inter-semibold text-sm text-white">
+							<Text className="font-inter-semibold text-sm text-primary-foreground">
 								{actionLabel}
 							</Text>
 						</TouchableOpacity>

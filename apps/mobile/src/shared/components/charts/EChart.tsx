@@ -9,9 +9,11 @@ import { SvgXml } from 'react-native-svg';
 import { init, use } from 'echarts/core';
 import { SVGRenderer } from 'echarts/renderers';
 import './registerCharts';
+import { themeChartOption } from './chartTheme';
 import { stripPointerEvents } from './svg';
 import type { ChartOption, EChartProps } from './types';
 
+import { useThemeColors } from '../../theme/ThemeProvider';
 use([SVGRenderer]);
 
 function renderSvg(option: ChartOption, width: number, height: number) {
@@ -33,12 +35,16 @@ export function EChart({
 	accessibilityLabel,
 	showLoadingIndicator = false,
 }: EChartProps) {
+	const themeColors = useThemeColors();
 	const [width, setWidth] = useState(0);
 	const [renderedSvg, setRenderedSvg] = useState<string | null>(null);
 
 	const svg = useMemo(
-		() => (width > 0 ? renderSvg(option, width, height) : null),
-		[option, width, height],
+		() =>
+			width > 0
+				? renderSvg(themeChartOption(option, themeColors), width, height)
+				: null,
+		[option, width, height, themeColors],
 	);
 	const isLoading = showLoadingIndicator && (!svg || renderedSvg !== svg);
 
@@ -67,9 +73,9 @@ export function EChart({
 				/>
 			) : null}
 			{isLoading ? (
-				<View className="absolute inset-0 items-center justify-center bg-white">
-					<ActivityIndicator color="#1C6FB0" />
-					<Text className="mt-3 font-inter text-gray-400 text-xs">
+				<View className="absolute inset-0 items-center justify-center bg-surface">
+					<ActivityIndicator color={themeColors.primary} />
+					<Text className="mt-3 font-inter text-foreground-subtle text-xs">
 						Carregando gráfico...
 					</Text>
 				</View>

@@ -3,6 +3,7 @@ import { AlertCircle, ClipboardList } from 'lucide-react-native';
 import type { Task } from '../types/task';
 import { TaskCard } from './TaskCard';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type TaskListProps = {
 	tasks: Task[];
 	isLoading: boolean;
@@ -24,11 +25,12 @@ export function TaskList({
 	onRetry,
 	onOpen,
 }: TaskListProps) {
+	const themeColors = useThemeColors();
 	if (isLoading) {
 		return (
 			<View className="items-center justify-center py-16">
-				<ActivityIndicator color="#6B7280" />
-				<Text className="mt-3 font-inter text-gray-400 text-sm">
+				<ActivityIndicator color={themeColors.foregroundMuted} />
+				<Text className="mt-3 font-inter text-foreground-subtle text-sm">
 					Carregando tarefas...
 				</Text>
 			</View>
@@ -39,17 +41,17 @@ export function TaskList({
 		return (
 			<View className="gap-3 py-8">
 				<View className="flex-row items-center gap-2">
-					<AlertCircle size={16} color="#DC2626" />
-					<Text className="font-inter font-semibold text-red-600 text-sm">
+					<AlertCircle size={16} color={themeColors.danger} />
+					<Text className="font-inter font-semibold text-danger text-sm">
 						{error}
 					</Text>
 				</View>
 				<TouchableOpacity
 					onPress={onRetry}
 					accessibilityRole="button"
-					className="self-start rounded-lg border border-gray-300 px-4 py-2"
+					className="self-start rounded-lg border border-border-strong px-4 py-2"
 				>
-					<Text className="font-inter text-gray-700 text-sm">
+					<Text className="font-inter text-foreground-secondary text-sm">
 						Tentar novamente
 					</Text>
 				</TouchableOpacity>
@@ -60,13 +62,13 @@ export function TaskList({
 	if (tasks.length === 0) {
 		return (
 			<View className="items-center justify-center py-16">
-				<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-					<ClipboardList size={18} color="#9CA3AF" />
+				<View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
+					<ClipboardList size={18} color={themeColors.foregroundSubtle} />
 				</View>
-				<Text className="font-inter font-medium text-gray-800 text-sm">
+				<Text className="font-inter font-medium text-foreground text-sm">
 					{emptyTitle}
 				</Text>
-				<Text className="mt-1 text-center font-inter text-gray-400 text-xs">
+				<Text className="mt-1 text-center font-inter text-foreground-subtle text-xs">
 					{emptyMessage}
 				</Text>
 			</View>

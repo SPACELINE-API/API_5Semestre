@@ -15,14 +15,16 @@ export function ChartCard({
 	children,
 }: ChartCardProps) {
 	return (
-		<View className="gap-4 rounded-xl border border-gray-100 bg-white p-4 md:p-5">
+		<View className="gap-4 rounded-xl border border-border-subtle bg-surface p-4 md:p-5">
 			<View className="flex-row flex-wrap items-start justify-between gap-3">
 				<View className="min-w-0 flex-1 gap-0.5">
-					<Text className="font-inter font-bold text-gray-900 text-sm">
+					<Text className="font-inter font-bold text-foreground text-sm">
 						{title}
 					</Text>
 					{subtitle && (
-						<Text className="font-inter text-gray-500 text-xs">{subtitle}</Text>
+						<Text className="font-inter text-foreground-muted text-xs">
+							{subtitle}
+						</Text>
 					)}
 				</View>
 				{action}

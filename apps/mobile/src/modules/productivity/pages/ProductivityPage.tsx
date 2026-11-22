@@ -37,16 +37,16 @@ export function ProductivityPage() {
 	const hasData = Boolean(report && report.summary.documents_translated > 0);
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8"
 			>
-				<View className="mb-6 border-b border-gray-200 pb-6">
-					<Text className="font-inter font-bold text-gray-950 text-2xl">
+				<View className="mb-6 border-b border-border pb-6">
+					<Text className="font-inter font-bold text-foreground text-2xl">
 						Produtividade
 					</Text>
-					<Text className="mt-2 font-inter text-gray-500 text-sm">
+					<Text className="mt-2 font-inter text-foreground-muted text-sm">
 						{report
 							? `Documentos traduzidos de ${formatIsoDate(report.period_start)} a ${formatIsoDate(report.period_end)}`
 							: 'Acompanhe o volume de documentos traduzidos por profissional.'}
@@ -78,7 +78,7 @@ export function ProductivityPage() {
 							<KpiGrid summary={report.summary} />
 							<ProductivityCharts report={report} />
 							<View className="gap-3">
-								<Text className="font-inter font-bold text-gray-900 text-base">
+								<Text className="font-inter font-bold text-foreground text-base">
 									Profissionais
 								</Text>
 								<TranslatorsTable

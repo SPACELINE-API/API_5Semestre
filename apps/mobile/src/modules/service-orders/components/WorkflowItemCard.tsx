@@ -10,6 +10,7 @@ import { formatPrice, formatDeadline } from '../utils/format';
 import { useItemInvites } from '../hooks/useItemInvites';
 import { usePermission } from '../../auth/hooks/usePermission';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type WorkflowItemCardProps = {
 	item: ServiceOrderItem;
 	translatorsById: Map<string, Translator>;
@@ -23,6 +24,7 @@ export function WorkflowItemCard({
 	onInviteTranslators,
 	refreshToken,
 }: WorkflowItemCardProps) {
+	const themeColors = useThemeColors();
 	const canWriteAssignments = usePermission('assignments.write');
 	const { invites, isLoading: isLoadingInvites } = useItemInvites(
 		item.id,
@@ -36,13 +38,13 @@ export function WorkflowItemCard({
 	const showInvitesList = !isLoadingInvites && invites.length > 0;
 
 	return (
-		<View className="gap-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+		<View className="gap-6 rounded-xl border border-border bg-surface p-6 shadow-sm">
 			<View className="flex-row flex-wrap items-start justify-between gap-3">
 				<View className="gap-1">
-					<Text className="font-inter font-bold text-gray-900 text-base">
+					<Text className="font-inter font-bold text-foreground text-base">
 						{item.source_language} → {item.target_language}
 					</Text>
-					<Text className="font-inter text-gray-400 text-xs">
+					<Text className="font-inter text-foreground-subtle text-xs">
 						{item.document_type ?? 'Tipo de documento não informado'}
 					</Text>
 				</View>
@@ -55,30 +57,38 @@ export function WorkflowItemCard({
 				assignedTranslatorName={assignedTranslator?.name}
 			/>
 
-			<View className="flex-row flex-wrap gap-x-10 gap-y-3 border-t border-gray-100 pt-5">
+			<View className="flex-row flex-wrap gap-x-10 gap-y-3 border-t border-border-subtle pt-5">
 				<View className="gap-0.5">
-					<Text className="font-inter text-gray-400 text-xs">Preço</Text>
-					<Text className="font-inter font-medium text-gray-800 text-sm">
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Preço
+					</Text>
+					<Text className="font-inter font-medium text-foreground text-sm">
 						{formatPrice(item.price)}
 					</Text>
 				</View>
 
 				<View className="gap-0.5">
-					<Text className="font-inter text-gray-400 text-xs">Prazo</Text>
-					<Text className="font-inter font-medium text-gray-800 text-sm">
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Prazo
+					</Text>
+					<Text className="font-inter font-medium text-foreground text-sm">
 						{formatDeadline(item.deadline)}
 					</Text>
 				</View>
 
 				<View className="gap-0.5">
-					<Text className="font-inter text-gray-400 text-xs">Tradutor</Text>
-					<Text className="font-inter font-medium text-gray-800 text-sm">
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Tradutor
+					</Text>
+					<Text className="font-inter font-medium text-foreground text-sm">
 						{assignedTranslator?.name ?? 'Não atribuído'}
 					</Text>
 				</View>
 
 				<View className="gap-0.5">
-					<Text className="font-inter text-gray-400 text-xs">Documento</Text>
+					<Text className="font-inter text-foreground-subtle text-xs">
+						Documento
+					</Text>
 					{item.file_url ? (
 						<TouchableOpacity
 							accessibilityRole="link"
@@ -86,15 +96,15 @@ export function WorkflowItemCard({
 							className="min-w-0 max-w-full flex-row items-center gap-1 self-start"
 						>
 							<Text
-								className="min-w-0 flex-shrink font-inter-medium text-blue-700 text-xs"
+								className="min-w-0 flex-shrink font-inter-medium text-primary-text text-xs"
 								numberOfLines={1}
 							>
 								{getTruncatedFileName(item.file_url)}
 							</Text>
-							<ExternalLink size={13} color="#1d4ed8" />
+							<ExternalLink size={13} color={themeColors.primaryText} />
 						</TouchableOpacity>
 					) : (
-						<Text className="font-inter font-medium text-gray-400 text-sm">
+						<Text className="font-inter font-medium text-foreground-subtle text-sm">
 							Nenhum documento anexado
 						</Text>
 					)}
@@ -108,18 +118,18 @@ export function WorkflowItemCard({
 					activeOpacity={0.7}
 					accessibilityRole="button"
 					accessibilityLabel={`Convidar tradutores para ${item.source_language} para ${item.target_language} no workflow`}
-					className={`flex-row items-center gap-1.5 self-start rounded-lg border border-gray-300 px-3 py-2 ${!canWriteAssignments ? 'opacity-40' : ''}`}
+					className={`flex-row items-center gap-1.5 self-start rounded-lg border border-border-strong px-3 py-2 ${!canWriteAssignments ? 'opacity-40' : ''}`}
 				>
-					<UserPlus size={14} color="#353535" />
-					<Text className="font-inter font-semibold text-gray-800 text-xs">
+					<UserPlus size={14} color={themeColors.foreground} />
+					<Text className="font-inter font-semibold text-foreground text-xs">
 						Convidar tradutores
 					</Text>
 				</TouchableOpacity>
 			)}
 
 			{showInvitesList ? (
-				<View className="gap-1.5 border-t border-gray-100 pt-4">
-					<Text className="font-inter font-semibold text-gray-700 text-xs">
+				<View className="gap-1.5 border-t border-border-subtle pt-4">
+					<Text className="font-inter font-semibold text-foreground-secondary text-xs">
 						Convites enviados
 					</Text>
 
@@ -131,7 +141,7 @@ export function WorkflowItemCard({
 								key={invite.id}
 								className="flex-row items-center justify-between gap-2"
 							>
-								<Text className="font-inter text-gray-600 text-xs">
+								<Text className="font-inter text-foreground-secondary text-xs">
 									{translator?.name ?? invite.translator_id}
 								</Text>
 								<InviteStatusBadge status={invite.status} />

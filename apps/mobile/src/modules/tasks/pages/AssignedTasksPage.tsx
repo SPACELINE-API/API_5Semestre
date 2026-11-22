@@ -24,6 +24,7 @@ import type { Task } from '../types/task';
 import { personName } from '../utils/format';
 import { countByStatus } from '../utils/taskStatus';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 type Scope = 'mine' | 'team';
 
 function normalize(value: string) {
@@ -35,6 +36,7 @@ function normalize(value: string) {
 
 // CRIACAO E ACOMPANHAMENTO DAS TAREFAS ATRIBUIDAS PELO USUARIO
 export function AssignedTasksPage() {
+	const themeColors = useThemeColors();
 	const canReview = usePermission('tasks.review');
 	const [scope, setScope] = useState<Scope>('mine');
 	const { tasks, isLoading, error, refresh, replaceTask, addTask } = useTasks(
@@ -78,7 +80,7 @@ export function AssignedTasksPage() {
 	}
 
 	return (
-		<View className="relative flex-1 bg-white">
+		<View className="relative flex-1 bg-surface">
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerClassName="px-5 py-6 md:px-10 md:py-8 md:max-w-[1200px] md:w-full md:self-center"
@@ -87,7 +89,7 @@ export function AssignedTasksPage() {
 
 				<View className="mb-6 gap-4">
 					<View className="flex-row flex-wrap items-center justify-between gap-3">
-						<Text className="font-inter text-gray-500 text-sm">
+						<Text className="font-inter text-foreground-muted text-sm">
 							{tasks.length} {tasks.length === 1 ? 'tarefa' : 'tarefas'}
 							{counts.in_review > 0
 								? ` · ${counts.in_review} aguardando avaliação`
@@ -98,10 +100,10 @@ export function AssignedTasksPage() {
 							activeOpacity={0.8}
 							accessibilityRole="button"
 							accessibilityLabel="Nova tarefa"
-							className="flex-row items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5"
+							className="flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5"
 						>
-							<Plus size={18} color="#FFFFFF" />
-							<Text className="font-inter font-medium text-sm text-white">
+							<Plus size={18} color={themeColors.primaryForeground} />
+							<Text className="font-inter font-medium text-sm text-primary-foreground">
 								Nova tarefa
 							</Text>
 						</TouchableOpacity>
@@ -126,15 +128,15 @@ export function AssignedTasksPage() {
 										accessibilityLabel={`Mostrar ${option.label.toLowerCase()}`}
 										className={`rounded-lg border px-3 py-1.5 ${
 											selectedScope
-												? 'border-blue-600 bg-blue-50'
-												: 'border-gray-200 bg-white'
+												? 'border-primary bg-primary-soft'
+												: 'border-border bg-surface'
 										}`}
 									>
 										<Text
 											className={`font-inter text-xs ${
 												selectedScope
-													? 'font-semibold text-blue-700'
-													: 'font-medium text-gray-600'
+													? 'font-semibold text-primary-text'
+													: 'font-medium text-foreground-secondary'
 											}`}
 										>
 											{option.label}
@@ -147,15 +149,15 @@ export function AssignedTasksPage() {
 
 					{!isLoading && !error && tasks.length > 0 && (
 						<>
-							<View className="flex-row items-center gap-2 rounded-lg border border-gray-300 px-3">
-								<Search size={16} color="#9CA3AF" />
+							<View className="flex-row items-center gap-2 rounded-lg border border-border-strong px-3">
+								<Search size={16} color={themeColors.foregroundSubtle} />
 								<TextInput
 									value={search}
 									onChangeText={setSearch}
 									placeholder="Buscar por funcionário ou descrição"
-									placeholderTextColor="#9CA3AF"
+									placeholderTextColor={themeColors.foregroundSubtle}
 									accessibilityLabel="Buscar tarefas"
-									className="flex-1 py-2.5 font-inter text-sm text-gray-900 outline-none"
+									className="flex-1 py-2.5 font-inter text-sm text-foreground outline-none"
 								/>
 							</View>
 							<TaskStatusFilter

@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { init, use, type EChartsType } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
 import './registerCharts';
+import { themeChartOption } from './chartTheme';
+import { useThemeColors } from '../../theme/ThemeProvider';
 import type { EChartProps } from './types';
 
 use([CanvasRenderer]);
@@ -11,6 +13,11 @@ export function EChart({
 	height = 300,
 	accessibilityLabel,
 }: EChartProps) {
+	const themeColors = useThemeColors();
+	const themedOption = useMemo(
+		() => themeChartOption(option, themeColors),
+		[option, themeColors],
+	);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const chartRef = useRef<EChartsType | null>(null);
 
@@ -32,8 +39,8 @@ export function EChart({
 	}, []);
 
 	useEffect(() => {
-		chartRef.current?.setOption(option, { notMerge: true });
-	}, [option]);
+		chartRef.current?.setOption(themedOption, { notMerge: true });
+	}, [themedOption]);
 
 	return (
 		<div

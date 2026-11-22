@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { TriangleAlert } from 'lucide-react-native';
 
+import { useThemeColors } from '../../../shared/theme/ThemeProvider';
 const TOOLTIP_MAX_WIDTH = 256;
 const SCREEN_GUTTER = 16;
 
@@ -49,6 +50,7 @@ export function ReopenedQuoteIndicator({
 	reopenCount = 1,
 	onOpenChange,
 }: ReopenedQuoteIndicatorProps) {
+	const themeColors = useThemeColors();
 	const [open, setOpen] = useState(false);
 	const [offset, setOffset] = useState(0);
 	const hovered = useRef(false);
@@ -87,25 +89,25 @@ export function ReopenedQuoteIndicator({
 					hovered.current = false;
 					changeOpen(false);
 				}}
-				className="h-6 w-6 items-center justify-center rounded-full bg-amber-100"
+				className="h-6 w-6 items-center justify-center rounded-full bg-warning-soft"
 			>
-				<TriangleAlert size={14} color="#d97706" />
+				<TriangleAlert size={14} color={themeColors.warning} />
 			</Pressable>
 			{open ? (
 				<View
 					accessibilityRole="alert"
 					testID="reopened-quote-tooltip"
-					className="absolute top-8 rounded-lg border border-amber-200 bg-amber-50 p-3 shadow-md"
+					className="absolute top-8 rounded-lg border border-warning/40 bg-warning-soft p-3 shadow-md"
 					style={{ left: offset, width: tooltipWidth }}
 				>
-					<Text className="font-inter-semibold text-xs text-amber-900">
+					<Text className="font-inter-semibold text-xs text-warning-text">
 						Orçamento reaberto
 					</Text>
-					<Text className="mt-1 font-inter text-xs text-amber-800">
+					<Text className="mt-1 font-inter text-xs text-warning-text">
 						{reopenedQuoteMessage({ reopenedAt, reopenedByEmail, reopenCount })}
 					</Text>
 					{reason ? (
-						<Text className="mt-1 font-inter text-xs text-amber-800">
+						<Text className="mt-1 font-inter text-xs text-warning-text">
 							Motivo: {reason}
 						</Text>
 					) : null}
