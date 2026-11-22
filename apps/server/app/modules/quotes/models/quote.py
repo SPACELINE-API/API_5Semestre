@@ -69,6 +69,7 @@ class Quote(Base):
     original_language: Mapped[str | None] = mapped_column(String(50), nullable=True)
     translation_language: Mapped[str | None] = mapped_column(String(50), nullable=True)
     customer_need: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Comprovante comercial gerado na aprovação
     receipt_status: Mapped[str | None] = mapped_column(String(20), nullable=True)

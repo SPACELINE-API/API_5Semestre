@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.modules.clients.models.company import Company
@@ -869,10 +870,8 @@ def future_deadline(days: int = 10) -> datetime:
     return target.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-def test_generate_from_quote_copies_word_count_and_deadline(db_session: Session) -> None:
-    company = make_company(db_session)
-    deadline = future_deadline()
-    quote = Quote(status="approved")
+def make_quote_with_project_deadline(db_session: Session, deadline: datetime) -> Quote:
+    quote = Quote(status="approved", deadline=deadline)
     quote.items.append(
         QuoteTranslationItem(
             source_language="pt-BR",
@@ -880,89 +879,257 @@ def test_generate_from_quote_copies_word_count_and_deadline(db_session: Session)
             document_type="contrato",
             word_count=1200,
             estimated_value=Decimal("100.00"),
-            deadline=deadline,
         )
-    )
-    quote.items.append(
-        QuoteTranslationItem(source_language="pt-BR", target_language="es-ES", word_count=300)
     )
     db_session.add(quote)
     db_session.commit()
+    return quote
+
+
+def test_generate_from_quote_copies_word_count_and_project_deadline(db_session: Session) -> None:
+    company = make_company(db_session)
+    deadline = future_deadline(30)
+    quote = make_quote_with_project_deadline(db_session, deadline)
 
     response = ServiceOrderService(db_session).generate_from_quote(
         GenerateServiceOrderRequest(
-            quote_id=quote.id, company_id=company.id, project_name="Projeto com prazos"
+            quote_id=quote.id, company_id=company.id, project_name="Projeto com prazo"
         )
     )
 
-    by_target = {item.target_language: item for item in response.items}
-    assert by_target["en-US"].word_count == 1200
-    assert by_target["en-US"].deadline == deadline
-    assert by_target["es-ES"].word_count == 300
-    assert by_target["es-ES"].deadline is None
+    assert response.deadline == deadline
+    assert response.items[0].word_count == 1200
+    assert response.items[0].deadline is None
 
 
-def test_sync_copies_changed_deadline_and_records_it_in_the_version(
+def test_generate_from_quote_prefers_the_deadline_sent_in_the_request(db_session: Session) -> None:
+    company = make_company(db_session)
+    quote = make_quote_with_project_deadline(db_session, future_deadline(30))
+    requested = future_deadline(15)
+
+    response = ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id,
+            company_id=company.id,
+            project_name="Projeto com prazo",
+            deadline=requested,
+        )
+    )
+
+    assert response.deadline == requested
+
+
+def test_sync_updates_the_project_deadline_and_keeps_document_deadlines(
     db_session: Session,
 ) -> None:
     company = make_company(db_session)
-    first_deadline = future_deadline(10)
-    second_deadline = future_deadline(20)
-    quote = Quote(status="approved")
-    quote.items.append(
-        QuoteTranslationItem(
-            source_language="pt-BR",
-            target_language="en-US",
-            word_count=1200,
-            deadline=first_deadline,
-        )
-    )
-    db_session.add(quote)
-    db_session.commit()
+    quote = make_quote_with_project_deadline(db_session, future_deadline(30))
     ServiceOrderService(db_session).generate_from_quote(
         GenerateServiceOrderRequest(
             quote_id=quote.id, company_id=company.id, project_name="Projeto sincronizado"
         )
     )
     service_order = quote.service_orders[0]
+    item_deadline = future_deadline(20)
+    service_order.items[0].deadline = item_deadline
+    db_session.commit()
+    new_project_deadline = future_deadline(45)
 
-    quote.items[0].deadline = second_deadline
-    quote.items[0].word_count = 1500
-    version = sync_service_order_with_quote(
-        db_session, quote, service_order, "atendimento@teste.com"
-    )
+    quote.deadline = new_project_deadline
+    version = sync_service_order_with_quote(db_session, quote, service_order, "atendimento@teste.com")
     db_session.commit()
 
-    item = service_order.items[0]
-    assert item.deadline == second_deadline
-    assert item.word_count == 1500
-    fields = version.changes[0]["fields"]
-    assert fields["deadline"] == {
-        "before": first_deadline.date().isoformat(),
-        "after": second_deadline.date().isoformat(),
+    assert service_order.deadline == new_project_deadline
+    assert service_order.items[0].deadline == item_deadline
+    change = next(item for item in version.changes if item["item"] == "Prazo do projeto")
+    assert change["fields"]["deadline"] == {
+        "before": future_deadline(30).date().isoformat(),
+        "after": new_project_deadline.date().isoformat(),
     }
-    assert fields["word_count"] == {"before": 1200, "after": 1500}
 
 
-def test_sync_keeps_order_deadline_when_quote_document_has_no_deadline(
-    db_session: Session,
-) -> None:
+def test_sync_keeps_the_order_deadline_when_the_quote_has_none(db_session: Session) -> None:
     company = make_company(db_session)
-    quote = Quote(status="approved")
-    quote.items.append(QuoteTranslationItem(source_language="pt-BR", target_language="en-US"))
-    db_session.add(quote)
-    db_session.commit()
+    deadline = future_deadline(30)
+    quote = make_quote_with_project_deadline(db_session, deadline)
     ServiceOrderService(db_session).generate_from_quote(
         GenerateServiceOrderRequest(
-            quote_id=quote.id, company_id=company.id, project_name="Projeto sem prazo"
+            quote_id=quote.id, company_id=company.id, project_name="Projeto sem prazo novo"
         )
     )
     service_order = quote.service_orders[0]
-    kept = future_deadline(5)
-    service_order.items[0].deadline = kept
+    quote.deadline = None
     db_session.commit()
 
     sync_service_order_with_quote(db_session, quote, service_order, None)
     db_session.commit()
 
-    assert service_order.items[0].deadline == kept
+    assert service_order.deadline == deadline
+
+
+def test_documents_after_deadline_lists_only_the_late_ones(db_session: Session) -> None:
+    from app.modules.service_orders.services.quote_sync_service import documents_after_deadline
+
+    company = make_company(db_session)
+    quote = make_quote_with_project_deadline(db_session, future_deadline(30))
+    quote.items.append(QuoteTranslationItem(source_language="pt-BR", target_language="es-ES"))
+    db_session.commit()
+    ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id, company_id=company.id, project_name="Projeto com atraso"
+        )
+    )
+    service_order = quote.service_orders[0]
+    by_target = {item.target_language: item for item in service_order.items}
+    by_target["en-US"].deadline = future_deadline(10)
+    by_target["es-ES"].deadline = future_deadline(40)
+
+    late = documents_after_deadline(service_order)
+
+    assert len(late) == 1
+    assert "es-ES" in late[0]
+
+
+def test_set_item_deadline_works_on_an_order_linked_to_a_quote(db_session: Session) -> None:
+    company = make_company(db_session)
+    quote = make_quote_with_project_deadline(db_session, future_deadline(30))
+    order = ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id, company_id=company.id, project_name="Projeto vinculado"
+        )
+    )
+    deadline = future_deadline(12)
+
+    response = ServiceOrderService(db_session).set_item_deadline(order.items[0].id, deadline)
+
+    assert response.deadline == deadline
+
+
+def test_set_item_deadline_rejects_a_date_after_the_project_deadline(db_session: Session) -> None:
+    company = make_company(db_session)
+    quote = make_quote_with_project_deadline(db_session, future_deadline(30))
+    order = ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id, company_id=company.id, project_name="Projeto vinculado"
+        )
+    )
+
+    with pytest.raises(HTTPException) as error:
+        ServiceOrderService(db_session).set_item_deadline(order.items[0].id, future_deadline(31))
+
+    assert error.value.status_code == 422
+    assert "depois do prazo final do projeto" in error.value.detail
+
+
+def test_set_item_deadline_accepts_the_project_deadline_itself(db_session: Session) -> None:
+    company = make_company(db_session)
+    project_deadline = future_deadline(30)
+    quote = make_quote_with_project_deadline(db_session, project_deadline)
+    order = ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id, company_id=company.id, project_name="Projeto vinculado"
+        )
+    )
+
+    response = ServiceOrderService(db_session).set_item_deadline(
+        order.items[0].id, project_deadline
+    )
+
+    assert response.deadline == project_deadline
+
+
+def test_set_item_deadline_rejects_a_date_before_today(db_session: Session) -> None:
+    company = make_company(db_session)
+    quote = make_quote_with_project_deadline(db_session, future_deadline(30))
+    order = ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id, company_id=company.id, project_name="Projeto vinculado"
+        )
+    )
+
+    with pytest.raises(HTTPException) as error:
+        ServiceOrderService(db_session).set_item_deadline(order.items[0].id, future_deadline(-3))
+
+    assert error.value.status_code == 422
+    assert "anterior" in error.value.detail
+
+
+def test_set_item_deadline_not_found_raises_404(db_session: Session) -> None:
+    with pytest.raises(HTTPException) as error:
+        ServiceOrderService(db_session).set_item_deadline(uuid.uuid4(), future_deadline(5))
+
+    assert error.value.status_code == 404
+
+
+def test_linked_order_rejects_a_new_project_deadline_but_accepts_the_same_one(
+    db_session: Session,
+) -> None:
+    company = make_company(db_session)
+    deadline = future_deadline(30)
+    quote = make_quote_with_project_deadline(db_session, deadline)
+    order = ServiceOrderService(db_session).generate_from_quote(
+        GenerateServiceOrderRequest(
+            quote_id=quote.id, company_id=company.id, project_name="Projeto vinculado"
+        )
+    )
+    service = ServiceOrderService(db_session)
+
+    same = service.update_service_order(order.id, UpdateServiceOrderRequest(deadline=deadline))
+    with pytest.raises(HTTPException) as error:
+        service.update_service_order(
+            order.id, UpdateServiceOrderRequest(deadline=future_deadline(40))
+        )
+
+    assert same.deadline == deadline
+    assert error.value.status_code == 409
+    assert "definido no orçamento" in error.value.detail
+
+
+def test_manual_order_rejects_item_deadline_after_the_project_deadline(
+    db_session: Session,
+) -> None:
+    company = make_company(db_session)
+    service = ServiceOrderService(db_session)
+
+    with pytest.raises(HTTPException) as error:
+        service.create_manual(
+            ManualServiceOrderRequest(
+                company_id=company.id,
+                project_name="Projeto manual",
+                deadline=future_deadline(10),
+                items=[
+                    CreateServiceOrderItemRequest(
+                        source_language="pt-BR",
+                        target_language="en-US",
+                        deadline=future_deadline(20),
+                    )
+                ],
+            )
+        )
+
+    assert error.value.status_code == 422
+
+
+def test_add_item_to_manual_order_rejects_deadline_after_the_project_deadline(
+    db_session: Session,
+) -> None:
+    company = make_company(db_session)
+    service = ServiceOrderService(db_session)
+    order = service.create_manual(
+        ManualServiceOrderRequest(
+            company_id=company.id,
+            project_name="Projeto manual",
+            deadline=future_deadline(10),
+            items=[CreateServiceOrderItemRequest(source_language="pt-BR", target_language="en-US")],
+        )
+    )
+
+    with pytest.raises(HTTPException) as error:
+        service.add_item(
+            order.id,
+            CreateServiceOrderItemRequest(
+                source_language="pt-BR", target_language="es-ES", deadline=future_deadline(20)
+            ),
+        )
+
+    assert error.value.status_code == 422

@@ -12,7 +12,6 @@ class QuoteTranslationItemCreate(BaseModel):
     file_url: str | None = None
     word_count: int | None = Field(default=None, ge=0)
     estimated_value: Decimal | None = None
-    deadline: datetime | None = None
 
 
 class QuoteTranslationItemUpdate(BaseModel):
@@ -22,7 +21,6 @@ class QuoteTranslationItemUpdate(BaseModel):
     file_url: str | None = None
     word_count: int | None = Field(default=None, ge=0)
     estimated_value: Decimal | None = None
-    deadline: datetime | None = None
 
 
 class QuoteTranslationItemResponse(BaseModel):
@@ -34,7 +32,6 @@ class QuoteTranslationItemResponse(BaseModel):
     file_url: str | None = None
     word_count: int | None = None
     estimated_value: Decimal | None = None
-    deadline: datetime | None = None
     created_at: datetime
     updated_at: datetime
 

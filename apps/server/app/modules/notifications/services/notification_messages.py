@@ -133,6 +133,7 @@ def quote_changes_message(
     company_name: str | None,
     project_name: str,
     changes: list[dict[str, Any]],
+    late_documents: list[str] | None = None,
 ) -> NotificationMessage:
     display_name = (company_name or "não identificada").strip()
     message = (
@@ -142,6 +143,13 @@ def quote_changes_message(
     description = describe_changes(changes)
     if description:
         message += f" {description}"
+    if late_documents:
+        count = len(late_documents)
+        noun = "documento está" if count == 1 else "documentos estão"
+        message += (
+            f" Atenção: {count} {noun} com prazo depois do prazo final do projeto: "
+            f"{'; '.join(late_documents)}."
+        )
     return NotificationMessage(
         event_type="quote_updated",
         title="Orçamento atualizado",

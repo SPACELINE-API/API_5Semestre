@@ -74,6 +74,11 @@ def db_client(isolated_db_session: Session, monkeypatch):
         app.dependency_overrides.clear()
 
 
+def project_deadline(days: int) -> datetime:
+    target = datetime.now(UTC) + timedelta(days=days)
+    return target.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
 def make_quote(db: Session, status: str) -> Quote:
     company = Company(
         legal_name="Empresa de Teste Ltda",
@@ -89,7 +94,12 @@ def make_quote(db: Session, status: str) -> Quote:
         city="Sao Paulo",
         state="SP",
     )
-    quote = Quote(company=company, status=status, customer_name="Maria Teste")
+    quote = Quote(
+        company=company,
+        status=status,
+        customer_name="Maria Teste",
+        deadline=project_deadline(30),
+    )
     quote.items = [
         QuoteTranslationItem(
             source_language="pt-BR",
@@ -1149,55 +1159,121 @@ def test_terms_pdf_requires_a_valid_link(db_client: TestClient):
     assert response.status_code == 404
 
 
-def future_deadline(days: int) -> datetime:
-    target = datetime.now(UTC) + timedelta(days=days)
-    return target.replace(hour=0, minute=0, second=0, microsecond=0)
-
-
-def test_approval_copies_deadline_to_service_order(
+def test_approval_copies_the_project_deadline_to_the_service_order(
     db_client: TestClient, isolated_db_session: Session
 ):
     quote = make_quote(isolated_db_session, "draft")
-    deadline = future_deadline(10)
-    quote.items[0].deadline = deadline
-    isolated_db_session.commit()
 
     order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
 
+    assert order.deadline == quote.deadline
     os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
-    assert os_item.deadline == deadline
+    assert os_item.deadline is None
 
 
-def test_reapproval_updates_deadline_in_service_order(
+def test_reapproval_updates_the_project_deadline_and_keeps_document_deadlines(
     db_client: TestClient, isolated_db_session: Session
 ):
     quote = make_quote(isolated_db_session, "draft")
-    first = future_deadline(10)
-    second = future_deadline(20)
-    quote.items[0].deadline = first
-    isolated_db_session.commit()
     order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
+    os_item.deadline = project_deadline(20)
+    isolated_db_session.commit()
+    new_deadline = project_deadline(50)
 
     assert (
         db_client.patch(
-            f"/api/quotes/{quote.id}/translation-items/{quote.items[0].id}",
-            json={"deadline": second.isoformat()},
+            f"/api/quotes/{quote.id}", json={"deadline": new_deadline.isoformat()}
         )
     ).status_code == 200
     reapprove(db_client, quote)
 
     isolated_db_session.expire_all()
-    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
-    assert os_item.deadline == second
+    order = isolated_db_session.get(ServiceOrder, order.id)
+    assert order.deadline == new_deadline
+    assert order.items[0].deadline == project_deadline(20)
     version = (
         isolated_db_session.query(ServiceOrderVersion)
         .filter_by(service_order_id=order.id, version=2)
         .one()
     )
-    assert version.changes[0]["fields"]["deadline"] == {
-        "before": first.date().isoformat(),
-        "after": second.date().isoformat(),
+    change = next(item for item in version.changes if item["item"] == "Prazo do projeto")
+    assert change["fields"]["deadline"] == {
+        "before": project_deadline(30).date().isoformat(),
+        "after": new_deadline.date().isoformat(),
     }
+
+
+def test_send_requires_the_project_deadline(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "draft")
+    quote.deadline = None
+    isolated_db_session.commit()
+
+    response = db_client.post(f"/api/quotes/{quote.id}/send")
+
+    assert response.status_code == 422
+    assert "prazo final de entrega do projeto" in response.json()["detail"]
+    sent_emails.assert_not_called()
+
+
+def test_deadline_cannot_be_set_before_today(db_client: TestClient, isolated_db_session: Session):
+    quote = make_quote(isolated_db_session, "draft")
+
+    response = db_client.patch(
+        f"/api/quotes/{quote.id}", json={"deadline": project_deadline(-3).isoformat()}
+    )
+
+    assert response.status_code == 422
+    assert "anterior" in response.json()["detail"]
+
+
+def test_resending_an_unchanged_past_deadline_is_accepted(
+    db_client: TestClient, isolated_db_session: Session
+):
+    quote = make_quote(isolated_db_session, "draft")
+    past = project_deadline(-2)
+    quote.deadline = past
+    isolated_db_session.commit()
+
+    response = db_client.patch(
+        f"/api/quotes/{quote.id}", json={"deadline": past.isoformat(), "customer_name": "Maria"}
+    )
+
+    assert response.status_code == 200
+
+
+def test_new_quote_can_start_with_customer_data_and_project_deadline(
+    db_client: TestClient, isolated_db_session: Session
+):
+    company = make_quote(isolated_db_session, "draft").company
+    deadline = project_deadline(15)
+
+    response = db_client.post(
+        "/api/quotes",
+        json={
+            "company_id": str(company.id),
+            "customer_name": "Ana Souza",
+            "email": "ana@example.com",
+            "customer_need": "Contrato social",
+            "deadline": deadline.isoformat(),
+        },
+    )
+
+    assert response.status_code == 201
+    created = isolated_db_session.get(Quote, uuid.UUID(response.json()["id"]))
+    assert created.customer_name == "Ana Souza"
+    assert created.email == "ana@example.com"
+    assert created.customer_need == "Contrato social"
+    assert created.deadline == deadline
+    assert response.json()["deadline"].startswith(deadline.date().isoformat())
+
+
+def test_new_quote_rejects_a_project_deadline_before_today(
+    db_client: TestClient, isolated_db_session: Session
+):
+    response = db_client.post("/api/quotes", json={"deadline": project_deadline(-3).isoformat()})
+
+    assert response.status_code == 422
 
 
 def test_reopen_notifies_service_order_managers(
@@ -1263,3 +1339,26 @@ def test_reapproval_without_changes_does_not_notify_managers(
     reapprove(db_client, quote)
 
     assert isolated_db_session.query(Notification).filter_by(event_type="quote_updated").count() == 0
+
+
+def test_reapproval_warns_about_documents_scheduled_after_the_new_project_deadline(
+    db_client: TestClient, isolated_db_session: Session
+):
+    make_user(isolated_db_session, ("service_orders.write",))
+    quote = make_quote(isolated_db_session, "draft")
+    order = approve_reopen_and_get_order(db_client, isolated_db_session, quote)
+    os_item = isolated_db_session.query(ServiceOrderItem).filter_by(service_order_id=order.id).one()
+    os_item.deadline = project_deadline(25)
+    isolated_db_session.commit()
+    assert (
+        db_client.patch(
+            f"/api/quotes/{quote.id}", json={"deadline": project_deadline(10).isoformat()}
+        )
+    ).status_code == 200
+
+    reapprove(db_client, quote)
+
+    notification = isolated_db_session.query(Notification).filter_by(event_type="quote_updated").one()
+    assert "Atenção: 1 documento está com prazo depois do prazo final do projeto" in (
+        notification.message
+    )

@@ -32,6 +32,7 @@ from app.modules.service_orders.schemas.service_order import (
     ServiceOrderItemResponse,
     ServiceOrderResponse,
     ServiceOrderVersionResponse,
+    SetItemDeadlineRequest,
     UpdateServiceOrderItemRequest,
     UpdateServiceOrderRequest,
 )
@@ -351,6 +352,19 @@ def update_service_order_item(
         file_data=file.file if file else None,
         content_type=(file.content_type or "application/octet-stream") if file else None,
     )
+
+
+@router.patch(
+    "/items/{item_id}/deadline",
+    response_model=ServiceOrderItemResponse,
+)
+def set_service_order_item_deadline(
+    item_id: uuid.UUID,
+    data: SetItemDeadlineRequest,
+    _user=Depends(service_orders_write_permission),
+    db: Session = Depends(get_db),
+):
+    return ServiceOrderService(db).set_item_deadline(item_id, data.deadline)
 
 
 @router.post(
