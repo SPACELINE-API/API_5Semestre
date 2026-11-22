@@ -1296,15 +1296,13 @@ export function QuoteCard({
 								/>
 								<QuoteField label="E-mail" value={display(quote.email)} />
 								{canEditQuote ? (
-									<View className="min-w-[220px]">
-										<CompanyLinkField
-											label="Empresa"
-											companies={companies}
-											companyId={quote.company_id ?? null}
-											onSelectCompany={handleLinkCompany}
-											onRequestCreate={requestCreateCompany}
-										/>
-									</View>
+									<CompanyLinkField
+										label="Empresa"
+										companies={companies}
+										companyId={quote.company_id ?? null}
+										onSelectCompany={handleLinkCompany}
+										onRequestCreate={requestCreateCompany}
+									/>
 								) : (
 									<QuoteField
 										label="Empresa"
